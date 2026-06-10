@@ -6,21 +6,17 @@ name = "referee-fyi-share"
 compatibility_date = "2024-05-02"
 main = "./src/index.ts"
 kv_namespaces = [
-    { binding = "SHARES", id = "667b3f219f284aa7b4a88d37044ae9d9" },
-    { binding = "INVITATIONS", id = "bf2c971507354390ba314b8e18b4e908" },
-    { binding = "USERS", id = "5af999adc77a401880ed7339dd3c02c2" },
-    { binding = "REQUEST_CODES", id = "8aff2d84d528425689cd1d110053313f" },
-    { binding = "SYSTEM_KEYS", id = "57ca4e6108bb4f3a8ac1a069d68aaae8" },
-    { binding = "ASSETS", id = "b7df12c587e3445d823e33fc1a4a213e" },
+    { binding = "SHARES", id = "2ce07a6334454e018aa07a1adacbaae9" },
+    { binding = "INVITATIONS", id = "f5c4fb7590e94433871d617492362aad" },
+    { binding = "USERS", id = "b3a8d6eff5d54a79b2b0dd8156d07a8b" },
+    { binding = "REQUEST_CODES", id = "fc4f29cb06d44fe5b7356a224605ffb8" },
+    { binding = "SYSTEM_KEYS", id = "946437fe93124c53a120911049cb68da" },
+    { binding = "ASSETS", id = "a38afb0b7a7641e4a007a499366c56bb" },
 ]
-routes = [
-    { pattern = "share.referee.fyi", custom_domain = true },
-    { pattern = "referee.fyi/api/*", zone_name = "referee.fyi" },
-]
-logpush = true
-tail_consumers = [{ service = "referee-fyi-share-tail" }]
+workers_dev = true
 
 [env.prod.vars]
+# TODO: replace with your own Cloudflare account email and Images account id
 CLOUDFLARE_EMAIL = "brendan@bren.app"
 CLOUDFLARE_IMAGES_ACCOUNT_ID = "f9b9e088206092e25d77f0def608c799"
 
@@ -29,17 +25,18 @@ name = "referee-fyi-share-staging"
 compatibility_date = "2024-05-02"
 main = "./src/index.ts"
 kv_namespaces = [
-    { binding = "SHARES", id = "667b3f219f284aa7b4a88d37044ae9d9", preview_id = "667b3f219f284aa7b4a88d37044ae9d9" },
-    { binding = "INVITATIONS", id = "bf2c971507354390ba314b8e18b4e908", preview_id = "bf2c971507354390ba314b8e18b4e908" },
-    { binding = "USERS", id = "5af999adc77a401880ed7339dd3c02c2", preview_id = "5af999adc77a401880ed7339dd3c02c2" },
-    { binding = "REQUEST_CODES", id = "8aff2d84d528425689cd1d110053313f", preview_id = "8aff2d84d528425689cd1d110053313f" },
-    { binding = "SYSTEM_KEYS", id = "57ca4e6108bb4f3a8ac1a069d68aaae8", preview_id = "57ca4e6108bb4f3a8ac1a069d68aaae8" },
-    { binding = "ASSETS", id = "a0a3ad56955b4c829f6756a69ae48d39" },
+    { binding = "SHARES", id = "2ce07a6334454e018aa07a1adacbaae9", preview_id = "2ce07a6334454e018aa07a1adacbaae9" },
+    { binding = "INVITATIONS", id = "f5c4fb7590e94433871d617492362aad", preview_id = "f5c4fb7590e94433871d617492362aad" },
+    { binding = "USERS", id = "b3a8d6eff5d54a79b2b0dd8156d07a8b", preview_id = "b3a8d6eff5d54a79b2b0dd8156d07a8b" },
+    { binding = "REQUEST_CODES", id = "fc4f29cb06d44fe5b7356a224605ffb8", preview_id = "fc4f29cb06d44fe5b7356a224605ffb8" },
+    { binding = "SYSTEM_KEYS", id = "946437fe93124c53a120911049cb68da", preview_id = "946437fe93124c53a120911049cb68da" },
+    { binding = "ASSETS", id = "a38afb0b7a7641e4a007a499366c56bb" },
 ]
-logpush = true
+workers_dev = true
 
 
 [env.staging.vars]
+# TODO: replace with your own Cloudflare account email and Images account id
 CLOUDFLARE_EMAIL = "brendan@bren.app"
 CLOUDFLARE_IMAGES_ACCOUNT_ID = "f9b9e088206092e25d77f0def608c799"
 
@@ -53,8 +50,4 @@ class_name = "ShareInstance"
 
 [[migrations]]
 tag = "v1"
-new_classes = ["EventIncidents"]
-
-[[migrations]]
-tag = "v2"
-renamed_classes = [{ from = "EventIncidents", to = "ShareInstance" }]
+new_sqlite_classes = ["ShareInstance"]
