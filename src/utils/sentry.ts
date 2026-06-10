@@ -1,0 +1,68 @@
+import {
+  init,
+  browserTracingIntegration,
+  setUser,
+  setMeasurement,
+} from "@sentry/react";
+import type { MeasurementUnit } from "@sentry/types";
+import { queryClient } from "./data/query";
+import { getShareProfile } from "./data/share";
+
+export async function clearCache() {
+  // Invalidate All Queries
+  await queryClient.invalidateQueries({ type: "all" });
+
+  // Unregister Service Workers
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const registration of registrations) {
+      await registration.unregister();
+    }
+  }
+
+  // Reload
+  window.location.reload();
+}
+
+export const client = init({
+  dsn: "https://0aecdc6c41674e7cf3b4a39ec939ed9c@o4507708571910144.ingest.us.sentry.io/4507708573286400",
+  integrations: [browserTracingIntegration()],
+  attachStacktrace: true,
+  environment: import.meta.env.MODE,
+  enabled:
+    import.meta.env.MODE === "production" ||
+    import.meta.env.VITE_REFEREE_FYI_ENABLE_SENTRY,
+  // Performance Monitoring
+  tracesSampleRate: 1.0, //  Capture 100% of the transactions
+  // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
+  tracePropagationTargets: ["localhost", /^https:\/\/referee\.fyi\/api/],
+});
+
+window.addEventListener("load", async () => {
+  // Initialize user
+  const profile = await getShareProfile();
+  if (profile) {
+    setUser({
+      id: profile.key,
+      username: profile.name,
+    });
+  }
+});
+
+export function reportMeasurement(
+  name: string,
+  value: number,
+  unit: MeasurementUnit
+) {
+  return setMeasurement(name, value, unit);
+}
+
+export function measure(name: string, executor: () => void) {
+  const start = performance.now();
+  executor();
+  const end = performance.now();
+
+  const duration = end - start;
+  reportMeasurement(name, duration, "millisecond");
+  return duration;
+}
