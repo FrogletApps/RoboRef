@@ -52,7 +52,12 @@ export default defineConfig(() => ({
       mode: [Mode.REACT],
     }),
     vitePluginVersionMark({
-      name: "RoboRef",
+      // NOTE: this name derives the build-time global __REFEREE_FYI_VERSION__
+      // (see src/vite-env.d.ts and usages). It is NOT user-facing — do not
+      // rebrand it or the global is renamed and every reference breaks.
+      // TODO: fix this later — rename the global to __ROBOREF_VERSION__ across
+      // all references so this name can match the rebrand.
+      name: "Referee FYI",
       ifGitSHA: true,
       version: `${process.env.CF_PAGES_COMMIT_SHA}`,
     }),
