@@ -1,7 +1,7 @@
-# [Referee FYI](https://referee.fyi)
+# [RoboReferee](https://referee.fyi)
 
-Referee FYI is a digital anomaly log for Head Referees in robotics competitions.
-Referee FYI allows you to record violations quickly, see summaries before a
+RoboReferee is a digital anomaly log for Head Referees in robotics competitions.
+RoboReferee allows you to record violations quickly, see summaries before a
 match, and share your log with others. It designed to replace the paper entries
 referees would use before, and is meant to complement existing competition
 technology tooling.

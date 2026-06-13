@@ -62,7 +62,7 @@ export const SettingsPage: React.FC = () => {
         <Info message="System Key Enabled" className="mt-4" />
       ) : null}
       <section className="mt-4">
-        <h2 className="font-bold">Report Issues with Referee FYI</h2>
+        <h2 className="font-bold">Report Issues with RoboReferee</h2>
         <p>
           Information about your current session will be included in your report
         </p>

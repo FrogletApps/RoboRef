@@ -1,6 +1,6 @@
 # Integration API
 
-Referee FYI supports an integration API that allows third-party applications to
+RoboReferee supports an integration API that allows third-party applications to
 pull data from a sharing instance with the permission of an administrator on
 that instance. _Currently, this integration supports readonly access to Incident
 data._

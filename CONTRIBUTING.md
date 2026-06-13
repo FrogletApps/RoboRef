@@ -1,43 +1,43 @@
 # Contributing
 
-Thanks for your interest in contributing to Referee FYI. Read this guide for an
+Thanks for your interest in contributing to RoboReferee. Read this guide for an
 overview of how to get started! For an overview of the project, see the
 [`README`](https://github.com/brenapp/referee.fyi)
 
 ## Design Principles & Goals
 
-Referee FYI is designed to be a progressive web app that is primarily intended
+RoboReferee is designed to be a progressive web app that is primarily intended
 to be used for mobile devices. We anticipate that many of the referees using
 this application will be situated in facilities with poor internet connections.
 We also anticipate that some users may need to install and join a share instance
 quickly after learning about the application for the first time that day. These
 constraints drive a lot of our technical decisions:
 
-1. Referee FYI should be available from the web and quick to install even on
+1. RoboReferee should be available from the web and quick to install even on
    bad internet connections. We should strive for the entire application to be
    less than 5 MB so it can be easily installed from poor internet during an
    event.
-2. Referee FYI should make no assumptions about network connectivity once
+2. RoboReferee should make no assumptions about network connectivity once
    installed. We depend on the Internet for RobotEvents data and
    the sharing server (if used). However, the user should be able to perform all
    actions, even when offline, and the application should reconcile those
    changes when connectivity is restored. This includes strong caching for
    RobotEvents data.
-4. Referee FYI should be designed first for small, touch-friendly devices, even
+4. RoboReferee should be designed first for small, touch-friendly devices, even
    at the expense of the desktop.
-5. Referee FYI should protect incident data very carefully. The safest place
+5. RoboReferee should protect incident data very carefully. The safest place
    Incident data can be stored on the user's device.
 6. Sharing content between devices must be quick, reliable, and automatic. Users
    must trust that they are seeing the entire set of data at all times, whenever
    possible.
-7. The job of a referee is not to enter data into our system. Referee FYI is just
+7. The job of a referee is not to enter data into our system. RoboReferee is just
    one tool that helps referees do their job. They should be able to quickly make
    a note after a match and then put their device away, trusting that everything
    will be handled. 
 
 ### Non-Goals
 
-1. Referee FYI does not replace Tournament Manager, RobotEvents, or TM Mobile.
+1. RoboReferee does not replace Tournament Manager, RobotEvents, or TM Mobile.
    We are aiming to replace the paper anomaly log. 
 2. Data should be isolated between events. We should not present information
    about a team that comes from outside the event we are running now, as this
@@ -55,7 +55,7 @@ This project makes extensive use of the following technologies.
 
 ## App Structure
 
-The general structure of Referee FYI is motivated by creating a Progressive Web
+The general structure of RoboReferee is motivated by creating a Progressive Web
 App that end users can add to their home screen on their phone. The client
 application is a static react app hosted using Cloudflare Pages to provide
 low-latency services worldwide. The sharing service makes use of Cloudflare
@@ -86,7 +86,7 @@ src/                # Contains App Client Code
 test/               # Integration or Scalability Tests. 
 utils/              # Scripts used to administer the project as a whole
 worker/             # Cloud Services implemented using Cloudflare Workers
-   sync/            # Referee FYI Sync Service
+   sync/            # RoboReferee Sync Service
       src/       
          objects/   # Durable Objects
          routers/   # Subrouters to handle endpoints
@@ -167,7 +167,7 @@ Token to use when submitting issues to Sentry's error reporting system.
 
 ## Application Development
 
-Once you install dependencies, run a local instance of Referee FYI in
+Once you install dependencies, run a local instance of RoboReferee in
 development mode. This should prompt you to visit `http://localhost:3000` (or
 another URL), and includes watch mode for both `src` (application content) and
 `lib` (shared libraries between server and client).

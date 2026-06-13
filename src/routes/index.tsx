@@ -27,7 +27,7 @@ const UserWelcome: React.FC = () => {
     <section className="mt-4 bg-zinc-900 p-4 rounded-md">
       <h2 className="font-bold">Getting Started</h2>
       <p>
-        Referee FYI is a digital anomaly log for robotics events. To get
+        RoboReferee is a digital anomaly log for robotics events. To get
         started, pick your event from the dropdown above.
       </p>
     </section>
@@ -78,9 +78,9 @@ const InstallPrompt: React.FC = () => {
   return (
     <section className="mt-4 bg-zinc-900 p-4 rounded-md">
       <header className="flex gap-4 items-center">
-        <img src={AppIcon} alt="Referee FYI" className="w-12 h-12" />
+        <img src={AppIcon} alt="RoboReferee" className="w-12 h-12" />
         <p>
-          For a better experience, consider adding Referee FYI to your home
+          For a better experience, consider adding RoboReferee to your home
           screen.
         </p>
       </header>
@@ -173,7 +173,7 @@ export const HomePage: React.FC = () => {
         open={updateDialogOpen}
         mode="modal"
         onClose={() => setUpdateDialogOpen(false)}
-        aria-label="What's New with Referee FYI"
+        aria-label="What's New with RoboReferee"
       >
         <DialogHeader
           title="What's New"
