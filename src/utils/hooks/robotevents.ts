@@ -23,12 +23,21 @@ import {
 } from "robotevents";
 import { createPersister } from "~utils/data/query";
 
+// RobotEvents (events.vex.com) cannot be called from the browser directly: it
+// does not honor the cross-origin Bearer token and redirects to a login page
+// with no CORS headers. We route through the sync worker's proxy instead, which
+// forwards to events.vex.com server-side and injects the token from a secret.
+// So no token is sent from the browser here.
+const SHARE_SERVER =
+  import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER ??
+  "https://referee-fyi-share.james-pearson.workers.dev";
+
 const client = Client({
   authorization: {
-    token: import.meta.env.VITE_ROBOTEVENTS_TOKEN,
+    token: "",
   },
   request: {
-    baseUrl: "https://events.vex.com/api/v2",
+    baseUrl: `${SHARE_SERVER.replace(/\/(api\/?)?$/, "")}/api/robotevents`,
   },
 });
 
