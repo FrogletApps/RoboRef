@@ -29,7 +29,8 @@ import { useShareConnection } from "~models/ShareConnection";
 import { useMemo } from "react";
 
 export const URL_BASE =
-  import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER ?? "https://referee.fyi/api";
+  import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER ??
+  "https://referee-fyi-share.james-pearson.workers.dev/api";
 
 export async function getShareSessionID(): Promise<string> {
   let id = sessionStorage.getItem("share_session_id");

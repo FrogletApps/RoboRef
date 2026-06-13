@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
-  "$id": "https://referee.fyi/rules/schema.json",
+  "$id": "https://roboref.pages.dev/rules/schema.json",
   "title": "Referee FYI Game Schema",
   "description": "Describes the shape of Referee FYI game descriptions.",
   "type": "object",

@@ -52,7 +52,7 @@ export default defineConfig(() => ({
       mode: [Mode.REACT],
     }),
     vitePluginVersionMark({
-      name: "RoboReferee",
+      name: "RoboRef",
       ifGitSHA: true,
       version: `${process.env.CF_PAGES_COMMIT_SHA}`,
     }),
@@ -64,14 +64,14 @@ export default defineConfig(() => ({
       includeAssets: ["./rules/**/*.json", "updateNotes.md"],
       manifest: {
         id: "app.bren.kv.v1",
-        name: "RoboReferee",
+        name: "RoboRef",
         short_name: "Referee",
         start_url: "/",
         display: "standalone",
         background_color: "#27272A",
         theme_color: "#27272A",
         description:
-          "Digital anomaly log for Head Referees in VRC, VIQRC, and VEX U. RoboReferee allows you to quickly record violations, see summaries before a match, and share your log with others.",
+          "Digital anomaly log for Head Referees in VRC, VIQRC, and VEX U. RoboRef allows you to quickly record violations, see summaries before a match, and share your log with others.",
         orientation: "portrait-primary",
 
         launch_handler: {

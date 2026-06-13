@@ -60,16 +60,16 @@ export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
       mode="modal"
       open={open}
       onClose={() => setOpen(false)}
-      aria-label="Report Issues with RoboReferee"
+      aria-label="Report Issues with RoboRef"
     >
       <DialogHeader
         onClose={() => setOpen(false)}
-        title="Report Issues with RoboReferee"
+        title="Report Issues with RoboRef"
       />
       <DialogBody className="px-2">
         {causedError ? (
           <section className="mb-4">
-            <Error message="RoboReferee encountered a fatal error!">
+            <Error message="RoboRef encountered a fatal error!">
               {import.meta.env.DEV ? (
                 <div className="mt-4">
                   <p className="font-mono text-sm">{`${causedError.error}`}</p>

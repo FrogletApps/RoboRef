@@ -1,5 +1,5 @@
 {
-  "$schema": "https://referee.fyi/rules/schema.json",
+  "$schema": "https://roboref.pages.dev/rules/schema.json",
   "title": "Mission 2025: Gravity",
   "programs": ["ADC"],
   "season": "2024-2025",

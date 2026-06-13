@@ -1,5 +1,5 @@
 {
-  "$schema": "https://referee.fyi/rules/schema.json",
+  "$schema": "https://roboref.pages.dev/rules/schema.json",
   "title": "Over Under",
   "season": "2023-2024",
   "programs": ["V5RC", "VURC", "VAIRC"],

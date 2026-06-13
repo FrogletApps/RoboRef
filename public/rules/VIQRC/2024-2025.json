@@ -1,5 +1,5 @@
 {
-  "$schema": "https://referee.fyi/rules/schema.json",
+  "$schema": "https://roboref.pages.dev/rules/schema.json",
   "title": "Rapid Relay",
   "season": "2024-2025",
   "programs": ["VIQRC"],
