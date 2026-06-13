@@ -182,7 +182,7 @@ export const HomePage: React.FC = () => {
         <DialogBody className="markdown">
           <section className="m-4 mt-0">
             <p>Build Version</p>
-            <ClickToCopy message={__REFEREE_FYI_VERSION__} />
+            <ClickToCopy message={__ROBOREF_VERSION__} />
             <UpdateNotes />
           </section>
         </DialogBody>

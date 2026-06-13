@@ -214,7 +214,7 @@ export const ExportButton: React.FC = () => {
     const data = JSON.stringify(
       {
         meta: {
-          version: __REFEREE_FYI_VERSION__,
+          version: __ROBOREF_VERSION__,
           sku,
           timestamp,
           user: { name, key },

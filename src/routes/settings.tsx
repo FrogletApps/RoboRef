@@ -41,7 +41,7 @@ export const SettingsPage: React.FC = () => {
           <GlobeAmericasIcon height={20} />
           Worlds Build
           <span className="flex-1 text-right font-mono">
-            {__REFEREE_FYI_VERSION__}
+            {__ROBOREF_VERSION__}
           </span>
         </p>
       ) : null}

@@ -33,7 +33,7 @@ export async function reportIssue(
   const frontmatter = [
     [`Email`, metadata.email],
     [`Comment`, metadata.comment],
-    [`Version`, __REFEREE_FYI_VERSION__],
+    [`Version`, __ROBOREF_VERSION__],
     [`Session`, await getShareSessionID()],
     [`Key`, profile.key],
     [`Name`, profile.name],

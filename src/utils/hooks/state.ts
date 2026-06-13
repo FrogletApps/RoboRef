@@ -36,17 +36,17 @@ export function useLatestAppVersion() {
 
       // If we can't fetch the latest version for whatever reason, just pretend our version is the latest
       if (!response.ok) {
-        return __REFEREE_FYI_VERSION__;
+        return __ROBOREF_VERSION__;
       }
       try {
         const data = await response.json();
         if (typeof data.version !== "string") {
-          return __REFEREE_FYI_VERSION__;
+          return __ROBOREF_VERSION__;
         }
 
         return data.version as string;
       } catch (error) {
-        return __REFEREE_FYI_VERSION__;
+        return __ROBOREF_VERSION__;
       }
     },
     staleTime: 1000 * 60 * 10,

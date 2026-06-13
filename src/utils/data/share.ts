@@ -69,7 +69,7 @@ export function isValidJoinRequest(
 }
 
 export function getJoinRequest({ key, name }: User): JoinRequest {
-  return { client_version: __REFEREE_FYI_VERSION__, user: { name, key } };
+  return { client_version: __ROBOREF_VERSION__, user: { name, key } };
 }
 
 export async function getShareProfile(): Promise<User> {
@@ -345,7 +345,7 @@ export async function putRequestCode(
   sku: string
 ): Promise<ShareResponse<APIPutInvitationRequestResponseBody>> {
   const url = new URL(`/api/${sku}/request`, URL_BASE);
-  url.searchParams.set("version", __REFEREE_FYI_VERSION__);
+  url.searchParams.set("version", __ROBOREF_VERSION__);
 
   const response = await signedFetch(url, { method: "PUT" });
   return response.json();

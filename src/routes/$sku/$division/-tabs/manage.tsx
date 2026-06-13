@@ -131,13 +131,13 @@ export const InviteDialog: React.FC<ManageDialogProps> = ({
           <div className="mt-4">
             <p>{user.name}</p>
             <ClickToCopy message={user.key} />
-            {userVersion !== __REFEREE_FYI_VERSION__ ? (
+            {userVersion !== __ROBOREF_VERSION__ ? (
               <Warning
                 message="User is on a different version"
                 className="mt-4"
               >
                 <p>
-                  Your app version (<code>{__REFEREE_FYI_VERSION__}</code>) does
+                  Your app version (<code>{__ROBOREF_VERSION__}</code>) does
                   not match this user's app version (
                   <code>{userVersion ?? "Unknown"}</code>
                   ). This can lead to instability.

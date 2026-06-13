@@ -14,7 +14,7 @@ export const UpdatePrompt: React.FC = () => {
       return false;
     }
 
-    return __REFEREE_FYI_VERSION__ !== latestAppVersion;
+    return __ROBOREF_VERSION__ !== latestAppVersion;
   }, [latestAppVersion, isPendingLatestAppVersion]);
 
   const update = useCallback(() => {
