@@ -1,0 +1,469 @@
+{
+  "$schema": "https://roboref.pages.dev/rules/schema.json",
+  "title": "Level Up",
+  "season": "2026-2027",
+  "programs": [
+    "VIQRC"
+  ],
+  "ruleGroups": [
+    {
+      "name": "Scoring Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "rule": "<SC1>",
+          "description": "All scoring statuses are evaluated after the Match ends",
+          "link": "https://www.vexrobotics.com/level-up-manual#sc1"
+        },
+        {
+          "rule": "<SC2>",
+          "description": "All scoring statuses are evaluated visually by a Head Referee",
+          "link": "https://www.vexrobotics.com/level-up-manual#sc2"
+        },
+        {
+          "rule": "<SC3>",
+          "description": "Scored Bean Bag in a Floor Goal criteria",
+          "link": "https://www.vexrobotics.com/level-up-manual#sc3"
+        },
+        {
+          "rule": "<SC4>",
+          "description": "Scored Bean Bag in a L1, L2, or L3 Goal criteria",
+          "link": "https://www.vexrobotics.com/level-up-manual#sc4"
+        },
+        {
+          "rule": "<SC5>",
+          "description": "Scored Bean Bag on a L4 Goal criteria",
+          "link": "https://www.vexrobotics.com/level-up-manual#sc5"
+        }
+      ]
+    },
+    {
+      "name": "Specific Game Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "rule": "<SG1>",
+          "description": "Starting a Match",
+          "link": "https://www.vexrobotics.com/level-up-manual#sg1"
+        },
+        {
+          "rule": "<SG2>",
+          "description": "Horizontal expansion is limited",
+          "link": "https://www.vexrobotics.com/level-up-manual#sg2"
+        },
+        {
+          "rule": "<SG3>",
+          "description": "Vertical expansion is unlimited",
+          "link": "https://www.vexrobotics.com/level-up-manual#sg3"
+        },
+        {
+          "rule": "<SG4>",
+          "description": "Keep Scoring Objects in the Field",
+          "link": "https://www.vexrobotics.com/level-up-manual#sg4"
+        },
+        {
+          "rule": "<SG5>",
+          "description": "Each Robot gets one yellow Bean Bag as a Preload",
+          "link": "https://www.vexrobotics.com/level-up-manual#sg5"
+        },
+        {
+          "rule": "<SG6>",
+          "description": "Possession is limited to one (1) Bean Bag",
+          "link": "https://www.vexrobotics.com/level-up-manual#sg6"
+        },
+        {
+          "rule": "<SG7>",
+          "description": "Using the Load Zone",
+          "link": "https://www.vexrobotics.com/level-up-manual#sg7"
+        }
+      ]
+    },
+    {
+      "name": "Safety Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "rule": "<S1>",
+          "description": "Stay safe, don't damage the Field",
+          "link": "https://www.vexrobotics.com/level-up-manual#s1"
+        },
+        {
+          "rule": "<S2>",
+          "description": "Students must be accompanied by an Adult",
+          "link": "https://www.vexrobotics.com/level-up-manual#s2"
+        },
+        {
+          "rule": "<S3>",
+          "description": "Each Student Team member must have a completed participant release form on file",
+          "link": "https://www.vexrobotics.com/level-up-manual#s3"
+        }
+      ]
+    },
+    {
+      "name": "General Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "rule": "<G1>",
+          "description": "Treat everyone with respect",
+          "link": "https://www.vexrobotics.com/level-up-manual#g1"
+        },
+        {
+          "rule": "<G2>",
+          "description": "VIQRC is a Student-centered program",
+          "link": "https://www.vexrobotics.com/level-up-manual#g2"
+        },
+        {
+          "rule": "<G3>",
+          "description": "Use common sense",
+          "link": "https://www.vexrobotics.com/level-up-manual#g3"
+        },
+        {
+          "rule": "<G4>",
+          "description": "All work must represent the skill level of the Students on the Team",
+          "link": "https://www.vexrobotics.com/level-up-manual#g4"
+        },
+        {
+          "rule": "<G5>",
+          "description": "Each Student can only belong to one Team",
+          "link": "https://www.vexrobotics.com/level-up-manual#g5"
+        },
+        {
+          "rule": "<G6>",
+          "description": "There is a difference between accidentally and willfully violating a Robot rule",
+          "link": "https://www.vexrobotics.com/level-up-manual#g6"
+        }
+      ]
+    },
+    {
+      "name": "General Game Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "rule": "<GG1>",
+          "description": "Drivers drive your Robot, and stay in the Driver Station",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg1"
+        },
+        {
+          "rule": "<GG2>",
+          "description": "A Team's Robot should attend every Match",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg2"
+        },
+        {
+          "rule": "<GG3>",
+          "description": "Robots on the Field must be ready to play",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg3"
+        },
+        {
+          "rule": "<GG4>",
+          "description": "Hands out of the Field",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg4"
+        },
+        {
+          "rule": "<GG5>",
+          "description": "Match Replays are allowed, but rare",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg5"
+        },
+        {
+          "rule": "<GG6>",
+          "description": "Disqualifications",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg6"
+        },
+        {
+          "rule": "<GG7>",
+          "description": "Time-outs",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg7"
+        },
+        {
+          "rule": "<GG8>",
+          "description": "Keep your Robot together",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg8"
+        },
+        {
+          "rule": "<GG9>",
+          "description": "Don't damage the Field",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg9"
+        },
+        {
+          "rule": "<GG10>",
+          "description": "Handling the Robot mid-Match is allowed under certain circumstances",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg10"
+        },
+        {
+          "rule": "<GG11>",
+          "description": "A Team's two Drivers switch controllers midway through the Match",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg11"
+        },
+        {
+          "rule": "<GG12>",
+          "description": "Don't start before the timer, and stop moving at the end of the Match",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg12"
+        },
+        {
+          "rule": "<GG13>",
+          "description": "Ending a Match early",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg13"
+        },
+        {
+          "rule": "<GG14>",
+          "description": "Drive Team Members are permitted to appeal the Head Referee's ruling",
+          "link": "https://www.vexrobotics.com/level-up-manual#gg14"
+        }
+      ]
+    },
+    {
+      "name": "Robot Skills Challenge Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "rule": "<RSC1>",
+          "description": "Standard rules apply in most cases",
+          "link": "https://www.vexrobotics.com/level-up-manual#rsc1"
+        },
+        {
+          "rule": "<RSC2>",
+          "description": "Scoring Robot Skills Matches",
+          "link": "https://www.vexrobotics.com/level-up-manual#rsc2"
+        },
+        {
+          "rule": "<RSC3>",
+          "description": "Robot and Field setup for Robot Skills Matches",
+          "link": "https://www.vexrobotics.com/level-up-manual#rsc3"
+        },
+        {
+          "rule": "<RSC4>",
+          "description": "Loader and Driver differences",
+          "link": "https://www.vexrobotics.com/level-up-manual#rsc4"
+        },
+        {
+          "rule": "<RSC5>",
+          "description": "Handling Robots during an Autonomous Coding Skills Match",
+          "link": "https://www.vexrobotics.com/level-up-manual#rsc5"
+        },
+        {
+          "rule": "<RSC6>",
+          "description": "Starting an Autonomous Coding Skills Match",
+          "link": "https://www.vexrobotics.com/level-up-manual#rsc6"
+        },
+        {
+          "rule": "<RSC7>",
+          "description": "Autonomous means “no humans”",
+          "link": "https://www.vexrobotics.com/level-up-manual#rsc7"
+        },
+        {
+          "rule": "<RSC8>",
+          "description": "Skills Stop Time",
+          "link": "https://www.vexrobotics.com/level-up-manual#rsc8"
+        }
+      ]
+    },
+    {
+      "name": "Robot Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "rule": "<R1>",
+          "description": "One Robot per Team",
+          "link": "https://www.vexrobotics.com/level-up-manual#r1"
+        },
+        {
+          "rule": "<R2>",
+          "description": "Robots must pass inspection",
+          "link": "https://www.vexrobotics.com/level-up-manual#r2"
+        },
+        {
+          "rule": "<R3>",
+          "description": "Robots must fit within an 11” x 20” x 15” volume",
+          "link": "https://www.vexrobotics.com/level-up-manual#r3"
+        },
+        {
+          "rule": "<R4>",
+          "description": "License Plates",
+          "link": "https://www.vexrobotics.com/level-up-manual#r4"
+        },
+        {
+          "rule": "<R5>",
+          "description": "Let it go after the Match is over",
+          "link": "https://www.vexrobotics.com/level-up-manual#r5"
+        },
+        {
+          "rule": "<R6>",
+          "description": "Robots have one Brain",
+          "link": "https://www.vexrobotics.com/level-up-manual#r6"
+        },
+        {
+          "rule": "<R7>",
+          "description": "Keep the power button accessible",
+          "link": "https://www.vexrobotics.com/level-up-manual#r7"
+        },
+        {
+          "rule": "<R8>",
+          "description": "Firmware",
+          "link": "https://www.vexrobotics.com/level-up-manual#r8"
+        },
+        {
+          "rule": "<R9>",
+          "description": "Motors",
+          "link": "https://www.vexrobotics.com/level-up-manual#r9"
+        },
+        {
+          "rule": "<R10>",
+          "description": "Batteries",
+          "link": "https://www.vexrobotics.com/level-up-manual#r10"
+        },
+        {
+          "rule": "<R11>",
+          "description": "One Controller per Robot",
+          "link": "https://www.vexrobotics.com/level-up-manual#r11"
+        },
+        {
+          "rule": "<R12>",
+          "description": "Robots are built from the VEX IQ product line",
+          "link": "https://www.vexrobotics.com/level-up-manual#r12"
+        },
+        {
+          "rule": "<R13>",
+          "description": "Prohibited items",
+          "link": "https://www.vexrobotics.com/level-up-manual#r13"
+        },
+        {
+          "rule": "<R14>",
+          "description": "Legal Non-VEX IQ components",
+          "link": "https://www.vexrobotics.com/level-up-manual#r14"
+        },
+        {
+          "rule": "<R15>",
+          "description": "Decorations are allowed",
+          "link": "https://www.vexrobotics.com/level-up-manual#r15"
+        },
+        {
+          "rule": "<R16>",
+          "description": "Pneumatics",
+          "link": "https://www.vexrobotics.com/level-up-manual#r16"
+        },
+        {
+          "rule": "<R17>",
+          "description": "Modifications of parts",
+          "link": "https://www.vexrobotics.com/level-up-manual#r17"
+        }
+      ]
+    },
+    {
+      "name": "Tournament Rules",
+      "programs": [
+        "VIQRC"
+      ],
+      "rules": [
+        {
+          "rule": "<T1>",
+          "description": "Head Referees have ultimate and final authority on all gameplay and Robot ruling decisions",
+          "link": "https://www.vexrobotics.com/level-up-manual#t1"
+        },
+        {
+          "rule": "<T2>",
+          "description": "Head Referees must be qualified",
+          "link": "https://www.vexrobotics.com/level-up-manual#t2"
+        },
+        {
+          "rule": "<T3>",
+          "description": "The Drive Team Members are permitted to immediately appeal the Head Referee's ruling",
+          "link": "https://www.vexrobotics.com/level-up-manual#t3"
+        },
+        {
+          "rule": "<T4>",
+          "description": "The Event Partner has ultimate authority regarding all non-gameplay decisions",
+          "link": "https://www.vexrobotics.com/level-up-manual#t4"
+        },
+        {
+          "rule": "<T5>",
+          "description": "Be prepared for minor Field variance",
+          "link": "https://www.vexrobotics.com/level-up-manual#t5"
+        },
+        {
+          "rule": "<T6>",
+          "description": "Fields and Field Elements may be repaired at the Event Partner's discretion",
+          "link": "https://www.vexrobotics.com/level-up-manual#t6"
+        },
+        {
+          "rule": "<T7>",
+          "description": "Fields at an event must be consistent with each other",
+          "link": "https://www.vexrobotics.com/level-up-manual#t7"
+        },
+        {
+          "rule": "<T8>",
+          "description": "Qualification Matches will occur according to the official Match Schedule",
+          "link": "https://www.vexrobotics.com/level-up-manual#t8"
+        },
+        {
+          "rule": "<T9>",
+          "description": "Each Team will be scheduled Qualification Matches as follows",
+          "link": "https://www.vexrobotics.com/level-up-manual#t9"
+        },
+        {
+          "rule": "<T10>",
+          "description": "Teams are ranked by their average Qualification Match scores",
+          "link": "https://www.vexrobotics.com/level-up-manual#t10"
+        },
+        {
+          "rule": "<T11>",
+          "description": "Qualification Match tiebreakers",
+          "link": "https://www.vexrobotics.com/level-up-manual#t11"
+        },
+        {
+          "rule": "<T12>",
+          "description": "How Alliances are formed for Teamwork Matches",
+          "link": "https://www.vexrobotics.com/level-up-manual#t12"
+        },
+        {
+          "rule": "<T13>",
+          "description": "Teams playing in Finals Matches",
+          "link": "https://www.vexrobotics.com/level-up-manual#t13"
+        },
+        {
+          "rule": "<T14>",
+          "description": "Finals Match Schedule",
+          "link": "https://www.vexrobotics.com/level-up-manual#t14"
+        },
+        {
+          "rule": "<T15>",
+          "description": "Skills Match Schedule",
+          "link": "https://www.vexrobotics.com/level-up-manual#t15"
+        },
+        {
+          "rule": "<T16>",
+          "description": "No requirement that Skills Fields have the same modifications as the Teamwork Fields",
+          "link": "https://www.vexrobotics.com/level-up-manual#t16"
+        },
+        {
+          "rule": "<T17>",
+          "description": "Skills Rankings at events",
+          "link": "https://www.vexrobotics.com/level-up-manual#t17"
+        },
+        {
+          "rule": "<T18>",
+          "description": "Skills Rankings globally",
+          "link": "https://www.vexrobotics.com/level-up-manual#t18"
+        },
+        {
+          "rule": "<T19>",
+          "description": "Robot Skills at League Events",
+          "link": "https://www.vexrobotics.com/level-up-manual#t19"
+        }
+      ]
+    }
+  ]
+}
