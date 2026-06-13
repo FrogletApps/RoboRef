@@ -27,6 +27,9 @@ const client = Client({
   authorization: {
     token: import.meta.env.VITE_ROBOTEVENTS_TOKEN,
   },
+  request: {
+    baseUrl: "https://events.vex.com/api/v2",
+  },
 });
 
 const CURRENT_YEAR = "2024-2025" as const;
