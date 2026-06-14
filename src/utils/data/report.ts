@@ -96,7 +96,7 @@ export async function reportIssue(
     JSON.stringify(Object.fromEntries(frontmatter))
   );
 
-  const response = await fetch("https://logs.bren.app/dump", {
+  const response = await fetch("**ADD URL HERE**", {
     method: "PUT",
     headers,
     body: dump,

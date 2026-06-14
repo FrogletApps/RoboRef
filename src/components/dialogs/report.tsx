@@ -1,14 +1,22 @@
-import { useEffect, useState } from "react";
-import { Button } from "~components/Button";
-import { ClickToCopy } from "~components/ClickToCopy";
+// NOTE: The issue-reporting UI has been temporarily replaced with a simple
+// "contact me" message. The original form-based reporting flow (Sentry +
+// log-server submission) is preserved in the commented-out block at the bottom
+// of this file so it can be revisited later if necessary. The reporting modules
+// it used (`~utils/data/report`, `~utils/hooks/report`) are left intact, and
+// the `ErrorReport` type link is kept live; only the imports used solely by the
+// commented-out form body are disabled below.
+
+// import { useEffect, useState } from "react";
+// import { Button } from "~components/Button";
+// import { ClickToCopy } from "~components/ClickToCopy";
 import { Dialog, DialogBody, DialogHeader } from "~components/Dialog";
-import { Input, Select, TextArea } from "~components/Input";
-import { Spinner } from "~components/Spinner";
-import { Error } from "~components/Warning";
+// import { Input, Select, TextArea } from "~components/Input";
+// import { Spinner } from "~components/Spinner";
+// import { Error } from "~components/Warning";
 import { ErrorReport } from "~utils/data/report";
-import { useRecentEvents } from "~utils/hooks/history";
-import { useReportIssue } from "~utils/hooks/report";
-import { useCurrentEvent } from "~utils/hooks/state";
+// import { useRecentEvents } from "~utils/hooks/history";
+// import { useReportIssue } from "~utils/hooks/report";
+// import { useCurrentEvent } from "~utils/hooks/state";
 
 export type ReportIssueDialogProps = {
   open: boolean;
@@ -21,40 +29,7 @@ export type ReportIssueDialogProps = {
 export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
   open,
   setOpen,
-  comment: initComment,
-  context,
-  error: causedError,
 }) => {
-  const [email, setEmail] = useState("");
-  const [comment, setComment] = useState(initComment ?? "");
-
-  const { data: currentEvent } = useCurrentEvent();
-  const { data: recentEvents } = useRecentEvents();
-
-  const [sku, setSKU] = useState<string | null>(currentEvent?.sku ?? null);
-
-  const {
-    mutate: reportIssue,
-    data: response,
-    error,
-    isPending,
-    isSuccess,
-    isError,
-    reset,
-  } = useReportIssue(sku, {
-    email,
-    comment,
-    context: context ?? "",
-    error: causedError,
-  });
-
-  useEffect(() => {
-    if (!open) {
-      reset();
-      setComment(initComment ?? "");
-    }
-  }, [reset, open, initComment]);
-
   return (
     <Dialog
       mode="modal"
@@ -67,80 +42,154 @@ export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
         title="Report Issues with RoboRef"
       />
       <DialogBody className="px-2">
-        {causedError ? (
-          <section className="mb-4">
-            <Error message="RoboRef encountered a fatal error!">
-              {import.meta.env.DEV ? (
-                <div className="mt-4">
-                  <p className="font-mono text-sm">{`${causedError.error}`}</p>
-                  <pre className="font-mono text-sm">{`${causedError.componentStack}`}</pre>
-                </div>
-              ) : null}
-            </Error>
-          </section>
-        ) : null}
         <p>
-          Please give a brief description of what went wrong. If you provide an
-          email, we may reach out to clarify or to notify you of resolution.
-          Information about your device and your session will be included with
-          your report, including the contents of incidents.
-        </p>
-        <label>
-          <h2 className="font-bold mt-4">Event</h2>
-          <Select
-            value={sku ?? ""}
-            className="w-full"
-            onChange={(e) => setSKU(e.currentTarget.value)}
+          Please contact me at{" "}
+          <a
+            className="text-emerald-400 underline"
+            href={`mailto:frogletapps+roboref_bug@outlook.com?subject=${encodeURIComponent(
+              `RoboRef Bug Report ${__ROBOREF_VERSION__}`
+            )}`}
           >
-            <option value="">Pick An Event</option>
-            {currentEvent &&
-            recentEvents?.every((e) => e.sku !== currentEvent.sku) ? (
-              <option value={currentEvent.sku}>{}</option>
-            ) : null}
-            {recentEvents?.map((event) => (
-              <option value={event.sku} key={event.id}>
-                {event.name} [{event.sku}]
-              </option>
-            ))}
-          </Select>
-        </label>
-        <label>
-          <h2 className="font-bold mt-4">Email</h2>
-          <Input
-            className="w-full mt-2"
-            value={email}
-            onChange={(e) => setEmail(e.currentTarget.value)}
-          />
-        </label>
-        <label>
-          <h2 className="font-bold mt-4">Comment</h2>
-          <TextArea
-            className="w-full mt-2"
-            value={comment}
-            onChange={(e) => setComment(e.currentTarget.value)}
-          />
-        </label>
-        <Button mode="primary" className="mt-4" onClick={() => reportIssue()}>
-          Report Issue
-        </Button>
-        <Spinner show={isPending} />
-        {isSuccess ? (
-          <section className="mt-4">
-            <p className="mt-2">
-              Your report has been successfully submitted. Please reference this
-              Correlation ID when communicating with the developers about this
-              issue.
-            </p>
-            <ClickToCopy
-              className="mt-2"
-              message={response?.correlation ?? ""}
-            />
-          </section>
-        ) : null}
-        {isError ? (
-          <Error message={`Could Not Submit Report! ${error}`} />
-        ) : null}
+            frogletapps+roboref_bug@outlook.com
+          </a>
+          .
+        </p>
       </DialogBody>
     </Dialog>
   );
 };
+
+/*
+ * ---------------------------------------------------------------------------
+ * Original form-based issue reporting implementation. Preserved for later.
+ * To restore: re-enable the commented-out imports above and swap this
+ * implementation back in for the simple "contact me" version.
+ * ---------------------------------------------------------------------------
+ *
+ * export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
+ *   open,
+ *   setOpen,
+ *   comment: initComment,
+ *   context,
+ *   error: causedError,
+ * }) => {
+ *   const [email, setEmail] = useState("");
+ *   const [comment, setComment] = useState(initComment ?? "");
+ *
+ *   const { data: currentEvent } = useCurrentEvent();
+ *   const { data: recentEvents } = useRecentEvents();
+ *
+ *   const [sku, setSKU] = useState<string | null>(currentEvent?.sku ?? null);
+ *
+ *   const {
+ *     mutate: reportIssue,
+ *     data: response,
+ *     error,
+ *     isPending,
+ *     isSuccess,
+ *     isError,
+ *     reset,
+ *   } = useReportIssue(sku, {
+ *     email,
+ *     comment,
+ *     context: context ?? "",
+ *     error: causedError,
+ *   });
+ *
+ *   useEffect(() => {
+ *     if (!open) {
+ *       reset();
+ *       setComment(initComment ?? "");
+ *     }
+ *   }, [reset, open, initComment]);
+ *
+ *   return (
+ *     <Dialog
+ *       mode="modal"
+ *       open={open}
+ *       onClose={() => setOpen(false)}
+ *       aria-label="Report Issues with RoboRef"
+ *     >
+ *       <DialogHeader
+ *         onClose={() => setOpen(false)}
+ *         title="Report Issues with RoboRef"
+ *       />
+ *       <DialogBody className="px-2">
+ *         {causedError ? (
+ *           <section className="mb-4">
+ *             <Error message="RoboRef encountered a fatal error!">
+ *               {import.meta.env.DEV ? (
+ *                 <div className="mt-4">
+ *                   <p className="font-mono text-sm">{`${causedError.error}`}</p>
+ *                   <pre className="font-mono text-sm">{`${causedError.componentStack}`}</pre>
+ *                 </div>
+ *               ) : null}
+ *             </Error>
+ *           </section>
+ *         ) : null}
+ *         <p>
+ *           Please give a brief description of what went wrong. If you provide an
+ *           email, we may reach out to clarify or to notify you of resolution.
+ *           Information about your device and your session will be included with
+ *           your report, including the contents of incidents.
+ *         </p>
+ *         <label>
+ *           <h2 className="font-bold mt-4">Event</h2>
+ *           <Select
+ *             value={sku ?? ""}
+ *             className="w-full"
+ *             onChange={(e) => setSKU(e.currentTarget.value)}
+ *           >
+ *             <option value="">Pick An Event</option>
+ *             {currentEvent &&
+ *             recentEvents?.every((e) => e.sku !== currentEvent.sku) ? (
+ *               <option value={currentEvent.sku}>{}</option>
+ *             ) : null}
+ *             {recentEvents?.map((event) => (
+ *               <option value={event.sku} key={event.id}>
+ *                 {event.name} [{event.sku}]
+ *               </option>
+ *             ))}
+ *           </Select>
+ *         </label>
+ *         <label>
+ *           <h2 className="font-bold mt-4">Email</h2>
+ *           <Input
+ *             className="w-full mt-2"
+ *             value={email}
+ *             onChange={(e) => setEmail(e.currentTarget.value)}
+ *           />
+ *         </label>
+ *         <label>
+ *           <h2 className="font-bold mt-4">Comment</h2>
+ *           <TextArea
+ *             className="w-full mt-2"
+ *             value={comment}
+ *             onChange={(e) => setComment(e.currentTarget.value)}
+ *           />
+ *         </label>
+ *         <Button mode="primary" className="mt-4" onClick={() => reportIssue()}>
+ *           Report Issue
+ *         </Button>
+ *         <Spinner show={isPending} />
+ *         {isSuccess ? (
+ *           <section className="mt-4">
+ *             <p className="mt-2">
+ *               Your report has been successfully submitted. Please reference this
+ *               Correlation ID when communicating with the developers about this
+ *               issue.
+ *             </p>
+ *             <ClickToCopy
+ *               className="mt-2"
+ *               message={response?.correlation ?? ""}
+ *             />
+ *           </section>
+ *         ) : null}
+ *         {isError ? (
+ *           <Error message={`Could Not Submit Report! ${error}`} />
+ *         ) : null}
+ *       </DialogBody>
+ *     </Dialog>
+ *   );
+ * };
+ */
