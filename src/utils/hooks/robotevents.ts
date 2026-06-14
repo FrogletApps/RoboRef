@@ -40,7 +40,8 @@ const client = Client({
   },
 });
 
-const CURRENT_YEAR = "2024-2025" as const;
+//This needs updating annually
+const CURRENT_YEAR = "2026-2027" as const;
 
 export type HookQueryOptions<
   TQueryFnData = unknown,
