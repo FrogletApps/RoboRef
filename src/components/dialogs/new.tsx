@@ -46,6 +46,10 @@ import {
 import { useSaveAssets } from "~utils/hooks/assets";
 import { useParams } from "@tanstack/react-router";
 
+// Image upload/capture is currently disabled in the UI. The buttons are still
+// shown, but the controls are inert. Flip this to `true` to re-enable.
+const ENABLE_IMAGE_UPLOAD = false;
+
 export type EventNewIncidentDialogProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -566,7 +570,13 @@ export const EventNewIncidentDialog: React.FC<EventNewIncidentDialogProps> = ({
               </div>
             ))}
           </section>
-          <label className="bg-zinc-700 rounded-md flex gap-2 items-center justify-center active:bg-zinc-800 focus-within:bg-zinc-800 focus-within:ring-2 ring-zinc-200 cursor-pointer px-3 py-2 mt-4">
+          <label
+            className={twMerge(
+              "bg-zinc-700 rounded-md flex gap-2 items-center justify-center active:bg-zinc-800 focus-within:bg-zinc-800 focus-within:ring-2 ring-zinc-200 cursor-pointer px-3 py-2 mt-4",
+              !ENABLE_IMAGE_UPLOAD && "opacity-50 cursor-not-allowed"
+            )}
+            aria-disabled={!ENABLE_IMAGE_UPLOAD}
+          >
             <CameraIcon className="w-8 h-8 text-zinc-50" />
             <span>Capture</span>
             <AssetPicker
@@ -575,9 +585,16 @@ export const EventNewIncidentDialog: React.FC<EventNewIncidentDialogProps> = ({
               className="sr-only"
               fields={{ type: "image" }}
               onPick={onPickAsset}
+              disabled={!ENABLE_IMAGE_UPLOAD}
             />
           </label>
-          <label className="bg-zinc-700 rounded-md flex gap-2 items-center justify-center active:bg-zinc-800 focus-within:bg-zinc-800 focus-within:ring-2 ring-zinc-200 cursor-pointer px-3 py-2 mt-4">
+          <label
+            className={twMerge(
+              "bg-zinc-700 rounded-md flex gap-2 items-center justify-center active:bg-zinc-800 focus-within:bg-zinc-800 focus-within:ring-2 ring-zinc-200 cursor-pointer px-3 py-2 mt-4",
+              !ENABLE_IMAGE_UPLOAD && "opacity-50 cursor-not-allowed"
+            )}
+            aria-disabled={!ENABLE_IMAGE_UPLOAD}
+          >
             <ArrowUpTrayIcon className="w-8 h-8 text-zinc-50" />
             <span>Upload</span>
             <AssetPicker
@@ -585,6 +602,7 @@ export const EventNewIncidentDialog: React.FC<EventNewIncidentDialogProps> = ({
               className="sr-only"
               fields={{ type: "image" }}
               onPick={onPickAsset}
+              disabled={!ENABLE_IMAGE_UPLOAD}
             />
           </label>
         </div>
