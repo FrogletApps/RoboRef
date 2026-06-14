@@ -4,6 +4,9 @@ import { Game } from "~utils/hooks/rules";
 import LevelUp from "/rules/VIQRC/2026-2027.json?url";
 import Override from "/rules/V5RC/2026-2027.json?url";
 
+import PushBack from "/rules/V5RC/2025-2026.json?url";
+import MixAndMatch from "/rules/VIQRC/2025-2026.json?url";
+
 import HighStakes from "/rules/V5RC/2024-2025.json?url";
 import RapidRelay from "/rules/VIQRC/2024-2025.json?url";
 import MissionGravity from "/rules/ADC/2024-2025.json?url";
@@ -17,6 +20,13 @@ export const LevelUpRules: () => Promise<Game> = async () =>
 
 export const OverrideRules: () => Promise<Game> = async () =>
   fetch(Override).then((res) => res.json());
+
+// 2025-2026
+export const PushBackRules: () => Promise<Game> = async () =>
+  fetch(PushBack).then((res) => res.json());
+
+export const MixAndMatchRules: () => Promise<Game> = async () =>
+  fetch(MixAndMatch).then((res) => res.json());
 
 // 2024-2025
 export const HighStakesRules: () => Promise<Game> = async () =>
@@ -45,6 +55,14 @@ export const GAME_FETCHERS: Record<number, () => Promise<Game>> = {
   204: OverrideRules, // V5RC Override
   205: OverrideRules, // VURC Override
   206: OverrideRules, // VAIRC Override
+
+  // 2025-2026
+  // Same caveat as above: the bundled `robotevents` package has no
+  // "2025-2026" key, so use the literal events.vex.com season ids.
+  197: PushBackRules, // V5RC Push Back
+  198: PushBackRules, // VURC Push Back
+  199: PushBackRules, // VAIRC Push Back
+  196: MixAndMatchRules, // VIQRC Mix & Match
 
   // 2024-2025
   [seasons[programs.V5RC]["2024-2025"]]: HighStakesRules,
