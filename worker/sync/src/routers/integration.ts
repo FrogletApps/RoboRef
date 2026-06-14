@@ -77,7 +77,6 @@ const verifySystemToken = async (
   }
 
   const message = instanceSecret + sku;
-  console.log(message);
   const valid = await verifyKeySignature(key, signedMessage, message);
 
   if (!valid) {
