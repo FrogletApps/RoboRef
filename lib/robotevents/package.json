@@ -19,7 +19,7 @@
   "author": "Brendan McGuire (vendored by referee.fyi fork)",
   "license": "MIT",
   "dependencies": {
-    "openapi-fetch": "^0.11.1",
-    "openapi-typescript-helpers": "^0.0.12"
+    "openapi-fetch": "^0.17.0",
+    "openapi-typescript-helpers": "^0.1.0"
   }
 }

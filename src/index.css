@@ -1,11 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 body,
 html {
-  background-color: theme("colors.zinc.800");
-  color: theme("colors.zinc.100");
+  background-color: var(--color-zinc-800);
+  color: var(--color-zinc-100);
   height: 100%;
   margin: 0;
 }

@@ -2,6 +2,7 @@ import {
   ErrorResponse,
   FilterKeys,
   PathsWithMethod,
+  Readable,
   ResponseObjectMap,
 } from "openapi-typescript-helpers";
 import type { Paginated, paths } from "../generated/shim.js";
@@ -135,7 +136,13 @@ export function createClient(options: ClientOptions): Client {
       });
 
       if (request.error) {
-        return { response: request.response, error: request.error };
+        // The error responses (4xx/5xx) are identical between paths[Path] and
+        // PaginatedPaths[Path] (only the 200 success body is overridden), but
+        // TS can't prove that through the generic, so bridge it explicitly.
+        return {
+          response: request.response,
+          error: request.error,
+        } as FetchResponse<PaginatedPaths[Path]["get"], {}, "application/json">;
       }
 
       const requestData = request.data as Paginated<
@@ -185,7 +192,7 @@ export function createClient(options: ClientOptions): Client {
 }
 
 export type TransformedFetchResponse<
-  T,
+  T extends Record<string | number, any>,
   K,
   M extends `${string}/${string}`,
   N
@@ -197,12 +204,17 @@ export type TransformedFetchResponse<
     }
   | {
       data?: never;
-      error: ErrorResponse<ResponseObjectMap<T>, M>;
+      error: Readable<ErrorResponse<ResponseObjectMap<T>, M>>;
+      response: Response;
+    }
+  | {
+      data?: undefined;
+      error?: undefined;
       response: Response;
     };
 
 export async function transformResponse<
-  T,
+  T extends Record<string | number, any>,
   K,
   M extends `${string}/${string}`,
   N

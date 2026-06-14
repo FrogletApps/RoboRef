@@ -38,7 +38,13 @@ function useScratchpadState<T extends MatchScratchpad, K extends keyof T>({
   const { data: defaultScratchpad } = useDefaultScratchpad<T>(match);
   const { mutate } = useUpdateMatchScratchpad<T>(match);
 
-  const value = useMemo(() => data?.[key] ?? fallback, [data, key, fallback]);
+  // `data` is a `T | null` at runtime (see useMatchScratchpad<T>), but React
+  // Query's generic inference widens it to the `MatchScratchpad` constraint,
+  // which can't be indexed by `K extends keyof T`; assert the real shape.
+  const value = useMemo(
+    () => (data as T | null | undefined)?.[key] ?? fallback,
+    [data, key, fallback]
+  );
 
   const dispatch: Dispatch<SetStateAction<T[K]>> = useCallback(
     (action: SetStateAction<T[K]>) => {

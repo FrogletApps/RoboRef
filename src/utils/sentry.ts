@@ -4,7 +4,6 @@ import {
   setUser,
   setMeasurement,
 } from "@sentry/react";
-import type { MeasurementUnit } from "@sentry/types";
 import { queryClient } from "./data/query";
 import { getShareProfile } from "./data/share";
 
@@ -52,7 +51,7 @@ window.addEventListener("load", async () => {
 export function reportMeasurement(
   name: string,
   value: number,
-  unit: MeasurementUnit
+  unit: Parameters<typeof setMeasurement>[2]
 ) {
   return setMeasurement(name, value, unit);
 }

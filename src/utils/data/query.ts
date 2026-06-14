@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import {
   PersistedQuery,
-  experimental_createPersister,
+  experimental_createQueryPersister,
 } from "@tanstack/react-query-persist-client";
 import { del, get, set } from "~utils/data/keyval";
 
@@ -14,7 +14,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       gcTime: 1000 * 30,
-      persister: experimental_createPersister<PersistedQuery>({
+      persister: experimental_createQueryPersister<PersistedQuery>({
         buster: CACHE_BUSTER,
         prefix: CACHE_PREFIX,
         serialize: (query) => query,
@@ -24,7 +24,7 @@ export const queryClient = new QueryClient({
           setItem: set,
           removeItem: del,
         },
-      }),
+      }).persisterFn,
     },
   },
 });
@@ -48,7 +48,7 @@ export function createPersister<S, D>({
     return { ...query, state: { ...query.state, data } };
   };
 
-  return experimental_createPersister<PersistedQuery>({
+  return experimental_createQueryPersister<PersistedQuery>({
     buster: CACHE_BUSTER,
     prefix: CACHE_PREFIX,
     serialize,
@@ -58,5 +58,5 @@ export function createPersister<S, D>({
       setItem: set,
       removeItem: del,
     },
-  });
+  }).persisterFn;
 }

@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "dotenv": "^16.4.0",
-    "puppeteer": "^21.7.0"
+    "dotenv": "^17.4.2",
+    "puppeteer": "^25.1.0"
   },
   "scripts": {
     "build": "tsc",
