@@ -21,7 +21,7 @@ import {
   DialogCustomHeader,
   DialogHeader,
 } from "~components/Dialog";
-import { ProgramCode } from "robotevents";
+import { ProgramCode } from "@referee-fyi/robotevents";
 import { Input, RulesSelect } from "~components/Input";
 import { Rule, useRulesForSeason } from "~utils/hooks/rules";
 import { Toaster } from "react-hot-toast";

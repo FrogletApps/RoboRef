@@ -6,8 +6,8 @@
   "scripts": {
     "frontend:dev": "vite --host --port 3000",
     "frontend:build": "tsc && vite build",
-    "lib:dev": "concurrently \"npm --prefix lib/share run dev\" \"npm --prefix lib/consistency run dev\" \"npm --prefix lib/pdf  run dev\"",
-    "lib:build": "concurrently \"npm --prefix lib/share run build\" \"npm --prefix lib/consistency run build\" \"npm --prefix lib/pdf run build\"",
+    "lib:dev": "concurrently \"npm --prefix lib/robotevents run dev\" \"npm --prefix lib/share run dev\" \"npm --prefix lib/consistency run dev\" \"npm --prefix lib/pdf  run dev\"",
+    "lib:build": "npm --prefix lib/robotevents run build && concurrently \"npm --prefix lib/share run build\" \"npm --prefix lib/consistency run build\" \"npm --prefix lib/pdf run build\"",
     "worker:dev": "npm --prefix worker/sync run dev",
     "worker:dev:secure": "npm --prefix worker/sync run dev:secure",
     "worker:build": "npm run lib:build && npm --prefix worker/sync run build",
@@ -23,6 +23,7 @@
   "dependencies": {
     "@heroicons/react": "^2.1.5",
     "@referee-fyi/consistency": "^1.0.0",
+    "@referee-fyi/robotevents": "^1.0.0",
     "@referee-fyi/share": "^1.0.0",
     "@sentry/react": "^8.22.0",
     "@sentry/vite-plugin": "^2.21.1",
@@ -45,7 +46,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
-    "robotevents": "^6.0.3",
     "sort-by": "^1.2.0",
     "tailwind-merge": "^2.0.0",
     "use-resize-observer": "^9.1.0",

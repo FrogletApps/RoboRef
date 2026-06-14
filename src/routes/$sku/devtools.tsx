@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ReactNode, useCallback, useRef, useState } from "react";
-import { ProgramCode } from "robotevents";
+import { ProgramCode } from "@referee-fyi/robotevents";
 import { Button } from "~components/Button";
 import { Input, Select } from "~components/Input";
 import { Spinner } from "~components/Spinner";

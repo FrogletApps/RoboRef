@@ -18,7 +18,7 @@ import {
   useMutationState,
   useQuery,
 } from "@tanstack/react-query";
-import { Match, MatchData } from "robotevents";
+import { Match, MatchData } from "@referee-fyi/robotevents";
 import { toast } from "~components/Toast";
 import { useShareConnection } from "~models/ShareConnection";
 import { queryClient } from "~utils/data/query";

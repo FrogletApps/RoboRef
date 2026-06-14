@@ -1,4 +1,4 @@
-import { programs, seasons } from "robotevents";
+import { programs, seasons } from "@referee-fyi/robotevents";
 import { Game } from "~utils/hooks/rules";
 
 import LevelUp from "/rules/VIQRC/2026-2027.json?url";

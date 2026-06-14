@@ -1,5 +1,5 @@
 import { HookQueryOptions, useEvent } from "./robotevents";
-import { EventData } from "robotevents";
+import { EventData } from "@referee-fyi/robotevents";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 

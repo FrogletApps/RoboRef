@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { EventData } from "robotevents";
+import { EventData } from "@referee-fyi/robotevents";
 import {
   Button,
   ExternalLinkButton,

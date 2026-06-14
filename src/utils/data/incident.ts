@@ -1,7 +1,7 @@
 import { get, getMany, set, setMany, updateMany } from "~utils/data/keyval";
 import { v1 as uuid } from "uuid";
 import { Rule } from "~hooks/rules";
-import { Match } from "robotevents";
+import { Match } from "@referee-fyi/robotevents";
 import {
   IncidentMatch,
   IncidentMatchSkills,

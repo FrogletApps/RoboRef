@@ -1,4 +1,4 @@
-import { TeamData } from "robotevents";
+import { TeamData } from "@referee-fyi/robotevents";
 
 export const filterTeams = (
   teams: TeamData[],

@@ -1,4 +1,4 @@
-import type { Color } from "robotevents";
+import type { Color } from "@referee-fyi/robotevents";
 import { WithLWWConsistency } from "@referee-fyi/consistency";
 import { IncidentMatchHeadToHead } from "./incident.js";
 

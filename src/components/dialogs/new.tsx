@@ -33,7 +33,7 @@ import { useAddRecentRules, useRecentRules } from "~utils/hooks/history";
 import { twMerge } from "tailwind-merge";
 import { toast } from "~components/Toast";
 import { Spinner } from "~components/Spinner";
-import { MatchData, programs } from "robotevents";
+import { MatchData, programs } from "@referee-fyi/robotevents";
 import { queryClient } from "~utils/data/query";
 import { IncidentFlag, IncidentMatchSkills } from "@referee-fyi/share";
 import { AssetPicker, LocalAssetPreview } from "~components/Assets";

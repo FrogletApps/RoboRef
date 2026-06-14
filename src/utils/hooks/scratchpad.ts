@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MatchData } from "robotevents";
+import { MatchData } from "@referee-fyi/robotevents";
 import {
   EditScratchpad,
   MatchScratchpad,

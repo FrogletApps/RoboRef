@@ -20,7 +20,7 @@ import {
 import { useTeamIncidentsByMatch } from "~utils/hooks/incident";
 import { EventNewIncidentDialog } from "./new";
 import { Incident as IncidentData } from "~utils/data/incident";
-import { Match } from "robotevents";
+import { Match } from "@referee-fyi/robotevents";
 import { MatchContext } from "~components/Context";
 import { Incident } from "~components/Incident";
 import { MatchTime } from "~components/Match";

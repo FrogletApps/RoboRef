@@ -4,7 +4,7 @@
 
 import { get, set } from "~utils/data/keyval";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { EventData } from "robotevents";
+import { EventData } from "@referee-fyi/robotevents";
 import { Rule } from "./rules";
 
 export async function initHistoryStore() {

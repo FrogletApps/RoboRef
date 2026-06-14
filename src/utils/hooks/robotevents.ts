@@ -19,7 +19,7 @@ import {
   operations,
   rounds,
   Match,
-} from "robotevents";
+} from "@referee-fyi/robotevents";
 import { createPersister } from "~utils/data/query";
 
 // RobotEvents (events.vex.com) cannot be called from the browser directly: it

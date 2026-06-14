@@ -7,9 +7,9 @@ import { EventNewIncidentDialog } from "~components/dialogs/new";
 import { Tabs } from "~components/Tabs";
 import { EventManageTab } from "./$division/-tabs/manage";
 import { Spinner } from "~components/Spinner";
-import { EventData } from "robotevents";
+import { EventData } from "@referee-fyi/robotevents";
 import { useEventSkills, useEventTeams } from "~utils/hooks/robotevents";
-import { Skill } from "robotevents";
+import { Skill } from "@referee-fyi/robotevents";
 import { IconLabel, Input } from "~components/Input";
 
 import {

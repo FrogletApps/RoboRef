@@ -1,0 +1,25 @@
+{
+  "name": "@referee-fyi/robotevents",
+  "version": "1.0.0",
+  "description": "Vendored fork of brenapp/robotevents (MIT) — programmatically access the RobotEvents API (events.vex.com). Vendored so season data and the API host can be maintained in-tree.",
+  "type": "module",
+  "private": true,
+  "main": "./out/main.js",
+  "types": "./out/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/main.d.ts",
+      "default": "./out/main.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "author": "Brendan McGuire (vendored by referee.fyi fork)",
+  "license": "MIT",
+  "dependencies": {
+    "openapi-fetch": "^0.11.1",
+    "openapi-typescript-helpers": "^0.0.12"
+  }
+}

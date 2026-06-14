@@ -4,11 +4,11 @@ import { useCallback, useMemo, useState } from "react";
 import { useCurrentEvent } from "~hooks/state";
 import { useTeamIncidentsByEvent } from "~hooks/incident";
 import { Tabs } from "~components/Tabs";
-import { EventData } from "robotevents";
-import { TeamData } from "robotevents";
+import { EventData } from "@referee-fyi/robotevents";
+import { TeamData } from "@referee-fyi/robotevents";
 import { ClickableMatch } from "~components/Match";
 import { EventMatchDialog } from "~components/dialogs/match";
-import { MatchData } from "robotevents";
+import { MatchData } from "@referee-fyi/robotevents";
 import { Incident } from "~components/Incident";
 import { VirtualizedList } from "~components/VirtualizedList";
 

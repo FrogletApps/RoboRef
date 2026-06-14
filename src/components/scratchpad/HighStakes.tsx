@@ -4,7 +4,7 @@ import {
   ClockIcon,
 } from "@heroicons/react/20/solid";
 import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
-import { MatchData, rounds } from "robotevents";
+import { MatchData, rounds } from "@referee-fyi/robotevents";
 import { Checkbox, Radio } from "~components/Input";
 import {
   EditScratchpad,

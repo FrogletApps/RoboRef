@@ -1,4 +1,4 @@
-import { MatchData, rounds } from "robotevents";
+import { MatchData, rounds } from "@referee-fyi/robotevents";
 
 export const ELIMINATION_ROUNDS = [
   rounds.RoundOf16,

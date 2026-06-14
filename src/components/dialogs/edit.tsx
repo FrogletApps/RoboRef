@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { MatchData } from "robotevents";
+import { MatchData } from "@referee-fyi/robotevents";
 import { Button, IconButton } from "~components/Button";
 import { Dialog, DialogBody, DialogHeader } from "~components/Dialog";
 import {

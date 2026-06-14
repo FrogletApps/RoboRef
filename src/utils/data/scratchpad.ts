@@ -9,8 +9,8 @@ import {
   RapidRelayMatchScratchpad,
 } from "@referee-fyi/share";
 import { getShareProfile } from "./share";
-import { MatchData, programs } from "robotevents";
-import { seasons } from "robotevents";
+import { MatchData, programs } from "@referee-fyi/robotevents";
+import { seasons } from "@referee-fyi/robotevents";
 import {
   initLWW,
   isKeyLWW,

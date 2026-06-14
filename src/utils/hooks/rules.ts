@@ -1,5 +1,5 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { EventData, ProgramAbbr, Season, Year } from "robotevents";
+import { EventData, ProgramAbbr, Season, Year } from "@referee-fyi/robotevents";
 import { HookQueryOptions, useSeason } from "./robotevents";
 import { GAME_FETCHERS } from "~utils/data/rules";
 
