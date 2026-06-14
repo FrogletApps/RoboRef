@@ -25,10 +25,12 @@ import { createFileRoute } from "@tanstack/react-router";
 const UserWelcome: React.FC = () => {
   return (
     <section className="mt-4 bg-zinc-900 p-4 rounded-md">
-      <h2 className="font-bold">Getting Started</h2>
+      <h2 className="font-bold">Welcome to RoboRef!</h2>
       <p>
-        RoboRef is a digital anomaly log for robotics events. To get
-        started, pick your event from the dropdown above.
+        This is an anomaly log for Head Referees at robotics events.
+      </p>
+      <p>
+        To get started, pick your event from the dropdown above.
       </p>
     </section>
   );

@@ -1,10 +1,8 @@
 # [RoboRef](https://roboref.pages.dev)
 
-RoboRef is a digital anomaly log for Head Referees in robotics competitions.
-RoboRef allows you to record violations quickly, see summaries before a
-match, and share your log with others. It designed to replace the paper entries
-referees would use before, and is meant to complement existing competition
-technology tooling.
+RoboRef is a anomaly log for Head Referees in robotics competitions that 
+allows you to record violations quickly, see summaries before a
+match, and share your log with others.
 
 ### Resources
 
