@@ -17,8 +17,8 @@ workers_dev = true
 
 [env.prod.vars]
 # TODO: replace with your own Cloudflare account email and Images account id
-CLOUDFLARE_EMAIL = "brendan@bren.app"
-CLOUDFLARE_IMAGES_ACCOUNT_ID = "f9b9e088206092e25d77f0def608c799"
+CLOUDFLARE_EMAIL = ""
+CLOUDFLARE_IMAGES_ACCOUNT_ID = ""
 
 [env.staging]
 name = "referee-fyi-share-staging"
@@ -37,8 +37,8 @@ workers_dev = true
 
 [env.staging.vars]
 # TODO: replace with your own Cloudflare account email and Images account id
-CLOUDFLARE_EMAIL = "brendan@bren.app"
-CLOUDFLARE_IMAGES_ACCOUNT_ID = "f9b9e088206092e25d77f0def608c799"
+CLOUDFLARE_EMAIL = ""
+CLOUDFLARE_IMAGES_ACCOUNT_ID = ""
 
 [[env.staging.durable_objects.bindings]]
 name = "INCIDENTS"
