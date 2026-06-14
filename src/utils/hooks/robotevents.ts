@@ -19,6 +19,8 @@ import {
   operations,
   rounds,
   Match,
+  seasons,
+  years,
 } from "@referee-fyi/robotevents";
 import { createPersister } from "~utils/data/query";
 
@@ -39,8 +41,6 @@ const client = Client({
     baseUrl: `${SHARE_SERVER.replace(/\/(api\/?)?$/, "")}/api/robotevents`,
   },
 });
-
-const CURRENT_YEAR = "2024-2025" as const;
 
 export type HookQueryOptions<
   TQueryFnData = unknown,
@@ -465,8 +465,33 @@ export function useSeason(
   });
 }
 
+// VEX reveals each new game at Worlds (~early May) and the season named
+// "YYYY-(YYYY+1)" runs from roughly May YYYY to May (YYYY+1). Derive the
+// current season year from the date so this never goes stale.
+function getCurrentSeasonYear(now = new Date()): string {
+  const year = now.getFullYear();
+  const startYear = now.getMonth() >= 4 /* May (0-indexed) */ ? year : year - 1;
+  return `${startYear}-${startYear + 1}`;
+}
+
+// Resolve a program's current season id from the vendored season data. Prefers
+// the season matching today's date; falls back to the most recent season we
+// have data for (`years` is ordered newest-first). Returns undefined for
+// programs we have no season data for.
+function getCurrentSeasonId(program: ProgramCode): number | undefined {
+  const programSeasons = seasons[program as keyof typeof seasons] as
+    | Record<string, number>
+    | undefined;
+  if (!programSeasons) {
+    return undefined;
+  }
+  return (
+    programSeasons[getCurrentSeasonYear()] ??
+    years.map((year) => programSeasons[year]).find((id) => id !== undefined)
+  );
+}
+
 export function useCurrentSeason(program?: ProgramCode | null) {
-  // @ts-expect-error fix for as const - if program doesn't have a year just return undefined
-  const id = program ? client.seasons?.[program]?.[CURRENT_YEAR] : undefined;
+  const id = program != null ? getCurrentSeasonId(program) : undefined;
   return useSeason(id);
 }
