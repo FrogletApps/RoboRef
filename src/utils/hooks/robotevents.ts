@@ -14,7 +14,6 @@ import {
   ProgramCode,
   Event,
   Team,
-  programs,
   Skill,
   Season,
   operations,
@@ -375,9 +374,17 @@ export function useEventTeam(
   });
 }
 
-export const currentSeasons = (
-  [programs.V5RC, programs.VIQRC, programs.VURC, programs.ADC] as const
-).map((program) => client.seasons[program][CURRENT_YEAR]) as number[];
+// Update these each season — see seasons endpoint: /api/robotevents/seasons.
+export const currentSeasons: number[] = [
+  // 2025-2026
+  197, // V5RC Push Back
+  198, // VURC Push Back
+  196, // VIQRC Mix & Match
+  // 2026-2027
+  204, // V5RC Override
+  205, // VURC Override
+  203, // VIQRC Level Up
+];
 
 export function useEventsToday(
   options?: HookQueryOptions<EventData[]>
