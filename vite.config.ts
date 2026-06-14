@@ -5,37 +5,39 @@ import { vitePluginVersionMark } from "vite-plugin-version-mark";
 import { VitePWA } from "vite-plugin-pwa";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { plugin as markdown, Mode } from "vite-plugin-markdown";
-import { exec } from "node:child_process";
+import { execSync } from "node:child_process";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 
-// Generate version.json
 import { type Plugin } from "vite";
 
-const execCommand = (command: string) => {
-  return new Promise<string>((resolve, reject) => {
-    exec(command, (error, stdout) => {
-      if (error) {
-        reject(error);
-      } else {
-        const output = stdout.toString()?.replace("\n", "");
-        resolve(output);
-      }
-    });
-  });
-};
+// Single source of truth for the app version, formatted as
+// `YYYY-MM-DD-<short commit hash>` (build date + git short SHA).
+// Fed to BOTH the baked-in `__ROBOREF_VERSION__` (via vite-plugin-version-mark)
+// and the `/version.json` the running app polls, so the two are always identical
+// within a build and the "Update Available" prompt only fires on a genuinely
+// newer deploy.
+const APP_VERSION = (() => {
+  const shortSHA = (() => {
+    try {
+      // git's default short SHA (shortest unambiguous prefix, ~7 chars)
+      return execSync("git rev-parse --short HEAD").toString().trim();
+    } catch {
+      // Fallback for environments without a git checkout (e.g. CI)
+      return (process.env.CF_PAGES_COMMIT_SHA || "unknown").slice(0, 7);
+    }
+  })();
+  const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC build date)
+  return `${date}-${shortSHA}`;
+})();
 
 const generateVersionJson: Plugin = {
   name: "generate-version-json",
   apply: "build",
-  async buildStart() {
-    const output = await execCommand("git rev-parse --short HEAD");
-    const version = output.toString().trim();
+  buildStart() {
     this.emitFile({
       type: "asset",
       fileName: "version.json",
-      source: JSON.stringify({
-        version,
-      }),
+      source: JSON.stringify({ version: APP_VERSION }),
     });
   },
 };
@@ -53,8 +55,7 @@ export default defineConfig(() => ({
     }),
     vitePluginVersionMark({
       name: "RoboRef",
-      ifGitSHA: true,
-      version: `${process.env.CF_PAGES_COMMIT_SHA}`,
+      version: APP_VERSION,
     }),
     generateVersionJson,
     tsconfigPaths({}),
