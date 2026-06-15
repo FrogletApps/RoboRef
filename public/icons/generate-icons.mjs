@@ -78,7 +78,7 @@ let stripes = "";
 for (let i = 0; i < STRIPES; i++) {
   const x = (i * STRIPE_W).toFixed(3);
   const w = STRIPE_W.toFixed(3);
-  const fill = i % 2 === 0 ? "#27272a" : "#ffffff";
+  const fill = i % 2 === 0 ? "#999999" : "#ffffff";
   stripes += `  <rect x="${x}" y="0" width="${w}" height="${SIZE}" fill="${fill}"/>\n`;
 }
 
