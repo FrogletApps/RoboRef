@@ -64,7 +64,7 @@ export default defineConfig(() => ({
       injectRegister: "inline",
       includeAssets: ["./rules/**/*.json", "updateNotes.md"],
       manifest: {
-        id: "app.bren.kv.v1",
+        id: "app.frogletapps.roboref.v1",
         name: "RoboRef",
         short_name: "RoboRef",
         start_url: "/",
@@ -72,7 +72,7 @@ export default defineConfig(() => ({
         background_color: "#27272A",
         theme_color: "#27272A",
         description:
-          "Digital anomaly log for Head Referees in VRC, VIQRC, and VEX U. RoboRef allows you to quickly record violations, see summaries before a match, and share your log with others.",
+          "RoboRef is an anomaly log for Head Referees at robotics events. It allows you to quickly record violations, see summaries before a match, and share your log with others.",
         orientation: "portrait-primary",
 
         launch_handler: {
