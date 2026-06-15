@@ -28,13 +28,13 @@ const CY = SIZE / 2;
 
 // ---- Gear geometry -------------------------------------------------------
 const TEETH = 12;
-const R_TIP = 192; // tooth tip (outer) radius
-const R_ROOT = 132; // root radius — gear "body"; R_TIP - R_ROOT = 60px teeth
-const BORE_HALF = 64; // central square hole half-side
-const BORE_CORNER = 20; // square hole corner radius (rounded corners)
+const R_TIP = 170; // tooth tip (outer) radius
+const R_ROOT = 110; // root radius — gear "body"; R_TIP - R_ROOT = 60px teeth
+const BORE_HALF = 46; // central square hole half-side (stays within the white stripe)
+const BORE_CORNER = 16; // square hole corner radius (rounded corners)
 const P = (Math.PI * 2) / TEETH; // angular period per tooth
 const ALPHA = P * 0.3; // root half-angle (tooth base width — thicker base)
-const BETA = P * 0.02; // tip half-angle (≈0 → sharp, pointy teeth)
+const BETA = P * 0.07; // tip half-angle (≈0 → sharp, pointy teeth)
 
 // Gear colours, specified in OKLCH and converted to sRGB hex at build time
 // (the SVG renderer used for the raster icons doesn't understand oklch()).
@@ -45,59 +45,8 @@ const KEYLINE_COLOR = "oklch(40% .145 163.225)"; // darker-green outline
 const KEYLINE_WIDTH = 10; // outline half-width, in 512px canvas units
 const GEAR_OPACITY = 1; // fully opaque
 
-function parseOklch(str) {
-  const m = str.match(/oklch\(\s*([\d.]+)%\s+([\d.]+)\s+([\d.]+)/i);
-  if (!m) throw new Error(`unsupported colour: ${str}`);
-  return { L: parseFloat(m[1]) / 100, C: parseFloat(m[2]), H: parseFloat(m[3]) };
-}
-
-function oklchToLinearSrgb(L, C, H) {
-  const hr = (H * Math.PI) / 180;
-  const a = C * Math.cos(hr);
-  const b = C * Math.sin(hr);
-  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
-  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
-  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
-  return [
-    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
-    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
-  ];
-}
-
-// OKLCH → sRGB hex, reducing chroma to fit the sRGB gamut (CSS-style mapping).
-function oklchToHex({ L, C, H }) {
-  const inGamut = (rgb, eps = 1e-4) =>
-    rgb.every((v) => v >= -eps && v <= 1 + eps);
-  let chroma = C;
-  if (!inGamut(oklchToLinearSrgb(L, C, H))) {
-    let lo = 0;
-    let hi = C;
-    for (let i = 0; i < 40; i++) {
-      const mid = (lo + hi) / 2;
-      if (inGamut(oklchToLinearSrgb(L, mid, H))) lo = mid;
-      else hi = mid;
-    }
-    chroma = lo;
-  }
-  const gamma = (x) => {
-    const c = Math.min(1, Math.max(0, x));
-    return c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
-  };
-  return (
-    "#" +
-    oklchToLinearSrgb(L, chroma, H)
-      .map((v) =>
-        Math.round(gamma(v) * 255)
-          .toString(16)
-          .padStart(2, "0"),
-      )
-      .join("")
-  );
-}
-
-const GEAR_FILL = oklchToHex(parseOklch(GEAR_COLOR)); // #009669
-const KEYLINE_FILL = oklchToHex(parseOklch(KEYLINE_COLOR)); // #00563a
+const GEAR_FILL = "#009669";
+const KEYLINE_FILL = "#00563a"; 
 
 const pt = (r, a) =>
   `${(CX + r * Math.cos(a)).toFixed(3)} ${(CY + r * Math.sin(a)).toFixed(3)}`;
@@ -129,7 +78,7 @@ let stripes = "";
 for (let i = 0; i < STRIPES; i++) {
   const x = (i * STRIPE_W).toFixed(3);
   const w = STRIPE_W.toFixed(3);
-  const fill = i % 2 === 0 ? "#000000" : "#ffffff";
+  const fill = i % 2 === 0 ? "#27272a" : "#ffffff";
   stripes += `  <rect x="${x}" y="0" width="${w}" height="${SIZE}" fill="${fill}"/>\n`;
 }
 
