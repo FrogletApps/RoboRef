@@ -1,3 +1,8 @@
+## 15 June 2026
+
+- Updated the logo
+- Backend changes and optimisations
+
 ## 13 June 2026
 
 - Rebranded from Referee.FYI to RoboRef
