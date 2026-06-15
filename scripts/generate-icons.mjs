@@ -5,12 +5,12 @@
 // background of 7 vertical black/white stripes (odd count, so both outer
 // stripes are black).
 //
-// Outputs (all written next to this script, in public/icons/):
+// Outputs (all written to public/icons/):
 //   - roboref.svg            the canonical vector icon
 //   - roboref-<n>x<n>.png    raster icons for the PWA manifest
 //   - favicon.ico                multi-resolution favicon (16/32/48) for tabs
 //
-// Run after changing any constant below:  node public/icons/generate-icons.mjs
+// Run after changing any constant below:  node scripts/generate-icons.mjs
 // (sharp is a dev dependency of the repo; run from anywhere in the project.)
 
 import { writeFileSync } from "node:fs";
@@ -18,7 +18,14 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import sharp from "sharp";
 
-const OUT_DIR = path.dirname(fileURLToPath(import.meta.url));
+// Written to public/icons/ (this script lives in scripts/, outside the
+// web-served public dir so the deploy/bundler never tries to process it).
+const OUT_DIR = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "public",
+  "icons",
+);
 
 const SIZE = 512;
 const STRIPES = 7; // odd → both outer stripes are black
