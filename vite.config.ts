@@ -80,47 +80,47 @@ export default defineConfig(() => ({
         },
         icons: [
           {
-            src: "/icons/referee-fyi-48x48.png",
+            src: "/icons/roboref-48x48.png",
             sizes: "48x48",
             type: "image/png",
           },
           {
-            src: "/icons/referee-fyi-72x72.png",
+            src: "/icons/roboref-72x72.png",
             sizes: "72x72",
             type: "image/png",
           },
           {
-            src: "/icons/referee-fyi-96x96.png",
+            src: "/icons/roboref-96x96.png",
             sizes: "96x96",
             type: "image/png",
           },
           {
-            src: "/icons/referee-fyi-144x144.png",
+            src: "/icons/roboref-144x144.png",
             sizes: "144x144",
             type: "image/png",
           },
           {
-            src: "/icons/referee-fyi-168x168.png",
+            src: "/icons/roboref-168x168.png",
             sizes: "168x168",
             type: "image/png",
           },
           {
-            src: "/icons/referee-fyi-192x192.png",
+            src: "/icons/roboref-192x192.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/icons/referee-fyi-256x256.png",
+            src: "/icons/roboref-256x256.png",
             sizes: "256x256",
             type: "image/png",
           },
           {
-            src: "/icons/referee-fyi-512x512.png",
+            src: "/icons/roboref-512x512.png",
             sizes: "512x512",
             type: "image/png",
           },
           {
-            src: "/icons/referee-fyi.svg",
+            src: "/icons/roboref.svg",
             sizes: "512x512",
             type: "image/svg",
           },

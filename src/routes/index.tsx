@@ -12,7 +12,7 @@ import { ClickToCopy } from "~components/ClickToCopy";
 import { UpdatePrompt } from "~components/UpdatePrompt";
 import { useDisplayMode, useInstallPrompt } from "~utils/hooks/pwa";
 
-import AppIcon from "/icons/referee-fyi.svg?url";
+import AppIcon from "/icons/roboref.svg?url";
 import { ReactComponent as UpdateNotes } from "../../documents/updateNotes.md";
 
 import "./markdown.css";
