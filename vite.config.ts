@@ -66,7 +66,7 @@ export default defineConfig(() => ({
       manifest: {
         id: "app.bren.kv.v1",
         name: "RoboRef",
-        short_name: "Referee",
+        short_name: "RoboRef",
         start_url: "/",
         display: "standalone",
         background_color: "#27272A",
