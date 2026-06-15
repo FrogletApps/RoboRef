@@ -1,8 +1,9 @@
 // Generates every RoboRef app icon from a single source of truth.
 //
-// Design: a centered green gear (with a drop shadow and a central bore
-// that shows the background through it) over a full-bleed background of 7
-// vertical black/white stripes — odd count, so both outer stripes are black.
+// Design: a centered green gear with a darker-green keyline, a drop shadow,
+// and a central square hole that shows the background through it — over a full-bleed
+// background of 7 vertical black/white stripes (odd count, so both outer
+// stripes are black).
 //
 // Outputs (all written next to this script, in public/icons/):
 //   - roboref.svg            the canonical vector icon
@@ -26,17 +27,22 @@ const CX = SIZE / 2; // gear centre == image centre
 const CY = SIZE / 2;
 
 // ---- Gear geometry -------------------------------------------------------
-const TEETH = 8;
-const R_TIP = 200; // tooth tip (outer) radius
-const R_ROOT = 162; // root radius between teeth
-const R_BORE = 72; // central bore (hole) radius
+const TEETH = 12;
+const R_TIP = 192; // tooth tip (outer) radius
+const R_ROOT = 132; // root radius — gear "body"; R_TIP - R_ROOT = 60px teeth
+const BORE_HALF = 64; // central square hole half-side
+const BORE_CORNER = 20; // square hole corner radius (rounded corners)
 const P = (Math.PI * 2) / TEETH; // angular period per tooth
-const ALPHA = P * 0.3; // root half-angle
-const BETA = P * 0.16; // tip half-angle
+const ALPHA = P * 0.3; // root half-angle (tooth base width — thicker base)
+const BETA = P * 0.02; // tip half-angle (≈0 → sharp, pointy teeth)
 
-// Gear colour, specified in OKLCH and converted to an sRGB hex at build time
+// Gear colours, specified in OKLCH and converted to sRGB hex at build time
 // (the SVG renderer used for the raster icons doesn't understand oklch()).
-const GEAR_COLOR = "oklch(59.6% .145 163.225)";
+// The keyline is a darker shade of the gear's green, so the silhouette has
+// strong contrast against the white stripes while staying on-palette.
+const GEAR_COLOR = "oklch(59.6% .145 163.225)"; // emerald green
+const KEYLINE_COLOR = "oklch(40% .145 163.225)"; // darker-green outline
+const KEYLINE_WIDTH = 10; // outline half-width, in 512px canvas units
 const GEAR_OPACITY = 1; // fully opaque
 
 function parseOklch(str) {
@@ -91,6 +97,7 @@ function oklchToHex({ L, C, H }) {
 }
 
 const GEAR_FILL = oklchToHex(parseOklch(GEAR_COLOR)); // #009669
+const KEYLINE_FILL = oklchToHex(parseOklch(KEYLINE_COLOR)); // #00563a
 
 const pt = (r, a) =>
   `${(CX + r * Math.cos(a)).toFixed(3)} ${(CY + r * Math.sin(a)).toFixed(3)}`;
@@ -111,8 +118,11 @@ for (let i = 0; i < TEETH; i++) {
 }
 cog += "Z";
 
-// Central bore as a second sub-path; fill-rule="evenodd" punches it as a hole.
-const bore = `M ${CX - R_BORE} ${CY} A ${R_BORE} ${R_BORE} 0 1 0 ${CX + R_BORE} ${CY} A ${R_BORE} ${R_BORE} 0 1 0 ${CX - R_BORE} ${CY} Z`;
+// Central rounded-square hole as a second sub-path; fill-rule="evenodd" punches it out.
+const bx0 = CX - BORE_HALF, bx1 = CX + BORE_HALF;
+const by0 = CY - BORE_HALF, by1 = CY + BORE_HALF;
+const rc = BORE_CORNER;
+const bore = `M ${bx0 + rc} ${by0} L ${bx1 - rc} ${by0} A ${rc} ${rc} 0 0 1 ${bx1} ${by0 + rc} L ${bx1} ${by1 - rc} A ${rc} ${rc} 0 0 1 ${bx1 - rc} ${by1} L ${bx0 + rc} ${by1} A ${rc} ${rc} 0 0 1 ${bx0} ${by1 - rc} L ${bx0} ${by0 + rc} A ${rc} ${rc} 0 0 1 ${bx0 + rc} ${by0} Z`;
 
 // ---- Stripes -------------------------------------------------------------
 let stripes = "";
@@ -129,7 +139,8 @@ const svg = `<svg width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}"
       <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000000" flood-opacity="0.4"/>
     </filter>
   </defs>
-${stripes}  <path d="${cog} ${bore}" fill="${GEAR_FILL}" fill-rule="evenodd" fill-opacity="${GEAR_OPACITY}" filter="url(#gear-shadow)"/>
+${stripes}  <path d="${cog} ${bore}" fill="${KEYLINE_FILL}" stroke="${KEYLINE_FILL}" stroke-width="${2 * KEYLINE_WIDTH}" stroke-linejoin="round" fill-rule="evenodd" filter="url(#gear-shadow)"/>
+  <path d="${cog} ${bore}" fill="${GEAR_FILL}" fill-rule="evenodd" fill-opacity="${GEAR_OPACITY}"/>
 </svg>
 `;
 
