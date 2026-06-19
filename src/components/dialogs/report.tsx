@@ -56,7 +56,7 @@ export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
           </a>
           .
         </p>
-        {import.meta.env.PROD ? (
+        {import.meta.env.DEV ? (
           <Button
             mode="dangerous"
             className="mt-4"
@@ -71,7 +71,7 @@ export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
               throw new Error("This is your first error!");
             }}
           >
-            Break the world
+            Fire a test error to Sentry
           </Button>
         ) : null}
       </DialogBody>
