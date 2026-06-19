@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing to RoboRef. Read this guide for an
 overview of how to get started! For an overview of the project, see the
-[`README`](https://github.com/brenapp/referee.fyi)
+[`README`](github.com/FrogletApps/RoboRef)
 
 ## Design Principles & Goals
 

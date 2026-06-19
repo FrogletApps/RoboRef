@@ -1,3 +1,7 @@
+## 19 June 2026
+
+- Rewired the Sentry automated error reporting
+
 ## 15 June 2026
 
 - Updated the logo
@@ -10,4 +14,4 @@
 
 ### Initial Release
 
-- RoboRef is a fork of the 1st March 2025 build of Referee.FYI - from before the repository was made private.  RoboRef is designed to work with VEX Robotics Competition tournaments.
+- RoboRef is a fork of the 1st March 2025 build of Referee.FYI (from before the repository was made private).  RoboRef is designed to work with VEX Robotics Competition tournaments.

@@ -13,12 +13,6 @@ responsibility to take care of this data seriously.
 You do not need to register an account to use RoboRef. RoboRef collects
 basic crash report and anonymized user traffic data.
 
-If you report a crash through the built-in reporting method, we collect data
-about your device to help the developers resolve the issue. This data includes
-the contents of incidents, captured images. When you submit a crash report, you
-may optionally include an email address. If you specify an email address, we may
-reach out to you for clarification or notify you of resolution.
-
 If you use the sharing functionality to synchronize anomaly log between multiple
 devices, the contents of the anomaly log is stored on our servers. This data may
 be accessed by the developers of RoboRef for quality assurance or technical
