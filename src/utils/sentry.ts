@@ -23,18 +23,29 @@ export async function clearCache() {
   window.location.reload();
 }
 
+// VITE_SENTRY_DSN lets a build override the target Sentry project; it falls back
+// to the project's own DSN so reporting works even when the var is unset (a DSN
+// is public, so embedding it in the client bundle is safe). Mirrors the
+// VITE_REFEREE_FYI_SHARE_SERVER fallback pattern in utils/data/share.ts.
+const dsn =
+  import.meta.env.VITE_SENTRY_DSN ??
+  "https://23c85f2c7692228bd3aabb4a17577a2c@o4511592950595584.ingest.de.sentry.io/4511592960622672";
+const enabled =
+  import.meta.env.MODE === "production" ||
+  import.meta.env.VITE_REFEREE_FYI_ENABLE_SENTRY;
+
 export const client = init({
-  dsn: "https://0aecdc6c41674e7cf3b4a39ec939ed9c@o4507708571910144.ingest.us.sentry.io/4507708573286400",
+  dsn,
   integrations: [browserTracingIntegration()],
   attachStacktrace: true,
+  enableLogs: true,
   environment: import.meta.env.MODE,
-  enabled:
-    import.meta.env.MODE === "production" ||
-    import.meta.env.VITE_REFEREE_FYI_ENABLE_SENTRY,
+  enabled,
   // Performance Monitoring
   tracesSampleRate: 1.0, //  Capture 100% of the transactions
   // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-  tracePropagationTargets: ["localhost", /^https:\/\/referee\.fyi\/api/],
+  //TODO: Do we need tracePropagationTargets?
+  //tracePropagationTargets: ["localhost", /^https:\/\/referee\.fyi\/api/],
 });
 
 window.addEventListener("load", async () => {

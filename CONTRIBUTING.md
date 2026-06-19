@@ -138,14 +138,7 @@ Enable [Sentry](https://sentry.io) reporting in this environment. You should set
 this to false.
 
 ```
-VITE_LOGSERVER_TOKEN=<TOKEN>
-```
-
-The token to use when submitting crash reports to the LogServer (Brendan's
-project-agnostic system dump service). Contact Brendan to get a token.
-
-```
-SENTRY_AUTH_TOKEN=<TOKEN>
+VITE_SENTRY_DSN=<TOKEN>
 ```
 
 Token to use when submitting issues to Sentry's error reporting system.

@@ -14,6 +14,8 @@ import { Dialog, DialogBody, DialogHeader } from "~components/Dialog";
 // import { Spinner } from "~components/Spinner";
 // import { Error } from "~components/Warning";
 import { ErrorReport } from "~utils/data/report";
+import { Button } from "~components/Button";
+import { logger } from "@sentry/react";
 // import { useRecentEvents } from "~utils/hooks/history";
 // import { useReportIssue } from "~utils/hooks/report";
 // import { useCurrentEvent } from "~utils/hooks/state";
@@ -54,6 +56,24 @@ export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
           </a>
           .
         </p>
+        {import.meta.env.PROD ? (
+          <Button
+            mode="dangerous"
+            className="mt-4"
+            onClick={() => {
+              // Send a log before throwing, to verify Sentry's log + error
+              // capture. The throw happens in an event handler, so it is NOT
+              // caught by the React ErrorBoundary — Sentry's global handler
+              // reports it instead. Dev-only: never shipped to real users.
+              logger.info("User triggered test error", {
+                action: "test_error_button_click",
+              });
+              throw new Error("This is your first error!");
+            }}
+          >
+            Break the world
+          </Button>
+        ) : null}
       </DialogBody>
     </Dialog>
   );
