@@ -43,9 +43,6 @@ export const client = init({
   enabled,
   // Performance Monitoring
   tracesSampleRate: 1.0, //  Capture 100% of the transactions
-  // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-  //TODO: Do we need tracePropagationTargets?
-  //tracePropagationTargets: ["localhost", /^https:\/\/referee\.fyi\/api/],
 });
 
 window.addEventListener("load", async () => {

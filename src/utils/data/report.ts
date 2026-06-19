@@ -4,8 +4,6 @@ import { CACHE_PREFIX } from "./query";
 import { getShareProfile, getShareSessionID } from "./share";
 import { FallbackRender, sendFeedback } from "@sentry/react";
 
-const TOKEN = import.meta.env.VITE_LOGSERVER_TOKEN;
-
 export type ErrorReport = Parameters<FallbackRender>[0];
 
 export type IssueReportMetadata = {
@@ -64,44 +62,24 @@ export async function reportIssue(
   );
   const dump = body.join("\n\n--\n\n");
 
-  // Report Feedback to Sentry
-
-  let sentryId = null;
-  try {
-    sentryId = await sendFeedback(
-      {
-        name: profile.name,
-        message: metadata.comment ?? "No comment provided",
-        email: metadata.email,
-        url: window.location.toString(),
-        associatedEventId: metadata.error?.eventId,
-      },
-      {
-        data: frontmatter,
-        attachments: [{ filename: `referee-fyi-dump-${date}.txt`, data: dump }],
-        includeReplay: false,
-        originalException: metadata.error?.error,
-      }
-    );
-    frontmatter.push(["Sentry ID", sentryId]);
-  } catch (e) {
-    frontmatter.push(["Sentry Error", `${e}`]);
-  }
-
-  const headers = new Headers();
-
-  headers.set("Authorization", `Bearer ${TOKEN}`);
-  headers.set(
-    "X-Log-Server-Frontmatter",
-    JSON.stringify(Object.fromEntries(frontmatter))
+  // Report feedback to Sentry, attaching the full session dump. Sentry is the
+  // only error/issue reporting backend; the correlation the user references is
+  // the Sentry feedback event ID.
+  const sentryId = await sendFeedback(
+    {
+      name: profile.name,
+      message: metadata.comment ?? "No comment provided",
+      email: metadata.email,
+      url: window.location.toString(),
+      associatedEventId: metadata.error?.eventId,
+    },
+    {
+      data: frontmatter,
+      attachments: [{ filename: `referee-fyi-dump-${date}.txt`, data: dump }],
+      includeReplay: false,
+      originalException: metadata.error?.error,
+    }
   );
 
-  const response = await fetch("**ADD URL HERE**", {
-    method: "PUT",
-    headers,
-    body: dump,
-  });
-
-  const resp: IssueReportResponse = await response.json();
-  return resp;
+  return { correlation: sentryId };
 }
