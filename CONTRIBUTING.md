@@ -135,15 +135,7 @@ VITE_REFEREE_FYI_ENABLE_SENTRY=false
 ```
 
 Enable [Sentry](https://sentry.io) reporting in this environment. You should set
-this to no.
-
-```
-VITE_ROBOTEVENTS_TOKEN=<TOKEN>
-```
-
-The bearer token used to authenticate with the RobotEvents API to fetch data.
-You should request a token from [here](https://robotevents.com/api/v2) and
-supply it here.
+this to false.
 
 ```
 VITE_LOGSERVER_TOKEN=<TOKEN>
