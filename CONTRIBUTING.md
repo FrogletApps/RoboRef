@@ -103,7 +103,7 @@ After you checkout, run `npm i` to install all dependencies, including build
 tooling.
 
 ```
-cd referee.fyi
+cd roboref
 npm i
 ```
 
@@ -111,44 +111,7 @@ npm i
 
 Additionally, you'll want to create a `.env.local` file to populate environment
 variables into Vite when running the development server locally. Each
-environment variable is explained below.
-
-```
-VITE_REFEREE_FYI_SHARE_SERVER=https://staging.share.referee.fyi
-```
-
-Specifies the share server URL to use when connecting. For most development that
-does not touch the sharing server, you should use the staging server (listed
-above).
-
-
-```
-VITE_REFEREE_FYI_BUILD_MODE=STANDARD
-```
-
-The build mode is used to enable some features for the worlds build, changing
-how the sharing mechanism works, displaying additional information, and
-disabling some features. For most cases, you should keep it `STANDARD`
-
-```
-VITE_REFEREE_FYI_ENABLE_SENTRY=false
-```
-
-Enable [Sentry](https://sentry.io) reporting in this environment. You should set
-this to false.
-
-```
-VITE_SENTRY_DSN=<TOKEN>
-```
-
-Token to use when submitting issues to Sentry's error reporting system.
-
-> **Why do we have both Sentry and LogServer?** Partially historical, partial
-> practical. The logserver is used to submit dumps of the current state of the
-> application, including all locally stored. This is done intentionally by the
-> end user (via the submit feedback form) and includes more data about the
-> user's session, including the contents of all locally stored data. Sentry is
-> for automatic reporting of issues without user intervention.
+environment variable is explained in the .env.example file.
 
 ## Application Development
 
