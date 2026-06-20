@@ -31,7 +31,7 @@ export interface Env {
   ASSETS: KVNamespace;
 
   // Secrets
-  VEXEVENTS_TOKEN: string;
+  VEX_EVENTS_TOKEN: string;
 
   CLOUDFLARE_EMAIL: string;
   CLOUDFLARE_API_KEY: string;

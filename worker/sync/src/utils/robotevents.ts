@@ -3,7 +3,7 @@ import { Env } from "../types";
 
 export function getRobotEventsClient(env: Env) {
   return Client({
-    authorization: { token: env.VEXEVENTS_TOKEN },
+    authorization: { token: env.VEX_EVENTS_TOKEN },
     request: { baseUrl: "https://events.vex.com/api/v2" },
   });
 }
