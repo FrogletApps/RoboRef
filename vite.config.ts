@@ -166,8 +166,8 @@ export default defineConfig(() => ({
       },
     }),
     sentryVitePlugin({
-      org: "referee-fyi",
-      project: "referee-fyi",
+      org: "roboref",
+      project: "roboref",
       bundleSizeOptimizations: {
         excludeDebugStatements: true,
         excludeReplayIframe: true,
