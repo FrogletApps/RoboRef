@@ -23,5 +23,5 @@ console.log("\nPUBLIC KEY\n" + publicKey);
 console.log(
   "\n\nPlace the public key in .env.vars under SYSTEM_KEY, and run the following command to upload it to the Worker:"
 );
-console.log(`\n\tnpx wrangler --name referee-fyi-share SYSTEM_KEY`);
+console.log(`\n\tnpx wrangler --name roboref-share SYSTEM_KEY`);
 console.log("\nThe private key has been saved in JWK form to `key.json`. ");

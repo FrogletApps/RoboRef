@@ -20,7 +20,7 @@ for the event they are an administrator for.
 The base URL for the production integration API is
 
 ```
-https://referee-fyi-share.james-pearson.workers.dev/api/integration/v1/<SKU>/
+https://roboref-share.james-pearson.workers.dev/api/integration/v1/<SKU>/
 ```
 
 where the SKU is the RobotEvents event code. All endpoints return data in the form of a `ShareResponse`.
@@ -45,7 +45,7 @@ export type ShareResponseFailure = {
 export type ShareResponse<T> = ShareResponseSuccess<T> | ShareResponseFailure;
 ```
 
-### `https://referee-fyi-share.james-pearson.workers.dev/api/integration/v1/<SKU>/verify`
+### `https://roboref-share.james-pearson.workers.dev/api/integration/v1/<SKU>/verify`
 
 The verify endpoint can be used to ensure that your bearer token is valid.
 
@@ -75,7 +75,7 @@ type VerifyResponse = ShareResponse<{
 }>;
 ```
 
-### `https://referee-fyi-share.james-pearson.workers.dev/api/integration/v1/<SKU>/users`
+### `https://roboref-share.james-pearson.workers.dev/api/integration/v1/<SKU>/users`
 
 Gets information about the current users on the sharing instance.
 
@@ -98,7 +98,7 @@ type UsersResponse = ShareResponse<{
 }>;
 ```
 
-### `https://referee-fyi-share.james-pearson.workers.dev/api/integration/v1/<SKU>/incidents.json`
+### `https://roboref-share.james-pearson.workers.dev/api/integration/v1/<SKU>/incidents.json`
 
 Returns all incidents for a given instance, in JSON form.
 
@@ -155,7 +155,7 @@ export type Incident = {
 type IncidentsResponse = ShareResponse<Incident[]>;
 ```
 
-### `https://referee-fyi-share.james-pearson.workers.dev/api/integration/v1/<SKU>/incidents.csv`
+### `https://roboref-share.james-pearson.workers.dev/api/integration/v1/<SKU>/incidents.csv`
 
 Returns all incidents for a given instance, in CSV form.
 
@@ -169,7 +169,7 @@ Columns:
 Date,Time,ID,SKU,Division,Match,Team,Outcome,Rules,Notes
 ```
 
-### `https://referee-fyi-share.james-pearson.workers.dev/api/integration/v1/<SKU>/incidents.pdf`
+### `https://roboref-share.james-pearson.workers.dev/api/integration/v1/<SKU>/incidents.pdf`
 
 Returns all incidents for a given instance, as a human-readable PDF report. The
 PDF is grouped by team, and is intended to be a format useful to show to judges

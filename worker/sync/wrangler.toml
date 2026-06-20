@@ -1,10 +1,10 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "referee-fyi-share"
-compatibility_date = "2024-05-02"
+name = "roboref-share"
+compatibility_date = "2026-06-20"
 
 [env.prod]
-name = "referee-fyi-share"
-compatibility_date = "2024-05-02"
+name = "roboref-share"
+compatibility_date = "2026-06-20"
 main = "./src/index.ts"
 kv_namespaces = [
     { binding = "SHARES", id = "2ce07a6334454e018aa07a1adacbaae9" },
@@ -22,8 +22,8 @@ CLOUDFLARE_EMAIL = ""
 CLOUDFLARE_IMAGES_ACCOUNT_ID = ""
 
 [env.staging]
-name = "referee-fyi-share-staging"
-compatibility_date = "2024-05-02"
+name = "roboref-share-staging"
+compatibility_date = "2026-06-20"
 main = "./src/index.ts"
 kv_namespaces = [
     { binding = "SHARES", id = "2ce07a6334454e018aa07a1adacbaae9", preview_id = "2ce07a6334454e018aa07a1adacbaae9" },
