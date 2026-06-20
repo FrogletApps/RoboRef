@@ -1,3 +1,7 @@
+## 20 June 2026
+
+- This includes some breaking changes to the backend - old installs of RoboRef will need updating to this version to work correctly.
+
 ## 19 June 2026
 
 - Rewired the Sentry automated error reporting
