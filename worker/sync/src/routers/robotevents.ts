@@ -32,7 +32,7 @@ robotEventsRouter.all(
     const response = await fetch(upstream.toString(), {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${env.ROBOTEVENTS_TOKEN}`,
+        Authorization: `Bearer ${env.VEXEVENTS_TOKEN}`,
         Accept: "application/json",
       },
     });
