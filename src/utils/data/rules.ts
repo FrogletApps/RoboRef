@@ -65,7 +65,6 @@ export const GAME_FETCHERS: Record<number, () => Promise<Game>> = {
   [seasons[programs.VURC]["2024-2025"]]: HighStakesRules,
   [seasons[programs.VAIRC]["2024-2025"]]: HighStakesRules,
   [seasons[programs.VIQRC]["2024-2025"]]: RapidRelayRules,
-  [seasons[programs.ADC]["2024-2025"]]: MissionGravityRules,
 
   // 2023-2024
   [seasons[programs.V5RC]["2023-2024"]]: OverUnderRules,
