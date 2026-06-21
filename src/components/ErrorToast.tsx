@@ -25,8 +25,8 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
       <ContactDevDialog
         open={open}
         setOpen={setOpen}
-        comment={message}
-        context={context}
+        //comment={message}
+        //context={context}
       />
       <IconButton
         icon={<BugAntIcon height={20} />}

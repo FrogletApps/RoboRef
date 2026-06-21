@@ -26,8 +26,8 @@ export const ErrorContactDevDialog: FallbackRender = (props) => {
     <ContactDevDialog
       open={true}
       setOpen={setOpen}
-      context={JSON.stringify(props)}
-      error={props}
+      //context={JSON.stringify(props)}
+      //error={props}
     />
   );
 };
