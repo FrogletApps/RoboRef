@@ -9,7 +9,6 @@ import MixAndMatch from "/rules/VIQRC/2025-2026.json?url";
 
 import HighStakes from "/rules/V5RC/2024-2025.json?url";
 import RapidRelay from "/rules/VIQRC/2024-2025.json?url";
-import MissionGravity from "/rules/ADC/2024-2025.json?url";
 
 import OverUnder from "/rules/V5RC/2023-2024.json?url";
 import FullVolume from "/rules/VIQRC/2023-2024.json?url";
