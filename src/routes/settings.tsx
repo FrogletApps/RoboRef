@@ -27,7 +27,7 @@ export const SettingsPage: React.FC = () => {
 
   const [reportIssueDialogOpen, setReportIssueDialogOpen] = useState(false);
 
-  const onClickRemoveRobotEvents = useCallback(async () => {
+  const onClickRemoveVEXEvents = useCallback(async () => {
     await clearCache();
     toast({ type: "info", message: "Deleted cache." });
 
@@ -77,13 +77,13 @@ export const SettingsPage: React.FC = () => {
       <section className="mt-4">
         <h2 className="font-bold">Delete Cache</h2>
         <p>
-          Delete all cached assets and RobotEvents data. This will not remove
+          Delete all cached assets and VEX Events data. This will not remove
           any locally stored incidents.
         </p>
         <Button
           className="mt-2"
           mode="dangerous"
-          onClick={onClickRemoveRobotEvents}
+          onClick={onClickRemoveVEXEvents}
         >
           Delete Cache
         </Button>
