@@ -6,6 +6,9 @@ dist/
 lib/*/dist/
 worker/*/dist/
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # Local environment / secrets
 .env
 .env.*
