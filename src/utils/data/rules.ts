@@ -34,9 +34,6 @@ export const HighStakesRules: () => Promise<Game> = async () =>
 export const RapidRelayRules: () => Promise<Game> = async () =>
   fetch(RapidRelay).then((res) => res.json());
 
-export const MissionGravityRules: () => Promise<Game> = async () =>
-  fetch(MissionGravity).then((res) => res.json());
-
 // 2023-2024
 export const OverUnderRules: () => Promise<Game> = async () =>
   fetch(OverUnder).then((res) => res.json());
