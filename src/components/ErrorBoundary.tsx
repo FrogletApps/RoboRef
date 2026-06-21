@@ -3,11 +3,11 @@ import {
   ErrorBoundaryProps,
   FallbackRender,
 } from "@sentry/react";
-import { ReportIssueDialog } from "./dialogs/report";
+import { ContactDevDialog } from "./dialogs/contact";
 import { useCallback } from "react";
 import { clearCache } from "~utils/sentry";
 
-export const ErrorReportIssueDialog: FallbackRender = (props) => {
+export const ErrorContactDevDialog: FallbackRender = (props) => {
   const setOpen = useCallback(
     (value: boolean) => {
       if (value) return;
@@ -23,7 +23,7 @@ export const ErrorReportIssueDialog: FallbackRender = (props) => {
     [props]
   );
   return (
-    <ReportIssueDialog
+    <ContactDevDialog
       open={true}
       setOpen={setOpen}
       context={JSON.stringify(props)}
@@ -34,7 +34,7 @@ export const ErrorReportIssueDialog: FallbackRender = (props) => {
 
 export const ErrorBoundary: React.FC<ErrorBoundaryProps> = (props) => (
   <SentryErrorBoundary
-    fallback={(props) => <ErrorReportIssueDialog {...props} />}
+    fallback={(props) => <ErrorContactDevDialog {...props} />}
   >
     {props.children}
   </SentryErrorBoundary>

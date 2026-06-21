@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Button, LinkButton } from "~components/Button";
 import { ClickToCopy } from "~components/ClickToCopy";
-import { ReportIssueDialog } from "~components/dialogs/report";
+import { ContactDevDialog } from "~components/dialogs/contact";
 import { Input } from "~components/Input";
 import { toast } from "~components/Toast";
 import { Info } from "~components/Warning";
@@ -62,16 +62,16 @@ export const SettingsPage: React.FC = () => {
         <Info message="System Key Enabled" className="mt-4" />
       ) : null}
       <section className="mt-4">
-        <h2 className="font-bold">Report Issues with RoboRef</h2>
+        <h2 className="font-bold">Contact Developer</h2>
         <p>
-          Information about your current session will be included in your report
+          Get in touch about issues or features you would like to see
         </p>
-        <ReportIssueDialog
+        <ContactDevDialog
           open={reportIssueDialogOpen}
           setOpen={setReportIssueDialogOpen}
         />
         <Button className="mt-2" onClick={() => setReportIssueDialogOpen(true)}>
-          Report Issue
+          Contact Developer
         </Button>
       </section>
       <section className="mt-4">

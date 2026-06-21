@@ -12,7 +12,7 @@ import { initHistoryStore } from "~utils/hooks/history";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import {
   ErrorBoundary,
-  ErrorReportIssueDialog,
+  ErrorContactDevDialog,
 } from "~components/ErrorBoundary";
 import { Spinner } from "~components/Spinner";
 import { client as sentry } from "~utils/sentry";
@@ -29,7 +29,7 @@ const router = createRouter({
   defaultErrorComponent: ({ error, reset, info }) => {
     const eventId = captureException(error, { extra: { info } });
     return (
-      <ErrorReportIssueDialog
+      <ErrorContactDevDialog
         error={error}
         resetError={reset}
         eventId={eventId}

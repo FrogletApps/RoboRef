@@ -1,17 +1,13 @@
 import { Dialog, DialogBody, DialogHeader } from "~components/Dialog";
-import { ErrorReport } from "~utils/data/report";
 import { Button } from "~components/Button";
 import { logger } from "@sentry/react";
 
-export type ReportIssueDialogProps = {
+export type ContactDevDialogProps = {
   open: boolean;
   setOpen: (value: boolean) => void;
-  comment?: string;
-  context?: string;
-  error?: ErrorReport;
 };
 
-export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
+export const ContactDevDialog: React.FC<ContactDevDialogProps> = ({
   open,
   setOpen,
 }) => {
@@ -24,7 +20,7 @@ export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
     >
       <DialogHeader
         onClose={() => setOpen(false)}
-        title="Report Issues with RoboRef"
+        title="Contact Developer"
       />
       <DialogBody className="px-2">
         <p>
@@ -32,26 +28,28 @@ export const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({
           <a
             className="text-emerald-400 underline"
             href={`mailto:frogletapps+roboref_bug@outlook.com?subject=${encodeURIComponent(
-              `RoboRef Bug Report ${__ROBOREF_VERSION__}`
+              `RoboRef Version ${__ROBOREF_VERSION__}`
             )}`}
           >
             frogletapps+roboref_bug@outlook.com
           </a>
           .
         </p>
+        <br></br>
+        <p>
+          For bug reports please include as much information as possible, including what you were trying to do and if possible adding screenshots.
+        </p>
         {import.meta.env.DEV ? (
           <Button
             mode="dangerous"
             className="mt-4"
             onClick={() => {
-              // Send a log before throwing, to verify Sentry's log + error
-              // capture. The throw happens in an event handler, so it is NOT
-              // caught by the React ErrorBoundary — Sentry's global handler
-              // reports it instead. Dev-only: never shipped to real users.
+              // Send a log before throwing, to verify Sentry's log + error capture.  
+              // Dev-only: never shown to real users.
               logger.info("User triggered test error", {
                 action: "test_error_button_click",
               });
-              throw new Error("This is your first error!");
+              throw new Error("This is a test error!");
             }}
           >
             Fire a test error to Sentry

@@ -1,7 +1,7 @@
 import { Error } from "./Warning";
 import { IconButton } from "./Button";
 import { BugAntIcon } from "@heroicons/react/20/solid";
-import { ReportIssueDialog } from "./dialogs/report";
+import { ContactDevDialog } from "./dialogs/contact";
 import { useState } from "react";
 import { ToastArguments } from "./Toast";
 import { twMerge } from "tailwind-merge";
@@ -22,7 +22,7 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
       className={twMerge("flex gap-2 items-center", props.className)}
     >
       <Error message={message + "\n" + context} />
-      <ReportIssueDialog
+      <ContactDevDialog
         open={open}
         setOpen={setOpen}
         comment={message}
