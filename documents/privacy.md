@@ -10,8 +10,9 @@ responsibility to take care of this data seriously.
 
 ### What We Collect
 
-You do not need to register an account to use RoboRef. RoboRef collects
-basic crash report and anonymized user traffic data.
+You do not need to register an account to use RoboRef. 
+
+RoboRef collects basic crash report and anonymized user traffic data.
 
 If you use the sharing functionality to synchronize anomaly log between multiple
 devices, the contents of the anomaly log is stored on our servers. This data may
