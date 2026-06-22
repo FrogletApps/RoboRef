@@ -1,3 +1,7 @@
+## 22 June 2026
+
+- Enabled data caching
+
 ## 21 June 2026
 
 - Updated the Contact form
