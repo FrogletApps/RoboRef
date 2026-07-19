@@ -10,6 +10,7 @@ import { queryClient } from "~utils/data/query";
 import { registerSW } from "virtual:pwa-register";
 import { initHistoryStore } from "~utils/hooks/history";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { ThemeProvider } from "~utils/hooks/theme";
 import {
   ErrorBoundary,
   ErrorContactDevDialog,
@@ -54,16 +55,18 @@ initHistoryStore();
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <LazyMotion
-          features={() =>
-            import("~utils/animationFeature").then((t) => t.domMax)
-          }
-          strict
-        >
-          <RouterProvider router={router} />
-        </LazyMotion>
-      </ErrorBoundary>
+      <ThemeProvider>
+        <ErrorBoundary>
+          <LazyMotion
+            features={() =>
+              import("~utils/animationFeature").then((t) => t.domMax)
+            }
+            strict
+          >
+            <RouterProvider router={router} />
+          </LazyMotion>
+        </ErrorBoundary>
+      </ThemeProvider>
     </QueryClientProvider>
   </React.StrictMode>
 );

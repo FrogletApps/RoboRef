@@ -36,8 +36,8 @@ const ButtonClasses: { [K in ButtonMode]: string } = {
   none: "",
   transparent: "w-full bg-transparent",
   normal: "w-full text-center active:bg-zinc-800",
-  primary: "w-full text-center bg-emerald-600 active:bg-emerald-700",
-  dangerous: "w-full text-center bg-red-500 active:bg-red-700",
+  primary: "w-full text-center bg-emerald-600 active:bg-emerald-700 text-white",
+  dangerous: "w-full text-center bg-red-500 active:bg-red-700 text-white",
 };
 
 export type ButtonProps = BaseButtonProps & {

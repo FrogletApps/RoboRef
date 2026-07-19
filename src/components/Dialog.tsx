@@ -57,7 +57,7 @@ export const DialogHeader: React.FC<DialogHeaderProps> = ({
   return (
     <DialogCustomHeader>
       <DialogCloseButton onClose={onClose} />
-      <h1 className="text-xl text-white">{title}</h1>
+      <h1 className="text-xl text-zinc-100">{title}</h1>
     </DialogCustomHeader>
   );
 };

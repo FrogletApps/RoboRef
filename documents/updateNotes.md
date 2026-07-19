@@ -1,3 +1,8 @@
+## 19 July 2026
+
+- Added a light/dark/system theme toggle
+- Updated dependencies
+
 ## 26 June 2026
 
 - Backend updates

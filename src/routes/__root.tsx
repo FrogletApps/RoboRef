@@ -162,7 +162,7 @@ const EventPicker: React.FC = () => {
         <DialogBody>
           <Spinner show={isLoadingEvents} />
           <section>
-            <h2 className="text-lg font-bold text-white mx-2">Search</h2>
+            <h2 className="text-lg font-bold text-zinc-100 mx-2">Search</h2>
             <Input
               type="text"
               placeholder="SKU or Event Name"
@@ -198,7 +198,7 @@ const EventPicker: React.FC = () => {
           </section>
           {regionResults.length > 0 && geo?.region ? (
             <section className="mt-4">
-              <h2 className="text-lg font-bold text-white mx-2">
+              <h2 className="text-lg font-bold text-zinc-100 mx-2">
                 {geo.region}
               </h2>
               <ul>
@@ -232,7 +232,7 @@ const EventPicker: React.FC = () => {
             </section>
           ) : null}
           <section className="mt-4">
-            <h2 className="text-lg font-bold text-white mx-2">Events</h2>
+            <h2 className="text-lg font-bold text-zinc-100 mx-2">Events</h2>
             <ul>
               {results?.map((event) => (
                 <li

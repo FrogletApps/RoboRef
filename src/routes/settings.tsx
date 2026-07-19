@@ -1,4 +1,5 @@
 import { ArrowRightIcon, GlobeAmericasIcon } from "@heroicons/react/20/solid";
+import { SunIcon, MoonIcon, ComputerDesktopIcon } from "@heroicons/react/24/outline";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Button, LinkButton } from "~components/Button";
@@ -10,6 +11,7 @@ import { Info } from "~components/Warning";
 import { useShareConnection } from "~models/ShareConnection";
 import { isWorldsBuild } from "~utils/data/state";
 import { clearCache } from "~utils/sentry";
+import { useTheme, Theme } from "~utils/hooks/theme";
 
 export const SettingsPage: React.FC = () => {
   const { updateProfile, profile, userMetadata } = useShareConnection([
@@ -18,6 +20,13 @@ export const SettingsPage: React.FC = () => {
     "userMetadata",
   ]);
   const [localName, setLocalName] = useState(profile?.name ?? "");
+  const { theme, setTheme } = useTheme();
+
+  const themes: { id: Theme; label: string; icon: React.ComponentType<any> }[] = [
+    { id: "light", label: "Light", icon: SunIcon },
+    { id: "dark", label: "Dark", icon: MoonIcon },
+    { id: "system", label: "System", icon: ComputerDesktopIcon },
+  ];
 
   useEffect(() => {
     if (profile?.name) {
@@ -53,6 +62,28 @@ export const SettingsPage: React.FC = () => {
           onChange={(e) => setLocalName(e.currentTarget.value)}
           onBlur={() => updateProfile({ name: localName })}
         />
+      </section>
+      <section className="mt-4" aria-label="Theme selection">
+        <h2 className="font-bold">Theme</h2>
+        <div className="flex bg-zinc-700 p-1 rounded-lg mt-2 gap-1 max-w-md">
+          {themes.map(({ id, label, icon: Icon }) => {
+            const active = theme === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setTheme(id)}
+                className={`flex flex-1 items-center justify-center gap-2 py-2 px-3 rounded-md transition-all duration-200 text-sm font-medium ${
+                  active
+                    ? "bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                    : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-600/50"
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
       </section>
       <section className="mt-4">
         <h2 className="font-bold">Public Key</h2>
