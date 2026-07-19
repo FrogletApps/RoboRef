@@ -10,27 +10,13 @@ interface ImportMetaEnv {
 }
 
 declare module "*.md" {
-  const attributes: Record<string, unknown>;
-
-  const toc: { level: string; content: string }[];
-  const html: string;
-  const raw: string;
-
   import React from "react";
-  const ReactComponent: React.VFC;
+  const MDXComponent: (props: any) => React.ReactElement | null;
+  export default MDXComponent;
+}
 
-  import { ComponentOptions, Component } from "vue";
-  const VueComponent: ComponentOptions;
-  const VueComponentWith: (
-    components: Record<string, Component>
-  ) => ComponentOptions;
-
-  export {
-    attributes,
-    toc,
-    html,
-    ReactComponent,
-    VueComponent,
-    VueComponentWith,
-  };
+declare module "*.mdx" {
+  import React from "react";
+  const MDXComponent: (props: any) => React.ReactElement | null;
+  export default MDXComponent;
 }

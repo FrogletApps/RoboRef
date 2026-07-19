@@ -3,8 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vite";
 import { vitePluginVersionMark } from "vite-plugin-version-mark";
 import { VitePWA } from "vite-plugin-pwa";
-import tsconfigPaths from "vite-tsconfig-paths";
-import { plugin as markdown, Mode } from "vite-plugin-markdown";
+import mdx from "@mdx-js/rollup";
 import { execSync } from "node:child_process";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 
@@ -49,16 +48,13 @@ export default defineConfig(() => ({
       target: "react",
       autoCodeSplitting: true,
     }),
+    mdx(),
     react(),
-    markdown({
-      mode: [Mode.REACT],
-    }),
     vitePluginVersionMark({
       name: "RoboRef",
       version: APP_VERSION,
     }),
     generateVersionJson,
-    tsconfigPaths({}),
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "inline",
@@ -178,6 +174,9 @@ export default defineConfig(() => ({
   ],
 
   base: "/",
+  resolve: {
+    tsconfigPaths: true,
+  },
   build: {
     sourcemap: true,
   },
