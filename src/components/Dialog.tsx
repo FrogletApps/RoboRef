@@ -72,7 +72,7 @@ export const DialogBody: React.FC<DialogBodyProps> = ({
     <div
       {...props}
       className={twMerge(
-        "flex-1 overflow-y-auto overflow-x-clip max-w-full",
+        "flex-1 overflow-y-auto overflow-x-clip max-w-full px-2",
         props.className
       )}
     >
@@ -82,8 +82,15 @@ export const DialogBody: React.FC<DialogBodyProps> = ({
 };
 
 export type DialogFooterProps = React.HTMLProps<HTMLDivElement>;
-export const DialogFooter = (props: DialogFooterProps) => {
-  return <div {...props}>{props.children}</div>;
+export const DialogFooter = ({ className, ...props }: DialogFooterProps) => {
+  return (
+    <div
+      {...props}
+      className={twMerge("px-2", className)}
+    >
+      {props.children}
+    </div>
+  );
 };
 
 type MotionProps = React.ComponentProps<typeof m.dialog>;
