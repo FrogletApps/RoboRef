@@ -6,7 +6,7 @@ import {
   useEventSearch,
   useSeason,
 } from "~utils/hooks/robotevents";
-import { Button, IconButton, LinkButton } from "~components/Button";
+import { Button, IconButton, LinkButton, ExternalLinkButton } from "~components/Button";
 import {
   BookOpenIcon,
   ChevronDownIcon,
@@ -345,14 +345,38 @@ const Rules: React.FC = () => {
             className="w-full"
           />
         </DialogCustomHeader>
-        <DialogBody className="px-2 flex gap-5 flex-col">
-          <section className="bg-white flex-1 rounded-md">
-            <iframe
-              key={program}
-              src={rule?.link ?? "about:blank"}
-              className="w-full h-full"
-            ></iframe>
-          </section>
+        <DialogBody className="px-4 py-6 flex flex-col gap-6 relative min-h-40 justify-center">
+          {!rules ? (
+            <Spinner show={true} />
+          ) : rule ? (
+            <div className="flex flex-col gap-4 bg-zinc-800/50 border border-zinc-700/50 p-6 rounded-xl backdrop-blur-sm">
+              <div className="flex items-center gap-3 border-b border-zinc-700/50 pb-4">
+                {rule.icon && (
+                  <div className="bg-zinc-700/50 p-2 rounded-lg">
+                    <img src={rule.icon} alt="Rule icon" className="h-8 w-auto object-contain" />
+                  </div>
+                )}
+                <h3 className="text-2xl font-mono font-bold text-emerald-400">{rule.rule}</h3>
+              </div>
+              <p className="text-zinc-200 text-base leading-relaxed font-sans">{rule.description}</p>
+              {rule.link && (
+                <ExternalLinkButton
+                  href={rule.link}
+                  className="w-full text-center bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 mt-4 transition-all duration-200 shadow-lg shadow-emerald-900/20"
+                >
+                  <BookOpenIcon height={20} />
+                  <span>Open in Rule Book</span>
+                </ExternalLinkButton>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-zinc-400">
+              <BookOpenIcon className="w-16 h-16 mb-4 text-zinc-500" />
+              <p className="text-center text-sm">
+                Select a rule from the dropdown above to view details.
+              </p>
+            </div>
+          )}
         </DialogBody>
       </Dialog>
       <IconButton
