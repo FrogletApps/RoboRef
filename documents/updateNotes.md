@@ -1,6 +1,8 @@
 ## 19 July 2026
 
 - Added a light/dark/system theme toggle
+- Added Q&A search
+- Fixed rules viewer
 - Updated dependencies
 
 ## 26 June 2026
