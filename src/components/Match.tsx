@@ -62,7 +62,20 @@ export const MatchTime: React.FC<MatchTimeProps> = ({ match }) => {
   );
 };
 
-const dateFormatter = new Intl.DateTimeFormat(navigator.language, {
+function getSafeLocale(): string {
+  if (typeof navigator === "undefined" || !navigator.language) {
+    return "en";
+  }
+  const locale = navigator.language.split("@")[0].split(".")[0].replace("_", "-");
+  try {
+    new Intl.DateTimeFormat(locale);
+    return locale;
+  } catch (e) {
+    return "en";
+  }
+}
+
+const dateFormatter = new Intl.DateTimeFormat(getSafeLocale(), {
   hour: "numeric",
   minute: "numeric",
 });
