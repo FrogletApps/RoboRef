@@ -244,6 +244,12 @@ export const Select = <T extends string>({
   );
 };
 
+const truncateText = (text: string, maxLength: number = 80) => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + "...";
+};
+
+
 export type RulesSelectProps = SelectBaseProps & {
   game?: Game | null;
   rule: Rule | null;
@@ -273,7 +279,7 @@ export const RulesSelect: React.FC<RulesSelectProps> = ({
 
   return (
     <Select
-      className="w-full py-4"
+      className="w-full py-4 truncate"
       value={rule?.rule}
       onChange={onChangeRule}
       {...props}
@@ -286,8 +292,9 @@ export const RulesSelect: React.FC<RulesSelectProps> = ({
               value={rule.rule}
               data-rulegroup={group.name}
               key={game.title + rule.rule}
+              className="truncate"
             >
-              {rule.rule}
+              {rule.rule} {truncateText(rule.description)}
             </option>
           ))}
         </optgroup>
@@ -376,7 +383,7 @@ export const RulesMultiSelect: React.FC<RulesMultiSelectProps> = ({
                 data-rulegroup={group.name}
                 key={rule.rule}
               >
-                {rule.rule} {rule.description}
+                {rule.rule} {truncateText(rule.description)}
               </option>
             ))}
           </optgroup>
