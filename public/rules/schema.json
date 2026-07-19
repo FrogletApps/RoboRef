@@ -14,6 +14,11 @@
       "type": "string",
       "description": "The year (ex. 2024-2025) that the game applies to."
     },
+    "qa": {
+      "type": "string",
+      "format": "uri",
+      "description": "The URL to the Q&A site for the season."
+    },
     "programs": {
       "type": "array",
       "items": {

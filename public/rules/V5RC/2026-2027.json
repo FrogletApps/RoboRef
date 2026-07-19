@@ -2,6 +2,7 @@
   "$schema": "https://roboref.pages.dev/rules/schema.json",
   "title": "Override",
   "season": "2026-2027",
+  "qa": "https://events.vex.com/V5RC/2026-2027/QA",
   "programs": [
     "V5RC",
     "VURC",

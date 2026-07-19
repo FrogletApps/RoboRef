@@ -12,6 +12,7 @@ import {
   ChevronDownIcon,
   XMarkIcon,
   ChevronLeftIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { Spinner } from "~components/Spinner";
 import { useCurrentDivision, useCurrentEvent } from "~utils/hooks/state";
@@ -314,6 +315,11 @@ const Rules: React.FC = () => {
 
   const [rule, setRule] = useState<Rule | null>(null);
 
+  const qaUrl = useMemo(() => {
+    if (!rules?.qa || !rule) return undefined;
+    return `${rules.qa}?query=${rule.rule.replace(/[<>]/g, "")}`;
+  }, [rules, rule]);
+
   const onClose = useCallback(() => {
     setRule(null);
     setOpen(false);
@@ -359,14 +365,27 @@ const Rules: React.FC = () => {
                 <h3 className="text-2xl font-mono font-bold text-emerald-400">{rule.rule}</h3>
               </div>
               <p className="text-zinc-200 text-base leading-relaxed font-sans">{rule.description}</p>
-              {rule.link && (
-                <ExternalLinkButton
-                  href={rule.link}
-                  className="w-full text-center bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 mt-4 transition-all duration-200 shadow-lg shadow-emerald-900/20"
-                >
-                  <BookOpenIcon height={20} />
-                  <span>Open in Rule Book</span>
-                </ExternalLinkButton>
+              {(rule.link || qaUrl) && (
+                <div className="flex flex-col gap-2 mt-4">
+                  {rule.link && (
+                    <ExternalLinkButton
+                      href={rule.link}
+                      className="w-full text-center bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-emerald-900/20"
+                    >
+                      <BookOpenIcon height={20} />
+                      <span>Open in Rule Book</span>
+                    </ExternalLinkButton>
+                  )}
+                  {qaUrl && (
+                    <ExternalLinkButton
+                      href={qaUrl}
+                      className="w-full text-center bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-blue-900/20"
+                    >
+                      <MagnifyingGlassIcon height={20} />
+                      <span>Search the Q&A</span>
+                    </ExternalLinkButton>
+                  )}
+                </div>
               )}
             </div>
           ) : (

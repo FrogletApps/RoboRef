@@ -22,6 +22,7 @@ export type Game = {
   programs: ProgramAbbr[];
   ruleGroups: RuleGroup[];
   rulesLookup?: Record<string, Rule>;
+  qa?: string;
 };
 
 export type Rules = {
