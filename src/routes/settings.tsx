@@ -48,7 +48,7 @@ export const SettingsPage: React.FC = () => {
   }, []);
 
   return (
-    <main className="mt-4 overflow-y-auto">
+    <main className="max-w-xl max-h-full w-full mx-auto flex-1 mb-12 overflow-y-auto">
       {isWorldsBuild() ? (
         <p className="bg-purple-500 text-zinc-300 p-2 rounded-md flex items-center gap-2 mt-4">
           <GlobeAmericasIcon height={20} />
@@ -75,7 +75,7 @@ export const SettingsPage: React.FC = () => {
         <p className="text-zinc-400 text-sm">
           Choose light, dark, or system default theme
         </p>
-        <div className="flex bg-zinc-700 p-1 rounded-lg mt-2 gap-1 max-w-md">
+        <div className="flex bg-zinc-700 p-1 rounded-lg mt-2 gap-1 w-full">
           {themes.map(({ id, label, icon: Icon }) => {
             const active = theme === id;
             return (
@@ -111,7 +111,7 @@ export const SettingsPage: React.FC = () => {
           Access hidden events which have stored local data. All events can still be selected from the Select Event dropdown on the main page
         </p>
         <Button
-          className="mt-2"
+          className="w-full mt-2"
           onClick={() => setHiddenDialogOpen(true)}
         >
           {hiddenEvents.length} Event{hiddenEvents.length === 1 ? "" : "s"} Hidden
@@ -123,7 +123,7 @@ export const SettingsPage: React.FC = () => {
           Delete all cached assets and VEX Events data. This will not remove any locally stored incidents.
         </p>
         <Button
-          className="mt-2"
+          className="w-full mt-2"
           mode="dangerous"
           onClick={onClickRemoveVEXEvents}
         >
@@ -139,7 +139,7 @@ export const SettingsPage: React.FC = () => {
           open={reportIssueDialogOpen}
           setOpen={setReportIssueDialogOpen}
         />
-        <Button className="mt-2" onClick={() => setReportIssueDialogOpen(true)}>
+        <Button className="w-full mt-2" onClick={() => setReportIssueDialogOpen(true)}>
           Contact Developer
         </Button>
       </section>

@@ -402,7 +402,7 @@ export const ProfilePrompt: React.FC = () => {
 
   return (
     <>
-      <p>
+      <p className="text-zinc-400 text-sm">
         Enter your name to continue. This name will be visible to other
         participants.
       </p>
@@ -532,7 +532,7 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
 
   if (!connection.profile.name) {
     return (
-      <section>
+      <section className="mt-4">
         <h2 className="font-bold">Sharing</h2>
         <ProfilePrompt />
       </section>
@@ -547,7 +547,7 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
     (invitation?.accepted && connection.readyState !== ReadyState.Open);
 
   return (
-    <section>
+    <section className="mt-4">
       <JoinCodeDialog
         sku={event.sku}
         open={joinCodeDialogOpen}
@@ -565,7 +565,7 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
       />
 
       <h2 className="font-bold">Sharing</h2>
-      <p>Share Name: {connection.profile.name} </p>
+      <p className="text-zinc-400 text-sm">Share Name: {connection.profile.name}</p>
       {isSharing ? (
         <div className="mt-2">
           {invitation?.admin ? (
@@ -625,13 +625,13 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
         </div>
       ) : null}
       {!isSharing ? (
-        <section>
-          <p>
+        <section className="mt-2">
+          <p className="text-zinc-400 text-sm">
             Create or join a sharing instance to synchronize the anomaly log
             between devices.
           </p>
           {isWorldsBuild() && WORLDS_EVENTS.includes(event.sku) ? (
-            <p className="mt-2">
+            <p className="mt-2 text-zinc-400 text-sm">
               New instances cannot be created for this event. Please reach out
               to your group area supervisor to get access to the existing Worlds
               instances.
@@ -664,7 +664,7 @@ const EventSummaryLink: React.FC<ManageTabProps> = ({ event }) => {
   return (
     <section className="mt-4">
       <h2 className="font-bold">Event Summary</h2>
-      <p>See a summary of all entries at the event.</p>
+      <p className="text-zinc-400 text-sm">See a summary of all entries at the event.</p>
       <LinkButton
         to="/$sku/summary"
         params={{ sku: event.sku }}
@@ -693,9 +693,9 @@ const IntegrationInfo: React.FC<ManageTabProps> = ({ event }) => {
   }
 
   return (
-    <section>
-      <h2 className="mt-4 font-bold">Integrations</h2>
-      <p>
+    <section className="mt-4">
+      <h2 className="font-bold">Integrations</h2>
+      <p className="text-zinc-400 text-sm">
         Use these integration URLs to give others up-to-date read-only access to
         the anomaly log for this instance.{" "}
         <em>
@@ -856,8 +856,8 @@ const SystemKeyInfo: React.FC<ManageTabProps> = ({ event }) => {
   }
 
   return (
-    <section>
-      <h2 className="mt-4 font-bold">Instance List ({instances.length})</h2>
+    <section className="mt-4">
+      <h2 className="font-bold">Instance List ({instances.length})</h2>
       {instances.map((instance) => (
         <SystemKeyIntegrationInfo
           key={instance}
@@ -882,7 +882,7 @@ const HideEventSection: React.FC<ManageTabProps> = ({ event }) => {
   return (
     <section className="mt-4">
       <h2 className="font-bold">Hide Event</h2>
-      <p>
+      <p className="text-zinc-400 text-sm">
         {isHidden
           ? "This event is currently hidden from the main page."
           : "Hide this event from the list on the main page."}
