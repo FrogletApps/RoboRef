@@ -15,6 +15,30 @@
           document.documentElement.classList.remove(isDark ? 'light' : 'dark');
           document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
         } catch (e) {}
+
+        // Listen for asset loading errors (e.g. 404 on old hashed JS bundles after deployment)
+        window.addEventListener('error', function(e) {
+          const target = e.target;
+          if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
+            const src = target.src || target.href;
+            if (src && (src.includes('/assets/') || src.endsWith('.js'))) {
+              const reloadKey = 'roboref_asset_reload_' + (src.split('/').pop() || 'chunk');
+              if (!sessionStorage.getItem(reloadKey)) {
+                sessionStorage.setItem(reloadKey, '1');
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(regs) {
+                    for (var r of regs) r.unregister();
+                    window.location.reload();
+                  }).catch(function() {
+                    window.location.reload();
+                  });
+                } else {
+                  window.location.reload();
+                }
+              }
+            }
+          }
+        }, true);
       })();
     </script>
     <title>RoboRef</title>

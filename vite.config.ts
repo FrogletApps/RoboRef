@@ -159,6 +159,9 @@ export default defineConfig(() => ({
       workbox: {
         // All /api/* routes should always go to the server
         navigateFallbackDenylist: [/^\/api/],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
       },
     }),
     sentryVitePlugin({
