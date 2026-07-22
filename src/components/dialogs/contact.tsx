@@ -37,7 +37,7 @@ export const ContactDevDialog: React.FC<ContactDevDialogProps> = ({
         </p>
         <br></br>
         <p>
-          For bug reports please include as much information as possible, including what you were trying to do and if possible adding screenshots.
+          For bug reports please include as much information as possible, for example what you were trying to do in the app. If possible include screenshots to help us see what's happening.
         </p>
         {import.meta.env.DEV ? (
           <Button
