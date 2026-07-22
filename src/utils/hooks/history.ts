@@ -6,6 +6,7 @@ import { get, set } from "~utils/data/keyval";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { EventData } from "@referee-fyi/robotevents";
 import { Rule } from "./rules";
+import { queryClient } from "~utils/data/query";
 
 export async function initHistoryStore() {
   const events = await get<EventData[]>("event_history");
@@ -86,3 +87,48 @@ export function useAddRecentRules(programId: number, season: number) {
     },
   });
 }
+
+export async function getHiddenEvents(): Promise<string[]> {
+  return (await get<string[]>("hidden_events")) ?? [];
+}
+
+export function useHiddenEvents() {
+  return useQuery({
+    queryKey: ["hidden_events"],
+    queryFn: async () => {
+      return await getHiddenEvents();
+    },
+    staleTime: 0,
+    refetchOnMount: "always",
+  });
+}
+
+export function useHideEvent() {
+  return useMutation({
+    mutationFn: async (sku: string) => {
+      const hidden = await getHiddenEvents();
+      if (!hidden.includes(sku)) {
+        await set("hidden_events", [...hidden, sku]);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hidden_events"] });
+    },
+  });
+}
+
+export function useUnhideEvent() {
+  return useMutation({
+    mutationFn: async (sku: string) => {
+      const hidden = await getHiddenEvents();
+      await set(
+        "hidden_events",
+        hidden.filter((s) => s !== sku)
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hidden_events"] });
+    },
+  });
+}
+

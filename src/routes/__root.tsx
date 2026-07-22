@@ -33,6 +33,7 @@ import { runMigrations } from "../migrations";
 import { toast } from "~components/Toast";
 import { getEventInvitation, getShareProfile } from "~utils/data/share";
 import { useGeolocation } from "~utils/hooks/meta";
+import { useUnhideEvent } from "~utils/hooks/history";
 import {
   createRootRoute,
   Outlet,
@@ -52,6 +53,7 @@ const EventPicker: React.FC = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { mutate: unhideEvent } = useUnhideEvent();
 
   const { data: geo } = useGeolocation();
 
@@ -189,7 +191,10 @@ const EventPicker: React.FC = () => {
                 <LinkButton
                   to={"/$sku"}
                   params={{ sku: eventFromSKU.sku }}
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    unhideEvent(eventFromSKU.sku);
+                    setOpen(false);
+                  }}
                   className="mt-4 bg-emerald-600 w-full text-center"
                 >
                   Go
@@ -212,6 +217,7 @@ const EventPicker: React.FC = () => {
                       to={"/$sku"}
                       params={{ sku: event.sku }}
                       onClick={() => {
+                        unhideEvent(event.sku);
                         setOpen(false);
                       }}
                       className="w-full mt-2 bg-transparent"
@@ -244,6 +250,7 @@ const EventPicker: React.FC = () => {
                     to={"/$sku"}
                     params={{ sku: event.sku }}
                     onClick={() => {
+                      unhideEvent(event.sku);
                       setOpen(false);
                     }}
                     className="w-full mt-2 bg-transparent"

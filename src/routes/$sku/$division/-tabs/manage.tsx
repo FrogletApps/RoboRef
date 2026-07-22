@@ -50,6 +50,11 @@ import { UpdatePrompt } from "~components/UpdatePrompt";
 import { InvitationListItem } from "@referee-fyi/share";
 import { isWorldsBuild, WORLDS_EVENTS } from "~utils/data/state";
 import { Incident } from "~components/Incident";
+import {
+  useHiddenEvents,
+  useHideEvent,
+  useUnhideEvent,
+} from "~utils/hooks/history";
 
 export type ManageDialogProps = {
   open: boolean;
@@ -868,12 +873,48 @@ export type ManageTabProps = {
   event: EventData;
 };
 
+const HideEventSection: React.FC<ManageTabProps> = ({ event }) => {
+  const { data: hiddenEvents = [] } = useHiddenEvents();
+  const isHidden = hiddenEvents.includes(event.sku);
+  const { mutate: hideEvent } = useHideEvent();
+  const { mutate: unhideEvent } = useUnhideEvent();
+
+  return (
+    <section className="mt-4">
+      <h2 className="font-bold">Hide Event</h2>
+      <p>
+        {isHidden
+          ? "This event is currently hidden from the main page."
+          : "Hide this event from the list on the main page."}
+      </p>
+      {isHidden ? (
+        <Button
+          mode="normal"
+          className="w-full mt-2"
+          onClick={() => unhideEvent(event.sku)}
+        >
+          Unhide Event
+        </Button>
+      ) : (
+        <Button
+          mode="dangerous"
+          className="w-full mt-2"
+          onClick={() => hideEvent(event.sku)}
+        >
+          Hide Event
+        </Button>
+      )}
+    </section>
+  );
+};
+
 export const EventManageTab: React.FC<ManageTabProps> = ({ event }) => {
   return (
     <section className="max-w-xl max-h-full w-full mx-auto flex-1 mb-12 overflow-y-auto">
       <UpdatePrompt />
       <ShareManager event={event} />
       <EventSummaryLink event={event} />
+      <HideEventSection event={event} />
       <IntegrationInfo event={event} />
       <SystemKeyInfo event={event} />
     </section>
