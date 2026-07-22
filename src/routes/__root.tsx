@@ -34,6 +34,7 @@ import { toast } from "~components/Toast";
 import { getEventInvitation, getShareProfile } from "~utils/data/share";
 import { useGeolocation } from "~utils/hooks/meta";
 import { useUnhideEvent } from "~utils/hooks/history";
+import { getSkuTextColorClass } from "~utils/data/state";
 import {
   createRootRoute,
   Outlet,
@@ -178,7 +179,7 @@ const EventPicker: React.FC = () => {
               <>
                 <div className="p-2 pt-4">
                   <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
-                    <span className=" text-emerald-400 font-mono">
+                    <span className={`font-mono ${getSkuTextColorClass(eventFromSKU.sku)}`}>
                       {eventFromSKU.sku}
                     </span>
                     {" • "}
@@ -223,7 +224,7 @@ const EventPicker: React.FC = () => {
                       className="w-full mt-2 bg-transparent"
                     >
                       <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
-                        <span className=" text-emerald-400 font-mono">
+                        <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
                           {event.sku}
                         </span>
                         {" • "}
@@ -256,7 +257,7 @@ const EventPicker: React.FC = () => {
                     className="w-full mt-2 bg-transparent"
                   >
                     <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
-                      <span className=" text-emerald-400 font-mono">
+                      <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
                         {event.sku}
                       </span>
                       {" • "}
@@ -299,7 +300,7 @@ const EventPicker: React.FC = () => {
                   ? "Loading Event..."
                   : "Select Event")}
             </p>
-            <p className="text-sm text-emerald-400">
+            <p className={`text-sm ${showDiv ? "text-emerald-400" : getSkuTextColorClass(sku)}`}>
               {showDiv ? <span>{selectedDiv?.name}</span> : sku}
             </p>
           </div>

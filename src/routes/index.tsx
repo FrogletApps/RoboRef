@@ -9,12 +9,17 @@ import {
   useRecentEvents,
   useUnhideEvent,
 } from "~utils/hooks/history";
-import { isWorldsBuild, WORLDS_EVENTS } from "~utils/data/state";
+import {
+  getSkuTextColorClass,
+  isWorldsBuild,
+  WORLDS_EVENTS,
+} from "~utils/data/state";
 import { useQuery } from "@tanstack/react-query";
 import { getEventInvitation } from "~utils/data/share";
 import { ClickToCopy } from "~components/ClickToCopy";
 import { UpdatePrompt } from "~components/UpdatePrompt";
 import { useDisplayMode, useInstallPrompt } from "~utils/hooks/pwa";
+import { twMerge } from "tailwind-merge";
 
 import AppIcon from "/icons/roboref.svg?url";
 import UpdateNotes from "../../documents/updateNotes.md";
@@ -110,7 +115,9 @@ const HiddenEventItem: React.FC<{ sku: string }> = ({ sku }) => {
       onClick={() => unhide(sku)}
     >
       <div className="text-sm flex">
-        <p className="text-emerald-400 font-mono flex-1">{sku}</p>
+        <p className={twMerge(getSkuTextColorClass(sku), "font-mono flex-1")}>
+          {sku}
+        </p>
       </div>
       <p>{event?.name ?? sku}</p>
     </Button>
@@ -215,7 +222,14 @@ export const HomePage: React.FC = () => {
               key={event.sku}
             >
               <div className="text-sm flex">
-                <p className="text-emerald-400 font-mono flex-1">{event.sku}</p>
+                <p
+                  className={twMerge(
+                    getSkuTextColorClass(event.sku),
+                    "font-mono flex-1"
+                  )}
+                >
+                  {event.sku}
+                </p>
                 {eventsInvitations?.find((inv) => inv?.sku === event.sku) ? (
                   <UserGroupIcon height={20} />
                 ) : null}
