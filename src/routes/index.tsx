@@ -3,11 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog, DialogHeader, DialogBody } from "~components/Dialog";
 
 import { Cog8ToothIcon, UserGroupIcon } from "@heroicons/react/20/solid";
-import { useEvent, useEventSearch } from "~utils/hooks/robotevents";
+import { useEventSearch } from "~utils/hooks/robotevents";
 import {
   useHiddenEvents,
   useRecentEvents,
-  useUnhideEvent,
 } from "~utils/hooks/history";
 import {
   getSkuTextColorClass,
@@ -104,55 +103,6 @@ const InstallPrompt: React.FC = () => {
   );
 };
 
-const HiddenEventItem: React.FC<{ sku: string }> = ({ sku }) => {
-  const { data: event } = useEvent(sku);
-  const { mutate: unhide } = useUnhideEvent();
-
-  return (
-    <Button
-      mode="normal"
-      className="w-full max-w-full mt-4 relative text-left"
-      onClick={() => unhide(sku)}
-    >
-      <div className="text-sm flex">
-        <p className={twMerge(getSkuTextColorClass(sku), "font-mono flex-1")}>
-          {sku}
-        </p>
-      </div>
-      <p>{event?.name ?? sku}</p>
-    </Button>
-  );
-};
-
-const HiddenEventsDialog: React.FC<{
-  open: boolean;
-  onClose: () => void;
-  hiddenEvents: string[];
-}> = ({ open, onClose, hiddenEvents }) => {
-  return (
-    <Dialog
-      open={open}
-      mode="modal"
-      onClose={onClose}
-      aria-label="Hidden Events"
-    >
-      <DialogHeader title="Hidden Events" onClose={onClose} />
-      <DialogBody className="p-4">
-        <p className="text-zinc-400 text-sm">Tap an event to unhide it</p>
-        {hiddenEvents.length === 0 ? (
-          <p className="text-zinc-400 text-sm mt-4">No hidden events.</p>
-        ) : (
-          <div className="flex flex-col max-h-96 overflow-y-auto">
-            {hiddenEvents.map((sku) => (
-              <HiddenEventItem key={sku} sku={sku} />
-            ))}
-          </div>
-        )}
-      </DialogBody>
-    </Dialog>
-  );
-};
-
 function useHomeEvents() {
   const { data: worldsEvents } = useEventSearch(
     {
@@ -182,7 +132,6 @@ export const HomePage: React.FC = () => {
   });
 
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
-  const [hiddenDialogOpen, setHiddenDialogOpen] = useState(false);
 
   useEffect(() => {
     const userVersion = localStorage.getItem("version");
@@ -240,23 +189,6 @@ export const HomePage: React.FC = () => {
           {visibleEvents?.length === 0 && hiddenEvents.length === 0 ? (
             <UserWelcome />
           ) : null}
-          {hiddenEvents.length > 0 && (
-            <Button
-              mode="normal"
-              className="w-full max-w-full mt-4 relative text-left"
-              onClick={() => setHiddenDialogOpen(true)}
-            >
-              <div className="text-sm flex">
-                <p className="text-white font-mono flex-1">
-                  Hidden Events
-                </p>
-              </div>
-              <p>
-                {hiddenEvents.length} event
-                {hiddenEvents.length === 1 ? "" : "s"} hidden
-              </p>
-            </Button>
-          )}
           <InstallPrompt />
         </section>
       </div>
@@ -278,11 +210,6 @@ export const HomePage: React.FC = () => {
           </section>
         </DialogBody>
       </Dialog>
-      <HiddenEventsDialog
-        open={hiddenDialogOpen}
-        onClose={() => setHiddenDialogOpen(false)}
-        hiddenEvents={hiddenEvents}
-      />
     </>
   );
 };
