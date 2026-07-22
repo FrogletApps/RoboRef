@@ -1,3 +1,11 @@
+## 22 July 2026
+
+- Added hide event button to tidy up the home screen
+- Added VEX Events link (for event info) on Event Manage screen
+- Worked on UI consistency/enhancements
+- Updated dependencies
+- Bug fixes
+
 ## 19 July 2026
 
 - Added a light/dark/system theme toggle
