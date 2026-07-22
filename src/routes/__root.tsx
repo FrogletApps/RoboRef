@@ -495,6 +495,9 @@ export const AppShell: React.FC = () => {
   const { isLoading } = useCurrentEvent();
   const navigate = useNavigate();
   const router = useRouter();
+  const location = useLocation();
+
+  const isSettings = location.pathname === "/settings";
 
   return (
     <main
@@ -507,20 +510,37 @@ export const AppShell: React.FC = () => {
       <Toaster containerClassName="mb-16" />
       <ConnectionManager />
       <MigrationManager />
-      <nav className="h-16 flex gap-4 max-w-full">
-        <IconButton
-          onClick={() =>
-            router.history.canGoBack()
-              ? router.history.back()
-              : navigate({ to: "/" })
-          }
-          icon={<ChevronLeftIcon height={24} />}
-          className="aspect-auto bg-transparent"
-          aria-label="Back"
-        />
-        <EventPicker />
-        <Rules />
-      </nav>
+      {isSettings ? (
+        <DialogCustomHeader className="px-0">
+          <IconButton
+            icon={<XMarkIcon height={24} />}
+            onClick={() =>
+              router.history.canGoBack()
+                ? router.history.back()
+                : navigate({ to: "/" })
+            }
+            className="bg-transparent"
+            aria-label="Close settings"
+            autoFocus
+          />
+          <h1 className="text-xl text-zinc-100 font-normal">Settings</h1>
+        </DialogCustomHeader>
+      ) : (
+        <nav className="h-16 flex gap-4 max-w-full">
+          <IconButton
+            onClick={() =>
+              router.history.canGoBack()
+                ? router.history.back()
+                : navigate({ to: "/" })
+            }
+            icon={<ChevronLeftIcon height={24} />}
+            className="aspect-auto bg-transparent"
+            aria-label="Back"
+          />
+          <EventPicker />
+          <Rules />
+        </nav>
+      )}
       <Spinner show={isLoading} />
       {!isLoading && <Outlet />}
     </main>

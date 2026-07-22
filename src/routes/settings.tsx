@@ -106,19 +106,6 @@ export const SettingsPage: React.FC = () => {
         <Info message="System Key Enabled" className="mt-4" />
       ) : null}
       <section className="mt-4">
-        <h2 className="font-bold">Contact Developer</h2>
-        <p className="text-zinc-400 text-sm">
-          Get in touch about issues or features you would like to see
-        </p>
-        <ContactDevDialog
-          open={reportIssueDialogOpen}
-          setOpen={setReportIssueDialogOpen}
-        />
-        <Button className="mt-2" onClick={() => setReportIssueDialogOpen(true)}>
-          Contact Developer
-        </Button>
-      </section>
-      <section className="mt-4">
         <h2 className="font-bold">Hidden Events</h2>
         <p className="text-zinc-400 text-sm">
           Access hidden events which have stored local data. All events can still be selected from the Select Event dropdown on the main page
@@ -141,6 +128,19 @@ export const SettingsPage: React.FC = () => {
           onClick={onClickRemoveVEXEvents}
         >
           Delete Cache
+        </Button>
+      </section>
+      <section className="mt-4">
+        <h2 className="font-bold">Contact Developer</h2>
+        <p className="text-zinc-400 text-sm">
+          Get in touch about issues or features you would like to see
+        </p>
+        <ContactDevDialog
+          open={reportIssueDialogOpen}
+          setOpen={setReportIssueDialogOpen}
+        />
+        <Button className="mt-2" onClick={() => setReportIssueDialogOpen(true)}>
+          Contact Developer
         </Button>
       </section>
       <section className="mt-4">
