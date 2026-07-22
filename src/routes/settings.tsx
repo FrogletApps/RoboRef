@@ -1,10 +1,11 @@
-import { ArrowRightIcon, GlobeAmericasIcon } from "@heroicons/react/20/solid";
+import { GlobeAmericasIcon } from "@heroicons/react/20/solid";
 import { SunIcon, MoonIcon, ComputerDesktopIcon } from "@heroicons/react/24/outline";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Button, LinkButton } from "~components/Button";
 import { ClickToCopy } from "~components/ClickToCopy";
 import { ContactDevDialog } from "~components/dialogs/contact";
+import { HiddenEventsDialog } from "~components/dialogs/hiddenEvents";
 import { Input } from "~components/Input";
 import { toast } from "~components/Toast";
 import { Info } from "~components/Warning";
@@ -12,6 +13,7 @@ import { useShareConnection } from "~models/ShareConnection";
 import { isWorldsBuild } from "~utils/data/state";
 import { clearCache } from "~utils/sentry";
 import { useTheme, Theme } from "~utils/hooks/theme";
+import { useHiddenEvents } from "~utils/hooks/history";
 
 export const SettingsPage: React.FC = () => {
   const { updateProfile, profile, userMetadata } = useShareConnection([
@@ -21,6 +23,8 @@ export const SettingsPage: React.FC = () => {
   ]);
   const [localName, setLocalName] = useState(profile?.name ?? "");
   const { theme, setTheme } = useTheme();
+  const { data: hiddenEvents = [] } = useHiddenEvents();
+  const [hiddenDialogOpen, setHiddenDialogOpen] = useState(false);
 
   const themes: { id: Theme; label: string; icon: React.ComponentType<any> }[] = [
     { id: "light", label: "Light", icon: SunIcon },
@@ -56,6 +60,9 @@ export const SettingsPage: React.FC = () => {
       ) : null}
       <section className="mt-4">
         <h2 className="font-bold">Name</h2>
+        <p className="text-zinc-400 text-sm">
+          Your display name when sharing and logging incidents
+        </p>
         <Input
           className="w-full mt-2"
           value={localName}
@@ -65,6 +72,9 @@ export const SettingsPage: React.FC = () => {
       </section>
       <section className="mt-4" aria-label="Theme selection">
         <h2 className="font-bold">Theme</h2>
+        <p className="text-zinc-400 text-sm">
+          Choose light, dark, or system default theme
+        </p>
         <div className="flex bg-zinc-700 p-1 rounded-lg mt-2 gap-1 max-w-md">
           {themes.map(({ id, label, icon: Icon }) => {
             const active = theme === id;
@@ -87,6 +97,9 @@ export const SettingsPage: React.FC = () => {
       </section>
       <section className="mt-4">
         <h2 className="font-bold">Public Key</h2>
+        <p className="text-zinc-400 text-sm">
+          Your unique device identity used for live sharing and verification
+        </p>
         <ClickToCopy message={profile?.key ?? ""} />
       </section>
       {userMetadata.isSystemKey ? (
@@ -94,7 +107,7 @@ export const SettingsPage: React.FC = () => {
       ) : null}
       <section className="mt-4">
         <h2 className="font-bold">Contact Developer</h2>
-        <p>
+        <p className="text-zinc-400 text-sm">
           Get in touch about issues or features you would like to see
         </p>
         <ContactDevDialog
@@ -106,10 +119,21 @@ export const SettingsPage: React.FC = () => {
         </Button>
       </section>
       <section className="mt-4">
+        <h2 className="font-bold">Hidden Events</h2>
+        <p className="text-zinc-400 text-sm">
+          Access hidden events which have stored local data. All events can still be selected from the Select Event dropdown on the main page
+        </p>
+        <Button
+          className="mt-2"
+          onClick={() => setHiddenDialogOpen(true)}
+        >
+          {hiddenEvents.length} Event{hiddenEvents.length === 1 ? "" : "s"} Hidden
+        </Button>
+      </section>
+      <section className="mt-4">
         <h2 className="font-bold">Delete Cache</h2>
-        <p>
-          Delete all cached assets and VEX Events data. This will not remove
-          any locally stored incidents.
+        <p className="text-zinc-400 text-sm">
+          Delete all cached assets and VEX Events data. This will not remove any locally stored incidents.
         </p>
         <Button
           className="mt-2"
@@ -120,11 +144,18 @@ export const SettingsPage: React.FC = () => {
         </Button>
       </section>
       <section className="mt-4">
-        <LinkButton to="/privacy" className="w-full flex items-center">
-          <span className="flex-1">Privacy Policy</span>
-          <ArrowRightIcon height={20} className="text-emerald-400" />
+        <h2 className="font-bold">Privacy Policy</h2>
+        <p className="text-zinc-400 text-sm">
+          Read the RoboRef privacy policy
+        </p>
+        <LinkButton to="/privacy" className="w-full mt-2 text-center">
+          Privacy Policy
         </LinkButton>
       </section>
+      <HiddenEventsDialog
+        open={hiddenDialogOpen}
+        onClose={() => setHiddenDialogOpen(false)}
+      />
     </main>
   );
 };
