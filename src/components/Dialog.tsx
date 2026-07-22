@@ -111,23 +111,26 @@ export const Dialog: React.FC<DialogProps> = ({
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
+    const dialogNode = ref.current;
+    if (!dialogNode) return;
+
     if (open) {
-      switch (mode) {
-        case "modal":
-          ref.current?.showModal();
-          break;
-        case "nonmodal":
-          ref.current?.show();
-          break;
+      if (!dialogNode.open) {
+        switch (mode) {
+          case "modal":
+            dialogNode.showModal();
+            break;
+          case "nonmodal":
+            dialogNode.show();
+            break;
+        }
       }
     } else {
-      ref.current?.close();
+      if (dialogNode.open) {
+        dialogNode.close();
+      }
     }
   }, [open, mode]);
-
-  if (!open) {
-    return null;
-  }
 
   return (
     <m.dialog
@@ -139,10 +142,10 @@ export const Dialog: React.FC<DialogProps> = ({
       className={twMerge(
         "bg-zinc-900 flex-col p-2 gap-2 z-50 w-svw h-svh max-w-3xl max-h-[1152px] overscroll-none overflow-hidden text-zinc-100 rounded-md m-auto",
         props.className,
-        open ? "flex" : ""
+        open ? "flex" : "hidden"
       )}
     >
-      {children}
+      {open ? children : null}
     </m.dialog>
   );
 };

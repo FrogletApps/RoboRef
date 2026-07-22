@@ -17,9 +17,6 @@ import UpdateNotes from "../../documents/updateNotes.md";
 
 import "./markdown.css";
 
-// TODO: We probably should rely on a different signal to determine if we should display the update notes.
-import { version } from "../../package.json";
-
 import { createFileRoute } from "@tanstack/react-router";
 
 const UserWelcome: React.FC = () => {
@@ -124,11 +121,11 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     const userVersion = localStorage.getItem("version");
 
-    if (userVersion && userVersion !== version) {
+    if (userVersion && userVersion !== __ROBOREF_VERSION__) {
       setUpdateDialogOpen(true);
     }
 
-    localStorage.setItem("version", version);
+    localStorage.setItem("version", __ROBOREF_VERSION__);
   }, []);
 
   return (
