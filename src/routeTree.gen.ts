@@ -9,26 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as SkuRouteRouteImport } from './routes/$sku/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SkuRouteRouteImport } from './routes/$sku/route'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SkuIndexRouteImport } from './routes/$sku/index'
-import { Route as SkuSummaryRouteImport } from './routes/$sku/summary'
-import { Route as SkuSkillsRouteImport } from './routes/$sku/skills'
-import { Route as SkuDevtoolsRouteImport } from './routes/$sku/devtools'
 import { Route as SkuDeletedRouteImport } from './routes/$sku/deleted'
+import { Route as SkuDevtoolsRouteImport } from './routes/$sku/devtools'
+import { Route as SkuSkillsRouteImport } from './routes/$sku/skills'
+import { Route as SkuSummaryRouteImport } from './routes/$sku/summary'
 import { Route as SkuDivisionIndexRouteImport } from './routes/$sku/$division/index'
 import { Route as SkuTeamTeamRouteImport } from './routes/$sku/team/$team'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SkuRouteRoute = SkuRouteRouteImport.update({
@@ -36,9 +31,14 @@ const SkuRouteRoute = SkuRouteRouteImport.update({
   path: '/$sku',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SkuIndexRoute = SkuIndexRouteImport.update({
@@ -46,14 +46,9 @@ const SkuIndexRoute = SkuIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SkuRouteRoute,
 } as any)
-const SkuSummaryRoute = SkuSummaryRouteImport.update({
-  id: '/summary',
-  path: '/summary',
-  getParentRoute: () => SkuRouteRoute,
-} as any)
-const SkuSkillsRoute = SkuSkillsRouteImport.update({
-  id: '/skills',
-  path: '/skills',
+const SkuDeletedRoute = SkuDeletedRouteImport.update({
+  id: '/deleted',
+  path: '/deleted',
   getParentRoute: () => SkuRouteRoute,
 } as any)
 const SkuDevtoolsRoute = SkuDevtoolsRouteImport.update({
@@ -61,9 +56,14 @@ const SkuDevtoolsRoute = SkuDevtoolsRouteImport.update({
   path: '/devtools',
   getParentRoute: () => SkuRouteRoute,
 } as any)
-const SkuDeletedRoute = SkuDeletedRouteImport.update({
-  id: '/deleted',
-  path: '/deleted',
+const SkuSkillsRoute = SkuSkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
+  getParentRoute: () => SkuRouteRoute,
+} as any)
+const SkuSummaryRoute = SkuSummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
   getParentRoute: () => SkuRouteRoute,
 } as any)
 const SkuDivisionIndexRoute = SkuDivisionIndexRouteImport.update({
@@ -166,18 +166,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$sku': {
@@ -187,11 +180,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$sku/': {
@@ -201,18 +201,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuIndexRouteImport
       parentRoute: typeof SkuRouteRoute
     }
-    '/$sku/summary': {
-      id: '/$sku/summary'
-      path: '/summary'
-      fullPath: '/$sku/summary'
-      preLoaderRoute: typeof SkuSummaryRouteImport
-      parentRoute: typeof SkuRouteRoute
-    }
-    '/$sku/skills': {
-      id: '/$sku/skills'
-      path: '/skills'
-      fullPath: '/$sku/skills'
-      preLoaderRoute: typeof SkuSkillsRouteImport
+    '/$sku/deleted': {
+      id: '/$sku/deleted'
+      path: '/deleted'
+      fullPath: '/$sku/deleted'
+      preLoaderRoute: typeof SkuDeletedRouteImport
       parentRoute: typeof SkuRouteRoute
     }
     '/$sku/devtools': {
@@ -222,11 +215,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuDevtoolsRouteImport
       parentRoute: typeof SkuRouteRoute
     }
-    '/$sku/deleted': {
-      id: '/$sku/deleted'
-      path: '/deleted'
-      fullPath: '/$sku/deleted'
-      preLoaderRoute: typeof SkuDeletedRouteImport
+    '/$sku/skills': {
+      id: '/$sku/skills'
+      path: '/skills'
+      fullPath: '/$sku/skills'
+      preLoaderRoute: typeof SkuSkillsRouteImport
+      parentRoute: typeof SkuRouteRoute
+    }
+    '/$sku/summary': {
+      id: '/$sku/summary'
+      path: '/summary'
+      fullPath: '/$sku/summary'
+      preLoaderRoute: typeof SkuSummaryRouteImport
       parentRoute: typeof SkuRouteRoute
     }
     '/$sku/$division/': {
