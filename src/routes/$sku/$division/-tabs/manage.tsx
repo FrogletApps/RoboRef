@@ -257,8 +257,7 @@ export const JoinCodeDialog: React.FC<ManageDialogProps> = ({
         {!profile ? (
           <>
             <p>
-              Enter your name to continue. This name will be visible to other
-              participants.
+              Enter your display name to set up sharing.
             </p>
             <label>
               <h1 className="font-bold mt-4">Name</h1>
@@ -403,8 +402,7 @@ export const ProfilePrompt: React.FC = () => {
   return (
     <>
       <p className="text-zinc-400 text-sm">
-        Enter your name to continue. This name will be visible to other
-        participants.
+      Enter your display name to set up sharing.
       </p>
       <label>
         <h1 className="font-bold mt-4">Name</h1>
@@ -420,7 +418,7 @@ export const ProfilePrompt: React.FC = () => {
         onClick={() => setNameContinue()}
         disabled={!localName}
       >
-        Continue
+        Continue to Enable Incident Sharing
       </Button>
       <Spinner show={isPendingSetNameContinue} />
     </>
@@ -566,6 +564,7 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
 
       <h2 className="font-bold">Sharing</h2>
       <p className="text-zinc-400 text-sm">Share Name: {connection.profile.name}</p>
+      <p className="text-zinc-400 text-sm">You can change your share name in the settings.</p>
       {isSharing ? (
         <div className="mt-2">
           {invitation?.admin ? (
@@ -627,8 +626,7 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
       {!isSharing ? (
         <section className="mt-2">
           <p className="text-zinc-400 text-sm">
-            Create or join a sharing instance to synchronize the anomaly log
-            between devices.
+            Create or join a sharing instance to synchronize the anomaly log between devices.
           </p>
           {isWorldsBuild() && WORLDS_EVENTS.includes(event.sku) ? (
             <p className="mt-2 text-zinc-400 text-sm">
@@ -885,7 +883,7 @@ const HideEventSection: React.FC<ManageTabProps> = ({ event }) => {
       <p className="text-zinc-400 text-sm">
         {isHidden
           ? "This event is currently hidden from the main page."
-          : "Hide this event from the list on the main page."}
+          : "Hide this event from the list on the main page. Incident data will not be deleted."}
       </p>
       {isHidden ? (
         <Button
