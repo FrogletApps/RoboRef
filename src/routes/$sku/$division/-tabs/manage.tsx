@@ -18,7 +18,6 @@ import {
   removeInvitation,
 } from "~utils/data/share";
 import {
-  ArrowRightIcon,
   ArrowUpRightIcon,
   FlagIcon,
   UserCircleIcon,
@@ -418,7 +417,7 @@ export const ProfilePrompt: React.FC = () => {
         onClick={() => setNameContinue()}
         disabled={!localName}
       >
-        Continue to Enable Incident Sharing
+        Continue to Incident Sharing Setup
       </Button>
       <Spinner show={isPendingSetNameContinue} />
     </>
@@ -666,10 +665,9 @@ const EventSummaryLink: React.FC<ManageTabProps> = ({ event }) => {
       <LinkButton
         to="/$sku/summary"
         params={{ sku: event.sku }}
-        className="w-full mt-2 flex items-center"
+        className="w-full text-center mt-2"
       >
-        <span className="flex-1">Event Summary</span>
-        <ArrowRightIcon height={20} className="text-emerald-400" />
+        Event Summary
       </LinkButton>
     </section>
   );
@@ -871,11 +869,33 @@ export type ManageTabProps = {
   event: EventData;
 };
 
+const VexEventsLink: React.FC<ManageTabProps> = ({ event }) => {
+  return (
+    <section className="mt-4">
+      <h2 className="font-bold">VEX Events</h2>
+      <p className="text-zinc-400 text-sm">View this event on VEX Events.</p>
+      <ExternalLinkButton
+        href={`https://events.vex.com/${event.sku}.html`}
+        className="w-full text-center mt-2"
+      >
+        View Event
+      </ExternalLinkButton>
+    </section>
+  );
+};
+
 const HideEventSection: React.FC<ManageTabProps> = ({ event }) => {
+  const { data: invitation } = useEventInvitation(event.sku);
+  const isSharing = !!invitation && invitation.accepted;
+
   const { data: hiddenEvents = [] } = useHiddenEvents();
   const isHidden = hiddenEvents.includes(event.sku);
   const { mutate: hideEvent } = useHideEvent();
   const { mutate: unhideEvent } = useUnhideEvent();
+
+  if (isSharing) {
+    return null;
+  }
 
   return (
     <section className="mt-4">
@@ -912,6 +932,7 @@ export const EventManageTab: React.FC<ManageTabProps> = ({ event }) => {
       <UpdatePrompt />
       <ShareManager event={event} />
       <EventSummaryLink event={event} />
+      <VexEventsLink event={event} />
       <HideEventSection event={event} />
       <IntegrationInfo event={event} />
       <SystemKeyInfo event={event} />
