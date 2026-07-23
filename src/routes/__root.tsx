@@ -270,7 +270,7 @@ export const AppShell: React.FC = () => {
             <EventPicker />
           </nav>
         ) : (
-          <header className="flex items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm w-full min-w-0 mb-4">
+          <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm w-full min-w-0 mb-3">
             <IconButton
               onClick={() =>
                 router.history.canGoBack()

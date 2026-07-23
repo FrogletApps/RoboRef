@@ -18,7 +18,7 @@ export const DialogCustomHeader: React.FC<DialogCustomHeaderProps> = ({
     <nav
       {...props}
       className={twMerge(
-        "h-16 flex p-2 gap-2 items-center max-w-full",
+        "h-[56px] flex py-2 px-3 gap-2 items-center max-w-full",
         props.className
       )}
     >
