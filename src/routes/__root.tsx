@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  currentSeasons,
   useCurrentSeason,
-  useEvent,
-  useEventSearch,
   useSeason,
 } from "~utils/hooks/robotevents";
-import { Button, IconButton, LinkButton, ExternalLinkButton } from "~components/Button";
+import { Button, IconButton, ExternalLinkButton } from "~components/Button";
 import {
   BookOpenIcon,
   ChevronDownIcon,
@@ -20,10 +17,9 @@ import {
   Dialog,
   DialogBody,
   DialogCustomHeader,
-  DialogHeader,
 } from "~components/Dialog";
 import { ProgramCode } from "@referee-fyi/robotevents";
-import { Input, RulesSelect } from "~components/Input";
+import { RulesSelect } from "~components/Input";
 import { Rule, useRulesForSeason } from "~utils/hooks/rules";
 import { Toaster } from "react-hot-toast";
 import { useEventInvitation } from "~utils/hooks/share";
@@ -32,8 +28,6 @@ import { useMutation } from "@tanstack/react-query";
 import { runMigrations } from "../migrations";
 import { toast } from "~components/Toast";
 import { getEventInvitation, getShareProfile } from "~utils/data/share";
-import { useGeolocation } from "~utils/hooks/meta";
-import { useUnhideEvent } from "~utils/hooks/history";
 import { getSkuTextColorClass } from "~utils/data/state";
 import {
   createRootRoute,
@@ -51,95 +45,14 @@ function isValidSKU(sku: string) {
 }
 
 const EventPicker: React.FC = () => {
-  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { mutate: unhideEvent } = useUnhideEvent();
-
-  const { data: geo } = useGeolocation();
-
-  const [query, setQuery] = useState("");
-  const { data: eventFromSKU, isLoading: isLoadingEventFromSKU } = useEvent(
-    query,
-    { enabled: isValidSKU(query) }
-  );
-
-  const start = useRef(
-    new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
-  );
-  const [end, setEnd] = useState(
-    new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
-  );
-  const onClickMore = useCallback(() => {
-    setEnd((end) => new Date(end.getTime() + 1000 * 60 * 60 * 24 * 31));
-  }, [setEnd]);
-
-  const { data: events, isPending: isLoadingEvents } = useEventSearch(
-    {
-      "season[]": currentSeasons,
-      "eventTypes[]": ["tournament"],
-      start: start.current,
-      end: end.toISOString(),
-    },
-    {
-      placeholderData: (prev) => prev,
-    }
-  );
-
   const { sku: skuParam } = useParams({ strict: false });
 
   const { data: event, isPending: isPendingCurrentEvent } = useCurrentEvent();
   const division = useCurrentDivision();
 
   const sku = event?.sku ?? (skuParam && isValidSKU(skuParam) ? skuParam : "");
-
-  const results = useMemo(() => {
-    if (!query) {
-      return events ?? [];
-    }
-
-    return (
-      events?.filter((event) => {
-        if (event.name.toUpperCase().includes(query)) {
-          return true;
-        }
-
-        if (event.sku.toUpperCase().includes(query)) {
-          return true;
-        }
-
-        if (event.location.venue?.toUpperCase().includes(query)) {
-          return true;
-        }
-      }) ?? []
-    );
-  }, [query, events]);
-
-  const regionResults = useMemo(() => {
-    if (!geo?.region || !geo.country) {
-      return [];
-    }
-
-    if (geo.country === "United States") {
-      return results.filter((event) => event.location.region === geo.region);
-    }
-
-    return results.filter((event) => event.location.country === geo.country);
-  }, [geo?.region, geo?.country, results]);
-
-  useEffect(() => {
-    const maxTime = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30 * 3);
-
-    const shouldLoadMore =
-      query.length > 3 &&
-      !isLoadingEvents &&
-      results.length < 1 &&
-      end < maxTime;
-
-    if (shouldLoadMore) {
-      onClickMore();
-    }
-  }, [query, results, isLoadingEvents, onClickMore, end]);
 
   const selectedDiv = event?.divisions?.find((d) => d.id === division);
   const showDiv =
@@ -150,164 +63,41 @@ const EventPicker: React.FC = () => {
     if (showDiv && event) {
       navigate({ to: "/$sku", params: { sku: event.sku } });
     } else {
-      setOpen(true);
+      navigate({ to: "/events" });
     }
   };
 
   return (
-    <>
-      <Dialog
-        open={open}
-        mode="modal"
-        onClose={() => setOpen(false)}
-        aria-label="Pick an Event"
+    <Button
+      mode="none"
+      className="flex-1 active:bg-zinc-600"
+      onClick={onClick}
+      aria-description={
+        "Click to " + (showDiv ? "Select Division" : "Select Event")
+      }
+    >
+      <div
+        className="grid items-center gap-2"
+        style={{ gridTemplateColumns: "1fr 1.25rem" }}
       >
-        <DialogHeader title="Pick An Event" onClose={() => setOpen(false)} />
-        <DialogBody>
-          <Spinner show={isLoadingEvents} />
-          <section>
-            <h2 className="text-lg font-bold text-zinc-100 mx-2">Search</h2>
-            <Input
-              type="text"
-              placeholder="SKU or Event Name"
-              className="font-mono px-4 py-4 rounded-md invalid:bg-red-500 w-full mt-2"
-              value={query}
-              onChange={(e) => setQuery(e.currentTarget.value.toUpperCase())}
-            />
-            <Spinner show={isLoadingEventFromSKU} />
-            {eventFromSKU && (
-              <>
-                <div className="p-2 pt-4">
-                  <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
-                    <span className={`font-mono ${getSkuTextColorClass(eventFromSKU.sku)}`}>
-                      {eventFromSKU.sku}
-                    </span>
-                    {" • "}
-                    <span>{eventFromSKU.location.venue}</span>
-                  </p>
-                  <p className="whitespace-nowrap text-ellipsis overflow-hidden">
-                    {eventFromSKU.name}
-                  </p>
-                </div>
-                <LinkButton
-                  to={"/$sku"}
-                  params={{ sku: eventFromSKU.sku }}
-                  onClick={() => {
-                    unhideEvent(eventFromSKU.sku);
-                    setOpen(false);
-                  }}
-                  className="mt-4 bg-emerald-600 w-full text-center"
-                >
-                  Go
-                </LinkButton>
-              </>
-            )}
-          </section>
-          {regionResults.length > 0 && geo?.region ? (
-            <section className="mt-4">
-              <h2 className="text-lg font-bold text-zinc-100 mx-2">
-                {geo.region}
-              </h2>
-              <ul>
-                {regionResults?.map((event) => (
-                  <li
-                    key={event.sku}
-                    aria-label={`${event.name} at ${event.location.venue}. ${event.sku}`}
-                  >
-                    <LinkButton
-                      to={"/$sku"}
-                      params={{ sku: event.sku }}
-                      onClick={() => {
-                        unhideEvent(event.sku);
-                        setOpen(false);
-                      }}
-                      className="w-full mt-2 bg-transparent"
-                    >
-                      <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
-                        <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
-                          {event.sku}
-                        </span>
-                        {" • "}
-                        <span>{event.location.venue}</span>
-                      </p>
-                      <p className="whitespace-nowrap text-ellipsis overflow-hidden">
-                        {event.name}
-                      </p>
-                    </LinkButton>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-          <section className="mt-4">
-            <h2 className="text-lg font-bold text-zinc-100 mx-2">Events</h2>
-            <ul>
-              {results?.map((event) => (
-                <li
-                  key={event.sku}
-                  aria-label={`${event.name} at ${event.location.venue}. ${event.sku}`}
-                >
-                  <LinkButton
-                    to={"/$sku"}
-                    params={{ sku: event.sku }}
-                    onClick={() => {
-                      unhideEvent(event.sku);
-                      setOpen(false);
-                    }}
-                    className="w-full mt-2 bg-transparent"
-                  >
-                    <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
-                      <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
-                        {event.sku}
-                      </span>
-                      {" • "}
-                      <span>{event.location.venue}</span>
-                    </p>
-                    <p className="whitespace-nowrap text-ellipsis overflow-hidden">
-                      {event.name}
-                    </p>
-                  </LinkButton>
-                </li>
-              ))}
-            </ul>
-            <Spinner show={isLoadingEvents} />
-            <Button onClick={onClickMore} mode="normal" className="mt-2">
-              Load More
-            </Button>
-          </section>
-        </DialogBody>
-      </Dialog>
-      <Button
-        mode="none"
-        className="flex-1 active:bg-zinc-600"
-        onClick={onClick}
-        aria-description={
-          "Click to " + showDiv ? "Select Division" : "Select Event"
-        }
-      >
-        <div
-          className="grid items-center gap-2"
-          style={{ gridTemplateColumns: "1fr 1.25rem" }}
-        >
-          <div className="flex-1 overflow-hidden whitespace-nowrap text-ellipsis">
-            <p
-              style={{
-                visibility: sku && isPendingCurrentEvent ? "hidden" : "visible",
-              }}
-            >
-              {event?.name ??
-                (sku && isPendingCurrentEvent
-                  ? "Loading Event..."
-                  : "Select Event")}
-            </p>
-            <p className={`text-sm ${showDiv ? "text-emerald-400" : getSkuTextColorClass(sku)}`}>
-              {showDiv ? <span>{selectedDiv?.name}</span> : sku}
-            </p>
-          </div>
-          <ChevronDownIcon className="w-5 h-5" />
+        <div className="flex-1 overflow-hidden whitespace-nowrap text-ellipsis">
+          <p
+            style={{
+              visibility: sku && isPendingCurrentEvent ? "hidden" : "visible",
+            }}
+          >
+            {event?.name ??
+              (sku && isPendingCurrentEvent
+                ? "Loading Event..."
+                : "Select Event")}
+          </p>
+          <p className={`text-sm ${showDiv ? "text-emerald-400" : getSkuTextColorClass(sku)}`}>
+            {showDiv ? <span>{selectedDiv?.name}</span> : sku}
+          </p>
         </div>
-      </Button>
-    </>
+        <ChevronDownIcon className="w-5 h-5" />
+      </div>
+    </Button>
   );
 };
 
@@ -500,11 +290,14 @@ export const AppShell: React.FC = () => {
   const isIndex = location.pathname === "/";
   const isSettings = location.pathname === "/settings";
   const isUpdates = location.pathname === "/updates";
+  const isEvents = location.pathname === "/events";
 
   const customHeaderTitle = isSettings
     ? "Settings"
     : isUpdates
     ? "What's New"
+    : isEvents
+    ? "Pick An Event"
     : null;
 
   return (
