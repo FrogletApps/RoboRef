@@ -17,7 +17,6 @@ import { getEventInvitation } from "~utils/data/share";
 import { UpdatePrompt } from "~components/UpdatePrompt";
 import { useDisplayMode, useInstallPrompt } from "~utils/hooks/pwa";
 import { twMerge } from "tailwind-merge";
-
 import AppIcon from "/icons/roboref.svg?url";
 
 import "./markdown.css";

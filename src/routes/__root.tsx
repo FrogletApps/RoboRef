@@ -31,12 +31,15 @@ import { getEventInvitation, getShareProfile } from "~utils/data/share";
 import { getSkuTextColorClass } from "~utils/data/state";
 import {
   createRootRoute,
+  Link,
   Outlet,
   useLocation,
   useNavigate,
   useParams,
   useRouter,
 } from "@tanstack/react-router";
+import { QRCode } from "~components/QRCode";
+import AppIcon from "/icons/roboref.svg?url";
 
 function isValidSKU(sku: string) {
   return !!sku.match(
@@ -281,6 +284,38 @@ const MigrationManager: React.FC = () => {
   return null;
 };
 
+const RoboRefTitleBar: React.FC = () => {
+  return (
+    <header className="flex items-center justify-between gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm mb-3">
+      <div className="flex items-center gap-3">
+        <img src={AppIcon} alt="RoboRef Logo" className="w-8 h-8 object-contain" />
+        <h1 className="text-xl font-bold font-mono tracking-tight">
+          <span className="text-zinc-100">RoboRef</span>
+          <span className="text-zinc-400">.fyi</span>
+        </h1>
+      </div>
+      <Link
+        to="/share"
+        title="Share RoboRef"
+        aria-label="Share RoboRef"
+        className="flex items-center justify-center gap-2 p-1.5 px-2.5 bg-zinc-800 hover:bg-zinc-700/80 rounded-md border border-zinc-700/60 transition-colors group cursor-pointer"
+      >
+        <span className="text-sm font-medium text-zinc-400">Share</span>
+        <QRCode
+          config={{
+            text: "https://roboref.fyi",
+            radius: 0.4,
+            ecLevel: "H",
+            fill: "#10b981",
+            background: null,
+          }}
+          className="w-7 h-7 p-0 bg-transparent"
+        />
+      </Link>
+    </header>
+  );
+};
+
 export const AppShell: React.FC = () => {
   const { isLoading } = useCurrentEvent();
   const navigate = useNavigate();
@@ -291,6 +326,7 @@ export const AppShell: React.FC = () => {
   const isSettings = location.pathname === "/settings";
   const isUpdates = location.pathname === "/updates";
   const isEvents = location.pathname === "/events";
+  const isShare = location.pathname === "/share";
 
   const customHeaderTitle = isSettings
     ? "Settings"
@@ -298,54 +334,59 @@ export const AppShell: React.FC = () => {
     ? "What's New"
     : isEvents
     ? "Pick An Event"
+    : isShare
+    ? "Share RoboRef"
     : null;
 
   return (
     <main
       className="w-screen h-[100dvh] grid mb-4 p-4 overflow-hidden"
       style={{
-        gridTemplateRows: "4rem minmax(0, 1fr)",
+        gridTemplateRows: "auto minmax(0, 1fr)",
         gridTemplateColumns: "calc(100dvw - 32px)",
       }}
     >
       <Toaster containerClassName="mb-16" />
       <ConnectionManager />
       <MigrationManager />
-      {customHeaderTitle ? (
-        <DialogCustomHeader className="px-0">
-          <IconButton
-            icon={<ChevronLeftIcon height={24} />}
-            onClick={() =>
-              router.history.canGoBack()
-                ? router.history.back()
-                : navigate({ to: "/" })
-            }
-            className="bg-transparent"
-            aria-label="Back"
-            autoFocus
-          />
-          <h1 className="text-xl text-zinc-100 font-normal">
-            {customHeaderTitle}
-          </h1>
-        </DialogCustomHeader>
-      ) : (
-        <nav className="h-16 flex gap-4 max-w-full">
-          {!isIndex && (
+      <div className="flex flex-col max-w-full">
+        {isIndex && <RoboRefTitleBar />}
+        {customHeaderTitle ? (
+          <DialogCustomHeader className="px-0">
             <IconButton
+              icon={<ChevronLeftIcon height={24} />}
               onClick={() =>
                 router.history.canGoBack()
                   ? router.history.back()
                   : navigate({ to: "/" })
               }
-              icon={<ChevronLeftIcon height={24} />}
-              className="aspect-auto bg-transparent"
+              className="bg-transparent"
               aria-label="Back"
+              autoFocus
             />
-          )}
-          <EventPicker />
-          <Rules />
-        </nav>
-      )}
+            <h1 className="text-xl text-zinc-100 font-normal">
+              {customHeaderTitle}
+            </h1>
+          </DialogCustomHeader>
+        ) : (
+          <nav className="h-16 flex gap-4 max-w-full">
+            {!isIndex && (
+              <IconButton
+                onClick={() =>
+                  router.history.canGoBack()
+                    ? router.history.back()
+                    : navigate({ to: "/" })
+                }
+                icon={<ChevronLeftIcon height={24} />}
+                className="aspect-auto bg-transparent"
+                aria-label="Back"
+              />
+            )}
+            <EventPicker />
+            <Rules />
+          </nav>
+        )}
+      </div>
       <Spinner show={isLoading} />
       {!isLoading && <Outlet />}
     </main>

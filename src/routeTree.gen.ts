@@ -14,6 +14,7 @@ import { Route as SkuRouteRouteImport } from './routes/$sku/route'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ShareRouteImport } from './routes/share'
 import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as SkuIndexRouteImport } from './routes/$sku/index'
 import { Route as SkuDeletedRouteImport } from './routes/$sku/deleted'
@@ -46,6 +47,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareRoute = ShareRouteImport.update({
+  id: '/share',
+  path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UpdatesRoute = UpdatesRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/events': typeof EventsRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/share': typeof ShareRoute
   '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/events': typeof EventsRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/share': typeof ShareRoute
   '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/events': typeof EventsRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/share': typeof ShareRoute
   '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/privacy'
     | '/settings'
+    | '/share'
     | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/privacy'
     | '/settings'
+    | '/share'
     | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/privacy'
     | '/settings'
+    | '/share'
     | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   EventsRoute: typeof EventsRoute
   PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
+  ShareRoute: typeof ShareRoute
   UpdatesRoute: typeof UpdatesRoute
 }
 
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share': {
+      id: '/share'
+      path: '/share'
+      fullPath: '/share'
+      preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/updates': {
@@ -316,6 +336,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventsRoute: EventsRoute,
   PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,
+  ShareRoute: ShareRoute,
   UpdatesRoute: UpdatesRoute,
 }
 export const routeTree = rootRouteImport
