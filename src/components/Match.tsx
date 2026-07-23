@@ -109,20 +109,20 @@ export const ClickableMatch: React.FC<ClickableMatch> = ({
   return (
     <div
       key={match.id}
-      className="flex items-center gap-4 mt-4 h-12 text-zinc-50"
+      className="w-full h-full flex items-center justify-between gap-4 border-b border-zinc-700 text-zinc-50 px-1"
     >
       <Button
         mode={"transparent"}
         data-matchid={match.id}
         onClick={onClick}
-        className="flex-1 active:bg-zinc-600 pl-0"
+        className="flex-1 min-w-0 active:bg-zinc-600 pl-0 flex flex-col justify-center"
         aria-label={`Jump to ${match.name}`}
         id={id}
       >
         <p className="text-emerald-400">{match.shortName()} </p>
         <p className="text-sm">{matchTime(match)}</p>
       </Button>
-      <label htmlFor={id}>
+      <label htmlFor={id} className="flex items-center justify-center shrink-0">
         <MatchContext match={match} />
       </label>
     </div>

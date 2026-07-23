@@ -89,7 +89,10 @@ export const EventMatchesTab: React.FC<MatchesTabProps> = ({
           data={matches}
           options={{ estimateSize: () => 64 }}
           className="flex-1"
-          parts={{ list: { className: "mb-24" } }}
+          parts={{
+            list: { className: "mb-24" },
+            item: { className: "w-full h-full flex items-center" },
+          }}
         >
           {(match) => <ClickableMatch match={match} onClick={onClickMatch} />}
         </VirtualizedList>

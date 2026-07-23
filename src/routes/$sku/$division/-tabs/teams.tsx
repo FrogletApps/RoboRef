@@ -105,7 +105,10 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
         data={filteredTeams}
         options={{ estimateSize: () => 64 }}
         className="flex-1"
-        parts={{ list: { className: "mb-12" } }}
+        parts={{
+          list: { className: "mb-12" },
+          item: { className: "border-b border-zinc-700" },
+        }}
       >
         {(team) => (
           <MenuButton

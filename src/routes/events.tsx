@@ -108,19 +108,17 @@ export const EventsPage: React.FC = () => {
         />
         <Spinner show={isLoadingEventFromSKU} />
         {eventFromSKU && (
-          <>
-            <div className="p-2 pt-4">
-              <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
-                <span className={`font-mono ${getSkuTextColorClass(eventFromSKU.sku)}`}>
-                  {eventFromSKU.sku}
-                </span>
-                {" • "}
-                <span>{eventFromSKU.location.venue}</span>
-              </p>
-              <p className="whitespace-nowrap text-ellipsis overflow-hidden">
-                {eventFromSKU.name}
-              </p>
-            </div>
+          <div className="border-y border-zinc-700 mt-2 p-3 text-center flex flex-col items-center justify-center">
+            <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
+              <span className={`font-mono ${getSkuTextColorClass(eventFromSKU.sku)}`}>
+                {eventFromSKU.sku}
+              </span>
+              {" • "}
+              <span>{eventFromSKU.location.venue}</span>
+            </p>
+            <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
+              {eventFromSKU.name}
+            </p>
             <LinkButton
               to={"/$sku"}
               params={{ sku: eventFromSKU.sku }}
@@ -132,7 +130,7 @@ export const EventsPage: React.FC = () => {
             >
               Go
             </LinkButton>
-          </>
+          </div>
         )}
       </section>
       {regionResults.length > 0 && geo?.region ? (
@@ -140,7 +138,7 @@ export const EventsPage: React.FC = () => {
           <h2 className="text-lg font-bold text-zinc-100 mx-2">
             {geo.region}
           </h2>
-          <ul>
+          <ul className="divide-y divide-zinc-700 border-y border-zinc-700 mt-2">
             {regionResults?.map((event) => (
               <li
                 key={event.sku}
@@ -153,16 +151,16 @@ export const EventsPage: React.FC = () => {
                   onClick={() => {
                     unhideEvent(event.sku);
                   }}
-                  className="w-full mt-2 bg-transparent"
+                  className="w-full bg-transparent rounded-none py-3 text-center flex flex-col items-center justify-center"
                 >
-                  <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
+                  <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
                     <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
                       {event.sku}
                     </span>
                     {" • "}
                     <span>{event.location.venue}</span>
                   </p>
-                  <p className="whitespace-nowrap text-ellipsis overflow-hidden">
+                  <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
                     {event.name}
                   </p>
                 </LinkButton>
@@ -173,7 +171,7 @@ export const EventsPage: React.FC = () => {
       ) : null}
       <section className="mt-4">
         <h2 className="text-lg font-bold text-zinc-100 mx-2">Events</h2>
-        <ul>
+        <ul className="divide-y divide-zinc-700 border-y border-zinc-700 mt-2">
           {results?.map((event) => (
             <li
               key={event.sku}
@@ -186,16 +184,16 @@ export const EventsPage: React.FC = () => {
                 onClick={() => {
                   unhideEvent(event.sku);
                 }}
-                className="w-full mt-2 bg-transparent"
+                className="w-full bg-transparent rounded-none py-3 text-center flex flex-col items-center justify-center"
               >
-                <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden">
+                <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
                   <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
                     {event.sku}
                   </span>
                   {" • "}
                   <span>{event.location.venue}</span>
                 </p>
-                <p className="whitespace-nowrap text-ellipsis overflow-hidden">
+                <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
                   {event.name}
                 </p>
               </LinkButton>
