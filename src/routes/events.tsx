@@ -124,6 +124,7 @@ export const EventsPage: React.FC = () => {
             <LinkButton
               to={"/$sku"}
               params={{ sku: eventFromSKU.sku }}
+              replace
               onClick={() => {
                 unhideEvent(eventFromSKU.sku);
               }}
@@ -148,6 +149,7 @@ export const EventsPage: React.FC = () => {
                 <LinkButton
                   to={"/$sku"}
                   params={{ sku: event.sku }}
+                  replace
                   onClick={() => {
                     unhideEvent(event.sku);
                   }}
@@ -180,6 +182,7 @@ export const EventsPage: React.FC = () => {
               <LinkButton
                 to={"/$sku"}
                 params={{ sku: event.sku }}
+                replace
                 onClick={() => {
                   unhideEvent(event.sku);
                 }}
