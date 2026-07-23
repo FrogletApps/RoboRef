@@ -1,3 +1,8 @@
+## 23 July 2026
+- UI updates
+- Added title bar and share button to the main page
+- Added rules to the events navigation
+
 ## 22 July 2026
 
 - Added hide event button to tidy up the home screen

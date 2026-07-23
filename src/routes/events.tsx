@@ -102,7 +102,7 @@ export const EventsPage: React.FC = () => {
         <Input
           type="text"
           placeholder="SKU or Event Name"
-          className="font-mono px-4 py-4 rounded-md invalid:bg-red-500 w-full mt-2"
+          className="px-4 py-4 rounded-md invalid:bg-red-500 w-full mt-2"
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value.toUpperCase())}
         />

@@ -4,6 +4,7 @@ import { useAddEventVisited } from "~utils/hooks/history";
 import { EventMatchesTab } from "./-tabs/matches";
 import { EventTeamsTab } from "./-tabs/teams";
 import { EventManageTab } from "./-tabs/manage";
+import { EventRulesTab } from "./-tabs/rules";
 
 import { ClipboardDocumentListIcon as MatchesIconOutline } from "@heroicons/react/24/outline";
 import { ClipboardDocumentListIcon as MatchesIconSolid } from "@heroicons/react/24/solid";
@@ -13,6 +14,9 @@ import { UserGroupIcon as TeamsIconSolid } from "@heroicons/react/24/solid";
 
 import { CloudIcon as ManageIconOutline } from "@heroicons/react/24/outline";
 import { CloudIcon as ManageIconSolid } from "@heroicons/react/24/solid";
+
+import { BookOpenIcon as RulesIconOutline } from "@heroicons/react/24/outline";
+import { BookOpenIcon as RulesIconSolid } from "@heroicons/react/24/solid";
 import { Tabs } from "~components/Tabs";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -61,6 +65,18 @@ export const EventHome: React.FC = () => {
                 <TeamsIconOutline height={24} className="inline" />
               ),
             content: <EventTeamsTab event={event} />,
+          },
+          {
+            type: "content",
+            id: "rules",
+            label: "Rules",
+            icon: (active) =>
+              active ? (
+                <RulesIconSolid height={24} className="inline" />
+              ) : (
+                <RulesIconOutline height={24} className="inline" />
+              ),
+            content: <EventRulesTab event={event} />,
           },
           {
             type: "content",

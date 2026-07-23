@@ -17,6 +17,13 @@ import {
   FlagIcon,
   PhotoIcon,
 } from "@heroicons/react/24/solid";
+import {
+  BookOpenIcon as RulesIconOutline,
+} from "@heroicons/react/24/outline";
+import {
+  BookOpenIcon as RulesIconSolid,
+} from "@heroicons/react/24/solid";
+import { EventRulesTab } from "../$division/-tabs/rules";
 import { useEventAssetsForTeam } from "~utils/hooks/assets";
 import { AssetPreview } from "~components/Assets";
 import { createFileRoute, useParams } from "@tanstack/react-router";
@@ -179,6 +186,18 @@ export const EventTeamsPage: React.FC = () => {
                 <PhotoIcon height={24} className="inline" />
               ),
             content: <EventTeamAssets sku={event?.sku} team={team?.number} />,
+          },
+          {
+            type: "content",
+            id: "rules",
+            label: "Rules",
+            icon: (active) =>
+              active ? (
+                <RulesIconSolid height={24} className="inline" />
+              ) : (
+                <RulesIconOutline height={24} className="inline" />
+              ),
+            content: <EventRulesTab event={event} />,
           },
         ]}
       </Tabs>

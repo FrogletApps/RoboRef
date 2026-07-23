@@ -115,7 +115,7 @@ export const Tabs: React.FC<TabsProps> = ({
               data-index={index}
               {...parts?.tab}
               className={twMerge(
-                "flex flex-1 justify-center gap-2 items-center py-4 data-[selected=true]:text-emerald-400 data-[selected=true]:border-b-4 data-[selected=true]:border-emerald-400",
+                "flex flex-col flex-1 justify-center gap-1 items-center py-2 text-xs data-[selected=true]:text-emerald-400 data-[selected=true]:border-b-4 data-[selected=true]:border-emerald-400",
                 parts?.tab?.className
               )}
             >
