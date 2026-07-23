@@ -5,7 +5,6 @@ import { useEventMatches } from "~utils/hooks/robotevents";
 import { Spinner } from "~components/Spinner";
 import { IconButton } from "~components/Button";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/20/solid";
-import { twMerge } from "tailwind-merge";
 import { MatchContext } from "~components/Context";
 import { MatchTime } from "~components/Match";
 import { EventMatchView } from "~components/dialogs/match";
@@ -115,35 +114,62 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
     return controls.stop;
   }, [matchIndex, calculateNewX, x, animateMatchTransition]);
 
+  const scheduledTime = useMemo(() => {
+    if (!match?.scheduled) return undefined;
+    try {
+      return new Intl.DateTimeFormat(undefined, {
+        hour: "numeric",
+        minute: "numeric",
+      }).format(new Date(match.scheduled));
+    } catch {
+      return undefined;
+    }
+  }, [match?.scheduled]);
+
   if (isLoading && !match) {
     return <Spinner show />;
   }
 
   return (
     <section className="flex-1 flex flex-col max-h-full overflow-hidden mt-4">
-      <header className="flex items-center justify-between gap-2 p-2 bg-zinc-900 border border-zinc-800 rounded-lg mb-3 flex-shrink-0">
-        <IconButton
-          icon={<ArrowLeftIcon height={20} />}
-          onClick={onClickPrevMatch}
-          aria-label={`Previous Match: ${matches?.[matchIndex - 1]?.name}`}
-          className={twMerge(
-            "p-1.5 bg-zinc-800 hover:bg-zinc-700/80 active:bg-zinc-700 rounded-md border border-zinc-700/60 aspect-auto",
-            hasPrevMatch ? "visible" : "invisible"
-          )}
-        />
-        <h1 className="text-xl font-bold font-mono text-zinc-100 flex-1 text-center truncate">
+      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 p-2 bg-zinc-900 border border-zinc-800 rounded-lg mb-3 flex-shrink-0">
+        <div className="flex items-center justify-start gap-2 min-w-0">
+          <IconButton
+            icon={
+              <ArrowLeftIcon
+                height={20}
+                className={hasPrevMatch ? "text-zinc-100" : "text-zinc-600 opacity-40"}
+              />
+            }
+            onClick={onClickPrevMatch}
+            disabled={!hasPrevMatch}
+            aria-label={`Previous Match: ${matches?.[matchIndex - 1]?.name ?? "None"}`}
+            className="p-1.5 bg-zinc-800 rounded-md border border-zinc-700/60 aspect-auto shrink-0 disabled:bg-zinc-800 disabled:cursor-not-allowed enabled:hover:bg-zinc-700/80 enabled:active:bg-zinc-700"
+          />
+          {scheduledTime ? (
+            <span className="text-zinc-100 font-mono whitespace-nowrap">
+              {scheduledTime}
+            </span>
+          ) : null}
+        </div>
+        <h1 className="text-xl font-bold font-mono text-zinc-100 text-center truncate px-2">
           {match?.name ?? "Match Summary"}
         </h1>
-        {match && <MatchTime match={match} />}
-        <IconButton
-          icon={<ArrowRightIcon height={20} />}
-          onClick={onClickNextMatch}
-          aria-label={`Next Match: ${matches?.[matchIndex + 1]?.name}`}
-          className={twMerge(
-            "p-1.5 bg-zinc-800 hover:bg-zinc-700/80 active:bg-zinc-700 rounded-md border border-zinc-700/60 aspect-auto",
-            hasNextMatch ? "visible" : "invisible"
-          )}
-        />
+        <div className="flex items-center justify-end gap-2 min-w-0">
+          {match && <MatchTime match={match} />}
+          <IconButton
+            icon={
+              <ArrowRightIcon
+                height={20}
+                className={hasNextMatch ? "text-zinc-100" : "text-zinc-600 opacity-40"}
+              />
+            }
+            onClick={onClickNextMatch}
+            disabled={!hasNextMatch}
+            aria-label={`Next Match: ${matches?.[matchIndex + 1]?.name ?? "None"}`}
+            className="p-1.5 bg-zinc-800 rounded-md border border-zinc-700/60 aspect-auto shrink-0 disabled:bg-zinc-800 disabled:cursor-not-allowed enabled:hover:bg-zinc-700/80 enabled:active:bg-zinc-700"
+          />
+        </div>
       </header>
 
       <div className="relative flex-1 flex flex-col overflow-hidden">

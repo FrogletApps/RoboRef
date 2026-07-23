@@ -23,7 +23,7 @@ export const IconButton: React.FC<IconButtonProps> = ({ icon, ...props }) => {
       {...props}
       className={twMerge(
         "rounded-md bg-zinc-700 aspect-square flex items-center justify-center text-zinc-100",
-        "active:bg-zinc-600 focus disabled:bg-zinc-300 disabled:cursor-not-allowed",
+        "active:bg-zinc-600 focus disabled:cursor-not-allowed",
         props.className
       )}
     >
