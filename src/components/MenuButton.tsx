@@ -42,7 +42,7 @@ export const MenuButton: React.FC<MenuButtonProps> = ({ menu, ...props }) => {
   );
 
   return (
-    <div className="relative">
+    <div className="relative w-full h-full">
       <Menu id={id} show={show} setShow={setShow}>
         {menu}
       </Menu>

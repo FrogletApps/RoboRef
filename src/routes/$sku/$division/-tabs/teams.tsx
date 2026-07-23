@@ -106,8 +106,8 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
         options={{ estimateSize: () => 64 }}
         className="flex-1"
         parts={{
-          list: { className: "mb-12" },
-          item: { className: "border-b border-zinc-700" },
+          list: { className: "divide-y divide-zinc-700 border-y border-zinc-700 mt-2 mb-12" },
+          item: { className: "border-b border-zinc-700 w-full h-full flex items-center" },
         }}
       >
         {(team) => (
@@ -192,27 +192,29 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
                 </Button>
               </nav>
             }
-            className="flex items-center gap-4 mt-4 p-0 h-12 text-zinc-50"
+            className="w-full h-full bg-transparent rounded-none py-3 text-left flex items-center justify-between gap-4 p-0 text-zinc-50"
             aria-label={`Team ${team.number} ${team.team_name}. ${
               majorIncidents.get(team.number) ?? 0
             } major violations. ${
               minorIncidents.get(team.number) ?? 0
             } minor violations`}
           >
-            <div className="flex-1">
-              <p className="text-emerald-400 font-mono">{team.number}</p>
-              <p className="overflow-hidden whitespace-nowrap text-ellipsis max-w-[24ch] lg:max-w-prose">
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <p className="text-sm font-mono text-emerald-400 whitespace-nowrap text-ellipsis overflow-hidden w-full">
+                {team.number}
+              </p>
+              <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
                 {team.team_name}
               </p>
             </div>
-            <div className="absolute right-0 bg-zinc-800 h-full w-32 px-2 flex items-center justify-between">
-              <span className="text-red-400 mr-4" aria-label={``}>
+            <div className="flex items-center gap-4 shrink-0 px-2">
+              <span className="text-red-400 flex items-center" aria-label={``}>
                 <FlagIcon height={20} className="inline" />
                 <span className="font-mono ml-2">
                   {majorIncidents.get(team.number) ?? 0}
                 </span>
               </span>
-              <span className="text-yellow-400">
+              <span className="text-yellow-400 flex items-center">
                 <ExclamationTriangleIcon height={20} className="inline" />
                 <span className="font-mono ml-2">
                   {minorIncidents.get(team.number) ?? 0}
