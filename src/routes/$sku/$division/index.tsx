@@ -7,8 +7,8 @@ import { EventManageTab } from "./-tabs/manage";
 import { EventRulesTab } from "./-tabs/rules";
 import { MatchSummaryView } from "~components/MatchSummaryView";
 
-import { HomeIcon as EventIconOutline } from "@heroicons/react/24/outline";
-import { HomeIcon as EventIconSolid } from "@heroicons/react/24/solid";
+import { CalendarIcon as EventIconOutline } from "@heroicons/react/24/outline";
+import { CalendarIcon as EventIconSolid } from "@heroicons/react/24/solid";
 
 import { ClipboardDocumentListIcon as MatchesIconOutline } from "@heroicons/react/24/outline";
 import { ClipboardDocumentListIcon as MatchesIconSolid } from "@heroicons/react/24/solid";
