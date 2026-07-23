@@ -1,14 +1,14 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { EventData } from "@referee-fyi/robotevents";
 import { useEventMatches } from "~utils/hooks/robotevents";
 import { useCurrentDivision } from "~utils/hooks/state";
-import { EventMatchDialog } from "~components/dialogs/match";
 import { Spinner } from "~components/Spinner";
 import { ClickableMatch, MatchTime } from "~components/Match";
 import { Button } from "~components/Button";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { DisconnectedWarning } from "~components/DisconnectedWarning";
+import { useNavigate } from "@tanstack/react-router";
 
 export type UpcomingMatchProps = {
   event: EventData;
@@ -51,32 +51,36 @@ export const UpcomingMatch: React.FC<UpcomingMatchProps> = ({
 
 export type MatchesTabProps = {
   event: EventData;
+  onSelectMatch?: (matchId: number) => void;
 };
 
-export const EventMatchesTab: React.FC<MatchesTabProps> = ({ event }) => {
+export const EventMatchesTab: React.FC<MatchesTabProps> = ({
+  event,
+  onSelectMatch,
+}) => {
   const division = useCurrentDivision();
   const { data: matches, isLoading } = useEventMatches(event, division);
+  const navigate = useNavigate();
 
-  const [open, setOpen] = useState(false);
-  const [matchId, setMatchId] = useState<number>(0);
-
-  const onClickMatch = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    const matchId = parseInt(e.currentTarget.dataset.matchid ?? "NaN");
-    if (isNaN(matchId)) return;
-    setMatchId(matchId);
-    setTimeout(() => {
-      setOpen(true);
-    }, 0);
-  }, []);
+  const onClickMatch = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const matchIdStr = e.currentTarget.dataset.matchid;
+      if (!matchIdStr || isNaN(parseInt(matchIdStr, 10))) return;
+      const matchId = parseInt(matchIdStr, 10);
+      if (onSelectMatch) {
+        onSelectMatch(matchId);
+      } else {
+        navigate({
+          to: "/$sku/match/$matchId",
+          params: { sku: event.sku, matchId: matchIdStr },
+        });
+      }
+    },
+    [event.sku, navigate, onSelectMatch]
+  );
 
   return (
     <>
-      <EventMatchDialog
-        key={matchId}
-        initialMatchId={matchId}
-        open={open}
-        setOpen={setOpen}
-      />
       <UpcomingMatch event={event} onClickMatch={onClickMatch} />
       <section className="contents">
         <Spinner show={isLoading} />

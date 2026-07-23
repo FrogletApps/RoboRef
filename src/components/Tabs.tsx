@@ -1,5 +1,5 @@
 import { twMerge } from "tailwind-merge";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ComponentParts } from "./parts";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import type { Register } from "@tanstack/react-router";
@@ -71,19 +71,27 @@ export const Tabs: React.FC<TabsProps> = ({
     location?.state?.tabState?.[id]?.tab ?? 0
   );
 
+  useEffect(() => {
+    const tabFromState = location?.state?.tabState?.[id]?.tab;
+    if (typeof tabFromState === "number") {
+      setActiveTab(tabFromState);
+    }
+  }, [id, location?.state]);
+
   const onClickTab = useCallback(
     (index: number) => {
+      if (index === activeTab) return;
       router.navigate({
         state: (state) => ({
           ...state,
           tabActive: id,
           tabState: { ...state.tabState, [id]: { tab: index } },
         }),
-        replace: true,
+        replace: false,
       });
       setActiveTab(index);
     },
-    [id, router]
+    [activeTab, id, router]
   );
 
   return (
@@ -115,7 +123,7 @@ export const Tabs: React.FC<TabsProps> = ({
               data-index={index}
               {...parts?.tab}
               className={twMerge(
-                "flex flex-col flex-1 justify-center gap-1 items-center py-2 text-xs data-[selected=true]:text-emerald-400 data-[selected=true]:border-b-4 data-[selected=true]:border-emerald-400",
+                "flex flex-col flex-1 justify-center gap-1 items-center py-2 text-xs border-b-4 border-transparent data-[selected=true]:text-emerald-400 data-[selected=true]:border-emerald-400",
                 parts?.tab?.className
               )}
             >

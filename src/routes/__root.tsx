@@ -3,6 +3,7 @@ import { Button, IconButton } from "~components/Button";
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
+  HomeIcon,
 } from "@heroicons/react/24/outline";
 import { Spinner } from "~components/Spinner";
 import { useCurrentDivision, useCurrentEvent } from "~utils/hooks/state";
@@ -273,13 +274,19 @@ export const AppShell: React.FC = () => {
           <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm w-full min-w-0 mb-3">
             <IconButton
               onClick={() =>
-                router.history.canGoBack()
+                customHeaderTitle && router.history.canGoBack()
                   ? router.history.back()
                   : navigate({ to: "/" })
               }
-              icon={<ChevronLeftIcon height={20} />}
+              icon={
+                customHeaderTitle ? (
+                  <ChevronLeftIcon height={20} />
+                ) : (
+                  <HomeIcon height={20} />
+                )
+              }
               className="p-1.5 px-2.5 bg-zinc-800 hover:bg-zinc-700/80 active:bg-zinc-700 rounded-md border border-zinc-700/60 transition-colors aspect-auto"
-              aria-label="Back"
+              aria-label={customHeaderTitle ? "Back" : "Home"}
             />
             {customHeaderTitle ? (
               <h1 className="text-xl font-bold font-mono tracking-tight text-zinc-100 overflow-hidden whitespace-nowrap text-ellipsis flex-1 min-w-0">

@@ -150,10 +150,10 @@ export const TeamFlagButton: React.FC<TeamFlagButtonProps> = ({
   );
 };
 
-type EventMatchViewProps = {
+export type EventMatchViewProps = {
   match?: Match | null;
 };
-const EventMatchView: React.FC<EventMatchViewProps> = ({ match }) => {
+export const EventMatchView: React.FC<EventMatchViewProps> = ({ match }) => {
   const { data: incidentsByTeam } = useTeamIncidentsByMatch(match, {
     initialData: () => {
       if (!match) {

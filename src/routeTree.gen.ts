@@ -22,6 +22,7 @@ import { Route as SkuDevtoolsRouteImport } from './routes/$sku/devtools'
 import { Route as SkuSkillsRouteImport } from './routes/$sku/skills'
 import { Route as SkuSummaryRouteImport } from './routes/$sku/summary'
 import { Route as SkuDivisionIndexRouteImport } from './routes/$sku/$division/index'
+import { Route as SkuMatchMatchIdRouteImport } from './routes/$sku/match/$matchId'
 import { Route as SkuTeamTeamRouteImport } from './routes/$sku/team/$team'
 
 const IndexRoute = IndexRouteImport.update({
@@ -89,6 +90,11 @@ const SkuDivisionIndexRoute = SkuDivisionIndexRouteImport.update({
   path: '/$division/',
   getParentRoute: () => SkuRouteRoute,
 } as any)
+const SkuMatchMatchIdRoute = SkuMatchMatchIdRouteImport.update({
+  id: '/match/$matchId',
+  path: '/match/$matchId',
+  getParentRoute: () => SkuRouteRoute,
+} as any)
 const SkuTeamTeamRoute = SkuTeamTeamRouteImport.update({
   id: '/team/$team',
   path: '/team/$team',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
   '/$sku/': typeof SkuIndexRoute
+  '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
   '/$sku/team/$team': typeof SkuTeamTeamRoute
   '/$sku/$division/': typeof SkuDivisionIndexRoute
 }
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
   '/$sku': typeof SkuIndexRoute
+  '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
   '/$sku/team/$team': typeof SkuTeamTeamRoute
   '/$sku/$division': typeof SkuDivisionIndexRoute
 }
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
   '/$sku/': typeof SkuIndexRoute
+  '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
   '/$sku/team/$team': typeof SkuTeamTeamRoute
   '/$sku/$division/': typeof SkuDivisionIndexRoute
 }
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/$sku/skills'
     | '/$sku/summary'
     | '/$sku/'
+    | '/$sku/match/$matchId'
     | '/$sku/team/$team'
     | '/$sku/$division/'
   fileRoutesByTo: FileRoutesByTo
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/$sku/skills'
     | '/$sku/summary'
     | '/$sku'
+    | '/$sku/match/$matchId'
     | '/$sku/team/$team'
     | '/$sku/$division'
   id:
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/$sku/skills'
     | '/$sku/summary'
     | '/$sku/'
+    | '/$sku/match/$matchId'
     | '/$sku/team/$team'
     | '/$sku/$division/'
   fileRoutesById: FileRoutesById
@@ -296,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuDivisionIndexRouteImport
       parentRoute: typeof SkuRouteRoute
     }
+    '/$sku/match/$matchId': {
+      id: '/$sku/match/$matchId'
+      path: '/match/$matchId'
+      fullPath: '/$sku/match/$matchId'
+      preLoaderRoute: typeof SkuMatchMatchIdRouteImport
+      parentRoute: typeof SkuRouteRoute
+    }
     '/$sku/team/$team': {
       id: '/$sku/team/$team'
       path: '/team/$team'
@@ -312,6 +331,7 @@ interface SkuRouteRouteChildren {
   SkuSkillsRoute: typeof SkuSkillsRoute
   SkuSummaryRoute: typeof SkuSummaryRoute
   SkuIndexRoute: typeof SkuIndexRoute
+  SkuMatchMatchIdRoute: typeof SkuMatchMatchIdRoute
   SkuTeamTeamRoute: typeof SkuTeamTeamRoute
   SkuDivisionIndexRoute: typeof SkuDivisionIndexRoute
 }
@@ -322,6 +342,7 @@ const SkuRouteRouteChildren: SkuRouteRouteChildren = {
   SkuSkillsRoute: SkuSkillsRoute,
   SkuSummaryRoute: SkuSummaryRoute,
   SkuIndexRoute: SkuIndexRoute,
+  SkuMatchMatchIdRoute: SkuMatchMatchIdRoute,
   SkuTeamTeamRoute: SkuTeamTeamRoute,
   SkuDivisionIndexRoute: SkuDivisionIndexRoute,
 }

@@ -1,13 +1,12 @@
 import { useEventMatchesForTeam, useEventTeam } from "~hooks/robotevents";
 import { Spinner } from "~components/Spinner";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useCurrentEvent } from "~hooks/state";
 import { useTeamIncidentsByEvent } from "~hooks/incident";
 import { Tabs } from "~components/Tabs";
 import { EventData } from "@referee-fyi/robotevents";
 import { TeamData } from "@referee-fyi/robotevents";
 import { ClickableMatch } from "~components/Match";
-import { EventMatchDialog } from "~components/dialogs/match";
 import { MatchData } from "@referee-fyi/robotevents";
 import { Incident } from "~components/Incident";
 import { VirtualizedList } from "~components/VirtualizedList";
@@ -26,7 +25,7 @@ import {
 import { EventRulesTab } from "../$division/-tabs/rules";
 import { useEventAssetsForTeam } from "~utils/hooks/assets";
 import { AssetPreview } from "~components/Assets";
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 
 export type EventTeamAssetsProps = {
   team?: string;
@@ -55,27 +54,21 @@ export const EventTeamsMatches: React.FC<EventTeamsTabProps> = ({
   team,
 }) => {
   const { data: matches, isLoading } = useEventMatchesForTeam(event, team);
+  const navigate = useNavigate();
 
-  const [matchId, setMatchId] = useState<number>(0);
-  const [division, setDivision] = useState(1);
-  const [matchDialogOpen, setMatchDialogOpen] = useState(false);
-
-  const onClickMatch = useCallback((match: MatchData) => {
-    setMatchId(match.id);
-    setDivision(match.division.id);
-    setTimeout(() => {
-      setMatchDialogOpen(true);
-    }, 0);
-  }, []);
+  const onClickMatch = useCallback(
+    (match: MatchData) => {
+      if (!event) return;
+      navigate({
+        to: "/$sku/match/$matchId",
+        params: { sku: event.sku, matchId: match.id.toString() },
+      });
+    },
+    [event, navigate]
+  );
 
   return (
     <>
-      <EventMatchDialog
-        initialMatchId={matchId}
-        open={matchDialogOpen}
-        setOpen={setMatchDialogOpen}
-        division={division}
-      />
       <Spinner show={isLoading} />
       <ul className="flex-1 overflow-y-auto">
         {matches?.map((match) => (
