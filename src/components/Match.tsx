@@ -12,7 +12,7 @@ function formatTime(ms: number) {
   const t = [h, m > 9 ? m : h ? "0" + m : m || "0", s > 9 ? s : "0" + s]
     .filter(Boolean)
     .join(":");
-  return ms < 0 && seconds ? `-${t}` : t;
+  return ms < 0 ? `-${t}` : `+${t}`;
 }
 
 export type MatchTimeProps = {
@@ -28,17 +28,11 @@ export const MatchTime: React.FC<MatchTimeProps> = ({ match }) => {
     }
 
     const scheduled = new Date(match.scheduled).getTime();
+    const currentOrStarted = match.started
+      ? new Date(match.started).getTime()
+      : now;
 
-    // upcoming matches
-    if (!match.started) {
-      const time = scheduled - now;
-      return time;
-    }
-
-    const started = new Date(match.started).getTime();
-    const time = started - scheduled;
-
-    return time;
+    return currentOrStarted - scheduled;
   }, [match, now]);
 
   useEffect(() => {
@@ -50,13 +44,15 @@ export const MatchTime: React.FC<MatchTimeProps> = ({ match }) => {
     return null;
   }
 
+  const colorClass =
+    delta >= 0
+      ? "text-red-400"
+      : delta >= -60000
+      ? "text-yellow-400"
+      : "text-emerald-400";
+
   return (
-    <span
-      className={twMerge(
-        "font-mono",
-        delta > 0 ? "text-emerald-400" : "text-red-400"
-      )}
-    >
+    <span className={twMerge("font-mono", colorClass)}>
       {formatTime(delta)}
     </span>
   );
