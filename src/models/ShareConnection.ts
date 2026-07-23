@@ -169,7 +169,7 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
       type: "info",
       message:
         "Synchronized with the server!" +
-        (import.meta.env.DEV ? ` (Took ${end - start}ms)` : ""),
+        (import.meta.env.DEV ? ` (Took ${Math.round(end - start)}ms)` : ""),
     });
   },
 
@@ -301,7 +301,7 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
           type: "info",
           message:
             "Synchronized with the server!" +
-            (import.meta.env.DEV ? ` (Took ${end - start}ms)` : ""),
+            (import.meta.env.DEV ? ` (Took ${Math.round(end - start)}ms)` : ""),
         });
 
         reportMeasurement("ShareConnection#sync", end - start, "ms");
