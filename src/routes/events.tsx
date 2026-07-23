@@ -108,15 +108,15 @@ export const EventsPage: React.FC = () => {
         />
         <Spinner show={isLoadingEventFromSKU} />
         {eventFromSKU && (
-          <div className="border-y border-zinc-700 mt-2 p-3 text-center flex flex-col items-center justify-center">
-            <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
+          <div className="border-y border-zinc-700 mt-2 p-3 flex flex-col items-start justify-start">
+            <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full">
               <span className={`font-mono ${getSkuTextColorClass(eventFromSKU.sku)}`}>
                 {eventFromSKU.sku}
               </span>
               {" • "}
               <span>{eventFromSKU.location.venue}</span>
             </p>
-            <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
+            <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
               {eventFromSKU.name}
             </p>
             <LinkButton
@@ -151,16 +151,16 @@ export const EventsPage: React.FC = () => {
                   onClick={() => {
                     unhideEvent(event.sku);
                   }}
-                  className="w-full bg-transparent rounded-none py-3 text-center flex flex-col items-center justify-center"
+                  className="w-full bg-transparent rounded-none py-3 text-left flex flex-col items-start justify-start"
                 >
-                  <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
+                  <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full">
                     <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
                       {event.sku}
                     </span>
                     {" • "}
                     <span>{event.location.venue}</span>
                   </p>
-                  <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
+                  <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
                     {event.name}
                   </p>
                 </LinkButton>
@@ -184,16 +184,16 @@ export const EventsPage: React.FC = () => {
                 onClick={() => {
                   unhideEvent(event.sku);
                 }}
-                className="w-full bg-transparent rounded-none py-3 text-center flex flex-col items-center justify-center"
+                className="w-full bg-transparent rounded-none py-3 text-left flex flex-col items-start justify-start"
               >
-                <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
+                <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full">
                   <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
                     {event.sku}
                   </span>
                   {" • "}
                   <span>{event.location.venue}</span>
                 </p>
-                <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full text-center">
+                <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
                   {event.name}
                 </p>
               </LinkButton>
