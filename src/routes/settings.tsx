@@ -59,7 +59,7 @@ export const SettingsPage: React.FC = () => {
         </p>
       ) : null}
       <section className="mt-4">
-        <h2 className="font-bold">Name</h2>
+        <h2 className="font-bold">Display Name</h2>
         <p className="text-zinc-400 text-sm">
           Your display name when sharing and logging incidents
         </p>

@@ -255,11 +255,11 @@ export const JoinCodeDialog: React.FC<ManageDialogProps> = ({
       <DialogBody className="px-2">
         {!profile ? (
           <>
-            <p>
-              Enter your display name to set up sharing.
-            </p>
             <label>
-              <h1 className="font-bold mt-4">Name</h1>
+              <h1 className="font-bold mt-4">Display Name</h1>
+              <p className="text-zinc-400 text-sm mb-2">
+                Your display name when sharing and logging incidents
+              </p>
               <Input
                 className="w-full"
                 value={localName}
@@ -400,11 +400,11 @@ export const ProfilePrompt: React.FC = () => {
 
   return (
     <>
-      <p className="text-zinc-400 text-sm">
-      Enter your display name to set up sharing.
-      </p>
       <label>
-        <h1 className="font-bold mt-4">Name</h1>
+        <h1 className="font-bold mt-4">Display Name</h1>
+        <p className="text-zinc-400 text-sm mb-2">
+          Your display name when sharing and logging incidents
+        </p>
         <Input
           className="w-full"
           value={localName}
@@ -417,7 +417,7 @@ export const ProfilePrompt: React.FC = () => {
         onClick={() => setNameContinue()}
         disabled={!localName}
       >
-        Continue to Incident Sharing Setup
+        Save Name & Enable Sharing
       </Button>
       <Spinner show={isPendingSetNameContinue} />
     </>
@@ -531,6 +531,9 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
     return (
       <section className="mt-4">
         <h2 className="font-bold">Sharing</h2>
+        <p className="text-zinc-400 text-sm mb-2">
+          You must set your display name below to set up sharing
+        </p>
         <ProfilePrompt />
       </section>
     );
