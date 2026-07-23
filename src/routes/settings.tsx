@@ -48,7 +48,7 @@ export const SettingsPage: React.FC = () => {
   }, []);
 
   return (
-    <main className="max-w-xl max-h-full w-full mx-auto flex-1 mb-12 overflow-y-auto">
+    <main className="max-w-xl h-full w-full mx-auto flex-1 pb-6 overflow-y-auto">
       {isWorldsBuild() ? (
         <p className="bg-purple-500 text-zinc-300 p-2 rounded-md flex items-center gap-2 mt-4">
           <GlobeAmericasIcon height={20} />
