@@ -1,7 +1,14 @@
 ## 23 July 2026
-- UI updates
+
 - Added title bar and share button to the main page
 - Added rules to the events navigation
+- Separate event and matches in the event navigation
+- Add scheduled time to matches
+- Update timer logic on matches
+- Rounded connection times to the nearest millisecond
+- Worked on UI consistency
+- Made back/home/x behaviour more consistent/predictable
+- Fixed UI alignment issues
 
 ## 22 July 2026
 
