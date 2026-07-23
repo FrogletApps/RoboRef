@@ -497,6 +497,7 @@ export const AppShell: React.FC = () => {
   const router = useRouter();
   const location = useLocation();
 
+  const isIndex = location.pathname === "/";
   const isSettings = location.pathname === "/settings";
   const isUpdates = location.pathname === "/updates";
 
@@ -536,16 +537,18 @@ export const AppShell: React.FC = () => {
         </DialogCustomHeader>
       ) : (
         <nav className="h-16 flex gap-4 max-w-full">
-          <IconButton
-            onClick={() =>
-              router.history.canGoBack()
-                ? router.history.back()
-                : navigate({ to: "/" })
-            }
-            icon={<ChevronLeftIcon height={24} />}
-            className="aspect-auto bg-transparent"
-            aria-label="Back"
-          />
+          {!isIndex && (
+            <IconButton
+              onClick={() =>
+                router.history.canGoBack()
+                  ? router.history.back()
+                  : navigate({ to: "/" })
+              }
+              icon={<ChevronLeftIcon height={24} />}
+              className="aspect-auto bg-transparent"
+              aria-label="Back"
+            />
+          )}
           <EventPicker />
           <Rules />
         </nav>
