@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SkuRouteRouteImport } from './routes/$sku/route'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as SkuIndexRouteImport } from './routes/$sku/index'
 import { Route as SkuDeletedRouteImport } from './routes/$sku/deleted'
 import { Route as SkuDevtoolsRouteImport } from './routes/$sku/devtools'
@@ -39,6 +40,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpdatesRoute = UpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SkuIndexRoute = SkuIndexRouteImport.update({
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/$sku': typeof SkuRouteRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
   '/$sku/skills': typeof SkuSkillsRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
   '/$sku/skills': typeof SkuSkillsRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/$sku': typeof SkuRouteRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
   '/$sku/skills': typeof SkuSkillsRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/$sku'
     | '/privacy'
     | '/settings'
+    | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
     | '/$sku/skills'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/settings'
+    | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
     | '/$sku/skills'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/$sku'
     | '/privacy'
     | '/settings'
+    | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
     | '/$sku/skills'
@@ -162,6 +174,7 @@ export interface RootRouteChildren {
   SkuRouteRoute: typeof SkuRouteRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
+  UpdatesRoute: typeof UpdatesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/updates': {
+      id: '/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof UpdatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$sku/': {
@@ -275,6 +295,7 @@ const rootRouteChildren: RootRouteChildren = {
   SkuRouteRoute: SkuRouteRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,
+  UpdatesRoute: UpdatesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

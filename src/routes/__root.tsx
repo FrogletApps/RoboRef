@@ -498,6 +498,13 @@ export const AppShell: React.FC = () => {
   const location = useLocation();
 
   const isSettings = location.pathname === "/settings";
+  const isUpdates = location.pathname === "/updates";
+
+  const customHeaderTitle = isSettings
+    ? "Settings"
+    : isUpdates
+    ? "What's New"
+    : null;
 
   return (
     <main
@@ -510,20 +517,22 @@ export const AppShell: React.FC = () => {
       <Toaster containerClassName="mb-16" />
       <ConnectionManager />
       <MigrationManager />
-      {isSettings ? (
+      {customHeaderTitle ? (
         <DialogCustomHeader className="px-0">
           <IconButton
-            icon={<XMarkIcon height={24} />}
+            icon={<ChevronLeftIcon height={24} />}
             onClick={() =>
               router.history.canGoBack()
                 ? router.history.back()
                 : navigate({ to: "/" })
             }
             className="bg-transparent"
-            aria-label="Close settings"
+            aria-label="Back"
             autoFocus
           />
-          <h1 className="text-xl text-zinc-100 font-normal">Settings</h1>
+          <h1 className="text-xl text-zinc-100 font-normal">
+            {customHeaderTitle}
+          </h1>
         </DialogCustomHeader>
       ) : (
         <nav className="h-16 flex gap-4 max-w-full">
