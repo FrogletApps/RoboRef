@@ -1,13 +1,8 @@
-# [RoboRef](https://roboref.pages.dev)
+# [RoboRef](https://roboref.fyi)
 
-RoboRef is a anomaly log for Head Referees in robotics competitions that 
-allows you to record violations quickly, see summaries before a match, 
-and share your log with others.
+RoboRef is a anomaly log for Head Referees at VEX robotics ompetitions. It allows you to record violations quickly, see summaries before a match, and share your log with others.
 
-RoboRef is a fork of the 1st March 2025 build of Referee.FYI (from before
-the repository was made private). RoboRef is not maintained by, affiliated 
-with, or endorsed by the developers of Referee.FYI.  RoboRef is designed 
-to work with VEX Robotics Competition tournaments.
+RoboRef is a fork of the 1st March 2025 build of Referee.FYI (from before the repository was made private). RoboRef is not maintained by, affiliated with, or endorsed by the developers of Referee.FYI.
 
 ### Resources
 
