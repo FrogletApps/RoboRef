@@ -1,11 +1,12 @@
 import { useCurrentEvent } from "~hooks/state";
 import { useCallback, useEffect, useState } from "react";
 import { useAddEventVisited } from "~utils/hooks/history";
-import { EventMatchesTab } from "./-tabs/matches";
+import { EventTab } from "./-tabs/event";
 import { EventTeamsTab } from "./-tabs/teams";
+import { EventMatchesTab } from "./-tabs/matches";
 import { EventManageTab } from "./-tabs/manage";
 import { EventRulesTab } from "./-tabs/rules";
-import { MatchSummaryView } from "~components/MatchSummaryView";
+
 
 import { CalendarIcon as EventIconOutline } from "@heroicons/react/24/outline";
 import { CalendarIcon as EventIconSolid } from "@heroicons/react/24/solid";
@@ -77,7 +78,7 @@ export const EventHome: React.FC = () => {
                 <EventIconOutline height={24} className="inline" />
               ),
             content: (
-              <EventMatchesTab event={event} onSelectMatch={onSelectMatch} />
+              <EventTab event={event} onSelectMatch={onSelectMatch} />
             ),
           },
           {
@@ -103,7 +104,7 @@ export const EventHome: React.FC = () => {
                 <MatchesIconOutline height={24} className="inline" />
               ),
             content: (
-              <MatchSummaryView
+              <EventMatchesTab
                 event={event}
                 initialMatchId={selectedMatchId}
                 key={selectedMatchId}

@@ -27,12 +27,12 @@ import { useEventAssetsForTeam } from "~utils/hooks/assets";
 import { AssetPreview } from "~components/Assets";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 
-export type EventTeamAssetsProps = {
+export type TeamImagesTabProps = {
   team?: string;
   sku?: string;
 };
 
-export const EventTeamAssets: React.FC<EventTeamAssetsProps> = ({
+export const TeamImagesTab: React.FC<TeamImagesTabProps> = ({
   team,
   sku,
 }) => {
@@ -49,7 +49,7 @@ type EventTeamsTabProps = {
   team: TeamData | null | undefined;
 };
 
-export const EventTeamsMatches: React.FC<EventTeamsTabProps> = ({
+export const TeamScheduleTab: React.FC<EventTeamsTabProps> = ({
   event,
   team,
 }) => {
@@ -83,7 +83,7 @@ export const EventTeamsMatches: React.FC<EventTeamsTabProps> = ({
   );
 };
 
-export const EventTeamsIncidents: React.FC<EventTeamsTabProps> = ({
+export const TeamIncidentsTab: React.FC<EventTeamsTabProps> = ({
   team,
   event,
 }) => {
@@ -154,7 +154,7 @@ export const EventTeamsPage: React.FC = () => {
               ) : (
                 <FlagIcon height={24} className="inline" />
               ),
-            content: <EventTeamsIncidents event={event} team={team} />,
+            content: <TeamIncidentsTab event={event} team={team} />,
           },
           {
             type: "content",
@@ -166,7 +166,7 @@ export const EventTeamsPage: React.FC = () => {
               ) : (
                 <ClipboardDocumentListIcon height={24} className="inline" />
               ),
-            content: <EventTeamsMatches event={event} team={team} />,
+            content: <TeamScheduleTab event={event} team={team} />,
           },
           {
             type: "content",
@@ -178,7 +178,7 @@ export const EventTeamsPage: React.FC = () => {
               ) : (
                 <PhotoIcon height={24} className="inline" />
               ),
-            content: <EventTeamAssets sku={event?.sku} team={team?.number} />,
+            content: <TeamImagesTab sku={event?.sku} team={team?.number} />,
           },
           {
             type: "content",

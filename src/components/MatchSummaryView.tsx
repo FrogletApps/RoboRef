@@ -11,6 +11,7 @@ import { EventMatchView } from "~components/dialogs/match";
 import { animate, PanInfo, useMotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import useResizeObserver from "use-resize-observer";
+import { UpcomingMatch } from "../routes/$sku/$division/-tabs/event";
 
 const transition = {
   type: "spring",
@@ -126,12 +127,28 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
     }
   }, [match?.scheduled]);
 
+  const onClickUpcomingMatch = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const matchIdStr = e.currentTarget.dataset.matchid;
+      if (!matchIdStr || isNaN(parseInt(matchIdStr, 10))) return;
+      const matchId = parseInt(matchIdStr, 10);
+      const index = matches?.findIndex((m) => m.id === matchId);
+      if (index !== undefined && index !== -1) {
+        setMatchIndex([index, true]);
+      }
+    },
+    [matches]
+  );
+
   if (isLoading && !match) {
     return <Spinner show />;
   }
 
   return (
     <section className="flex-1 flex flex-col max-h-full overflow-hidden mt-4">
+      {event && (
+        <UpcomingMatch event={event} onClickMatch={onClickUpcomingMatch} />
+      )}
       <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 p-2 bg-zinc-900 border border-zinc-800 rounded-lg mb-3 flex-shrink-0">
         <div className="flex items-center justify-start gap-2 min-w-0">
           <IconButton
@@ -217,7 +234,9 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
                 dragElastic={1}
                 onDragEnd={onDragEnd}
               >
-                <EventMatchView key={matchIndex + i} match={mItem} />
+                <div className="pb-24">
+                  <EventMatchView key={matchIndex + i} match={mItem} />
+                </div>
               </m.div>
             );
           })}
