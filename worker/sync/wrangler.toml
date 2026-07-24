@@ -14,6 +14,7 @@ kv_namespaces = [
     { binding = "SYSTEM_KEYS", id = "946437fe93124c53a120911049cb68da" },
     { binding = "ASSETS", id = "a38afb0b7a7641e4a007a499366c56bb" },
 ]
+routes = [{ pattern = "share.roboref.fyi", custom_domain = true }]
 workers_dev = true
 
 [env.prod.vars]

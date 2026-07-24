@@ -28,9 +28,11 @@ import { exportPublicKey, getSignRequestHeaders } from "./crypto";
 import { useShareConnection } from "~models/ShareConnection";
 import { useMemo } from "react";
 
-export const URL_BASE =
+export const SHARE_SERVER =
   import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER ??
-  "https://roboref-share.james-pearson.workers.dev/api";
+  "https://share.roboref.fyi";
+
+export const URL_BASE = `${SHARE_SERVER.replace(/\/api\/?$/, "")}/api`;
 
 export async function getShareSessionID(): Promise<string> {
   let id = sessionStorage.getItem("share_session_id");
@@ -382,17 +384,17 @@ export function getIntegrationAPIEndpoints(
 ) {
   const json = new URL(
     `/api/integration/v1/${sku}/incidents.json`,
-    import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER
+    SHARE_SERVER
   );
 
   const csv = new URL(
     `/api/integration/v1/${sku}/incidents.csv`,
-    import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER
+    SHARE_SERVER
   );
 
   const pdf = new URL(
     `/api/integration/v1/${sku}/incidents.pdf`,
-    import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER
+    SHARE_SERVER
   );
 
   if (query.token) {
@@ -416,7 +418,7 @@ export function getIntegrationAPIUsersEndpoint(
 ) {
   const url = new URL(
     `/api/integration/v1/${sku}/users`,
-    import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER
+    SHARE_SERVER
   );
 
   if (query.token) {
@@ -436,7 +438,7 @@ export function getIntegrationAPIDeleteIncidentEndpoint(
 ) {
   const url = new URL(
     `/api/integration/v1/${sku}/incident`,
-    import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER
+    SHARE_SERVER
   );
 
   if (query.token) {

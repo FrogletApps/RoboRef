@@ -29,7 +29,7 @@ import { createPersister } from "~utils/data/query";
 // So no token is sent from the browser here.
 const SHARE_SERVER =
   import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER ??
-  "https://roboref-share.james-pearson.workers.dev";
+  "https://share.roboref.fyi";
 
 const client = Client({
   authorization: {

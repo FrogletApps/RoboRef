@@ -693,19 +693,19 @@ const IntegrationInfo: React.FC<ManageTabProps> = ({ event }) => {
 
   return (
     <section className="mt-4">
-      <h2 className="font-bold">Integrations</h2>
+      <h2 className="font-bold">Reports & Data Export</h2>
       <p className="text-zinc-400 text-sm">
-        Use these integration URLs to give others up-to-date read-only access to
+        Use these URLs to give others up-to-date read-only access to
         the anomaly log for this instance.{" "}
         <em>
           Anyone who has this URL can pull this data at any time, so treat these
           carefully!
         </em>
       </p>
-      <ClickToCopy prefix="BEARER" message={bearerToken} className="flex-1" />
-      <ClickToCopy prefix="JSON" message={json.toString()} className="flex-1" />
-      <ClickToCopy prefix="CSV" message={csv.toString()} className="flex-1" />
       <ClickToCopy prefix="PDF" message={pdf.toString()} className="flex-1" />
+      <ClickToCopy prefix="CSV" message={csv.toString()} className="flex-1" />
+      <ClickToCopy prefix="JSON" message={json.toString()} className="flex-1" />
+      <ClickToCopy prefix="BEARER" message={bearerToken} className="flex-1" />
     </section>
   );
 };
