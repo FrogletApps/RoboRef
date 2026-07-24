@@ -47,7 +47,7 @@ export const EventHome: React.FC = () => {
         state: (state) => ({
           ...state,
           tabActive: tabId,
-          tabState: { ...state.tabState, [tabId]: { tab: 2 } },
+          tabState: { ...state.tabState, [tabId]: { tab: 1 } },
         }),
         replace: false,
       });
@@ -83,18 +83,6 @@ export const EventHome: React.FC = () => {
           },
           {
             type: "content",
-            id: "team",
-            label: "Teams",
-            icon: (active) =>
-              active ? (
-                <TeamsIconSolid height={24} className="inline" />
-              ) : (
-                <TeamsIconOutline height={24} className="inline" />
-              ),
-            content: <EventTeamsTab event={event} />,
-          },
-          {
-            type: "content",
             id: "matches",
             label: "Matches",
             icon: (active) =>
@@ -110,6 +98,18 @@ export const EventHome: React.FC = () => {
                 key={selectedMatchId}
               />
             ),
+          },
+          {
+            type: "content",
+            id: "team",
+            label: "Teams",
+            icon: (active) =>
+              active ? (
+                <TeamsIconSolid height={24} className="inline" />
+              ) : (
+                <TeamsIconOutline height={24} className="inline" />
+              ),
+            content: <EventTeamsTab event={event} />,
           },
           {
             type: "content",
