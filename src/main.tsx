@@ -13,7 +13,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { ThemeProvider } from "~utils/hooks/theme";
 import {
   ErrorBoundary,
-  ErrorContactDevDialog,
+  ErrorContactDevFallback,
 } from "~components/ErrorBoundary";
 import { Spinner } from "~components/Spinner";
 import { client as sentry } from "~utils/sentry";
@@ -30,7 +30,7 @@ const router = createRouter({
   defaultErrorComponent: ({ error, reset, info }) => {
     const eventId = captureException(error, { extra: { info } });
     return (
-      <ErrorContactDevDialog
+      <ErrorContactDevFallback
         error={error}
         resetError={reset}
         eventId={eventId}

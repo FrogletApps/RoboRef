@@ -1,35 +1,19 @@
-import { useCurrentDivision, useCurrentEvent } from "~hooks/state";
-import { useEventMatches } from "~hooks/robotevents";
-import { Button, ButtonProps, IconButton } from "~components/Button";
+import { Button, ButtonProps } from "~components/Button";
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
   FlagIcon,
   ChevronDownIcon,
   ChevronRightIcon,
 } from "@heroicons/react/20/solid";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { Spinner } from "~components/Spinner";
-import {
-  Dialog,
-  DialogBody,
-  DialogCloseButton,
-  DialogCustomHeader,
-} from "~components/Dialog";
 import { useTeamIncidentsByMatch } from "~utils/hooks/incident";
 import { EventNewIncidentDialog } from "./new";
 import { Incident as IncidentData } from "~utils/data/incident";
 import { Match } from "@referee-fyi/robotevents";
-import { MatchContext } from "~components/Context";
 import { Incident } from "~components/Incident";
-import { MatchTime } from "~components/Match";
 import { TeamIsolationDialog } from "./team";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 import { MatchScratchpad } from "~components/scratchpad/Scratchpad";
-import { animate, PanInfo, useMotionValue } from "motion/react";
-import * as m from "motion/react-m";
-import useResizeObserver from "use-resize-observer";
 import { RulesSummary } from "~components/RulesSummary";
 
 type TeamSummaryProps = {
@@ -113,6 +97,7 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
   );
 };
 
+
 export type TeamFlagButtonProps = {
   match?: Match;
   team: string;
@@ -187,178 +172,4 @@ export const EventMatchView: React.FC<EventMatchViewProps> = ({ match }) => {
   );
 };
 
-const transition = {
-  type: "spring",
-  bounce: 0,
-} as const;
 
-export type EventMatchDialogProps = {
-  initialMatchId: number;
-  division?: number;
-
-  open: boolean;
-  setOpen: (open: boolean) => void;
-};
-
-export const EventMatchDialog: React.FC<EventMatchDialogProps> = ({
-  open,
-  setOpen,
-  initialMatchId,
-  division: defaultDivision,
-}) => {
-  const { data: event } = useCurrentEvent();
-  const division = useCurrentDivision(defaultDivision);
-  const { data: matches } = useEventMatches(event, division);
-
-  const [[matchIndex, animateMatchTransition], setMatchIndex] = useState<
-    [index: number, animate: boolean]
-  >([0, false]);
-
-  useEffect(() => {
-    if (!matches) return;
-    const index = matches.findIndex((match) => match.id === initialMatchId);
-    if (index !== -1) {
-      setMatchIndex([index, false]);
-    }
-  }, [initialMatchId, setMatchIndex, matches]);
-
-  const match = useMemo(() => matches?.[matchIndex], [matchIndex, matches]);
-
-  const hasNextMatch = matchIndex + 1 < (matches?.length ?? Infinity);
-  const hasPrevMatch = matchIndex - 1 >= 0;
-
-  const onClickNextMatch = useCallback(() => {
-    if (!matches || !hasNextMatch) return;
-    setMatchIndex([matchIndex + 1, true]);
-  }, [hasNextMatch, matchIndex, matches]);
-
-  const onClickPrevMatch = useCallback(() => {
-    if (!matches || !hasPrevMatch) return;
-    setMatchIndex([matchIndex - 1, true]);
-  }, [hasPrevMatch, matchIndex, matches]);
-
-  // Swipey Swipe Animation
-  const { ref: containerRef, width: containerWidth = 0 } =
-    useResizeObserver<HTMLDivElement>();
-
-  const viewsToRender = [-1, 0, 1];
-  const x = useMotionValue(0);
-
-  const calculateNewX = useCallback(
-    () => -matchIndex * containerWidth,
-    [matchIndex, containerWidth]
-  );
-
-  const onDragEnd = useCallback(
-    (_: Event, dragProps: PanInfo) => {
-      const { offset, velocity } = dragProps;
-
-      if (Math.abs(velocity.y) > Math.abs(velocity.x)) {
-        animate(x, calculateNewX(), transition);
-        return;
-      }
-
-      if (offset.x > containerWidth / 6) {
-        onClickPrevMatch();
-      } else if (offset.x < -containerWidth / 6) {
-        onClickNextMatch();
-      } else {
-        animate(x, calculateNewX(), transition);
-      }
-    },
-    [calculateNewX, containerWidth, onClickNextMatch, onClickPrevMatch, x]
-  );
-
-  useEffect(() => {
-    if (!animateMatchTransition) {
-      x.set(calculateNewX());
-      return;
-    }
-    const controls = animate(x, calculateNewX(), transition);
-    return controls.stop;
-  }, [matchIndex, calculateNewX, x, animateMatchTransition]);
-
-  return (
-    <Dialog
-      open={open}
-      mode="modal"
-      onClose={() => setOpen(false)}
-      aria-label={`${match?.name} Dialog`}
-    >
-      <DialogCustomHeader>
-        <DialogCloseButton onClose={() => setOpen(false)} />
-        <IconButton
-          icon={<ArrowLeftIcon height={24} />}
-          onClick={onClickPrevMatch}
-          aria-label={`Previous Match: ${matches?.[matchIndex - 1]?.name}`}
-          className={twMerge(
-            "bg-transparent p-2",
-            hasPrevMatch ? "visible" : "invisible"
-          )}
-        />
-        <h1 className="text-xl flex-1">{match?.name}</h1>
-        {match && <MatchTime match={match} />}
-        <IconButton
-          icon={<ArrowRightIcon height={24} />}
-          aria-label={`Next Match: ${matches?.[matchIndex + 1]?.name}`}
-          onClick={onClickNextMatch}
-          className={twMerge(
-            "bg-transparent p-2",
-            hasNextMatch ? "visible" : "invisible"
-          )}
-        />
-      </DialogCustomHeader>
-      <DialogBody className="relative flex flex-col">
-        <Spinner show={!match} />
-        {match ? (
-          <MatchContext
-            match={match}
-            className="mb-4"
-            parts={{ alliance: { className: "w-full" } }}
-          />
-        ) : null}
-        <m.div
-          ref={containerRef}
-          style={{
-            position: "relative",
-            flexGrow: 1,
-            overflow: "hidden",
-          }}
-        >
-          {viewsToRender.map((i) => {
-            const match = matches?.[matchIndex + i];
-            const hiddenProps =
-              i !== 0
-                ? {
-                    "aria-hidden": true,
-                    tabIndex: -1,
-                    inert: true,
-                  }
-                : {};
-            return (
-              <m.div
-                {...hiddenProps}
-                key={matchIndex + i}
-                style={{
-                  position: "absolute",
-                  width: "100%",
-                  height: "100%",
-                  x,
-                  left: (matchIndex + i) * containerWidth,
-                  right: (matchIndex + i) * containerWidth,
-                  overflowY: "auto",
-                }}
-                draggable
-                drag="x"
-                dragElastic={1}
-                onDragEnd={onDragEnd}
-              >
-                <EventMatchView key={matchIndex + i} match={match} />
-              </m.div>
-            );
-          })}
-        </m.div>
-      </DialogBody>
-    </Dialog>
-  );
-};

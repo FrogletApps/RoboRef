@@ -8,7 +8,7 @@ export type MenuProps = React.PropsWithChildren<{
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
 }>;
 
-export const Menu: React.FC<MenuProps> = ({ id, children, show, setShow }) => (
+const Menu: React.FC<MenuProps> = ({ id, children, show, setShow }) => (
   <Dialog
     mode="modal"
     id={id}

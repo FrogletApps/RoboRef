@@ -1,8 +1,6 @@
 import { Error } from "./Warning";
-import { IconButton } from "./Button";
+import { LinkButton } from "./Button";
 import { BugAntIcon } from "@heroicons/react/20/solid";
-import { ContactDevDialog } from "./dialogs/contact";
-import { useState } from "react";
 import { ToastArguments } from "./Toast";
 import { twMerge } from "tailwind-merge";
 
@@ -14,25 +12,19 @@ export const ErrorToast: React.FC<ErrorToastProps> = ({
   context,
   ...props
 }) => {
-  const [open, setOpen] = useState(false);
-
   return (
     <section
       {...props}
       className={twMerge("flex gap-2 items-center", props.className)}
     >
       <Error message={message + "\n" + context} />
-      <ContactDevDialog
-        open={open}
-        setOpen={setOpen}
-        //comment={message}
-        //context={context}
-      />
-      <IconButton
-        icon={<BugAntIcon height={20} />}
-        className="aspect-square h-10 w-10 text-red-950 bg-red-300"
-        onClick={() => setOpen(true)}
-      />
+      <LinkButton
+        to="/contact"
+        aria-label="Contact Developer"
+        className="aspect-square h-10 w-10 text-red-950 bg-red-300 flex items-center justify-center p-0"
+      >
+        <BugAntIcon height={20} />
+      </LinkButton>
     </section>
   );
 };
