@@ -1,3 +1,11 @@
+## 24 July 2026
+
+- Moved the VEX Events link to the events page
+- Updated the contact us page
+- Updated API domain
+- Renamed code for better organisation
+- Removed unused code
+
 ## 23 July 2026
 
 - Added title bar and share button to the main page
