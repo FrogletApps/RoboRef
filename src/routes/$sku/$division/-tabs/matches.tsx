@@ -5,7 +5,7 @@ import { useCurrentDivision } from "~utils/hooks/state";
 import { Spinner } from "~components/Spinner";
 import { ClickableMatch, MatchTime } from "~components/Match";
 import { Button, ExternalLinkButton } from "~components/Button";
-import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { ArrowRightIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { DisconnectedWarning } from "~components/DisconnectedWarning";
 import { useNavigate } from "@tanstack/react-router";
@@ -90,9 +90,10 @@ export const EventMatchesTab: React.FC<MatchesTabProps> = ({
           header={
             <ExternalLinkButton
               href={`https://events.vex.com/${event.sku}.html`}
-              className="w-full text-center mb-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-medium"
+              className="w-full text-center mb-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-medium flex items-center justify-center gap-2"
             >
-              View Event on VEX Events
+              <GlobeAltIcon height={20} />
+              <span>View VEX Events page</span>
             </ExternalLinkButton>
           }
           options={{ estimateSize: () => 64 }}
