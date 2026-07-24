@@ -4,7 +4,7 @@ import { useEventMatches } from "~utils/hooks/robotevents";
 import { useCurrentDivision } from "~utils/hooks/state";
 import { Spinner } from "~components/Spinner";
 import { ClickableMatch, MatchTime } from "~components/Match";
-import { Button } from "~components/Button";
+import { Button, ExternalLinkButton } from "~components/Button";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { DisconnectedWarning } from "~components/DisconnectedWarning";
@@ -87,6 +87,14 @@ export const EventMatchesTab: React.FC<MatchesTabProps> = ({
         <DisconnectedWarning />
         <VirtualizedList
           data={matches}
+          header={
+            <ExternalLinkButton
+              href={`https://events.vex.com/${event.sku}.html`}
+              className="w-full text-center mb-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-medium"
+            >
+              View Event on VEX Events
+            </ExternalLinkButton>
+          }
           options={{ estimateSize: () => 64 }}
           className="flex-1"
           parts={{

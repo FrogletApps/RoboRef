@@ -19,6 +19,7 @@ export type VirtualizedListParts = ComponentParts<{
 
 export type VirtualizedListProps<T> = {
   data?: T[];
+  header?: React.ReactNode;
   children: (value: T, index: number) => React.ReactNode;
   options: Omit<UseVirtualizerOptions, "getScrollElement" | "count">;
 } & Omit<React.HTMLProps<HTMLDivElement>, "ref" | "data" | "children"> &
@@ -26,6 +27,7 @@ export type VirtualizedListProps<T> = {
 
 export const VirtualizedList = <T,>({
   data,
+  header,
   children,
   options,
   parts,
@@ -48,6 +50,7 @@ export const VirtualizedList = <T,>({
       className={twMerge(props.className, "overflow-auto")}
       ref={parentRef}
     >
+      {header}
       <ol
         style={{ width: "100%", height: totalSize, position: "relative" }}
         aria-setsize={data?.length ?? 0}
