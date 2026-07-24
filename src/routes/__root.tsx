@@ -240,6 +240,7 @@ export const AppShell: React.FC = () => {
   const isEvents = location.pathname === "/events";
   const isShare = location.pathname === "/share";
   const isPrivacy = location.pathname === "/privacy";
+  const isContact = location.pathname === "/contact";
 
   const customHeaderTitle = isSettings
     ? "Settings"
@@ -251,6 +252,8 @@ export const AppShell: React.FC = () => {
     ? "Share RoboRef"
     : isPrivacy
     ? "Privacy Policy"
+    : isContact
+    ? "Contact Developer"
     : null;
 
   return (

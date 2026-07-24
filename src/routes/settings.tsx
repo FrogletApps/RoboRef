@@ -4,7 +4,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Button, LinkButton } from "~components/Button";
 import { ClickToCopy } from "~components/ClickToCopy";
-import { ContactDevDialog } from "~components/dialogs/contact";
 import { HiddenEventsDialog } from "~components/dialogs/hiddenEvents";
 import { Input } from "~components/Input";
 import { toast } from "~components/Toast";
@@ -37,8 +36,6 @@ export const SettingsPage: React.FC = () => {
       setLocalName(profile.name);
     }
   }, [profile?.name]);
-
-  const [reportIssueDialogOpen, setReportIssueDialogOpen] = useState(false);
 
   const onClickRemoveVEXEvents = useCallback(async () => {
     await clearCache();
@@ -135,13 +132,9 @@ export const SettingsPage: React.FC = () => {
         <p className="text-zinc-400 text-sm">
           Get in touch about issues or features you would like to see
         </p>
-        <ContactDevDialog
-          open={reportIssueDialogOpen}
-          setOpen={setReportIssueDialogOpen}
-        />
-        <Button className="w-full mt-2" onClick={() => setReportIssueDialogOpen(true)}>
+        <LinkButton to="/contact" className="w-full mt-2 text-center">
           Contact Developer
-        </Button>
+        </LinkButton>
       </section>
       <section className="mt-4">
         <h2 className="font-bold">Privacy Policy</h2>

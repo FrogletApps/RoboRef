@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SkuRouteRouteImport } from './routes/$sku/route'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -33,6 +34,11 @@ const IndexRoute = IndexRouteImport.update({
 const SkuRouteRoute = SkuRouteRouteImport.update({
   id: '/$sku',
   path: '/$sku',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsRoute = EventsRouteImport.update({
@@ -104,6 +110,7 @@ const SkuTeamTeamRoute = SkuTeamTeamRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$sku': typeof SkuRouteRouteWithChildren
+  '/contact': typeof ContactRoute
   '/events': typeof EventsRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/contact': typeof ContactRoute
   '/events': typeof EventsRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$sku': typeof SkuRouteRouteWithChildren
+  '/contact': typeof ContactRoute
   '/events': typeof EventsRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$sku'
+    | '/contact'
     | '/events'
     | '/privacy'
     | '/settings'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/contact'
     | '/events'
     | '/privacy'
     | '/settings'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$sku'
+    | '/contact'
     | '/events'
     | '/privacy'
     | '/settings'
@@ -208,6 +220,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SkuRouteRoute: typeof SkuRouteRouteWithChildren
+  ContactRoute: typeof ContactRoute
   EventsRoute: typeof EventsRoute
   PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
@@ -229,6 +242,13 @@ declare module '@tanstack/react-router' {
       path: '/$sku'
       fullPath: '/$sku'
       preLoaderRoute: typeof SkuRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events': {
@@ -354,6 +374,7 @@ const SkuRouteRouteWithChildren = SkuRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SkuRouteRoute: SkuRouteRouteWithChildren,
+  ContactRoute: ContactRoute,
   EventsRoute: EventsRoute,
   PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,

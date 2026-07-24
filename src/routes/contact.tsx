@@ -1,0 +1,48 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { Button } from "~components/Button";
+import { logger } from "@sentry/react";
+
+export const ContactPage: React.FC = () => {
+  return (
+    <main className="max-w-xl h-full w-full mx-auto flex-1 pb-6 overflow-y-auto">
+      <section className="mt-4">
+        <p className="text-zinc-300">
+          If you want to get in touch please email us at {" "}
+          <a
+            className="text-emerald-400 underline"
+            href={`mailto:hello@roboref.fyi?subject=${encodeURIComponent(
+              `RoboRef Version ${__ROBOREF_VERSION__}`
+            )}`}
+          >
+            hello@roboref.fyi
+          </a>
+          .
+        </p>
+        <br />
+        <p className="text-zinc-400">
+          For bug reports please include as much information as possible, for example what you were trying to do in the app, what happened, when it happened, and what event you're at. If possible include screenshots to help us see what's happening.
+        </p>
+        {import.meta.env.DEV ? (
+          <Button
+            mode="dangerous"
+            className="mt-4"
+            onClick={() => {
+              // Send a log before throwing, to verify Sentry's log + error capture.  
+              // Dev-only: never shown to real users.
+              logger.info("User triggered test error", {
+                action: "test_error_button_click",
+              });
+              throw new Error("This is a test error!");
+            }}
+          >
+            Fire a test error to Sentry
+          </Button>
+        ) : null}
+      </section>
+    </main>
+  );
+};
+
+export const Route = createFileRoute("/contact")({
+  component: ContactPage,
+});
