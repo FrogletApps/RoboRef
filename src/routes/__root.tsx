@@ -241,6 +241,7 @@ export const AppShell: React.FC = () => {
   const isShare = location.pathname === "/share";
   const isPrivacy = location.pathname === "/privacy";
   const isContact = location.pathname === "/contact";
+  const isJoin = location.pathname.endsWith("/join");
 
   const customHeaderTitle = isSettings
     ? "Settings"
@@ -254,6 +255,8 @@ export const AppShell: React.FC = () => {
     ? "Privacy Policy"
     : isContact
     ? "Contact Developer"
+    : isJoin
+    ? "Join Request"
     : null;
 
   return (
