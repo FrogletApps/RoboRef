@@ -141,7 +141,7 @@ export const EventJoinPage: React.FC = () => {
       {profile && isTimedOut ? (
         <section className="mt-4 flex flex-col">
           <Error
-            message="Your code was not added, click the button below to retry"
+            message="Your invite code timed out, click the button below to retry. An admin will need to see the code to add you."
             className="mb-4"
           />
           <Button mode="primary" onClick={handleRetry}>
