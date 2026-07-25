@@ -1,8 +1,11 @@
+import React, { Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ClickToCopy } from "~components/ClickToCopy";
-import UpdateNotes from "../../documents/updateNotes.md";
+import { Spinner } from "~components/Spinner";
 
 import "./markdown.css";
+
+const UpdateNotes = React.lazy(() => import("../../documents/updateNotes.md"));
 
 export const UpdatesPage: React.FC = () => {
   return (
@@ -12,7 +15,9 @@ export const UpdatesPage: React.FC = () => {
         <ClickToCopy message={__ROBOREF_VERSION__} />
       </section>
       <section className="mt-4">
-        <UpdateNotes />
+        <Suspense fallback={<Spinner show />}>
+          <UpdateNotes />
+        </Suspense>
       </section>
     </main>
   );

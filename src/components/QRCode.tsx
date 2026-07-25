@@ -1,4 +1,4 @@
-import QrCreator from "qr-creator";
+import type QrCreator from "qr-creator";
 import { useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -18,12 +18,22 @@ export const QRCode: React.FC<QRCodeProps> = ({
       return;
     }
 
-    ref.current.replaceChildren();
+    let isMounted = true;
+    const container = ref.current;
 
-    const { width } = ref.current.getBoundingClientRect();
-    const size = width > 0 ? width : config.size ?? 128;
+    import("qr-creator").then(({ default: QrCreator }) => {
+      if (!isMounted || !container) return;
+      container.replaceChildren();
 
-    QrCreator.render({ size, ...config }, ref.current);
+      const { width } = container.getBoundingClientRect();
+      const size = width > 0 ? width : config.size ?? 128;
+
+      QrCreator.render({ size, ...config }, container);
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, [config]);
 
   return (
