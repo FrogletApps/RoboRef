@@ -20,6 +20,7 @@ import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as SkuIndexRouteImport } from './routes/$sku/index'
 import { Route as SkuDeletedRouteImport } from './routes/$sku/deleted'
 import { Route as SkuDevtoolsRouteImport } from './routes/$sku/devtools'
+import { Route as SkuInviteRouteImport } from './routes/$sku/invite'
 import { Route as SkuJoinRouteImport } from './routes/$sku/join'
 import { Route as SkuSkillsRouteImport } from './routes/$sku/skills'
 import { Route as SkuSummaryRouteImport } from './routes/$sku/summary'
@@ -82,6 +83,11 @@ const SkuDevtoolsRoute = SkuDevtoolsRouteImport.update({
   path: '/devtools',
   getParentRoute: () => SkuRouteRoute,
 } as any)
+const SkuInviteRoute = SkuInviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => SkuRouteRoute,
+} as any)
 const SkuJoinRoute = SkuJoinRouteImport.update({
   id: '/join',
   path: '/join',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
+  '/$sku/invite': typeof SkuInviteRoute
   '/$sku/join': typeof SkuJoinRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
+  '/$sku/invite': typeof SkuInviteRoute
   '/$sku/join': typeof SkuJoinRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
+  '/$sku/invite': typeof SkuInviteRoute
   '/$sku/join': typeof SkuJoinRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
+    | '/$sku/invite'
     | '/$sku/join'
     | '/$sku/skills'
     | '/$sku/summary'
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
+    | '/$sku/invite'
     | '/$sku/join'
     | '/$sku/skills'
     | '/$sku/summary'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
+    | '/$sku/invite'
     | '/$sku/join'
     | '/$sku/skills'
     | '/$sku/summary'
@@ -319,6 +331,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuDevtoolsRouteImport
       parentRoute: typeof SkuRouteRoute
     }
+    '/$sku/invite': {
+      id: '/$sku/invite'
+      path: '/invite'
+      fullPath: '/$sku/invite'
+      preLoaderRoute: typeof SkuInviteRouteImport
+      parentRoute: typeof SkuRouteRoute
+    }
     '/$sku/join': {
       id: '/$sku/join'
       path: '/join'
@@ -367,6 +386,7 @@ declare module '@tanstack/react-router' {
 interface SkuRouteRouteChildren {
   SkuDeletedRoute: typeof SkuDeletedRoute
   SkuDevtoolsRoute: typeof SkuDevtoolsRoute
+  SkuInviteRoute: typeof SkuInviteRoute
   SkuJoinRoute: typeof SkuJoinRoute
   SkuSkillsRoute: typeof SkuSkillsRoute
   SkuSummaryRoute: typeof SkuSummaryRoute
@@ -379,6 +399,7 @@ interface SkuRouteRouteChildren {
 const SkuRouteRouteChildren: SkuRouteRouteChildren = {
   SkuDeletedRoute: SkuDeletedRoute,
   SkuDevtoolsRoute: SkuDevtoolsRoute,
+  SkuInviteRoute: SkuInviteRoute,
   SkuJoinRoute: SkuJoinRoute,
   SkuSkillsRoute: SkuSkillsRoute,
   SkuSummaryRoute: SkuSummaryRoute,

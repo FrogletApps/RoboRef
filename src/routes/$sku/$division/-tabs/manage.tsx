@@ -10,8 +10,6 @@ import {
   forceEventInvitationSync,
   getInstancesForEvent,
   getIntegrationAPIEndpoints,
-  getRequestCodeUserKey,
-  inviteUser,
   removeInvitation,
 } from "~utils/data/share";
 import {
@@ -20,7 +18,7 @@ import {
   UserCircleIcon,
   UserPlusIcon,
 } from "@heroicons/react/20/solid";
-import { Dialog, DialogBody, DialogHeader } from "~components/Dialog";
+import { Dialog, DialogBody } from "~components/Dialog";
 import {
   useCreateInstance,
   useEventInvitation,
@@ -30,10 +28,10 @@ import {
   useIntegrationBearer,
   useSystemKeyIntegrationBearer,
 } from "~utils/hooks/share";
-import { Checkbox, Input } from "~components/Input";
+import { Input } from "~components/Input";
 import { toast } from "~components/Toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Error, Success, Warning } from "~components/Warning";
+import { Warning } from "~components/Warning";
 import { Spinner } from "~components/Spinner";
 import { useEventIncidents } from "~utils/hooks/incident";
 import { TrashIcon } from "@heroicons/react/24/outline";
@@ -56,122 +54,6 @@ export type ManageDialogProps = {
   open: boolean;
   onClose: () => void;
   sku: string;
-};
-
-export const InviteDialog: React.FC<ManageDialogProps> = ({
-  open,
-  onClose,
-  sku,
-}) => {
-  const [inviteCode, setInviteCode] = useState("");
-  const [admin, setAdmin] = useState(false);
-
-  const {
-    data: response,
-    isLoading: isLoadingRequestCode,
-    isPending: isGetInvitePending,
-  } = useQuery({
-    queryKey: ["get_invite", sku, inviteCode],
-    queryFn: () => getRequestCodeUserKey(sku, inviteCode),
-    enabled: inviteCode.length > 0,
-  });
-
-  const user = useMemo(
-    () => (response?.success ? response.data.user : null),
-    [response]
-  );
-  const userVersion = useMemo(
-    () => (response?.success ? response.data.version : null),
-    [response]
-  );
-
-  const {
-    mutateAsync: invite,
-    isPending: isInvitePending,
-    isError: isInviteError,
-    isSuccess: isInviteSuccess,
-    error: inviteError,
-    reset: resetInvite,
-  } = useMutation({
-    mutationFn: (key: string) => inviteUser(sku, key, { admin }),
-  });
-
-  useEffect(() => {
-    if (isInviteSuccess) {
-      setTimeout(() => {
-        if (isInviteSuccess) {
-          setInviteCode("");
-          setAdmin(false);
-          resetInvite();
-        }
-      }, 2000);
-    }
-  }, [resetInvite, isInviteSuccess]);
-
-  return (
-    <Dialog open={open} onClose={onClose} mode="modal" aria-label="Invite User">
-      <DialogHeader onClose={onClose} title="Invite User" />
-      <DialogBody className="px-2">
-        <label>
-          <h1 className="font-bold">Invite Code</h1>
-          <p>
-            To invite a user to this share instance, enter their invite code.
-          </p>
-          <div className="relative">
-            <Input
-              className={twMerge("w-full font-mono text-6xl text-center")}
-              value={inviteCode}
-              onChange={(e) =>
-                setInviteCode(e.currentTarget.value.toUpperCase())
-              }
-            />
-          </div>
-        </label>
-        <Spinner show={isLoadingRequestCode} />
-        {user ? (
-          <div className="mt-4">
-            <p>{user.name}</p>
-            <ClickToCopy message={user.key} />
-            {userVersion !== __ROBOREF_VERSION__ ? (
-              <Warning
-                message="User is on a different version"
-                className="mt-4"
-              >
-                <p>
-                  Your app version (<code>{__ROBOREF_VERSION__}</code>) does
-                  not match this user's app version (
-                  <code>{userVersion ?? "Unknown"}</code>
-                  ). This can lead to instability.
-                </p>
-              </Warning>
-            ) : null}
-            <Checkbox
-              label="Invite as Admin"
-              bind={{ value: admin, onChange: setAdmin }}
-            />
-
-            <Button
-              mode="primary"
-              className="mt-4"
-              onClick={() => invite(user.key)}
-            >
-              Invite {user.name}
-            </Button>
-          </div>
-        ) : null}
-        {!user && !isGetInvitePending ? (
-          <Error message="Invalid Code" className="mt-4" />
-        ) : null}
-        <Spinner show={isInvitePending} className="mt-4" />
-        {isInviteError ? (
-          <Error message={inviteError.message} className="mt-4" />
-        ) : null}
-        {isInviteSuccess ? (
-          <Success message="Sent Invitation!" className="mt-4 bg-emerald-600" />
-        ) : null}
-      </DialogBody>
-    </Dialog>
-  );
 };
 
 
@@ -311,7 +193,6 @@ export const InstanceUserListItem: React.FC<InstanceUserListItemProps> = ({
 
 export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
   // Dialogs
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 
   // Instance State
@@ -401,11 +282,6 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
 
   return (
     <section className="mt-4">
-      <InviteDialog
-        sku={event.sku}
-        open={inviteDialogOpen}
-        onClose={() => setInviteDialogOpen(false)}
-      />
       <LeaveDialog
         sku={event.sku}
         open={leaveDialogOpen}
@@ -418,14 +294,14 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
       {isSharing ? (
         <div className="mt-2">
           {invitation?.admin ? (
-            <Button
-              mode="normal"
+            <LinkButton
+              to="/$sku/invite"
+              params={{ sku: event.sku }}
               className="flex gap-2 items-center justify-center"
-              onClick={() => setInviteDialogOpen(true)}
             >
               <UserPlusIcon height={20} />
               <p>Invite</p>
-            </Button>
+            </LinkButton>
           ) : null}
           <Button
             mode="dangerous"
