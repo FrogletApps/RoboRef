@@ -1,3 +1,10 @@
+## 25 July 2026
+
+- Added a QR code and link for inviting users directly to an event
+- Improved UI consistency
+- Shortened load times
+- Bug fixes
+
 ## 24 July 2026
 
 - Moved the VEX Events link to the events page
@@ -14,7 +21,7 @@
 - Add scheduled time to matches
 - Update timer logic on matches
 - Rounded connection times to the nearest millisecond
-- Worked on UI consistency
+- Improved UI consistency
 - Made back/home/x behaviour more consistent/predictable
 - Fixed UI alignment issues
 
