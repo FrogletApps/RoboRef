@@ -30,9 +30,18 @@ export async function clearCache() {
 const dsn =
   import.meta.env.VITE_SENTRY_DSN ??
   "https://23c85f2c7692228bd3aabb4a17577a2c@o4511592950595584.ingest.de.sentry.io/4511592960622672";
+const sentryEnvVar = import.meta.env.VITE_REFEREE_FYI_ENABLE_SENTRY as unknown;
+const enableSentryOverride =
+  sentryEnvVar === "true" || (sentryEnvVar as unknown) === true
+    ? true
+    : sentryEnvVar === "false" || (sentryEnvVar as unknown) === false
+    ? false
+    : undefined;
+
 const enabled =
-  import.meta.env.MODE === "production" ||
-  import.meta.env.VITE_REFEREE_FYI_ENABLE_SENTRY;
+  enableSentryOverride !== undefined
+    ? enableSentryOverride
+    : import.meta.env.MODE === "production";
 
 export const client = init({
   dsn,

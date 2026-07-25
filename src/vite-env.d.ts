@@ -5,7 +5,7 @@ declare const __ROBOREF_VERSION__: string;
 interface ImportMetaEnv {
   readonly VITE_REFEREE_FYI_SHARE_SERVER: string;
   readonly VITE_REFEREE_FYI_BUILD_MODE: "WC" | "STANDARD";
-  readonly VITE_REFEREE_FYI_ENABLE_SENTRY: boolean;
+  readonly VITE_REFEREE_FYI_ENABLE_SENTRY: boolean | string;
   readonly VITE_SENTRY_DSN: string;
 }
 
