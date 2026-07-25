@@ -6,7 +6,7 @@ RoboRef is a fork of the 1st March 2025 build of Referee.FYI (from before the re
 
 ### Resources
 
-- [Privacy Policy](https://roboref.pages.dev/privacy)
+- [Privacy Policy](https://roboref.fyi/privacy)
 
 ### Referee FYI Resources
 
