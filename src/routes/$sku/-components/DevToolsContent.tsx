@@ -1,11 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { ReactNode, useCallback, useRef, useState } from "react";
 import { ProgramCode } from "@referee-fyi/robotevents";
-import { Button } from "~components/Button";
+import { Button, LinkButton } from "~components/Button";
 import { Input, Select } from "~components/Input";
 import { Spinner } from "~components/Spinner";
 import { toast } from "~components/Toast";
 import { useShareConnection } from "~models/ShareConnection";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { useParams } from "@tanstack/react-router";
 import {
   addManyIncidents,
   deleteManyIncidents,
@@ -25,10 +27,12 @@ import { useRulesForSeason } from "~utils/hooks/rules";
 import { useCurrentEvent } from "~utils/hooks/state";
 
 export const EventDevToolsContent: React.FC = () => {
+  const params = useParams({ strict: false });
   const { data: event } = useCurrentEvent({
     networkMode: "always",
     refetchOnMount: "always",
   });
+  const sku = (params as Record<string, string>).sku ?? event?.sku;
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const importIncidents = useCallback(async () => {
@@ -155,6 +159,18 @@ export const EventDevToolsContent: React.FC = () => {
 
   return (
     <section className="mt-4">
+      {sku && (
+        <div className="mb-4">
+          <LinkButton
+            to="/$sku"
+            params={{ sku }}
+            className="inline-flex items-center gap-2"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+            Back to Event
+          </LinkButton>
+        </div>
+      )}
       <section className="mt-4">
         <h2 className="font-bold">Import Incidents</h2>
         <p>
