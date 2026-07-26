@@ -14,7 +14,7 @@ import { Route as SkuRouteRouteImport } from './routes/$sku/route'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SettingsRouteRouteImport } from './routes/settings/route'
 import { Route as ShareRouteImport } from './routes/share'
 import { Route as UpdatesRouteImport } from './routes/updates'
 import { Route as SkuIndexRouteImport } from './routes/$sku/index'
@@ -22,11 +22,17 @@ import { Route as SkuDeletedRouteImport } from './routes/$sku/deleted'
 import { Route as SkuDevtoolsRouteImport } from './routes/$sku/devtools'
 import { Route as SkuInviteRouteImport } from './routes/$sku/invite'
 import { Route as SkuJoinRouteImport } from './routes/$sku/join'
+import { Route as SkuNewRouteImport } from './routes/$sku/new'
 import { Route as SkuSkillsRouteImport } from './routes/$sku/skills'
 import { Route as SkuSummaryRouteImport } from './routes/$sku/summary'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
+import { Route as SettingsHiddenEventsRouteImport } from './routes/settings/hidden-events'
 import { Route as SkuDivisionIndexRouteImport } from './routes/$sku/$division/index'
+import { Route as SkuEntryIncidentIdRouteImport } from './routes/$sku/entry/$incidentId'
 import { Route as SkuMatchMatchIdRouteImport } from './routes/$sku/match/$matchId'
-import { Route as SkuTeamTeamRouteImport } from './routes/$sku/team/$team'
+import { Route as SkuTeamTeamRouteRouteImport } from './routes/$sku/team/$team/route'
+import { Route as SkuTeamTeamIndexRouteImport } from './routes/$sku/team/$team/index'
+import { Route as SkuTeamTeamIsolateRouteImport } from './routes/$sku/team/$team/isolate'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,7 +59,7 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsRoute = SettingsRouteImport.update({
+const SettingsRouteRoute = SettingsRouteRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => rootRouteImport,
@@ -93,6 +99,11 @@ const SkuJoinRoute = SkuJoinRouteImport.update({
   path: '/join',
   getParentRoute: () => SkuRouteRoute,
 } as any)
+const SkuNewRoute = SkuNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => SkuRouteRoute,
+} as any)
 const SkuSkillsRoute = SkuSkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
@@ -103,9 +114,24 @@ const SkuSummaryRoute = SkuSummaryRouteImport.update({
   path: '/summary',
   getParentRoute: () => SkuRouteRoute,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
+const SettingsHiddenEventsRoute = SettingsHiddenEventsRouteImport.update({
+  id: '/hidden-events',
+  path: '/hidden-events',
+  getParentRoute: () => SettingsRouteRoute,
+} as any)
 const SkuDivisionIndexRoute = SkuDivisionIndexRouteImport.update({
   id: '/$division/',
   path: '/$division/',
+  getParentRoute: () => SkuRouteRoute,
+} as any)
+const SkuEntryIncidentIdRoute = SkuEntryIncidentIdRouteImport.update({
+  id: '/entry/$incidentId',
+  path: '/entry/$incidentId',
   getParentRoute: () => SkuRouteRoute,
 } as any)
 const SkuMatchMatchIdRoute = SkuMatchMatchIdRouteImport.update({
@@ -113,141 +139,183 @@ const SkuMatchMatchIdRoute = SkuMatchMatchIdRouteImport.update({
   path: '/match/$matchId',
   getParentRoute: () => SkuRouteRoute,
 } as any)
-const SkuTeamTeamRoute = SkuTeamTeamRouteImport.update({
+const SkuTeamTeamRouteRoute = SkuTeamTeamRouteRouteImport.update({
   id: '/team/$team',
   path: '/team/$team',
   getParentRoute: () => SkuRouteRoute,
+} as any)
+const SkuTeamTeamIndexRoute = SkuTeamTeamIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SkuTeamTeamRouteRoute,
+} as any)
+const SkuTeamTeamIsolateRoute = SkuTeamTeamIsolateRouteImport.update({
+  id: '/isolate',
+  path: '/isolate',
+  getParentRoute: () => SkuTeamTeamRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$sku': typeof SkuRouteRouteWithChildren
+  '/settings': typeof SettingsRouteRouteWithChildren
   '/contact': typeof ContactRoute
   '/events': typeof EventsRoute
   '/privacy': typeof PrivacyRoute
-  '/settings': typeof SettingsRoute
   '/share': typeof ShareRoute
   '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
   '/$sku/invite': typeof SkuInviteRoute
   '/$sku/join': typeof SkuJoinRoute
+  '/$sku/new': typeof SkuNewRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
+  '/settings/hidden-events': typeof SettingsHiddenEventsRoute
   '/$sku/': typeof SkuIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/$sku/team/$team': typeof SkuTeamTeamRouteRouteWithChildren
+  '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRoute
   '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
-  '/$sku/team/$team': typeof SkuTeamTeamRoute
   '/$sku/$division/': typeof SkuDivisionIndexRoute
+  '/$sku/team/$team/isolate': typeof SkuTeamTeamIsolateRoute
+  '/$sku/team/$team/': typeof SkuTeamTeamIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
   '/events': typeof EventsRoute
   '/privacy': typeof PrivacyRoute
-  '/settings': typeof SettingsRoute
   '/share': typeof ShareRoute
   '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
   '/$sku/invite': typeof SkuInviteRoute
   '/$sku/join': typeof SkuJoinRoute
+  '/$sku/new': typeof SkuNewRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
+  '/settings/hidden-events': typeof SettingsHiddenEventsRoute
   '/$sku': typeof SkuIndexRoute
+  '/settings': typeof SettingsIndexRoute
+  '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRoute
   '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
-  '/$sku/team/$team': typeof SkuTeamTeamRoute
   '/$sku/$division': typeof SkuDivisionIndexRoute
+  '/$sku/team/$team/isolate': typeof SkuTeamTeamIsolateRoute
+  '/$sku/team/$team': typeof SkuTeamTeamIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$sku': typeof SkuRouteRouteWithChildren
+  '/settings': typeof SettingsRouteRouteWithChildren
   '/contact': typeof ContactRoute
   '/events': typeof EventsRoute
   '/privacy': typeof PrivacyRoute
-  '/settings': typeof SettingsRoute
   '/share': typeof ShareRoute
   '/updates': typeof UpdatesRoute
   '/$sku/deleted': typeof SkuDeletedRoute
   '/$sku/devtools': typeof SkuDevtoolsRoute
   '/$sku/invite': typeof SkuInviteRoute
   '/$sku/join': typeof SkuJoinRoute
+  '/$sku/new': typeof SkuNewRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
+  '/settings/hidden-events': typeof SettingsHiddenEventsRoute
   '/$sku/': typeof SkuIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/$sku/team/$team': typeof SkuTeamTeamRouteRouteWithChildren
+  '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRoute
   '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
-  '/$sku/team/$team': typeof SkuTeamTeamRoute
   '/$sku/$division/': typeof SkuDivisionIndexRoute
+  '/$sku/team/$team/isolate': typeof SkuTeamTeamIsolateRoute
+  '/$sku/team/$team/': typeof SkuTeamTeamIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/$sku'
+    | '/settings'
     | '/contact'
     | '/events'
     | '/privacy'
-    | '/settings'
     | '/share'
     | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
     | '/$sku/invite'
     | '/$sku/join'
+    | '/$sku/new'
     | '/$sku/skills'
     | '/$sku/summary'
+    | '/settings/hidden-events'
     | '/$sku/'
-    | '/$sku/match/$matchId'
+    | '/settings/'
     | '/$sku/team/$team'
+    | '/$sku/entry/$incidentId'
+    | '/$sku/match/$matchId'
     | '/$sku/$division/'
+    | '/$sku/team/$team/isolate'
+    | '/$sku/team/$team/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/contact'
     | '/events'
     | '/privacy'
-    | '/settings'
     | '/share'
     | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
     | '/$sku/invite'
     | '/$sku/join'
+    | '/$sku/new'
     | '/$sku/skills'
     | '/$sku/summary'
+    | '/settings/hidden-events'
     | '/$sku'
+    | '/settings'
+    | '/$sku/entry/$incidentId'
     | '/$sku/match/$matchId'
-    | '/$sku/team/$team'
     | '/$sku/$division'
+    | '/$sku/team/$team/isolate'
+    | '/$sku/team/$team'
   id:
     | '__root__'
     | '/'
     | '/$sku'
+    | '/settings'
     | '/contact'
     | '/events'
     | '/privacy'
-    | '/settings'
     | '/share'
     | '/updates'
     | '/$sku/deleted'
     | '/$sku/devtools'
     | '/$sku/invite'
     | '/$sku/join'
+    | '/$sku/new'
     | '/$sku/skills'
     | '/$sku/summary'
+    | '/settings/hidden-events'
     | '/$sku/'
-    | '/$sku/match/$matchId'
+    | '/settings/'
     | '/$sku/team/$team'
+    | '/$sku/entry/$incidentId'
+    | '/$sku/match/$matchId'
     | '/$sku/$division/'
+    | '/$sku/team/$team/isolate'
+    | '/$sku/team/$team/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SkuRouteRoute: typeof SkuRouteRouteWithChildren
+  SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
   ContactRoute: typeof ContactRoute
   EventsRoute: typeof EventsRoute
   PrivacyRoute: typeof PrivacyRoute
-  SettingsRoute: typeof SettingsRoute
   ShareRoute: typeof ShareRoute
   UpdatesRoute: typeof UpdatesRoute
 }
@@ -293,7 +361,7 @@ declare module '@tanstack/react-router' {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+      preLoaderRoute: typeof SettingsRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/share': {
@@ -345,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuJoinRouteImport
       parentRoute: typeof SkuRouteRoute
     }
+    '/$sku/new': {
+      id: '/$sku/new'
+      path: '/new'
+      fullPath: '/$sku/new'
+      preLoaderRoute: typeof SkuNewRouteImport
+      parentRoute: typeof SkuRouteRoute
+    }
     '/$sku/skills': {
       id: '/$sku/skills'
       path: '/skills'
@@ -359,11 +434,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuSummaryRouteImport
       parentRoute: typeof SkuRouteRoute
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
+    '/settings/hidden-events': {
+      id: '/settings/hidden-events'
+      path: '/hidden-events'
+      fullPath: '/settings/hidden-events'
+      preLoaderRoute: typeof SettingsHiddenEventsRouteImport
+      parentRoute: typeof SettingsRouteRoute
+    }
     '/$sku/$division/': {
       id: '/$sku/$division/'
       path: '/$division'
       fullPath: '/$sku/$division/'
       preLoaderRoute: typeof SkuDivisionIndexRouteImport
+      parentRoute: typeof SkuRouteRoute
+    }
+    '/$sku/entry/$incidentId': {
+      id: '/$sku/entry/$incidentId'
+      path: '/entry/$incidentId'
+      fullPath: '/$sku/entry/$incidentId'
+      preLoaderRoute: typeof SkuEntryIncidentIdRouteImport
       parentRoute: typeof SkuRouteRoute
     }
     '/$sku/match/$matchId': {
@@ -377,22 +473,51 @@ declare module '@tanstack/react-router' {
       id: '/$sku/team/$team'
       path: '/team/$team'
       fullPath: '/$sku/team/$team'
-      preLoaderRoute: typeof SkuTeamTeamRouteImport
+      preLoaderRoute: typeof SkuTeamTeamRouteRouteImport
       parentRoute: typeof SkuRouteRoute
+    }
+    '/$sku/team/$team/': {
+      id: '/$sku/team/$team/'
+      path: '/'
+      fullPath: '/$sku/team/$team/'
+      preLoaderRoute: typeof SkuTeamTeamIndexRouteImport
+      parentRoute: typeof SkuTeamTeamRouteRoute
+    }
+    '/$sku/team/$team/isolate': {
+      id: '/$sku/team/$team/isolate'
+      path: '/isolate'
+      fullPath: '/$sku/team/$team/isolate'
+      preLoaderRoute: typeof SkuTeamTeamIsolateRouteImport
+      parentRoute: typeof SkuTeamTeamRouteRoute
     }
   }
 }
+
+interface SkuTeamTeamRouteRouteChildren {
+  SkuTeamTeamIsolateRoute: typeof SkuTeamTeamIsolateRoute
+  SkuTeamTeamIndexRoute: typeof SkuTeamTeamIndexRoute
+}
+
+const SkuTeamTeamRouteRouteChildren: SkuTeamTeamRouteRouteChildren = {
+  SkuTeamTeamIsolateRoute: SkuTeamTeamIsolateRoute,
+  SkuTeamTeamIndexRoute: SkuTeamTeamIndexRoute,
+}
+
+const SkuTeamTeamRouteRouteWithChildren =
+  SkuTeamTeamRouteRoute._addFileChildren(SkuTeamTeamRouteRouteChildren)
 
 interface SkuRouteRouteChildren {
   SkuDeletedRoute: typeof SkuDeletedRoute
   SkuDevtoolsRoute: typeof SkuDevtoolsRoute
   SkuInviteRoute: typeof SkuInviteRoute
   SkuJoinRoute: typeof SkuJoinRoute
+  SkuNewRoute: typeof SkuNewRoute
   SkuSkillsRoute: typeof SkuSkillsRoute
   SkuSummaryRoute: typeof SkuSummaryRoute
   SkuIndexRoute: typeof SkuIndexRoute
+  SkuTeamTeamRouteRoute: typeof SkuTeamTeamRouteRouteWithChildren
+  SkuEntryIncidentIdRoute: typeof SkuEntryIncidentIdRoute
   SkuMatchMatchIdRoute: typeof SkuMatchMatchIdRoute
-  SkuTeamTeamRoute: typeof SkuTeamTeamRoute
   SkuDivisionIndexRoute: typeof SkuDivisionIndexRoute
 }
 
@@ -401,11 +526,13 @@ const SkuRouteRouteChildren: SkuRouteRouteChildren = {
   SkuDevtoolsRoute: SkuDevtoolsRoute,
   SkuInviteRoute: SkuInviteRoute,
   SkuJoinRoute: SkuJoinRoute,
+  SkuNewRoute: SkuNewRoute,
   SkuSkillsRoute: SkuSkillsRoute,
   SkuSummaryRoute: SkuSummaryRoute,
   SkuIndexRoute: SkuIndexRoute,
+  SkuTeamTeamRouteRoute: SkuTeamTeamRouteRouteWithChildren,
+  SkuEntryIncidentIdRoute: SkuEntryIncidentIdRoute,
   SkuMatchMatchIdRoute: SkuMatchMatchIdRoute,
-  SkuTeamTeamRoute: SkuTeamTeamRoute,
   SkuDivisionIndexRoute: SkuDivisionIndexRoute,
 }
 
@@ -413,13 +540,27 @@ const SkuRouteRouteWithChildren = SkuRouteRoute._addFileChildren(
   SkuRouteRouteChildren,
 )
 
+interface SettingsRouteRouteChildren {
+  SettingsHiddenEventsRoute: typeof SettingsHiddenEventsRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+}
+
+const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
+  SettingsHiddenEventsRoute: SettingsHiddenEventsRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+}
+
+const SettingsRouteRouteWithChildren = SettingsRouteRoute._addFileChildren(
+  SettingsRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SkuRouteRoute: SkuRouteRouteWithChildren,
+  SettingsRouteRoute: SettingsRouteRouteWithChildren,
   ContactRoute: ContactRoute,
   EventsRoute: EventsRoute,
   PrivacyRoute: PrivacyRoute,
-  SettingsRoute: SettingsRoute,
   ShareRoute: ShareRoute,
   UpdatesRoute: UpdatesRoute,
 }

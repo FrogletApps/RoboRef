@@ -1,9 +1,8 @@
 import { useCurrentEvent } from "~utils/hooks/state";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAddEventVisited } from "~utils/hooks/history";
 import { Button, LinkButton } from "~components/Button";
 import { CodeBracketIcon, FlagIcon, PlayIcon } from "@heroicons/react/20/solid";
-import { EventNewIncidentDialog } from "~components/dialogs/new";
 import { Tabs } from "~components/Tabs";
 import { EventManageTab } from "./$division/-tabs/manage";
 import { Spinner } from "~components/Spinner";
@@ -24,35 +23,20 @@ import { Cog8ToothIcon as ManageIconSolid } from "@heroicons/react/24/solid";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { filterTeams } from "~utils/filterteams";
 import { MenuButton } from "~components/MenuButton";
-import { RichIncident } from "~utils/data/incident";
 import { useEventIncidents } from "~utils/hooks/incident";
 import { RulesSummary } from "~components/RulesSummary";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 type TeamSkillsTabProps = {
   event: EventData;
 };
 
 const TeamSkillsTab: React.FC<TeamSkillsTabProps> = ({ event }) => {
+  const navigate = useNavigate();
   const { data: incidents } = useEventIncidents(event?.sku);
   const { data: teams, isLoading: isLoadingTeams } = useEventTeams(event);
   const { data: skills, isLoading: isLoadingSkills } = useEventSkills(event);
   const [filter, setFilter] = useState("");
-
-  const [newIncidentDialogOpen, setNewIncidentDialogOpen] = useState(false);
-  const [newIncidentDialogInitial, setNewIncidentDialogInitial] = useState<
-    Partial<RichIncident>
-  >({});
-
-  const openNewIncidentDialog = useCallback(
-    (initial: Partial<RichIncident> = {}) => {
-      setNewIncidentDialogInitial(initial);
-      setTimeout(() => {
-        setNewIncidentDialogOpen(true);
-      }, 0);
-    },
-    []
-  );
 
   const skillsByTeam = useMemo(() => {
     if (!skills) {
@@ -91,11 +75,6 @@ const TeamSkillsTab: React.FC<TeamSkillsTabProps> = ({ event }) => {
             onChange={(e) => setFilter(e.currentTarget.value.toUpperCase())}
           />
         </IconLabel>
-        <EventNewIncidentDialog
-          open={newIncidentDialogOpen}
-          setOpen={setNewIncidentDialogOpen}
-          initial={newIncidentDialogInitial}
-        />
         <Spinner show={isLoading} />
         <VirtualizedList
           className="flex-1"
@@ -108,16 +87,18 @@ const TeamSkillsTab: React.FC<TeamSkillsTabProps> = ({ event }) => {
               return null;
             }
 
-            const programming = skillsByTeam[team.number]?.find(
+            const teamSkills = skillsByTeam[team.number] ?? [];
+            const programming = teamSkills.find(
               (skill) => skill.type === "programming"
             );
 
-            const driver = skillsByTeam[team.number]?.find(
+            const driver = teamSkills.find(
               (skill) => skill.type === "driver"
             );
 
             return (
               <MenuButton
+                key={team.number}
                 menu={
                   <nav className="mt-2">
                     <div className="flex items-center gap-4 mb-4">
@@ -164,9 +145,10 @@ const TeamSkillsTab: React.FC<TeamSkillsTabProps> = ({ event }) => {
                       mode="normal"
                       className="mt-4"
                       onClick={() =>
-                        openNewIncidentDialog({
-                          team: team.number,
-                          outcome: "Inspection",
+                        navigate({
+                          to: "/$sku/new",
+                          params: { sku: event.sku },
+                          search: { team: team.number },
                         })
                       }
                     >
@@ -177,14 +159,10 @@ const TeamSkillsTab: React.FC<TeamSkillsTabProps> = ({ event }) => {
                       mode="normal"
                       className="mt-4"
                       onClick={() =>
-                        openNewIncidentDialog({
-                          team: team.number,
-                          skills: {
-                            type: "skills",
-                            skillsType: "driver",
-                            attempt: Math.min(3, (driver?.attempts ?? 0) + 1),
-                          },
-                          outcome: "Minor",
+                        navigate({
+                          to: "/$sku/new",
+                          params: { sku: event.sku },
+                          search: { team: team.number, skills: true },
                         })
                       }
                     >
@@ -195,17 +173,10 @@ const TeamSkillsTab: React.FC<TeamSkillsTabProps> = ({ event }) => {
                       mode="normal"
                       className="mt-4"
                       onClick={() =>
-                        openNewIncidentDialog({
-                          team: team.number,
-                          skills: {
-                            type: "skills",
-                            skillsType: "programming",
-                            attempt: Math.min(
-                              3,
-                              (programming?.attempts ?? 0) + 1
-                            ),
-                          },
-                          outcome: "Minor",
+                        navigate({
+                          to: "/$sku/new",
+                          params: { sku: event.sku },
+                          search: { team: team.number, skills: true },
                         })
                       }
                     >

@@ -4,7 +4,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Button, LinkButton } from "~components/Button";
 import { ClickToCopy } from "~components/ClickToCopy";
-import { HiddenEventsDialog } from "~components/dialogs/hiddenEvents";
 import { Input } from "~components/Input";
 import { toast } from "~components/Toast";
 import { Info } from "~components/Warning";
@@ -23,7 +22,6 @@ export const SettingsPage: React.FC = () => {
   const [localName, setLocalName] = useState(profile?.name ?? "");
   const { theme, setTheme } = useTheme();
   const { data: hiddenEvents = [] } = useHiddenEvents();
-  const [hiddenDialogOpen, setHiddenDialogOpen] = useState(false);
 
   const themes: { id: Theme; label: string; icon: React.ComponentType<any> }[] = [
     { id: "light", label: "Light", icon: SunIcon },
@@ -107,12 +105,12 @@ export const SettingsPage: React.FC = () => {
         <p className="text-zinc-400 text-sm">
           Access hidden events which have stored local data. All events can still be selected from the Select Event dropdown on the main page
         </p>
-        <Button
-          className="w-full mt-2"
-          onClick={() => setHiddenDialogOpen(true)}
+        <LinkButton
+          to="/settings/hidden-events"
+          className="w-full mt-2 text-center"
         >
           {hiddenEvents.length} Event{hiddenEvents.length === 1 ? "" : "s"} Hidden
-        </Button>
+        </LinkButton>
       </section>
       <section className="mt-4">
         <h2 className="font-bold">Delete Cache</h2>
@@ -145,14 +143,10 @@ export const SettingsPage: React.FC = () => {
           Privacy Policy
         </LinkButton>
       </section>
-      <HiddenEventsDialog
-        open={hiddenDialogOpen}
-        onClose={() => setHiddenDialogOpen(false)}
-      />
     </main>
   );
 };
 
-export const Route = createFileRoute("/settings")({
+export const Route = createFileRoute("/settings/")({
   component: SettingsPage,
 });

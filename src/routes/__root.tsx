@@ -243,6 +243,10 @@ export const AppShell: React.FC = () => {
   const isContact = location.pathname === "/contact";
   const isJoin = location.pathname.endsWith("/join");
   const isInvite = location.pathname.endsWith("/invite");
+  const isNewEntry = location.pathname.endsWith("/new");
+  const isEditEntry = location.pathname.includes("/entry/");
+  const isIsolateTeam = location.pathname.endsWith("/isolate");
+  const isHiddenEvents = location.pathname.endsWith("/hidden-events");
 
   const customHeaderTitle = isSettings
     ? "Settings"
@@ -260,6 +264,14 @@ export const AppShell: React.FC = () => {
     ? "Join Request"
     : isInvite
     ? "Invite User"
+    : isNewEntry
+    ? "New Entry"
+    : isEditEntry
+    ? "Edit Entry"
+    : isIsolateTeam
+    ? "Isolated Team View"
+    : isHiddenEvents
+    ? "Hidden Events"
     : null;
 
   return (

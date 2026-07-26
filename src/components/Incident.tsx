@@ -4,13 +4,11 @@ import {
   Incident as IncidentData,
   matchToString,
 } from "~utils/data/incident";
-import { EditIncidentDialog } from "./dialogs/edit";
-import { useState } from "react";
 import { useCurrentEvent } from "~utils/hooks/state";
 import { useRulesForEvent } from "~utils/hooks/rules";
 import { MenuButton } from "./MenuButton";
 import { useEventTeam } from "~utils/hooks/robotevents";
-import { Button, ButtonProps } from "./Button";
+import { ButtonProps, LinkButton } from "./Button";
 import { usePeerUserName } from "~utils/data/share";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { Warning } from "./Warning";
@@ -76,62 +74,50 @@ export const Incident: React.FC<IncidentProps> = ({
   readonly,
   ...props
 }) => {
-  const [editIncidentOpen, setEditIncidentOpen] = useState(false);
-
   return (
-    <>
-      <EditIncidentDialog
-        id={incident.id}
-        open={editIncidentOpen}
-        setOpen={setEditIncidentOpen}
-      />
-      <MenuButton
-        mode="transparent"
-        menu={
-          <IncidentMenu
-            incident={incident}
-            readonly={readonly}
-            setEditIncidentOpen={setEditIncidentOpen}
-          />
-        }
-        {...props}
-        className={twMerge(
-          IncidentOutcomeBackgroundClasses[incident.outcome],
-          "px-4 py-2 rounded-md mt-2 flex relative ",
-          props.className
-        )}
-      >
-        <div className="flex-auto overflow-hidden">
-          <div className="text-sm whitespace-nowrap">
-            <div className="flex items-center gap-x-1">
-              <IncidentHighlights incident={incident} />
-            </div>
+    <MenuButton
+      mode="transparent"
+      menu={
+        <IncidentMenu
+          incident={incident}
+          readonly={readonly}
+        />
+      }
+      {...props}
+      className={twMerge(
+        IncidentOutcomeBackgroundClasses[incident.outcome],
+        "px-4 py-2 rounded-md mt-2 flex relative ",
+        props.className
+      )}
+    >
+      <div className="flex-auto overflow-hidden">
+        <div className="text-sm whitespace-nowrap">
+          <div className="flex items-center gap-x-1">
+            <IncidentHighlights incident={incident} />
           </div>
-          <p>
-            {incident.notes}
-            {import.meta.env.DEV ? (
-              <span className="font-mono text-sm">{incident.id}</span>
-            ) : null}
-          </p>
         </div>
-        <div className="w-5 absolute right-2 h-full top-0 flex items-center">
-          <EllipsisVerticalIcon height={20} className="text-zinc-950/80 h-5" />
-        </div>
-      </MenuButton>
-    </>
+        <p>
+          {incident.notes}
+          {import.meta.env.DEV ? (
+            <span className="font-mono text-sm">{incident.id}</span>
+          ) : null}
+        </p>
+      </div>
+      <div className="w-5 absolute right-2 h-full top-0 flex items-center">
+        <EllipsisVerticalIcon height={20} className="text-zinc-950/80 h-5" />
+      </div>
+    </MenuButton>
   );
 };
 
 export type IncidentMenuProps = {
   incident: IncidentData;
   readonly?: boolean;
-  setEditIncidentOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 } & React.HTMLProps<HTMLDivElement>;
 
 export const IncidentMenu: React.FC<IncidentMenuProps> = ({
   incident,
   readonly,
-  setEditIncidentOpen,
   ...props
 }) => {
   const { data: event } = useCurrentEvent();
@@ -207,15 +193,13 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
         </div>
       </div>
       {readonly ? null : (
-        <>
-          <Button
-            mode="primary"
-            onClick={() => setEditIncidentOpen?.(true)}
-            className="w-full mt-4"
-          >
-            Edit + Delete
-          </Button>
-        </>
+        <LinkButton
+          to="/$sku/entry/$incidentId"
+          params={{ sku: event?.sku ?? "", incidentId: incident.id }}
+          className="w-full mt-4 text-center"
+        >
+          Edit + Delete
+        </LinkButton>
       )}
     </div>
   );

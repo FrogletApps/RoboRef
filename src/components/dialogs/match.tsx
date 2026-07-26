@@ -1,4 +1,4 @@
-import { Button, ButtonProps } from "~components/Button";
+import { Button, ButtonProps, LinkButton } from "~components/Button";
 import {
   FlagIcon,
   ChevronDownIcon,
@@ -7,14 +7,14 @@ import {
 import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { useTeamIncidentsByMatch } from "~utils/hooks/incident";
-import { EventNewIncidentDialog } from "./new";
 import { Incident as IncidentData } from "~utils/data/incident";
 import { Match } from "@referee-fyi/robotevents";
 import { Incident } from "~components/Incident";
-import { TeamIsolationDialog } from "./team";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 import { MatchScratchpad } from "~components/scratchpad/Scratchpad";
 import { RulesSummary } from "~components/RulesSummary";
+import { useNavigate } from "@tanstack/react-router";
+import { useCurrentEvent } from "~utils/hooks/state";
 
 type TeamSummaryProps = {
   number: string;
@@ -28,7 +28,7 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
   incidents,
 }) => {
   const [open, setOpen] = useState(false);
-  const [isolationOpen, setIsolationOpen] = useState(false);
+  const { data: event } = useCurrentEvent();
 
   const teamAlliance = match.alliances.find((alliance) =>
     alliance.teams.some((t) => t.team?.name === number)
@@ -74,22 +74,14 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
             />
           ))}
           {incidents.length > 0 ? (
-            <>
-              <TeamIsolationDialog
-                key={number}
-                team={number}
-                open={isolationOpen}
-                setOpen={setIsolationOpen}
-              />
-              <Button
-                mode="normal"
-                className="flex gap-2 items-center mt-2 justify-center h-12"
-                onClick={() => setIsolationOpen(true)}
-              >
-                <ArrowsPointingOutIcon height={20} />
-                <p>Isolate Team</p>
-              </Button>
-            </>
+            <LinkButton
+              to="/$sku/team/$team/isolate"
+              params={{ sku: event?.sku ?? "", team: number }}
+              className="flex gap-2 items-center mt-2 justify-center h-12 w-full text-center"
+            >
+              <ArrowsPointingOutIcon height={20} />
+              <p>Isolate Team</p>
+            </LinkButton>
           ) : null}
         </>
       ) : null}
@@ -108,30 +100,29 @@ export const TeamFlagButton: React.FC<TeamFlagButtonProps> = ({
   team,
   ...props
 }) => {
-  const [open, setOpen] = useState(false);
+  const { data: event } = useCurrentEvent();
+  const navigate = useNavigate();
 
   return (
-    <>
-      <EventNewIncidentDialog
-        open={open}
-        setOpen={setOpen}
-        initial={{ match, team }}
-        key={match?.id + team}
-      />
-      <Button
-        mode="primary"
-        {...props}
-        className={twMerge(
-          "flex items-center w-min flex-shrink-0 my-2",
-          props.className
-        )}
-        onClick={() => setOpen(true)}
-        aria-label={`New entry for ${team}`}
-      >
-        <FlagIcon height={20} className="mr-2" />
-        <span>New</span>
-      </Button>
-    </>
+    <Button
+      mode="primary"
+      {...props}
+      className={twMerge(
+        "flex items-center w-min flex-shrink-0 my-2",
+        props.className
+      )}
+      onClick={() =>
+        navigate({
+          to: "/$sku/new",
+          params: { sku: event?.sku ?? "" },
+          search: { team, match: match?.id },
+        })
+      }
+      aria-label={`New entry for ${team}`}
+    >
+      <FlagIcon height={20} className="mr-2" />
+      <span>New</span>
+    </Button>
   );
 };
 

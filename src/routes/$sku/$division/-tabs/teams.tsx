@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { EventData } from "@referee-fyi/robotevents";
 import { Spinner } from "~components/Spinner";
 import { useEventIncidents } from "~utils/hooks/incident";
@@ -13,8 +14,6 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { Button, LinkButton } from "~components/Button";
-import { RichIncident } from "~utils/data/incident";
-import { EventNewIncidentDialog } from "~components/dialogs/new";
 import { MenuButton } from "~components/MenuButton";
 import { RulesSummary } from "~components/RulesSummary";
 import { DisconnectedWarning } from "~components/DisconnectedWarning";
@@ -24,6 +23,7 @@ export type EventTagProps = {
 };
 
 export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
+  const navigate = useNavigate();
   const division = useCurrentDivision();
   const {
     data: divisionTeams,
@@ -33,20 +33,6 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
   const { data: incidents } = useEventIncidents(event.sku);
   const [filter, setFilter] = useState("");
 
-  const [newIncidentDialogOpen, setNewIncidentDialogOpen] = useState(false);
-  const [newIncidentDialogInitial, setNewIncidentDialogInitial] = useState<
-    Partial<RichIncident>
-  >({});
-
-  const openNewIncidentDialog = useCallback(
-    (initial: Partial<RichIncident> = {}) => {
-      setNewIncidentDialogInitial(initial);
-      setTimeout(() => {
-        setNewIncidentDialogOpen(true);
-      }, 0);
-    },
-    []
-  );
   const teams = useMemo(() => divisionTeams?.teams ?? [], [divisionTeams]);
 
   const majorIncidents = useMemo(() => {
@@ -96,11 +82,6 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
         />
       </IconLabel>
       <Spinner show={isLoading || isPaused} />
-      <EventNewIncidentDialog
-        open={newIncidentDialogOpen}
-        setOpen={setNewIncidentDialogOpen}
-        initial={newIncidentDialogInitial}
-      />
       <VirtualizedList
         data={filteredTeams}
         options={{ estimateSize: () => 64 }}
@@ -123,28 +104,27 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
                     {" • "}
                     <span>{team.team_name}</span>
                   </p>
+                  <LinkButton
+                    to={"/$sku/team/$team"}
+                    params={{ sku: event.sku, team: team.number }}
+                  >
+                    View
+                    <ArrowRightIcon height={20} className="ml-2 inline" />
+                  </LinkButton>
                 </div>
                 <RulesSummary
                   className="break-all"
                   incidents={incidents ?? []}
                   filter={(i) => i.team == team.number}
                 />
-                <LinkButton
-                  to={"/$sku/team/$team"}
-                  params={{ sku: event.sku, team: team.number }}
-                  className="w-full mt-4 flex items-center"
-                >
-                  <span className="flex-1">Details</span>
-                  <ArrowRightIcon height={20} className="text-emerald-400" />
-                </LinkButton>
-                <hr className="mt-4 border-zinc-600" />
                 <Button
                   mode="normal"
-                  className="mt-4 bg-blue-600"
+                  className="mt-4"
                   onClick={() =>
-                    openNewIncidentDialog({
-                      team: team.number,
-                      outcome: "General",
+                    navigate({
+                      to: "/$sku/new",
+                      params: { sku: event.sku },
+                      search: { team: team.number, outcome: "General" },
                     })
                   }
                 >
@@ -155,9 +135,10 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
                   mode="normal"
                   className="mt-4"
                   onClick={() =>
-                    openNewIncidentDialog({
-                      team: team.number,
-                      outcome: "Inspection",
+                    navigate({
+                      to: "/$sku/new",
+                      params: { sku: event.sku },
+                      search: { team: team.number, outcome: "Inspection" },
                     })
                   }
                 >
@@ -168,9 +149,10 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
                   mode="normal"
                   className="mt-4 bg-yellow-500"
                   onClick={() =>
-                    openNewIncidentDialog({
-                      team: team.number,
-                      outcome: "Minor",
+                    navigate({
+                      to: "/$sku/new",
+                      params: { sku: event.sku },
+                      search: { team: team.number, outcome: "Minor" },
                     })
                   }
                 >
@@ -181,9 +163,10 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
                   mode="normal"
                   className="mt-4 bg-red-500"
                   onClick={() =>
-                    openNewIncidentDialog({
-                      team: team.number,
-                      outcome: "Major",
+                    navigate({
+                      to: "/$sku/new",
+                      params: { sku: event.sku },
+                      search: { team: team.number, outcome: "Major" },
                     })
                   }
                 >

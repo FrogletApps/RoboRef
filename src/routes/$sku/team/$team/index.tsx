@@ -22,7 +22,7 @@ import {
 import {
   BookOpenIcon as RulesIconSolid,
 } from "@heroicons/react/24/solid";
-import { EventRulesTab } from "../$division/-tabs/rules";
+import { EventRulesTab } from "../../$division/-tabs/rules";
 import { useEventAssetsForTeam } from "~utils/hooks/assets";
 import { AssetPreview } from "~components/Assets";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
@@ -39,7 +39,7 @@ export const TeamImagesTab: React.FC<TeamImagesTabProps> = ({
   const assets = useEventAssetsForTeam(sku, team);
   return (
     <div className="grid lg:grid-cols-6 grid-cols-2 md:grid-cols-3 mt-4 gap-2 overflow-y-auto">
-      {assets?.map((asset) => (asset ? <AssetPreview asset={asset} /> : null))}
+      {assets?.map((asset) => (asset ? <AssetPreview asset={asset} key={asset} /> : null))}
     </div>
   );
 };
@@ -110,7 +110,7 @@ export const TeamIncidentsTab: React.FC<EventTeamsTabProps> = ({
 };
 
 export const EventTeamsPage: React.FC = () => {
-  const { team: number } = useParams({ from: "/$sku/team/$team" });
+  const { team: number } = useParams({ strict: false });
   const { data: event } = useCurrentEvent();
   const { data: team } = useEventTeam(event, number ?? "");
 
@@ -198,6 +198,6 @@ export const EventTeamsPage: React.FC = () => {
   );
 };
 
-export const Route = createFileRoute("/$sku/team/$team")({
+export const Route = createFileRoute("/$sku/team/$team/")({
   component: EventTeamsPage,
 });
