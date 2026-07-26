@@ -1,7 +1,7 @@
 import { Button, LinkButton } from "~components/Button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Cog8ToothIcon, UserGroupIcon } from "@heroicons/react/20/solid";
+import { ArrowPathIcon, Cog8ToothIcon, QrCodeIcon, UserGroupIcon } from "@heroicons/react/20/solid";
 import { useEventSearch } from "~utils/hooks/robotevents";
 import {
   useHiddenEvents,
@@ -22,6 +22,7 @@ import AppIcon from "/icons/roboref.svg?url";
 import "./markdown.css";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { EventPicker } from "./__root";
 
 const UserWelcome: React.FC = () => {
   return (
@@ -31,7 +32,7 @@ const UserWelcome: React.FC = () => {
         This is an anomaly log for Head Referees at VEX robotics competitions.
       </p>
       <p>
-        To get started, pick your event from the dropdown above.
+        To get started, add a new event using the button above.
       </p>
     </section>
   );
@@ -140,20 +141,32 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="overflow-y-auto">
-      <nav className="flex items-center gap-4 mt-4">
-        <div className="flex-1">
-          <LinkButton
-            to="/updates"
-            className="bg-emerald-600 active:bg-emerald-700 text-white text-right w-max"
-          >
-            Update Notes
-          </LinkButton>
-        </div>
-        <LinkButton to="/settings" className="flex items-center gap-2">
-          <Cog8ToothIcon height={20} />
-          <p>Settings</p>
+      <nav className="grid grid-cols-3 gap-2 mb-3 w-full">
+        <LinkButton
+          to="/updates"
+          className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
+        >
+          <ArrowPathIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+          <span className="truncate">Update Notes</span>
+        </LinkButton>
+        <LinkButton
+          to="/share"
+          className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
+        >
+          <QrCodeIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+          <span className="truncate">Share RoboRef</span>
+        </LinkButton>
+        <LinkButton
+          to="/settings"
+          className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
+        >
+          <Cog8ToothIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+          <span className="truncate">Settings</span>
         </LinkButton>
       </nav>
+      <div className="mb-3">
+        <EventPicker />
+      </div>
       <UpdatePrompt />
       <section className="max-w-full mb-4">
         {visibleEvents?.map((event) => (

@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { Button, IconButton } from "~components/Button";
 import {
-  ChevronDownIcon,
   ChevronLeftIcon,
   HomeIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
 import { Spinner } from "~components/Spinner";
 import { useCurrentDivision, useCurrentEvent } from "~utils/hooks/state";
@@ -17,14 +17,12 @@ import { getEventInvitation, getShareProfile } from "~utils/data/share";
 import { getSkuTextColorClass } from "~utils/data/state";
 import {
   createRootRoute,
-  Link,
   Outlet,
   useLocation,
   useNavigate,
   useParams,
   useRouter,
 } from "@tanstack/react-router";
-import { QRCode } from "~components/QRCode";
 import AppIcon from "/icons/roboref.svg?url";
 
 function isValidSKU(sku: string) {
@@ -33,7 +31,7 @@ function isValidSKU(sku: string) {
   );
 }
 
-const EventPicker: React.FC = () => {
+export const EventPicker: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { sku: skuParam } = useParams({ strict: false });
@@ -81,34 +79,13 @@ const EventPicker: React.FC = () => {
 
   return (
     <Button
-      mode="none"
-      className="flex-1 active:bg-zinc-600"
+      mode="primary"
+      className="w-full h-16 flex items-center justify-center gap-2 text-lg font-semibold rounded-lg shadow-sm"
       onClick={onClick}
-      aria-description={
-        "Click to " + (showDiv ? "Select Division" : "Select Event")
-      }
+      aria-label="Add a new event"
     >
-      <div
-        className="grid items-center gap-2"
-        style={{ gridTemplateColumns: "1fr 1.25rem" }}
-      >
-        <div className="flex-1 overflow-hidden whitespace-nowrap text-ellipsis">
-          <p
-            style={{
-              visibility: sku && isPendingCurrentEvent ? "hidden" : "visible",
-            }}
-          >
-            {event?.name ??
-              (sku && isPendingCurrentEvent
-                ? "Loading Event..."
-                : "Select Event")}
-          </p>
-          <p className={`text-sm ${showDiv ? "text-emerald-400" : getSkuTextColorClass(sku)}`}>
-            {showDiv ? <span>{selectedDiv?.name}</span> : sku}
-          </p>
-        </div>
-        <ChevronDownIcon className="w-5 h-5" />
-      </div>
+      <PlusIcon className="w-6 h-6 stroke-[2.5]" />
+      <span>Add a new event</span>
     </Button>
   );
 };
@@ -204,26 +181,6 @@ const RoboRefTitleBar: React.FC = () => {
           <span className="text-zinc-400">.fyi</span>
         </h1>
       </div>
-      <Link
-        to="/share"
-        title="Share RoboRef"
-        aria-label="Share RoboRef"
-        className="flex items-center justify-center gap-2.5 h-10 px-3.5 bg-zinc-800 hover:bg-zinc-700/80 active:bg-zinc-700 rounded-md border border-zinc-700/60 transition-colors group cursor-pointer flex-shrink-0"
-      >
-        <span className="text-base font-semibold text-zinc-300 group-hover:text-zinc-100 transition-colors">
-          Share
-        </span>
-        <QRCode
-          config={{
-            text: "https://roboref.fyi",
-            radius: 0.4,
-            ecLevel: "H",
-            fill: "#10b981",
-            background: null,
-          }}
-          className="w-7.5 h-7.5 p-0 bg-transparent"
-        />
-      </Link>
     </header>
   );
 };
@@ -284,11 +241,7 @@ export const AppShell: React.FC = () => {
       <MigrationManager />
       <div className="flex flex-col max-w-full">
         {isIndex && <RoboRefTitleBar />}
-        {isIndex ? (
-          <nav className="h-16 flex gap-4 max-w-full">
-            <EventPicker />
-          </nav>
-        ) : (
+        {!isIndex && (
           <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm w-full min-w-0 mb-3">
             <IconButton
               onClick={() =>
