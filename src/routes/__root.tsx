@@ -201,6 +201,7 @@ export const AppShell: React.FC = () => {
   const isNewNote = location.pathname.endsWith("/new");
   const isEditEntry = location.pathname.includes("/entry/");
   const isTeamNotes = location.pathname.endsWith("/teamNotes");
+  const isDeleted = location.pathname.endsWith("/deleted");
 
   const customHeaderTitle = isSettings
     ? "Settings"
@@ -224,6 +225,8 @@ export const AppShell: React.FC = () => {
     ? "Edit Entry"
     : isTeamNotes
     ? "Team Notes"
+    : isDeleted
+    ? "Deleted Incidents"
     : null;
 
   return (
