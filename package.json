@@ -72,7 +72,7 @@
     "vite": "^8.0.16",
     "vite-plugin-pwa": "^1.3.0",
     "vite-plugin-version-mark": "^0.2.2",
-    "wrangler": "^4.112.0"
+    "wrangler": "^4.114.0"
   },
   "overrides": {
     "vite-plugin-node-polyfills": {
