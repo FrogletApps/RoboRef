@@ -99,7 +99,7 @@ export const Tabs: React.FC<TabsProps> = ({
       <nav
         role="tablist"
         {...parts?.tablist}
-        className={twMerge("flex max-w-full pt-2", parts?.tablist?.className)}
+        className={twMerge("flex max-w-full pt-2 z-30", parts?.tablist?.className)}
       >
         {buttonTabs.map((tab) => tab.content)}
         {contentTabs.map((tab, index) => (
