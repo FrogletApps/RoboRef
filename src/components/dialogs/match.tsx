@@ -1,8 +1,8 @@
 import { Button, ButtonProps, LinkButton } from "~components/Button";
 import {
-  FlagIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/20/solid";
 import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
@@ -40,7 +40,7 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
 
   return (
     <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
-      <summary className="flex gap-2 items-center active:bg-zinc-700 max-w-full mt-0 sticky top-0 bg-zinc-900 h-16 z-10">
+      <summary className="flex gap-2 items-center active:bg-zinc-700 max-w-full mt-0 sticky top-0 bg-zinc-900 h-16 z-10 px-2">
         {open ? (
           <ChevronDownIcon height={16} width={16} className="flex-shrink-0" />
         ) : (
@@ -108,7 +108,7 @@ export const TeamFlagButton: React.FC<TeamFlagButtonProps> = ({
       mode="primary"
       {...props}
       className={twMerge(
-        "flex items-center w-min flex-shrink-0 my-2",
+        "flex items-center w-max whitespace-nowrap flex-shrink-0 my-2 mr-2",
         props.className
       )}
       onClick={() =>
@@ -118,10 +118,10 @@ export const TeamFlagButton: React.FC<TeamFlagButtonProps> = ({
           search: { team, match: match?.id },
         })
       }
-      aria-label={`New entry for ${team}`}
+      aria-label={`Add note for ${team}`}
     >
-      <FlagIcon height={20} className="mr-2" />
-      <span>New</span>
+      <DocumentTextIcon height={20} className="mr-2" />
+      <span>Add Note</span>
     </Button>
   );
 };

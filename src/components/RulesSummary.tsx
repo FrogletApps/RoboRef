@@ -10,50 +10,56 @@ const highlights: Record<IncidentOutcome, string> = {
   Inspection: "text-zinc-300",
 };
 
-const OUTCOME_PRIORITY: IncidentOutcome[] = [
-  "Major",
-  "Disabled",
-  "Minor",
-  "General",
-];
-
 export type RulesSummaryProps = {
   incidents: Incident[];
   filter?: (incident: Incident) => boolean;
+  maxVisible?: number;
 } & React.HTMLProps<HTMLUListElement>;
 
 export const RulesSummary: React.FC<RulesSummaryProps> = ({
   incidents,
   filter,
+  maxVisible = 3,
   ...props
 }) => {
   const counts = useMemo(() => {
-    const rules: Record<string, Incident[]> = {};
+    const rules: Record<
+      string,
+      { key: string; rule: string; outcome: IncidentOutcome; incidents: Incident[] }
+    > = {};
 
     for (const incident of incidents) {
       if (!filter?.(incident)) {
         continue;
       }
 
-      if (incident.rules.length < 1) {
-        if (rules["NA"]) {
-          rules["NA"].push(incident);
-        } else {
-          rules["NA"] = [incident];
-        }
-      }
+      const ruleList = incident.rules.length < 1 ? ["NA"] : incident.rules;
 
-      for (const rule of incident.rules) {
-        if (rules[rule]) {
-          rules[rule].push(incident);
+      for (const rule of ruleList) {
+        const key = `${rule}:${incident.outcome}`;
+        if (rules[key]) {
+          rules[key].incidents.push(incident);
         } else {
-          rules[rule] = [incident];
+          rules[key] = {
+            key,
+            rule,
+            outcome: incident.outcome,
+            incidents: [incident],
+          };
         }
       }
     }
 
-    return Object.entries(rules).sort((a, b) => a[1].length - b[1].length);
+    return Object.values(rules).sort(
+      (a, b) => a.incidents.length - b.incidents.length
+    );
   }, [filter, incidents]);
+
+  const visibleCounts = useMemo(
+    () => (maxVisible ? counts.slice(0, maxVisible) : counts),
+    [counts, maxVisible]
+  );
+  const extraCount = maxVisible ? counts.length - maxVisible : 0;
 
   return (
     <ul
@@ -63,20 +69,10 @@ export const RulesSummary: React.FC<RulesSummaryProps> = ({
         props.className
       )}
     >
-      {counts.map(([rule, incidents]) => {
-        let outcome: IncidentOutcome = "Minor";
-        for (const incident of incidents) {
-          if (
-            OUTCOME_PRIORITY.indexOf(incident.outcome) <
-            OUTCOME_PRIORITY.indexOf(outcome)
-          ) {
-            outcome = incident.outcome;
-          }
-        }
-
+      {visibleCounts.map(({ key, rule, outcome, incidents }) => {
         return (
           <li
-            key={rule}
+            key={key}
             className={twMerge(
               highlights[outcome],
               "text-sm font-mono inline mx-1"
@@ -86,6 +82,11 @@ export const RulesSummary: React.FC<RulesSummaryProps> = ({
           </li>
         );
       })}
+      {extraCount > 0 ? (
+        <li className="text-sm font-mono inline mx-1 text-zinc-400 font-semibold">
+          +{extraCount}
+        </li>
+      ) : null}
     </ul>
   );
 };
