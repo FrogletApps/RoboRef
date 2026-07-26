@@ -1,3 +1,19 @@
+## 26 July 2026
+
+- Updated home screen layout
+- Updated rules page
+- Updated Match Notes
+- Updated Event 
+- Renamed 'Entry'/'Incident' to 'Note' for consistency
+- Renamed 'Isolate Team' to 'View all *teamnumber* notes'
+- Changed the user prompt for search
+- Removed hidden events viewer
+- Removed forced upper case from search
+- Changed some icons as they were similar
+- Improved UI consistency
+- Removed unused code
+- Bug fixes
+
 ## 25 July 2026
 
 - Added a QR code and link for inviting users directly to an event

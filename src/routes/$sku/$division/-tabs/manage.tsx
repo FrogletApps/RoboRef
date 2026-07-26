@@ -384,17 +384,17 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
   );
 };
 
-const EventSummaryLink: React.FC<ManageTabProps> = ({ event }) => {
+const NoteSummaryLink: React.FC<ManageTabProps> = ({ event }) => {
   return (
     <section className="mt-4">
-      <h2 className="font-bold">Event Summary</h2>
-      <p className="text-zinc-400 text-sm">See a summary of all entries at the event.</p>
+      <h2 className="font-bold">Note Summary</h2>
+      <p className="text-zinc-400 text-sm">See a summary of all notes submitted during the event.</p>
       <LinkButton
         to="/$sku/summary"
         params={{ sku: event.sku }}
         className="w-full text-center mt-2"
       >
-        Event Summary
+        Note Summary
       </LinkButton>
     </section>
   );
@@ -643,7 +643,7 @@ export const EventManageTab: React.FC<ManageTabProps> = ({ event }) => {
     <section className="max-w-xl max-h-full w-full mx-auto flex-1 mb-12 overflow-y-auto">
       <UpdatePrompt />
       <ShareManager event={event} />
-      <EventSummaryLink event={event} />
+      <NoteSummaryLink event={event} />
       <HideEventSection event={event} />
       <IntegrationInfo event={event} />
       <SystemKeyInfo event={event} />

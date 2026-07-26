@@ -231,7 +231,7 @@ export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
       </nav>
       {hasFiltersApplied && (
         <p className="text-zinc-400 text-sm mt-2">
-          Filters have been applied, edit these using the Filters button. Only visible events will be exported.
+          Filters have been applied, edit these using the Filters button. Only visible notes will be exported.
         </p>
       )}
       <section className="flex gap-1 flex-wrap mt-3">

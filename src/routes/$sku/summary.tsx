@@ -27,7 +27,7 @@ export const EventSummaryPage: React.FC = () => {
     <IncidentListSummary
       incidents={incidents}
       isPending={isPending}
-      countLabel="Incident"
+      countLabel="Note"
       exportFilenamePrefix="incidents"
       footer={
         <section className="mt-4">
@@ -36,7 +36,7 @@ export const EventSummaryPage: React.FC = () => {
             params={{ sku: event.sku }}
             className="w-full flex items-center"
           >
-            <span className="flex-1">Deleted Incidents</span>
+            <span className="flex-1">Deleted Notes</span>
             <ArrowRightIcon height={20} className="text-emerald-400" />
           </LinkButton>
         </section>

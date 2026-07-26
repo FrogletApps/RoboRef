@@ -228,11 +228,11 @@ export const AppShell: React.FC = () => {
     : isTeamNotes
     ? "Team Notes"
     : isDeleted
-    ? "Deleted Incidents"
+    ? "Deleted Notes"
     : isSummary
-    ? "Incident Summary"
+    ? "Note Summary"
     : isFilters
-    ? "Filter Incidents"
+    ? "Filter Notes"
     : null;
 
   return (

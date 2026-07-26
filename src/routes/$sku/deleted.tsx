@@ -12,7 +12,7 @@ export const EventDeletedIncidentsPage: React.FC = () => {
     <IncidentListSummary
       incidents={deleted}
       isPending={isPending}
-      countLabel="Deleted Incident"
+      countLabel="Deleted Note"
       exportFilenamePrefix="deleted-incidents"
       readonlyIncidents
     />
