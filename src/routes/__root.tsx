@@ -203,6 +203,7 @@ export const AppShell: React.FC = () => {
   const isTeamNotes = location.pathname.endsWith("/teamNotes");
   const isDeleted = location.pathname.endsWith("/deleted");
   const isSummary = location.pathname.endsWith("/summary");
+  const isFilters = location.pathname.endsWith("/filters");
 
   const customHeaderTitle = isSettings
     ? "Settings"
@@ -230,6 +231,8 @@ export const AppShell: React.FC = () => {
     ? "Deleted Incidents"
     : isSummary
     ? "Incident Summary"
+    : isFilters
+    ? "Filter Incidents"
     : null;
 
   return (

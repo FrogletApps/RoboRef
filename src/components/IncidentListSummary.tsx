@@ -1,186 +1,21 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Spinner } from "~components/Spinner";
 import { useCurrentEvent } from "~utils/hooks/state";
-import { Button, IconButton } from "~components/Button";
+import { Button, LinkButton } from "~components/Button";
 import {
   AdjustmentsHorizontalIcon,
   ArrowDownTrayIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { Incident } from "~components/Incident";
-import { Rule, useRulesForEvent } from "~utils/hooks/rules";
-import { Dialog, DialogBody } from "~components/Dialog";
-import { XMarkIcon } from "@heroicons/react/20/solid";
-import { Checkbox, RulesMultiSelect, Select } from "~components/Input";
+import { useRulesForEvent } from "~utils/hooks/rules";
 import { twMerge } from "tailwind-merge";
 import { useMutation } from "@tanstack/react-query";
 import { ReadyState, useShareConnection } from "~models/ShareConnection";
-import { Incident as IncidentData, IncidentOutcome, OUTCOMES } from "@referee-fyi/share";
+import { Incident as IncidentData } from "@referee-fyi/share";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { useEventIncidents } from "~utils/hooks/incident";
-
-export type Filters = {
-  outcomes: Record<IncidentOutcome, boolean>;
-  rules: Rule[];
-  division?: number;
-  contact: Set<string>;
-};
-
-export const DEFAULT_FILTERS: Filters = {
-  outcomes: {
-    Disabled: true,
-    General: true,
-    Major: true,
-    Minor: true,
-    Inspection: true,
-  },
-  rules: [],
-  contact: new Set(),
-};
-
-export const isFilterApplied = (filters: Filters): boolean => {
-  const hasCustomOutcomes = Object.values(filters.outcomes).some((v) => !v);
-  const hasCustomRules = filters.rules.length > 0;
-  const hasCustomDivision = typeof filters.division === "number";
-  const hasCustomContact = filters.contact.size > 0;
-  return (
-    hasCustomOutcomes ||
-    hasCustomRules ||
-    hasCustomDivision ||
-    hasCustomContact
-  );
-};
-
-type FilterDialogProps = {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  apply: (filters: Filters) => void;
-};
-
-export const FilterDialog: React.FC<FilterDialogProps> = ({
-  open,
-  setOpen,
-  apply,
-}) => {
-  const { data: event } = useCurrentEvent();
-  const divisions = useMemo(() => event?.divisions ?? [], [event]);
-  const { data: game } = useRulesForEvent(event);
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
-  const setFiltersField = useCallback(
-    <T extends keyof Filters>(key: T, value: Filters[T]) => {
-      setFilters((filters) => ({ ...filters, [key]: value }));
-    },
-    []
-  );
-
-  const { invitations } = useShareConnection(["invitations"]);
-
-  const onClickApply = useCallback(() => {
-    setOpen(false);
-    apply(filters);
-  }, [apply, setOpen, filters]);
-
-  if (!game) {
-    return null;
-  }
-
-  return (
-    <Dialog
-      mode="modal"
-      open={open}
-      onClose={() => setOpen(false)}
-      className="p-4"
-      aria-label="Filter Incidents"
-    >
-      <DialogBody>
-        <nav className="w-full flex pt-1 gap-2">
-          <IconButton
-            className="bg-transparent"
-            onClick={() => setOpen(false)}
-            icon={<XMarkIcon height={24} />}
-          />
-        </nav>
-        <label>
-          <p className="mt-4">Include Rules</p>
-          <RulesMultiSelect
-            game={game}
-            value={filters.rules}
-            onChange={(rules) => setFiltersField("rules", rules)}
-          />
-        </label>
-        <p>Outcomes</p>
-        {OUTCOMES.map((outcome) => (
-          <Checkbox
-            key={outcome}
-            label={outcome}
-            checked={filters.outcomes[outcome]}
-            onChange={(e) =>
-              setFiltersField("outcomes", {
-                ...filters.outcomes,
-                [outcome]: e.currentTarget.checked,
-              })
-            }
-          />
-        ))}
-        {divisions.length > 0 ? (
-          <label>
-            <p className="mt-4">Division</p>
-            <Select
-              value={filters.division}
-              onChange={(e) =>
-                setFiltersField(
-                  "division",
-                  isNaN(Number.parseInt(e.currentTarget.value))
-                    ? undefined
-                    : Number.parseInt(e.currentTarget.value)
-                )
-              }
-              className="w-full"
-            >
-              <option value={undefined}>Pick Division</option>
-              {divisions
-                .sort((a, b) => a.order! - b.order!)
-                .map((div) => (
-                  <option value={div.id} key={div.id}>
-                    {div.name}
-                  </option>
-                ))}
-            </Select>
-          </label>
-        ) : null}
-        {invitations.length > 0 ? (
-          <label>
-            <p className="mt-4">User Created/Modified</p>
-            <fieldset>
-              {invitations.map((inv) => (
-                <Checkbox
-                  key={inv.user.key}
-                  label={inv.user.name}
-                  labelProps={{ className: "mt-2" }}
-                  bind={{
-                    value: filters.contact.has(inv.user.key),
-                    onChange: (checked) => {
-                      const newContact = new Set(filters.contact);
-                      if (checked) {
-                        newContact.add(inv.user.key);
-                      } else {
-                        newContact.delete(inv.user.key);
-                      }
-                      setFiltersField("contact", newContact);
-                    },
-                  }}
-                />
-              ))}
-            </fieldset>
-          </label>
-        ) : null}
-      </DialogBody>
-      <Button mode="primary" onClick={onClickApply}>
-        Apply
-      </Button>
-    </Dialog>
-  );
-};
+import { isFilterApplied, useFilterStore } from "~utils/hooks/filters";
 
 export const ForceSyncButton: React.FC = () => {
   const connection = useShareConnection(["readyState", "forceSync"]);
@@ -287,9 +122,7 @@ export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
 }) => {
   const { data: event } = useCurrentEvent();
   const { data: game } = useRulesForEvent(event);
-
-  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const filters = useFilterStore((state) => state.filters);
 
   const filteredIncidents = useMemo(() => {
     const results = allIncidents?.filter((incident) => {
@@ -365,84 +198,78 @@ export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
   }, [filteredIncidents]);
 
   return (
-    <>
-      <FilterDialog
-        open={filterDialogOpen}
-        setOpen={setFilterDialogOpen}
-        apply={(filters) => setFilters(filters)}
-      />
-      <section className="mt-4 flex flex-col max-h-full">
-        <p className="mb-2">
-          {hasFiltersApplied ? (
-            <>
-              {filteredIncidents?.length ?? 0} {countLabel}
-              {filteredIncidents?.length === 1 ? "" : "s"} visible /{" "}
-              {allIncidents?.length ?? 0} {countLabel}
-              {(allIncidents?.length ?? 0) === 1 ? "" : "s"} total
-            </>
-          ) : (
-            <>
-              {filteredIncidents?.length ?? 0} {countLabel}
-              {filteredIncidents?.length === 1 ? "" : "s"}
-            </>
-          )}
-        </p>
-        <nav className="flex gap-2 w-full">
-          <Button
-            onClick={() => setFilterDialogOpen(true)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
-          >
-            <AdjustmentsHorizontalIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-            <span className="truncate">Filters</span>
-          </Button>
-          <ExportButton
-            incidents={filteredIncidents}
-            filenamePrefix={exportFilenamePrefix}
-          />
-          <ForceSyncButton />
-        </nav>
-        {hasFiltersApplied && (
-          <p className="text-zinc-400 text-sm mt-2">
-            Filters have been applied, edit these using the Filters button. Only visible events will be exported.
-          </p>
+    <section className="mt-4 flex flex-col max-h-full">
+      <p className="mb-2">
+        {hasFiltersApplied ? (
+          <>
+            {filteredIncidents?.length ?? 0} {countLabel}
+            {filteredIncidents?.length === 1 ? "" : "s"} visible /{" "}
+            {allIncidents?.length ?? 0} {countLabel}
+            {(allIncidents?.length ?? 0) === 1 ? "" : "s"} total
+          </>
+        ) : (
+          <>
+            {filteredIncidents?.length ?? 0} {countLabel}
+            {filteredIncidents?.length === 1 ? "" : "s"}
+          </>
         )}
-        <section className="flex gap-1 flex-wrap mt-3">
-          {commonRules.slice(0, 5).map(([rule, count]) => (
-            <div
-              className="font-mono bg-emerald-900 rounded-lg px-2 py-1 text-sm text-center"
-              key={rule}
-            >
-              <div className="flex gap-x-1">
-                {game?.rulesLookup?.[rule]?.icon && (
-                  <img
-                    alt="Icon"
-                    className="max-h-5 max-w-5 object-contain"
-                    src={game?.rulesLookup?.[rule]?.icon}
-                  ></img>
-                )}
-                {rule.replace(/[<>]/g, "")}
-                <span className="text-emerald-400 pl-1">{count}</span>
-              </div>
-            </div>
-          ))}
-        </section>
-        <Spinner show={isPending} />
-        <VirtualizedList
-          data={filteredIncidents}
-          options={{ estimateSize: () => 64 }}
-          className="flex-1 mt-4"
+      </p>
+      <nav className="flex gap-2 w-full">
+        <LinkButton
+          to="/$sku/filters"
+          params={{ sku: event?.sku ?? "" }}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
         >
-          {(incident) => (
-            <Incident
-              incident={incident}
-              key={incident.id}
-              readonly={readonlyIncidents}
-              className="h-14 overflow-hidden"
-            />
-          )}
-        </VirtualizedList>
-        {footer}
+          <AdjustmentsHorizontalIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+          <span className="truncate">Filters</span>
+        </LinkButton>
+        <ExportButton
+          incidents={filteredIncidents}
+          filenamePrefix={exportFilenamePrefix}
+        />
+        <ForceSyncButton />
+      </nav>
+      {hasFiltersApplied && (
+        <p className="text-zinc-400 text-sm mt-2">
+          Filters have been applied, edit these using the Filters button. Only visible events will be exported.
+        </p>
+      )}
+      <section className="flex gap-1 flex-wrap mt-3">
+        {commonRules.slice(0, 5).map(([rule, count]) => (
+          <div
+            className="font-mono bg-emerald-900 rounded-lg px-2 py-1 text-sm text-center"
+            key={rule}
+          >
+            <div className="flex gap-x-1">
+              {game?.rulesLookup?.[rule]?.icon && (
+                <img
+                  alt="Icon"
+                  className="max-h-5 max-w-5 object-contain"
+                  src={game?.rulesLookup?.[rule]?.icon}
+                ></img>
+              )}
+              {rule.replace(/[<>]/g, "")}
+              <span className="text-emerald-400 pl-1">{count}</span>
+            </div>
+          </div>
+        ))}
       </section>
-    </>
+      <Spinner show={isPending} />
+      <VirtualizedList
+        data={filteredIncidents}
+        options={{ estimateSize: () => 64 }}
+        className="flex-1 mt-4"
+      >
+        {(incident) => (
+          <Incident
+            incident={incident}
+            key={incident.id}
+            readonly={readonlyIncidents}
+            className="h-14 overflow-hidden"
+          />
+        )}
+      </VirtualizedList>
+      {footer}
+    </section>
   );
 };
