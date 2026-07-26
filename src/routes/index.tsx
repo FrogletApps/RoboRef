@@ -179,7 +179,7 @@ export const HomePage: React.FC = () => {
             <p>{event.name}</p>
           </LinkButton>
         ))}
-        {visibleEvents?.length === 0 && hiddenEvents.length === 0 ? (
+        {visibleEvents?.length === 0 ? (
           <UserWelcome />
         ) : null}
         <InstallPrompt />
