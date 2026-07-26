@@ -578,7 +578,7 @@ export const NewEntryPage: React.FC = () => {
         disabled={!canSave}
         onClick={onSubmit}
       >
-        Submit Entry
+        Submit Note
       </Button>
     </div>
   );
