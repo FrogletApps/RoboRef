@@ -5,6 +5,7 @@
 - Updated Match Notes
 - Updated Event 
 - Renamed 'Entry'/'Incident' to 'Note' for consistency
+- Renamed 'Update Notes' to 'Update Log'
 - Renamed 'Isolate Team' to 'View all *teamnumber* notes'
 - Changed the user prompt for search
 - Removed hidden events viewer
