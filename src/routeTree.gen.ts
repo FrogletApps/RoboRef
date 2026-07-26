@@ -31,7 +31,7 @@ import { Route as SkuEntryIncidentIdRouteImport } from './routes/$sku/entry/$inc
 import { Route as SkuMatchMatchIdRouteImport } from './routes/$sku/match/$matchId'
 import { Route as SkuTeamTeamRouteRouteImport } from './routes/$sku/team/$team/route'
 import { Route as SkuTeamTeamIndexRouteImport } from './routes/$sku/team/$team/index'
-import { Route as SkuTeamTeamIsolateRouteImport } from './routes/$sku/team/$team/isolate'
+import { Route as SkuTeamTeamTeamNotesRouteImport } from './routes/$sku/team/$team/teamNotes'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -143,9 +143,9 @@ const SkuTeamTeamIndexRoute = SkuTeamTeamIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SkuTeamTeamRouteRoute,
 } as any)
-const SkuTeamTeamIsolateRoute = SkuTeamTeamIsolateRouteImport.update({
-  id: '/isolate',
-  path: '/isolate',
+const SkuTeamTeamTeamNotesRoute = SkuTeamTeamTeamNotesRouteImport.update({
+  id: '/teamNotes',
+  path: '/teamNotes',
   getParentRoute: () => SkuTeamTeamRouteRoute,
 } as any)
 
@@ -171,7 +171,7 @@ export interface FileRoutesByFullPath {
   '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRoute
   '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
   '/$sku/$division/': typeof SkuDivisionIndexRoute
-  '/$sku/team/$team/isolate': typeof SkuTeamTeamIsolateRoute
+  '/$sku/team/$team/teamNotes': typeof SkuTeamTeamTeamNotesRoute
   '/$sku/team/$team/': typeof SkuTeamTeamIndexRoute
 }
 export interface FileRoutesByTo {
@@ -193,7 +193,7 @@ export interface FileRoutesByTo {
   '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRoute
   '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
   '/$sku/$division': typeof SkuDivisionIndexRoute
-  '/$sku/team/$team/isolate': typeof SkuTeamTeamIsolateRoute
+  '/$sku/team/$team/teamNotes': typeof SkuTeamTeamTeamNotesRoute
   '/$sku/team/$team': typeof SkuTeamTeamIndexRoute
 }
 export interface FileRoutesById {
@@ -219,7 +219,7 @@ export interface FileRoutesById {
   '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRoute
   '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
   '/$sku/$division/': typeof SkuDivisionIndexRoute
-  '/$sku/team/$team/isolate': typeof SkuTeamTeamIsolateRoute
+  '/$sku/team/$team/teamNotes': typeof SkuTeamTeamTeamNotesRoute
   '/$sku/team/$team/': typeof SkuTeamTeamIndexRoute
 }
 export interface FileRouteTypes {
@@ -246,7 +246,7 @@ export interface FileRouteTypes {
     | '/$sku/entry/$incidentId'
     | '/$sku/match/$matchId'
     | '/$sku/$division/'
-    | '/$sku/team/$team/isolate'
+    | '/$sku/team/$team/teamNotes'
     | '/$sku/team/$team/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -268,7 +268,7 @@ export interface FileRouteTypes {
     | '/$sku/entry/$incidentId'
     | '/$sku/match/$matchId'
     | '/$sku/$division'
-    | '/$sku/team/$team/isolate'
+    | '/$sku/team/$team/teamNotes'
     | '/$sku/team/$team'
   id:
     | '__root__'
@@ -293,7 +293,7 @@ export interface FileRouteTypes {
     | '/$sku/entry/$incidentId'
     | '/$sku/match/$matchId'
     | '/$sku/$division/'
-    | '/$sku/team/$team/isolate'
+    | '/$sku/team/$team/teamNotes'
     | '/$sku/team/$team/'
   fileRoutesById: FileRoutesById
 }
@@ -464,23 +464,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuTeamTeamIndexRouteImport
       parentRoute: typeof SkuTeamTeamRouteRoute
     }
-    '/$sku/team/$team/isolate': {
-      id: '/$sku/team/$team/isolate'
-      path: '/isolate'
-      fullPath: '/$sku/team/$team/isolate'
-      preLoaderRoute: typeof SkuTeamTeamIsolateRouteImport
+    '/$sku/team/$team/teamNotes': {
+      id: '/$sku/team/$team/teamNotes'
+      path: '/teamNotes'
+      fullPath: '/$sku/team/$team/teamNotes'
+      preLoaderRoute: typeof SkuTeamTeamTeamNotesRouteImport
       parentRoute: typeof SkuTeamTeamRouteRoute
     }
   }
 }
 
 interface SkuTeamTeamRouteRouteChildren {
-  SkuTeamTeamIsolateRoute: typeof SkuTeamTeamIsolateRoute
+  SkuTeamTeamTeamNotesRoute: typeof SkuTeamTeamTeamNotesRoute
   SkuTeamTeamIndexRoute: typeof SkuTeamTeamIndexRoute
 }
 
 const SkuTeamTeamRouteRouteChildren: SkuTeamTeamRouteRouteChildren = {
-  SkuTeamTeamIsolateRoute: SkuTeamTeamIsolateRoute,
+  SkuTeamTeamTeamNotesRoute: SkuTeamTeamTeamNotesRoute,
   SkuTeamTeamIndexRoute: SkuTeamTeamIndexRoute,
 }
 

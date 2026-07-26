@@ -5,7 +5,7 @@ import { VirtualizedList } from "~components/VirtualizedList";
 import { useTeamIncidentsByEvent } from "~utils/hooks/incident";
 import { useCurrentEvent } from "~utils/hooks/state";
 
-export const TeamIsolationPage: React.FC = () => {
+export const TeamNotesPage: React.FC = () => {
   const { team } = useParams({ strict: false });
   const { data: event } = useCurrentEvent();
   const { data: incidents } = useTeamIncidentsByEvent(team, event?.sku);
@@ -18,8 +18,11 @@ export const TeamIsolationPage: React.FC = () => {
     <main className="max-w-xl h-full w-full mx-auto flex-1 pb-6 overflow-y-auto p-4">
       <header className="mb-4">
         <h1 className="text-xl font-bold">
-          Violations for <span className="font-mono text-emerald-400">{team}</span>
+          Notes about Team <span className="font-mono text-emerald-400">{team}</span>
         </h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          This is a summary of all rules violations logged for this team.
+        </p>
       </header>
       <VirtualizedList data={incidents ?? []} options={{ estimateSize: () => 64 }}>
         {(incident) => (
@@ -34,6 +37,6 @@ export const TeamIsolationPage: React.FC = () => {
   );
 };
 
-export const Route = createFileRoute("/$sku/team/$team/isolate")({
-  component: TeamIsolationPage,
+export const Route = createFileRoute("/$sku/team/$team/teamNotes")({
+  component: TeamNotesPage,
 });

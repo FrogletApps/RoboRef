@@ -245,7 +245,7 @@ export const AppShell: React.FC = () => {
   const isInvite = location.pathname.endsWith("/invite");
   const isNewEntry = location.pathname.endsWith("/new");
   const isEditEntry = location.pathname.includes("/entry/");
-  const isIsolateTeam = location.pathname.endsWith("/isolate");
+  const isTeamNotes = location.pathname.endsWith("/teamNotes");
 
   const customHeaderTitle = isSettings
     ? "Settings"
@@ -267,8 +267,8 @@ export const AppShell: React.FC = () => {
     ? "New Entry"
     : isEditEntry
     ? "Edit Entry"
-    : isIsolateTeam
-    ? "Isolated Team View"
+    : isTeamNotes
+    ? "Team Notes"
     : null;
 
   return (

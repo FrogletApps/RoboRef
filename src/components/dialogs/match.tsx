@@ -75,12 +75,12 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
           ))}
           {incidents.length > 0 ? (
             <LinkButton
-              to="/$sku/team/$team/isolate"
+              to="/$sku/team/$team/teamNotes"
               params={{ sku: event?.sku ?? "", team: number }}
               className="flex gap-2 items-center mt-2 justify-center h-12 w-full text-center"
             >
               <ArrowsPointingOutIcon height={20} />
-              <p>Isolate Team</p>
+              <p>View all of {number}&apos;s notes</p>
             </LinkButton>
           ) : null}
         </>
