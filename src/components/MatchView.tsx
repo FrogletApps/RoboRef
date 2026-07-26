@@ -89,7 +89,6 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
   );
 };
 
-
 export type TeamFlagButtonProps = {
   match?: Match;
   team: string;
@@ -129,6 +128,7 @@ export const TeamFlagButton: React.FC<TeamFlagButtonProps> = ({
 export type EventMatchViewProps = {
   match?: Match | null;
 };
+
 export const EventMatchView: React.FC<EventMatchViewProps> = ({ match }) => {
   const { data: incidentsByTeam } = useTeamIncidentsByMatch(match, {
     initialData: () => {
@@ -162,5 +162,3 @@ export const EventMatchView: React.FC<EventMatchViewProps> = ({ match }) => {
     </div>
   );
 };
-
-

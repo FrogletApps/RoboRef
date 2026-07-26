@@ -7,7 +7,7 @@ import { IconButton } from "~components/Button";
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/20/solid";
 import { MatchContext } from "~components/Context";
 import { MatchTime } from "~components/Match";
-import { EventMatchView } from "~components/dialogs/match";
+import { EventMatchView } from "~components/MatchView";
 import { animate, PanInfo, useMotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import useResizeObserver from "use-resize-observer";
