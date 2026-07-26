@@ -243,7 +243,7 @@ export const AppShell: React.FC = () => {
   const isContact = location.pathname === "/contact";
   const isJoin = location.pathname.endsWith("/join");
   const isInvite = location.pathname.endsWith("/invite");
-  const isNewEntry = location.pathname.endsWith("/new");
+  const isNewNote = location.pathname.endsWith("/new");
   const isEditEntry = location.pathname.includes("/entry/");
   const isTeamNotes = location.pathname.endsWith("/teamNotes");
 
@@ -263,8 +263,8 @@ export const AppShell: React.FC = () => {
     ? "Join Request"
     : isInvite
     ? "Invite User"
-    : isNewEntry
-    ? "New Entry"
+    : isNewNote
+    ? "New Note"
     : isEditEntry
     ? "Edit Entry"
     : isTeamNotes
