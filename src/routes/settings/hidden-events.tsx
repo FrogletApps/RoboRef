@@ -31,15 +31,19 @@ export const HiddenEventsPage: React.FC = () => {
 
   return (
     <main className="max-w-xl h-full w-full mx-auto flex-1 pb-6 overflow-y-auto p-4">
-      <p className="text-zinc-400 text-sm">Tap an event to unhide it</p>
       {hiddenEvents.length === 0 ? (
-        <p className="text-zinc-400 text-sm mt-4">No hidden events.</p>
+        <p className="text-zinc-400 text-sm">
+          {"There are no hidden events.  You can hide events by going to an event -> Manage -> Hide Event."}
+        </p>
       ) : (
-        <div className="flex flex-col">
-          {hiddenEvents.map((sku) => (
-            <HiddenEventItem key={sku} sku={sku} />
-          ))}
-        </div>
+        <>
+          <p className="text-zinc-400 text-sm">Tap an event to unhide it.</p>
+          <div className="flex flex-col">
+            {hiddenEvents.map((sku) => (
+              <HiddenEventItem key={sku} sku={sku} />
+            ))}
+          </div>
+        </>
       )}
     </main>
   );
