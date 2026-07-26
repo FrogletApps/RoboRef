@@ -11,7 +11,9 @@ export const EventDeletedIncidentsPage: React.FC = () => {
 
   return (
     <section className="mt-4 flex flex-col max-h-full">
-      <p>{deleted?.length ?? 0} Deleted Incidents</p>
+      <p>
+        {deleted?.length ?? 0} Deleted Incident{deleted?.length === 1 ? "" : "s"}
+      </p>
       <Spinner show={isPending} />
       <VirtualizedList
         data={deleted}
