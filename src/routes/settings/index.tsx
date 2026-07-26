@@ -11,7 +11,6 @@ import { useShareConnection } from "~models/ShareConnection";
 import { isWorldsBuild } from "~utils/data/state";
 import { clearCache } from "~utils/sentry";
 import { useTheme, Theme } from "~utils/hooks/theme";
-import { useHiddenEvents } from "~utils/hooks/history";
 
 export const SettingsPage: React.FC = () => {
   const { updateProfile, profile, userMetadata } = useShareConnection([
@@ -21,7 +20,6 @@ export const SettingsPage: React.FC = () => {
   ]);
   const [localName, setLocalName] = useState(profile?.name ?? "");
   const { theme, setTheme } = useTheme();
-  const { data: hiddenEvents = [] } = useHiddenEvents();
 
   const themes: { id: Theme; label: string; icon: React.ComponentType<any> }[] = [
     { id: "light", label: "Light", icon: SunIcon },
@@ -100,18 +98,6 @@ export const SettingsPage: React.FC = () => {
       {userMetadata.isSystemKey ? (
         <Info message="System Key Enabled" className="mt-4" />
       ) : null}
-      <section className="mt-4">
-        <h2 className="font-bold">Hidden Events</h2>
-        <p className="text-zinc-400 text-sm">
-          Access hidden events which have stored local data. All events can still be selected from the Select Event dropdown on the main page
-        </p>
-        <LinkButton
-          to="/settings/hidden-events"
-          className="w-full mt-2 text-center"
-        >
-          {hiddenEvents.length} Event{hiddenEvents.length === 1 ? "" : "s"} Hidden
-        </LinkButton>
-      </section>
       <section className="mt-4">
         <h2 className="font-bold">Delete Cache</h2>
         <p className="text-zinc-400 text-sm">

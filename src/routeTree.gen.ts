@@ -26,7 +26,6 @@ import { Route as SkuNewRouteImport } from './routes/$sku/new'
 import { Route as SkuSkillsRouteImport } from './routes/$sku/skills'
 import { Route as SkuSummaryRouteImport } from './routes/$sku/summary'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
-import { Route as SettingsHiddenEventsRouteImport } from './routes/settings/hidden-events'
 import { Route as SkuDivisionIndexRouteImport } from './routes/$sku/$division/index'
 import { Route as SkuEntryIncidentIdRouteImport } from './routes/$sku/entry/$incidentId'
 import { Route as SkuMatchMatchIdRouteImport } from './routes/$sku/match/$matchId'
@@ -119,11 +118,6 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SettingsRouteRoute,
 } as any)
-const SettingsHiddenEventsRoute = SettingsHiddenEventsRouteImport.update({
-  id: '/hidden-events',
-  path: '/hidden-events',
-  getParentRoute: () => SettingsRouteRoute,
-} as any)
 const SkuDivisionIndexRoute = SkuDivisionIndexRouteImport.update({
   id: '/$division/',
   path: '/$division/',
@@ -171,7 +165,6 @@ export interface FileRoutesByFullPath {
   '/$sku/new': typeof SkuNewRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
-  '/settings/hidden-events': typeof SettingsHiddenEventsRoute
   '/$sku/': typeof SkuIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/$sku/team/$team': typeof SkuTeamTeamRouteRouteWithChildren
@@ -195,7 +188,6 @@ export interface FileRoutesByTo {
   '/$sku/new': typeof SkuNewRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
-  '/settings/hidden-events': typeof SettingsHiddenEventsRoute
   '/$sku': typeof SkuIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRoute
@@ -221,7 +213,6 @@ export interface FileRoutesById {
   '/$sku/new': typeof SkuNewRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
-  '/settings/hidden-events': typeof SettingsHiddenEventsRoute
   '/$sku/': typeof SkuIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/$sku/team/$team': typeof SkuTeamTeamRouteRouteWithChildren
@@ -249,7 +240,6 @@ export interface FileRouteTypes {
     | '/$sku/new'
     | '/$sku/skills'
     | '/$sku/summary'
-    | '/settings/hidden-events'
     | '/$sku/'
     | '/settings/'
     | '/$sku/team/$team'
@@ -273,7 +263,6 @@ export interface FileRouteTypes {
     | '/$sku/new'
     | '/$sku/skills'
     | '/$sku/summary'
-    | '/settings/hidden-events'
     | '/$sku'
     | '/settings'
     | '/$sku/entry/$incidentId'
@@ -298,7 +287,6 @@ export interface FileRouteTypes {
     | '/$sku/new'
     | '/$sku/skills'
     | '/$sku/summary'
-    | '/settings/hidden-events'
     | '/$sku/'
     | '/settings/'
     | '/$sku/team/$team'
@@ -441,13 +429,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof SettingsRouteRoute
     }
-    '/settings/hidden-events': {
-      id: '/settings/hidden-events'
-      path: '/hidden-events'
-      fullPath: '/settings/hidden-events'
-      preLoaderRoute: typeof SettingsHiddenEventsRouteImport
-      parentRoute: typeof SettingsRouteRoute
-    }
     '/$sku/$division/': {
       id: '/$sku/$division/'
       path: '/$division'
@@ -541,12 +522,10 @@ const SkuRouteRouteWithChildren = SkuRouteRoute._addFileChildren(
 )
 
 interface SettingsRouteRouteChildren {
-  SettingsHiddenEventsRoute: typeof SettingsHiddenEventsRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteRouteChildren: SettingsRouteRouteChildren = {
-  SettingsHiddenEventsRoute: SettingsHiddenEventsRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 

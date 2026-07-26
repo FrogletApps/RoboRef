@@ -246,7 +246,6 @@ export const AppShell: React.FC = () => {
   const isNewEntry = location.pathname.endsWith("/new");
   const isEditEntry = location.pathname.includes("/entry/");
   const isIsolateTeam = location.pathname.endsWith("/isolate");
-  const isHiddenEvents = location.pathname.endsWith("/hidden-events");
 
   const customHeaderTitle = isSettings
     ? "Settings"
@@ -270,8 +269,6 @@ export const AppShell: React.FC = () => {
     ? "Edit Entry"
     : isIsolateTeam
     ? "Isolated Team View"
-    : isHiddenEvents
-    ? "Hidden Events"
     : null;
 
   return (

@@ -605,31 +605,31 @@ const HideEventSection: React.FC<ManageTabProps> = ({ event }) => {
   const { mutate: hideEvent } = useHideEvent();
   const { mutate: unhideEvent } = useUnhideEvent();
 
-  if (isSharing) {
-    return null;
-  }
-
   return (
     <section className="mt-4">
       <h2 className="font-bold">Hide Event</h2>
       <p className="text-zinc-400 text-sm">
-        {isHidden
-          ? "This event is currently hidden from the main page."
+        {isSharing
+          ? "You cannot hide an event while sharing"
+          : isHidden
+          ? "This event is currently hidden from the main page. To re-add it tap Unhide Event, or search it from the RoboRef home screen."
           : "Hide this event from the list on the main page. Incident data will not be deleted."}
       </p>
       {isHidden ? (
         <Button
           mode="normal"
-          className="w-full mt-2"
+          className="w-full mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => unhideEvent(event.sku)}
+          disabled={isSharing}
         >
           Unhide Event
         </Button>
       ) : (
         <Button
           mode="dangerous"
-          className="w-full mt-2"
+          className="w-full mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => hideEvent(event.sku)}
+          disabled={isSharing}
         >
           Hide Event
         </Button>
