@@ -228,10 +228,10 @@ export const AppShell: React.FC = () => {
 
   return (
     <main
-      className="w-screen h-[100dvh] grid mb-4 p-4 overflow-hidden"
+      className="w-full max-w-full h-[100dvh] grid p-4 overflow-hidden"
       style={{
         gridTemplateRows: "auto minmax(0, 1fr)",
-        gridTemplateColumns: "calc(100dvw - 32px)",
+        gridTemplateColumns: "minmax(0, 1fr)",
       }}
     >
       <Toaster containerClassName="mb-16" />

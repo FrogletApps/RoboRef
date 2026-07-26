@@ -249,14 +249,14 @@ export const EditIncidentPage: React.FC = () => {
 
   if (isLoading || !incident) {
     return (
-      <main className="max-w-xl h-full w-full mx-auto flex-1 p-4">
+      <div className="max-w-xl h-full w-full mx-auto flex-1 p-4">
         <Spinner show />
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="max-w-xl h-full w-full mx-auto flex-1 pb-6 overflow-y-auto p-4">
+    <div className="max-w-xl h-full w-full mx-auto flex-1 overflow-y-auto p-4">
       <header className="mb-4">
         <h1 className="text-xl font-bold">
           <span className="font-mono text-emerald-400">{incident.team}</span>
@@ -422,7 +422,7 @@ export const EditIncidentPage: React.FC = () => {
           Save Changes
         </Button>
       </div>
-    </main>
+    </div>
   );
 };
 

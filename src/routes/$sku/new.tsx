@@ -328,7 +328,7 @@ export const NewEntryPage: React.FC = () => {
   );
 
   return (
-    <main className="max-w-xl h-full w-full mx-auto flex-1 pb-6 overflow-y-auto p-4">
+    <div className="max-w-xl h-full w-full mx-auto flex-1 overflow-y-auto px-1 py-2">
       <Spinner show={isLoadingMetaData} />
       <label>
         <p className="mt-2 font-medium">Match</p>
@@ -574,13 +574,13 @@ export const NewEntryPage: React.FC = () => {
       </label>
 
       <Button
-        className="w-full text-center my-6 bg-emerald-400 text-black font-semibold"
+        className="w-full text-center mt-4 mb-2 bg-emerald-400 text-black font-semibold"
         disabled={!canSave}
         onClick={onSubmit}
       >
         Submit Entry
       </Button>
-    </main>
+    </div>
   );
 };
 

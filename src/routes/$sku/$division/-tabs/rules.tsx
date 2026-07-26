@@ -22,6 +22,20 @@ export const EventRulesTab: React.FC<EventRulesTabProps> = ({ event }) => {
 
   const [rule, setRule] = useState<Rule | null>(null);
 
+  const rulesUrl = useMemo(() => {
+    if (!rules?.ruleGroups) return undefined;
+    for (const group of rules.ruleGroups) {
+      for (const r of group.rules) {
+        if (r.link) return r.link.split("#")[0];
+      }
+    }
+    return undefined;
+  }, [rules]);
+
+  const qaBaseUrl = useMemo(() => {
+    return rules?.qa;
+  }, [rules]);
+
   const qaUrl = useMemo(() => {
     if (!rules?.qa || !rule) return undefined;
     return `${rules.qa}?query=${rule.rule.replace(/[<>]/g, "")}`;
@@ -29,6 +43,23 @@ export const EventRulesTab: React.FC<EventRulesTabProps> = ({ event }) => {
 
   return (
     <div className="flex-1 flex flex-col p-4 mb-20 overflow-y-auto">
+      <div className="grid grid-cols-2 gap-2 mb-4 w-full">
+        <ExternalLinkButton
+          href={rulesUrl}
+          className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
+        >
+          <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+          <span className="truncate">Rules</span>
+        </ExternalLinkButton>
+        <ExternalLinkButton
+          href={qaBaseUrl}
+          className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
+        >
+          <MagnifyingGlassIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+          <span className="truncate">Q&A</span>
+        </ExternalLinkButton>
+      </div>
+      <h2 className="text-lg font-bold text-zinc-100 mb-2">Search</h2>
       <div className="mb-4">
         <RulesSelect
           game={rules ?? null}
@@ -37,7 +68,7 @@ export const EventRulesTab: React.FC<EventRulesTabProps> = ({ event }) => {
           className="w-full"
         />
       </div>
-      <div className="flex-1 flex flex-col justify-center">
+      <div className="flex-1 flex flex-col justify-start">
         {isLoading ? (
           <Spinner show={true} />
         ) : rule ? (
@@ -67,7 +98,7 @@ export const EventRulesTab: React.FC<EventRulesTabProps> = ({ event }) => {
                     className="w-full text-center bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-emerald-900/20"
                   >
                     <BookOpenIcon height={20} />
-                    <span>Open in Rule Book</span>
+                    <span>View {rule.rule.replace(/[<>{}]/g, "")} in Game Rules</span>
                   </ExternalLinkButton>
                 )}
                 {qaUrl && (
@@ -76,7 +107,7 @@ export const EventRulesTab: React.FC<EventRulesTabProps> = ({ event }) => {
                     className="w-full text-center bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-blue-900/20"
                   >
                     <MagnifyingGlassIcon height={20} />
-                    <span>Search the Q&A</span>
+                    <span>Search {rule.rule.replace(/[<>{}]/g, "")} in Q&A</span>
                   </ExternalLinkButton>
                 )}
               </div>
