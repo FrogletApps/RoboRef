@@ -1,0 +1,448 @@
+import React, { useCallback, useMemo, useState } from "react";
+import { Spinner } from "~components/Spinner";
+import { useCurrentEvent } from "~utils/hooks/state";
+import { Button, IconButton } from "~components/Button";
+import {
+  AdjustmentsHorizontalIcon,
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
+import { Incident } from "~components/Incident";
+import { Rule, useRulesForEvent } from "~utils/hooks/rules";
+import { Dialog, DialogBody } from "~components/Dialog";
+import { XMarkIcon } from "@heroicons/react/20/solid";
+import { Checkbox, RulesMultiSelect, Select } from "~components/Input";
+import { twMerge } from "tailwind-merge";
+import { useMutation } from "@tanstack/react-query";
+import { ReadyState, useShareConnection } from "~models/ShareConnection";
+import { Incident as IncidentData, IncidentOutcome, OUTCOMES } from "@referee-fyi/share";
+import { VirtualizedList } from "~components/VirtualizedList";
+import { useEventIncidents } from "~utils/hooks/incident";
+
+export type Filters = {
+  outcomes: Record<IncidentOutcome, boolean>;
+  rules: Rule[];
+  division?: number;
+  contact: Set<string>;
+};
+
+export const DEFAULT_FILTERS: Filters = {
+  outcomes: {
+    Disabled: true,
+    General: true,
+    Major: true,
+    Minor: true,
+    Inspection: true,
+  },
+  rules: [],
+  contact: new Set(),
+};
+
+export const isFilterApplied = (filters: Filters): boolean => {
+  const hasCustomOutcomes = Object.values(filters.outcomes).some((v) => !v);
+  const hasCustomRules = filters.rules.length > 0;
+  const hasCustomDivision = typeof filters.division === "number";
+  const hasCustomContact = filters.contact.size > 0;
+  return (
+    hasCustomOutcomes ||
+    hasCustomRules ||
+    hasCustomDivision ||
+    hasCustomContact
+  );
+};
+
+type FilterDialogProps = {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  apply: (filters: Filters) => void;
+};
+
+export const FilterDialog: React.FC<FilterDialogProps> = ({
+  open,
+  setOpen,
+  apply,
+}) => {
+  const { data: event } = useCurrentEvent();
+  const divisions = useMemo(() => event?.divisions ?? [], [event]);
+  const { data: game } = useRulesForEvent(event);
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const setFiltersField = useCallback(
+    <T extends keyof Filters>(key: T, value: Filters[T]) => {
+      setFilters((filters) => ({ ...filters, [key]: value }));
+    },
+    []
+  );
+
+  const { invitations } = useShareConnection(["invitations"]);
+
+  const onClickApply = useCallback(() => {
+    setOpen(false);
+    apply(filters);
+  }, [apply, setOpen, filters]);
+
+  if (!game) {
+    return null;
+  }
+
+  return (
+    <Dialog
+      mode="modal"
+      open={open}
+      onClose={() => setOpen(false)}
+      className="p-4"
+      aria-label="Filter Incidents"
+    >
+      <DialogBody>
+        <nav className="w-full flex pt-1 gap-2">
+          <IconButton
+            className="bg-transparent"
+            onClick={() => setOpen(false)}
+            icon={<XMarkIcon height={24} />}
+          />
+        </nav>
+        <label>
+          <p className="mt-4">Include Rules</p>
+          <RulesMultiSelect
+            game={game}
+            value={filters.rules}
+            onChange={(rules) => setFiltersField("rules", rules)}
+          />
+        </label>
+        <p>Outcomes</p>
+        {OUTCOMES.map((outcome) => (
+          <Checkbox
+            key={outcome}
+            label={outcome}
+            checked={filters.outcomes[outcome]}
+            onChange={(e) =>
+              setFiltersField("outcomes", {
+                ...filters.outcomes,
+                [outcome]: e.currentTarget.checked,
+              })
+            }
+          />
+        ))}
+        {divisions.length > 0 ? (
+          <label>
+            <p className="mt-4">Division</p>
+            <Select
+              value={filters.division}
+              onChange={(e) =>
+                setFiltersField(
+                  "division",
+                  isNaN(Number.parseInt(e.currentTarget.value))
+                    ? undefined
+                    : Number.parseInt(e.currentTarget.value)
+                )
+              }
+              className="w-full"
+            >
+              <option value={undefined}>Pick Division</option>
+              {divisions
+                .sort((a, b) => a.order! - b.order!)
+                .map((div) => (
+                  <option value={div.id} key={div.id}>
+                    {div.name}
+                  </option>
+                ))}
+            </Select>
+          </label>
+        ) : null}
+        {invitations.length > 0 ? (
+          <label>
+            <p className="mt-4">User Created/Modified</p>
+            <fieldset>
+              {invitations.map((inv) => (
+                <Checkbox
+                  key={inv.user.key}
+                  label={inv.user.name}
+                  labelProps={{ className: "mt-2" }}
+                  bind={{
+                    value: filters.contact.has(inv.user.key),
+                    onChange: (checked) => {
+                      const newContact = new Set(filters.contact);
+                      if (checked) {
+                        newContact.add(inv.user.key);
+                      } else {
+                        newContact.delete(inv.user.key);
+                      }
+                      setFiltersField("contact", newContact);
+                    },
+                  }}
+                />
+              ))}
+            </fieldset>
+          </label>
+        ) : null}
+      </DialogBody>
+      <Button mode="primary" onClick={onClickApply}>
+        Apply
+      </Button>
+    </Dialog>
+  );
+};
+
+export const ForceSyncButton: React.FC = () => {
+  const connection = useShareConnection(["readyState", "forceSync"]);
+  const isConnected = connection.readyState === ReadyState.Open;
+
+  const { mutateAsync: forceSync, isPending: isForceSyncPending } = useMutation(
+    {
+      mutationFn: connection.forceSync,
+    }
+  );
+
+  if (!isConnected) {
+    return null;
+  }
+
+  return (
+    <Button
+      onClick={() => forceSync()}
+      disabled={isForceSyncPending}
+      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
+    >
+      <ArrowPathIcon
+        className={twMerge(
+          "w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0",
+          isForceSyncPending ? "animate-spin" : "animate-none"
+        )}
+      />
+      <span className="truncate">Force Sync</span>
+    </Button>
+  );
+};
+
+export const ExportButton: React.FC<{
+  incidents?: any[];
+  filenamePrefix?: string;
+}> = ({ incidents: customIncidents, filenamePrefix = "incidents" }) => {
+  const {
+    profile: { name, key },
+  } = useShareConnection(["profile"]);
+
+  const { data: event } = useCurrentEvent();
+  const { data: eventIncidents, isLoading } = useEventIncidents(event?.sku);
+
+  const incidentsToExport = customIncidents ?? eventIncidents;
+
+  const onClick = useCallback(() => {
+    const sku = event?.sku ?? "";
+    const timestamp = new Date().toISOString();
+
+    const data = JSON.stringify(
+      {
+        meta: {
+          version: __ROBOREF_VERSION__,
+          sku,
+          timestamp,
+          user: { name, key },
+        },
+        incidents: incidentsToExport,
+      },
+      null,
+      4
+    );
+
+    const blob = new Blob([data], { type: "text/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.setAttribute("download", `${filenamePrefix}-${sku}-${timestamp}.json`);
+    a.click();
+  }, [event?.sku, incidentsToExport, key, name, filenamePrefix]);
+
+  if (!customIncidents && isLoading) {
+    return null;
+  }
+
+  return (
+    <Button
+      onClick={onClick}
+      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
+    >
+      <ArrowDownTrayIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+      <span className="truncate">Export</span>
+    </Button>
+  );
+};
+
+export type IncidentListSummaryProps = {
+  incidents?: IncidentData[];
+  isPending?: boolean;
+  countLabel: string;
+  exportFilenamePrefix: string;
+  readonlyIncidents?: boolean;
+  footer?: React.ReactNode;
+};
+
+export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
+  incidents: allIncidents,
+  isPending,
+  countLabel,
+  exportFilenamePrefix,
+  readonlyIncidents,
+  footer,
+}) => {
+  const { data: event } = useCurrentEvent();
+  const { data: game } = useRulesForEvent(event);
+
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+
+  const filteredIncidents = useMemo(() => {
+    const results = allIncidents?.filter((incident) => {
+      if (!filters.outcomes[incident.outcome]) {
+        return false;
+      }
+
+      const hasRule =
+        filters.rules.length < 1 ||
+        filters.rules.some((rule) => incident.rules.includes(rule.rule));
+      if (!hasRule) {
+        return false;
+      }
+
+      const people = new Set<string>();
+      for (const register of Object.values(incident.consistency)) {
+        people.add(register.peer);
+        for (const item of register.history) {
+          people.add(item.peer);
+        }
+      }
+
+      if (filters.contact.size > 0) {
+        let hasMatch = false;
+        for (const person of people) {
+          if (filters.contact.has(person)) {
+            hasMatch = true;
+            break;
+          }
+        }
+        if (!hasMatch) {
+          return false;
+        }
+      }
+
+      // Division Filter
+      if (typeof filters.division !== "number") {
+        return true;
+      }
+
+      if (!incident.match) {
+        return false;
+      }
+
+      if (incident.match.type !== "match") {
+        return false;
+      }
+      return incident.match.division === filters.division;
+    });
+
+    return results ?? [];
+  }, [allIncidents, filters]);
+
+  const hasFiltersApplied = useMemo(() => isFilterApplied(filters), [filters]);
+
+  const commonRules = useMemo(() => {
+    if (!filteredIncidents) {
+      return [];
+    }
+
+    const ruleCounts: Record<string, number> = {};
+    for (const { rules } of filteredIncidents) {
+      for (const rule of rules) {
+        if (ruleCounts[rule]) {
+          ruleCounts[rule]++;
+        } else {
+          ruleCounts[rule] = 1;
+        }
+      }
+    }
+
+    return Object.entries(ruleCounts).sort((a, b) => b[1] - a[1]);
+  }, [filteredIncidents]);
+
+  return (
+    <>
+      <FilterDialog
+        open={filterDialogOpen}
+        setOpen={setFilterDialogOpen}
+        apply={(filters) => setFilters(filters)}
+      />
+      <section className="mt-4 flex flex-col max-h-full">
+        <p className="mb-2">
+          {hasFiltersApplied ? (
+            <>
+              {filteredIncidents?.length ?? 0} {countLabel}
+              {filteredIncidents?.length === 1 ? "" : "s"} visible /{" "}
+              {allIncidents?.length ?? 0} {countLabel}
+              {(allIncidents?.length ?? 0) === 1 ? "" : "s"} total
+            </>
+          ) : (
+            <>
+              {filteredIncidents?.length ?? 0} {countLabel}
+              {filteredIncidents?.length === 1 ? "" : "s"}
+            </>
+          )}
+        </p>
+        <nav className="flex gap-2 w-full">
+          <Button
+            onClick={() => setFilterDialogOpen(true)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
+          >
+            <AdjustmentsHorizontalIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+            <span className="truncate">Filters</span>
+          </Button>
+          <ExportButton
+            incidents={filteredIncidents}
+            filenamePrefix={exportFilenamePrefix}
+          />
+          <ForceSyncButton />
+        </nav>
+        {hasFiltersApplied && (
+          <p className="text-zinc-400 text-sm mt-2">
+            Filters have been applied, edit these using the Filters button. Only visible events will be exported.
+          </p>
+        )}
+        <section className="flex gap-1 flex-wrap mt-3">
+          {commonRules.slice(0, 5).map(([rule, count]) => (
+            <div
+              className="font-mono bg-emerald-900 rounded-lg px-2 py-1 text-sm text-center"
+              key={rule}
+            >
+              <div className="flex gap-x-1">
+                {game?.rulesLookup?.[rule]?.icon && (
+                  <img
+                    alt="Icon"
+                    className="max-h-5 max-w-5 object-contain"
+                    src={game?.rulesLookup?.[rule]?.icon}
+                  ></img>
+                )}
+                {rule.replace(/[<>]/g, "")}
+                <span className="text-emerald-400 pl-1">{count}</span>
+              </div>
+            </div>
+          ))}
+        </section>
+        <Spinner show={isPending} />
+        <VirtualizedList
+          data={filteredIncidents}
+          options={{ estimateSize: () => 64 }}
+          className="flex-1 mt-4"
+        >
+          {(incident) => (
+            <Incident
+              incident={incident}
+              key={incident.id}
+              readonly={readonlyIncidents}
+              className="h-14 overflow-hidden"
+            />
+          )}
+        </VirtualizedList>
+        {footer}
+      </section>
+    </>
+  );
+};
