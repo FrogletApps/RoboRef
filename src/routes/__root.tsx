@@ -171,16 +171,14 @@ const MigrationManager: React.FC = () => {
 
 const RoboRefTitleBar: React.FC = () => {
   return (
-    <header className="flex items-center justify-between gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm mb-3 w-full min-w-0">
-      <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
-        <div className="h-8 flex items-center justify-center px-1 flex-shrink-0">
-          <img src={AppIcon} alt="RoboRef Logo" className="h-8 w-8 object-contain" />
-        </div>
-        <h1 className="text-xl font-bold font-mono tracking-tight flex-1 min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
-          <span className="text-zinc-100">RoboRef</span>
-          <span className="text-zinc-400">.fyi</span>
-        </h1>
+    <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm mb-3 w-full min-w-0">
+      <div className="p-1.5 px-2.5 bg-zinc-800 rounded-md border border-zinc-700/60 flex items-center justify-center aspect-auto">
+        <img src={AppIcon} alt="RoboRef Logo" className="h-5 w-5 object-contain" />
       </div>
+      <h1 className="text-xl font-bold font-mono tracking-tight flex-1 min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
+        <span className="text-zinc-100">RoboRef</span>
+        <span className="text-zinc-400">.fyi</span>
+      </h1>
     </header>
   );
 };
