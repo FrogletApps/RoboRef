@@ -11,8 +11,8 @@ import { EventRulesTab } from "./-tabs/rules";
 import { CalendarIcon as EventIconOutline } from "@heroicons/react/24/outline";
 import { CalendarIcon as EventIconSolid } from "@heroicons/react/24/solid";
 
-import { ClipboardDocumentListIcon as MatchesIconOutline } from "@heroicons/react/24/outline";
-import { ClipboardDocumentListIcon as MatchesIconSolid } from "@heroicons/react/24/solid";
+import { NumberedListIcon as MatchesIconOutline } from "@heroicons/react/24/outline";
+import { NumberedListIcon as MatchesIconSolid } from "@heroicons/react/24/solid";
 
 import { UserGroupIcon as TeamsIconOutline } from "@heroicons/react/24/outline";
 import { UserGroupIcon as TeamsIconSolid } from "@heroicons/react/24/solid";

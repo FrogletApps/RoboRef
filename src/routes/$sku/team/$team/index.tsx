@@ -12,8 +12,8 @@ import { Incident } from "~components/Incident";
 import { VirtualizedList } from "~components/VirtualizedList";
 
 import {
-  ClipboardDocumentListIcon,
   FlagIcon,
+  NumberedListIcon,
   PhotoIcon,
 } from "@heroicons/react/24/solid";
 import {
@@ -162,9 +162,9 @@ export const EventTeamsPage: React.FC = () => {
             label: "Schedule",
             icon: (active) =>
               active ? (
-                <ClipboardDocumentListIcon height={24} className="inline" />
+                <NumberedListIcon height={24} className="inline" />
               ) : (
-                <ClipboardDocumentListIcon height={24} className="inline" />
+                <NumberedListIcon height={24} className="inline" />
               ),
             content: <TeamScheduleTab event={event} team={team} />,
           },
