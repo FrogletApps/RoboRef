@@ -96,14 +96,22 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
       }
 
       if (offset.x > containerWidth / 6) {
-        onClickPrevMatch();
+        if (hasPrevMatch) {
+          onClickPrevMatch();
+        } else {
+          animate(x, calculateNewX(), transition);
+        }
       } else if (offset.x < -containerWidth / 6) {
-        onClickNextMatch();
+        if (hasNextMatch) {
+          onClickNextMatch();
+        } else {
+          animate(x, calculateNewX(), transition);
+        }
       } else {
         animate(x, calculateNewX(), transition);
       }
     },
-    [calculateNewX, containerWidth, onClickNextMatch, onClickPrevMatch, x]
+    [calculateNewX, containerWidth, hasNextMatch, hasPrevMatch, onClickNextMatch, onClickPrevMatch, x]
   );
 
   useEffect(() => {
