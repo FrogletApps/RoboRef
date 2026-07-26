@@ -343,7 +343,9 @@ export const EventSummaryPage: React.FC = () => {
       />
       <section className="mt-4 flex flex-col max-h-full">
         <nav className="flex gap-4 p-2 rounded-md">
-          <p className="flex-1">{incidents?.length} Incidents</p>
+          <p className="flex-1">
+            {incidents?.length ?? 0} Incident{incidents?.length === 1 ? "" : "s"}
+          </p>
           <ForceSyncButton />
           <ExportButton />
           <IconButton
