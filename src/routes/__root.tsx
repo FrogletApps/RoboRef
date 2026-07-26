@@ -171,7 +171,7 @@ const MigrationManager: React.FC = () => {
 
 const RoboRefTitleBar: React.FC = () => {
   return (
-    <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm mb-3 w-full min-w-0">
+    <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm w-full min-w-0">
       <div className="p-1.5 px-2.5 bg-zinc-800 rounded-md border border-zinc-700/60 flex items-center justify-center aspect-auto">
         <img src={AppIcon} alt="RoboRef Logo" className="h-5 w-5 object-contain" />
       </div>
@@ -240,7 +240,7 @@ export const AppShell: React.FC = () => {
       <div className="flex flex-col max-w-full">
         {isIndex && <RoboRefTitleBar />}
         {!isIndex && (
-          <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm w-full min-w-0 mb-3">
+          <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm w-full min-w-0">
             <IconButton
               onClick={() =>
                 customHeaderTitle && router.history.canGoBack()

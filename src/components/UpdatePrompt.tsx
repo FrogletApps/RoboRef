@@ -27,7 +27,7 @@ export const UpdatePrompt: React.FC = () => {
   }
 
   return (
-    <Info message="Update Available!" className="mt-4 bg-zinc-700 text-white">
+    <Info message="Update Available!" className="bg-zinc-700 text-white">
       <p className="mt-2">
         A new version of RoboRef is available. If you have stable Internet,
         update now to ensure compatibility with the sharing server.

@@ -26,7 +26,7 @@ import { EventPicker } from "./__root";
 
 const UserWelcome: React.FC = () => {
   return (
-    <section className="mt-4 bg-zinc-900 p-4 rounded-md">
+    <section className="bg-zinc-900 p-4 rounded-md">
       <h2 className="font-bold">Welcome to RoboRef!</h2>
       <p>
         This is an anomaly log for Head Referees at VEX robotics competitions.
@@ -80,7 +80,7 @@ const InstallPrompt: React.FC = () => {
   }
 
   return (
-    <section className="mt-4 bg-zinc-900 p-4 rounded-md">
+    <section className="bg-zinc-900 p-4 rounded-md">
       <header className="flex gap-4 items-center">
         <img src={AppIcon} alt="RoboRef" className="w-12 h-12" />
         <p>
@@ -140,8 +140,8 @@ export const HomePage: React.FC = () => {
   }, [navigate]);
 
   return (
-    <div className="overflow-y-auto">
-      <nav className="grid grid-cols-3 gap-2 mb-3 w-full">
+    <div className="overflow-y-auto flex flex-col gap-4">
+      <nav className="grid grid-cols-3 gap-2 mt-4 w-full">
         <LinkButton
           to="/updates"
           className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
@@ -164,16 +164,14 @@ export const HomePage: React.FC = () => {
           <span className="truncate">Settings</span>
         </LinkButton>
       </nav>
-      <div className="mb-3">
-        <EventPicker />
-      </div>
+      <EventPicker />
       <UpdatePrompt />
-      <section className="max-w-full mb-4">
+      <section className="max-w-full flex flex-col gap-4 mb-4">
         {visibleEvents?.map((event) => (
           <LinkButton
             to={"/$sku"}
             params={{ sku: event.sku }}
-            className="w-full max-w-full mt-4 relative"
+            className="w-full max-w-full relative"
             key={event.sku}
           >
             <div className="text-sm flex">
