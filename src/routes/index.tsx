@@ -28,7 +28,7 @@ const UserWelcome: React.FC = () => {
     <section className="mt-4 bg-zinc-900 p-4 rounded-md">
       <h2 className="font-bold">Welcome to RoboRef!</h2>
       <p>
-        This is an anomaly log for Head Referees at robotics events.
+        This is an anomaly log for Head Referees at VEX robotics competitions.
       </p>
       <p>
         To get started, pick your event from the dropdown above.
