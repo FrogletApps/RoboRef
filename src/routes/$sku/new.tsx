@@ -502,6 +502,15 @@ export const NewEntryPage: React.FC = () => {
         />
       </div>
 
+      <label>
+        <p className="mt-4 font-medium">Notes</p>
+        <TextArea
+          className="w-full mt-2 h-32"
+          value={incident.notes}
+          onChange={onChangeIncidentNotes}
+        />
+      </label>
+
       <div>
         <p className="mt-4 font-medium">Images</p>
         <section className="grid grid-cols-4 gap-2 mt-2">
@@ -552,15 +561,6 @@ export const NewEntryPage: React.FC = () => {
           />
         </label>
       </div>
-
-      <label>
-        <p className="mt-4 font-medium">Notes</p>
-        <TextArea
-          className="w-full mt-2 h-32"
-          value={incident.notes}
-          onChange={onChangeIncidentNotes}
-        />
-      </label>
 
       <label>
         <p className="mt-4 font-medium">Flag For Review</p>
