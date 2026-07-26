@@ -6,9 +6,11 @@ export const filterTeams = (
 ): TeamData[] => {
   if (!filter) return teams;
 
+  const f = filter.toUpperCase();
+
   return teams?.filter(
     (team) =>
-      team.number.startsWith(filter) ||
-      team.team_name?.toUpperCase().includes(filter)
+      team.number.toUpperCase().startsWith(f) ||
+      team.team_name?.toUpperCase().includes(f)
   );
 };

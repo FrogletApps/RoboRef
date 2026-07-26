@@ -10,7 +10,7 @@ import { currentSeasons, useEvent, useEventSearch } from "~utils/hooks/roboteven
 
 function isValidSKU(sku: string) {
   return !!sku.match(
-    /RE-(VRC|V5RC|VEXU|VURC|VIQRC|VIQC|VAIRC|ADC)-[0-9]{2}-[0-9]{4}/g
+    /RE-(VRC|V5RC|VEXU|VURC|VIQRC|VIQC|VAIRC|ADC)-[0-9]{2}-[0-9]{4}/gi
   );
 }
 
@@ -20,7 +20,7 @@ export const EventsPage: React.FC = () => {
 
   const [query, setQuery] = useState("");
   const { data: eventFromSKU, isLoading: isLoadingEventFromSKU } = useEvent(
-    query,
+    query.toUpperCase(),
     { enabled: isValidSKU(query) }
   );
 
@@ -53,15 +53,15 @@ export const EventsPage: React.FC = () => {
 
     return (
       events?.filter((event) => {
-        if (event.name.toUpperCase().includes(query)) {
+        if (event.name.toUpperCase().includes(query.toUpperCase())) {
           return true;
         }
 
-        if (event.sku.toUpperCase().includes(query)) {
+        if (event.sku.toUpperCase().includes(query.toUpperCase())) {
           return true;
         }
 
-        if (event.location.venue?.toUpperCase().includes(query)) {
+        if (event.location.venue?.toUpperCase().includes(query.toUpperCase())) {
           return true;
         }
       }) ?? []
@@ -104,7 +104,7 @@ export const EventsPage: React.FC = () => {
           placeholder="SKU or Event Name"
           className="px-4 py-4 rounded-md invalid:bg-red-500 w-full mt-2"
           value={query}
-          onChange={(e) => setQuery(e.currentTarget.value.toUpperCase())}
+          onChange={(e) => setQuery(e.currentTarget.value)}
         />
         <Spinner show={isLoadingEventFromSKU} />
         {eventFromSKU && (

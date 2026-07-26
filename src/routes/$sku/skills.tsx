@@ -72,7 +72,7 @@ const TeamSkillsTab: React.FC<TeamSkillsTabProps> = ({ event }) => {
             placeholder="Search teams..."
             className="flex-1"
             value={filter}
-            onChange={(e) => setFilter(e.currentTarget.value.toUpperCase())}
+            onChange={(e) => setFilter(e.currentTarget.value)}
           />
         </IconLabel>
         <Spinner show={isLoading} />
