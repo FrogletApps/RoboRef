@@ -101,7 +101,7 @@ export const EventsPage: React.FC = () => {
         <h2 className="text-lg font-bold text-zinc-100 mx-2">Search</h2>
         <Input
           type="text"
-          placeholder="SKU or Event Name"
+          placeholder="Enter an Event Name or VEX Event ID"
           className="px-4 py-4 rounded-md invalid:bg-red-500 w-full mt-2"
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value)}
