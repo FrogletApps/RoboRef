@@ -208,7 +208,7 @@ export const AppShell: React.FC = () => {
   const customHeaderTitle = isSettings
     ? "Settings"
     : isUpdates
-    ? "Update Notes"
+    ? "Update Log"
     : isEvents
     ? "Pick An Event"
     : isShare

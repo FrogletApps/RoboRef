@@ -147,7 +147,7 @@ export const HomePage: React.FC = () => {
           className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
         >
           <ArrowPathIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-          <span className="truncate">Update Notes</span>
+          <span className="truncate">Update Log</span>
         </LinkButton>
         <LinkButton
           to="/share"
