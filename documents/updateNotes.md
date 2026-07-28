@@ -1,5 +1,13 @@
 ## 26 July 2026
 
+- Added event search filters
+- Added more data to event search
+- Removed geolocation from search
+- UI bug fixes
+- Updated dependencies
+
+## 26 July 2026
+
 - Updated home screen layout
 - Updated rules page
 - Updated Match Notes
