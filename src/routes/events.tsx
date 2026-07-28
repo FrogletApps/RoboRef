@@ -5,7 +5,6 @@ import { Input } from "~components/Input";
 import { Spinner } from "~components/Spinner";
 import { getSkuTextColorClass } from "~utils/data/state";
 import { useUnhideEvent } from "~utils/hooks/history";
-import { useGeolocation } from "~utils/hooks/meta";
 import { currentSeasons, useEvent, useEventSearch } from "~utils/hooks/robotevents";
 import { formatEventDate } from "~utils/time";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
@@ -24,7 +23,6 @@ function isValidSKU(sku: string) {
 
 export const EventsPage: React.FC = () => {
   const { mutate: unhideEvent } = useUnhideEvent();
-  const { data: geo } = useGeolocation();
   const filters = useEventFilterStore((state) => state.filters);
   const isFilterActive = useMemo(() => isEventFilterApplied(filters), [filters]);
 
@@ -115,18 +113,6 @@ export const EventsPage: React.FC = () => {
     });
   }, [query, events, filters.region, filters.eventType]);
 
-  const regionResults = useMemo(() => {
-    if (!geo?.region || !geo.country) {
-      return [];
-    }
-
-    if (geo.country === "United States") {
-      return results.filter((event) => event.location?.region === geo.region);
-    }
-
-    return results.filter((event) => event.location?.country === geo.country);
-  }, [geo?.region, geo?.country, results]);
-
   const hasSearchOrFilter = useMemo(
     () => query.length > 3 || isFilterActive,
     [query, isFilterActive]
@@ -156,6 +142,10 @@ export const EventsPage: React.FC = () => {
     }
     return true;
   }, [isLoadingEvents, hasSearchOrFilter, end, maxTime]);
+
+  const searchDateRangeText = useMemo(() => {
+    return formatEventDate(start.current, end.toISOString());
+  }, [end]);
 
   return (
     <div className="overflow-y-auto flex flex-col gap-4">
@@ -222,55 +212,15 @@ export const EventsPage: React.FC = () => {
         )}
       </section>
 
-      {regionResults.length > 0 && geo?.region && !filters.region ? (
-        <section className="mt-4">
-          <h2 className="text-lg font-bold text-zinc-100 mx-2">
-            {geo.region}
-          </h2>
-          <ul className="divide-y divide-zinc-700 border-y border-zinc-700 mt-2">
-            {regionResults?.map((event) => (
-              <li
-                key={event.sku}
-                aria-label={`${event.name} at ${event.location?.venue}. ${event.sku}`}
-              >
-                <LinkButton
-                  to={"/$sku"}
-                  params={{ sku: event.sku }}
-                  replace
-                  onClick={() => {
-                    unhideEvent(event.sku);
-                  }}
-                  className="w-full bg-transparent rounded-none py-3 text-left flex flex-col items-start justify-start"
-                >
-                  <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full">
-                    <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
-                      {event.sku}
-                    </span>
-                    {formatEventDate(event.start, event.end) ? (
-                      <>
-                        {" • "}
-                        <span>{formatEventDate(event.start, event.end)}</span>
-                      </>
-                    ) : null}
-                    {event.location?.venue ? (
-                      <>
-                        {" • "}
-                        <span>{event.location.venue}</span>
-                      </>
-                    ) : null}
-                  </p>
-                  <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
-                    {event.name}
-                  </p>
-                </LinkButton>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
       <section className="mt-4 mb-4">
-        <h2 className="text-lg font-bold text-zinc-100 mx-2">Events</h2>
+        <div className="flex items-baseline justify-between mx-2">
+          <h2 className="text-lg font-bold text-zinc-100">Events</h2>
+          {searchDateRangeText && (
+            <span className="text-xs text-zinc-400 font-normal">
+              Results from: {searchDateRangeText}
+            </span>
+          )}
+        </div>
         {isSearchComplete && results.length === 0 ? (
           <p className="text-zinc-400 p-4 text-center border-y border-zinc-700 mt-2">
             No events found
