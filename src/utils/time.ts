@@ -22,3 +22,39 @@ export function timeAgo(input: Date) {
   }
   return formatter.format(-1, "seconds");
 }
+
+export function formatEventDate(start?: string, end?: string): string | undefined {
+  if (!start) return undefined;
+
+  const startDate = new Date(start);
+  if (isNaN(startDate.getTime())) return undefined;
+
+  const endDate = end ? new Date(end) : undefined;
+  const isValidEnd = endDate && !isNaN(endDate.getTime());
+
+  const formatter = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  if (!isValidEnd) {
+    return formatter.format(startDate);
+  }
+
+  const isSameDay =
+    startDate.getFullYear() === endDate.getFullYear() &&
+    startDate.getMonth() === endDate.getMonth() &&
+    startDate.getDate() === endDate.getDate();
+
+  if (isSameDay) {
+    return formatter.format(startDate);
+  }
+
+  try {
+    return formatter.formatRange(startDate, endDate);
+  } catch {
+    return formatter.format(startDate);
+  }
+}
+

@@ -7,6 +7,7 @@ import { getSkuTextColorClass } from "~utils/data/state";
 import { useUnhideEvent } from "~utils/hooks/history";
 import { useGeolocation } from "~utils/hooks/meta";
 import { currentSeasons, useEvent, useEventSearch } from "~utils/hooks/robotevents";
+import { formatEventDate } from "~utils/time";
 
 function isValidSKU(sku: string) {
   return !!sku.match(
@@ -95,7 +96,7 @@ export const EventsPage: React.FC = () => {
   }, [query, results, isLoadingEvents, onClickMore, end]);
 
   return (
-    <main className="max-w-xl h-full w-full mx-auto flex-1 pb-6 overflow-y-auto">
+    <div className="overflow-y-auto flex flex-col gap-4">
       <Spinner show={isLoadingEvents} />
       <section className="mt-4">
         <h2 className="text-lg font-bold text-zinc-100 mx-2">Search</h2>
@@ -113,8 +114,18 @@ export const EventsPage: React.FC = () => {
               <span className={`font-mono ${getSkuTextColorClass(eventFromSKU.sku)}`}>
                 {eventFromSKU.sku}
               </span>
-              {" • "}
-              <span>{eventFromSKU.location.venue}</span>
+              {formatEventDate(eventFromSKU.start, eventFromSKU.end) ? (
+                <>
+                  {" • "}
+                  <span>{formatEventDate(eventFromSKU.start, eventFromSKU.end)}</span>
+                </>
+              ) : null}
+              {eventFromSKU.location.venue ? (
+                <>
+                  {" • "}
+                  <span>{eventFromSKU.location.venue}</span>
+                </>
+              ) : null}
             </p>
             <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
               {eventFromSKU.name}
@@ -157,8 +168,18 @@ export const EventsPage: React.FC = () => {
                     <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
                       {event.sku}
                     </span>
-                    {" • "}
-                    <span>{event.location.venue}</span>
+                    {formatEventDate(event.start, event.end) ? (
+                      <>
+                        {" • "}
+                        <span>{formatEventDate(event.start, event.end)}</span>
+                      </>
+                    ) : null}
+                    {event.location.venue ? (
+                      <>
+                        {" • "}
+                        <span>{event.location.venue}</span>
+                      </>
+                    ) : null}
                   </p>
                   <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
                     {event.name}
@@ -169,7 +190,7 @@ export const EventsPage: React.FC = () => {
           </ul>
         </section>
       ) : null}
-      <section className="mt-4">
+      <section className="mt-4 mb-4">
         <h2 className="text-lg font-bold text-zinc-100 mx-2">Events</h2>
         <ul className="divide-y divide-zinc-700 border-y border-zinc-700 mt-2">
           {results?.map((event) => (
@@ -190,8 +211,18 @@ export const EventsPage: React.FC = () => {
                   <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
                     {event.sku}
                   </span>
-                  {" • "}
-                  <span>{event.location.venue}</span>
+                  {formatEventDate(event.start, event.end) ? (
+                    <>
+                      {" • "}
+                      <span>{formatEventDate(event.start, event.end)}</span>
+                    </>
+                  ) : null}
+                  {event.location.venue ? (
+                    <>
+                      {" • "}
+                      <span>{event.location.venue}</span>
+                    </>
+                  ) : null}
                 </p>
                 <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
                   {event.name}
@@ -205,7 +236,7 @@ export const EventsPage: React.FC = () => {
           Load More
         </Button>
       </section>
-    </main>
+    </div>
   );
 };
 

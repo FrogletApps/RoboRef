@@ -18,6 +18,7 @@ import { UpdatePrompt } from "~components/UpdatePrompt";
 import { useDisplayMode, useInstallPrompt } from "~utils/hooks/pwa";
 import { twMerge } from "tailwind-merge";
 import AppIcon from "/icons/roboref.svg?url";
+import { formatEventDate } from "~utils/time";
 
 import "./markdown.css";
 
@@ -175,19 +176,33 @@ export const HomePage: React.FC = () => {
             key={event.sku}
           >
             <div className="text-sm flex">
-              <p
-                className={twMerge(
-                  getSkuTextColorClass(event.sku),
-                  "font-mono flex-1"
-                )}
-              >
-                {event.sku}
+              <p className="whitespace-nowrap text-ellipsis overflow-hidden flex-1">
+                <span
+                  className={twMerge(
+                    getSkuTextColorClass(event.sku),
+                    "font-mono"
+                  )}
+                >
+                  {event.sku}
+                </span>
+                {formatEventDate(event.start, event.end) ? (
+                  <>
+                    {" • "}
+                    <span>{formatEventDate(event.start, event.end)}</span>
+                  </>
+                ) : null}
+                {event.location?.venue ? (
+                  <>
+                    {" • "}
+                    <span>{event.location.venue}</span>
+                  </>
+                ) : null}
               </p>
               {eventsInvitations?.find((inv) => inv?.sku === event.sku) ? (
-                <UserGroupIcon height={20} />
+                <UserGroupIcon height={20} className="flex-shrink-0 ml-2" />
               ) : null}
             </div>
-            <p>{event.name}</p>
+            <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">{event.name}</p>
           </LinkButton>
         ))}
         {visibleEvents?.length === 0 ? (
