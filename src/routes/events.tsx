@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, LinkButton } from "~components/Button";
 import { Input } from "~components/Input";
@@ -8,6 +8,13 @@ import { useUnhideEvent } from "~utils/hooks/history";
 import { useGeolocation } from "~utils/hooks/meta";
 import { currentSeasons, useEvent, useEventSearch } from "~utils/hooks/robotevents";
 import { formatEventDate } from "~utils/time";
+import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
+import {
+  useEventFilterStore,
+  isEventFilterApplied,
+  EVENT_TYPES,
+} from "~utils/hooks/eventFilters";
+import { operations } from "@referee-fyi/robotevents";
 
 function isValidSKU(sku: string) {
   return !!sku.match(
@@ -18,6 +25,8 @@ function isValidSKU(sku: string) {
 export const EventsPage: React.FC = () => {
   const { mutate: unhideEvent } = useUnhideEvent();
   const { data: geo } = useGeolocation();
+  const filters = useEventFilterStore((state) => state.filters);
+  const isFilterActive = useMemo(() => isEventFilterApplied(filters), [filters]);
 
   const [query, setQuery] = useState("");
   const { data: eventFromSKU, isLoading: isLoadingEventFromSKU } = useEvent(
@@ -31,43 +40,78 @@ export const EventsPage: React.FC = () => {
   const [end, setEnd] = useState(
     new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
   );
+
   const onClickMore = useCallback(() => {
     setEnd((end) => new Date(end.getTime() + 1000 * 60 * 60 * 24 * 31));
-  }, [setEnd]);
+  }, []);
 
-  const { data: events, isPending: isLoadingEvents } = useEventSearch(
-    {
+  const searchParams = useMemo(() => {
+    const queryObj: operations["event_getEvents"]["parameters"]["query"] = {
       "season[]": currentSeasons,
       "eventTypes[]": ["tournament"],
       start: start.current,
       end: end.toISOString(),
-    },
+    };
+
+    if (filters.region) {
+      queryObj.region = filters.region;
+    }
+
+    return queryObj;
+  }, [filters.region, end]);
+
+  const { data: events, isPending: isLoadingEvents } = useEventSearch(
+    searchParams,
     {
       placeholderData: (prev) => prev,
     }
   );
 
   const results = useMemo(() => {
-    if (!query) {
-      return events ?? [];
+    let list = events ?? [];
+
+    if (filters.region) {
+      const target = filters.region.toUpperCase();
+      list = list.filter((e) => {
+        const r = e.location?.region?.toUpperCase() ?? "";
+        const c = e.location?.country?.toUpperCase() ?? "";
+        return r === target || c === target || r.includes(target);
+      });
     }
 
-    return (
-      events?.filter((event) => {
-        if (event.name.toUpperCase().includes(query.toUpperCase())) {
-          return true;
-        }
+    if (filters.eventType) {
+      const selected = EVENT_TYPES.find((t) => t.id === filters.eventType);
+      if (selected) {
+        list = list.filter((e) => {
+          if (e.program?.id && selected.programId && e.program.id === selected.programId) {
+            return true;
+          }
+          if (e.program?.code && e.program.code.toUpperCase() === selected.id.toUpperCase()) {
+            return true;
+          }
+          const skuUpper = e.sku.toUpperCase();
+          const selUpper = selected.id.toUpperCase();
+          if (skuUpper.includes(selUpper)) return true;
+          if (selected.id === "V5RC" && (skuUpper.includes("VRC") || skuUpper.includes("V5RC"))) return true;
+          if (selected.id === "VURC" && (skuUpper.includes("VEXU") || skuUpper.includes("VURC"))) return true;
+          if (selected.id === "VIQRC" && (skuUpper.includes("VIQC") || skuUpper.includes("VIQRC"))) return true;
+          return false;
+        });
+      }
+    }
 
-        if (event.sku.toUpperCase().includes(query.toUpperCase())) {
-          return true;
-        }
+    if (!query) {
+      return list;
+    }
 
-        if (event.location.venue?.toUpperCase().includes(query.toUpperCase())) {
-          return true;
-        }
-      }) ?? []
-    );
-  }, [query, events]);
+    const q = query.toUpperCase();
+    return list.filter((event) => {
+      if (event.name.toUpperCase().includes(q)) return true;
+      if (event.sku.toUpperCase().includes(q)) return true;
+      if (event.location?.venue?.toUpperCase().includes(q)) return true;
+      return false;
+    });
+  }, [query, events, filters.region, filters.eventType]);
 
   const regionResults = useMemo(() => {
     if (!geo?.region || !geo.country) {
@@ -75,10 +119,10 @@ export const EventsPage: React.FC = () => {
     }
 
     if (geo.country === "United States") {
-      return results.filter((event) => event.location.region === geo.region);
+      return results.filter((event) => event.location?.region === geo.region);
     }
 
-    return results.filter((event) => event.location.country === geo.country);
+    return results.filter((event) => event.location?.country === geo.country);
   }, [geo?.region, geo?.country, results]);
 
   useEffect(() => {
@@ -100,13 +144,29 @@ export const EventsPage: React.FC = () => {
       <Spinner show={isLoadingEvents} />
       <section className="mt-4">
         <h2 className="text-lg font-bold text-zinc-100 mx-2">Search</h2>
-        <Input
-          type="text"
-          placeholder="Enter an Event Name or VEX Event ID"
-          className="px-4 py-4 rounded-md invalid:bg-red-500 w-full mt-2"
-          value={query}
-          onChange={(e) => setQuery(e.currentTarget.value)}
-        />
+        <div className="flex gap-2 items-center mt-2">
+          <Input
+            type="text"
+            placeholder="Enter an Event Name or VEX Event ID"
+            className="px-4 py-3 rounded-md invalid:bg-red-500 flex-1"
+            value={query}
+            onChange={(e) => setQuery(e.currentTarget.value)}
+          />
+          <LinkButton
+            to="/events/filters"
+            className="flex items-center gap-1.5 px-3 py-3 font-medium text-sm whitespace-nowrap min-w-0 bg-emerald-600 active:bg-emerald-700 text-white"
+          >
+            <AdjustmentsHorizontalIcon className="w-5 h-5 flex-shrink-0" />
+            <span className="truncate">Filters</span>
+          </LinkButton>
+        </div>
+
+        {isFilterActive && (
+          <p className="text-zinc-400 text-sm mt-2 mx-1">
+            Filters have been applied, edit or remove these using the Filters button.
+          </p>
+        )}
+
         <Spinner show={isLoadingEventFromSKU} />
         {eventFromSKU && (
           <div className="border-y border-zinc-700 mt-2 p-3 flex flex-col items-start justify-start">
@@ -144,7 +204,8 @@ export const EventsPage: React.FC = () => {
           </div>
         )}
       </section>
-      {regionResults.length > 0 && geo?.region ? (
+
+      {regionResults.length > 0 && geo?.region && !filters.region ? (
         <section className="mt-4">
           <h2 className="text-lg font-bold text-zinc-100 mx-2">
             {geo.region}
@@ -153,7 +214,7 @@ export const EventsPage: React.FC = () => {
             {regionResults?.map((event) => (
               <li
                 key={event.sku}
-                aria-label={`${event.name} at ${event.location.venue}. ${event.sku}`}
+                aria-label={`${event.name} at ${event.location?.venue}. ${event.sku}`}
               >
                 <LinkButton
                   to={"/$sku"}
@@ -174,7 +235,7 @@ export const EventsPage: React.FC = () => {
                         <span>{formatEventDate(event.start, event.end)}</span>
                       </>
                     ) : null}
-                    {event.location.venue ? (
+                    {event.location?.venue ? (
                       <>
                         {" • "}
                         <span>{event.location.venue}</span>
@@ -190,13 +251,14 @@ export const EventsPage: React.FC = () => {
           </ul>
         </section>
       ) : null}
+
       <section className="mt-4 mb-4">
         <h2 className="text-lg font-bold text-zinc-100 mx-2">Events</h2>
         <ul className="divide-y divide-zinc-700 border-y border-zinc-700 mt-2">
           {results?.map((event) => (
             <li
               key={event.sku}
-              aria-label={`${event.name} at ${event.location.venue}. ${event.sku}`}
+              aria-label={`${event.name} at ${event.location?.venue}. ${event.sku}`}
             >
               <LinkButton
                 to={"/$sku"}
@@ -217,7 +279,7 @@ export const EventsPage: React.FC = () => {
                       <span>{formatEventDate(event.start, event.end)}</span>
                     </>
                   ) : null}
-                  {event.location.venue ? (
+                  {event.location?.venue ? (
                     <>
                       {" • "}
                       <span>{event.location.venue}</span>
@@ -240,6 +302,14 @@ export const EventsPage: React.FC = () => {
   );
 };
 
+export const EventsRouteComponent: React.FC = () => {
+  const location = useLocation();
+  if (location.pathname === "/events/filters") {
+    return <Outlet />;
+  }
+  return <EventsPage />;
+};
+
 export const Route = createFileRoute("/events")({
-  component: EventsPage,
+  component: EventsRouteComponent,
 });

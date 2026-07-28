@@ -193,6 +193,7 @@ export const AppShell: React.FC = () => {
   const isSettings = location.pathname === "/settings";
   const isUpdates = location.pathname === "/updates";
   const isEvents = location.pathname === "/events";
+  const isEventFilters = location.pathname === "/events/filters";
   const isShare = location.pathname === "/share";
   const isPrivacy = location.pathname === "/privacy";
   const isContact = location.pathname === "/contact";
@@ -209,6 +210,8 @@ export const AppShell: React.FC = () => {
     ? "Settings"
     : isUpdates
     ? "Update Log"
+    : isEventFilters
+    ? "Filter Events"
     : isEvents
     ? "Pick An Event"
     : isShare

@@ -26,6 +26,7 @@ import { Route as SkuJoinRouteImport } from './routes/$sku/join'
 import { Route as SkuNewRouteImport } from './routes/$sku/new'
 import { Route as SkuSkillsRouteImport } from './routes/$sku/skills'
 import { Route as SkuSummaryRouteImport } from './routes/$sku/summary'
+import { Route as EventsFiltersRouteImport } from './routes/events.filters'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as SkuDivisionIndexRouteImport } from './routes/$sku/$division/index'
 import { Route as SkuEntryIncidentIdRouteImport } from './routes/$sku/entry/$incidentId'
@@ -119,6 +120,11 @@ const SkuSummaryRoute = SkuSummaryRouteImport.update({
   path: '/summary',
   getParentRoute: () => SkuRouteRoute,
 } as any)
+const EventsFiltersRoute = EventsFiltersRouteImport.update({
+  id: '/filters',
+  path: '/filters',
+  getParentRoute: () => EventsRoute,
+} as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -160,7 +166,7 @@ export interface FileRoutesByFullPath {
   '/$sku': typeof SkuRouteRouteWithChildren
   '/settings': typeof SettingsRouteRouteWithChildren
   '/contact': typeof ContactRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/share': typeof ShareRoute
   '/updates': typeof UpdatesRoute
@@ -172,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/$sku/new': typeof SkuNewRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
+  '/events/filters': typeof EventsFiltersRoute
   '/$sku/': typeof SkuIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/$sku/team/$team': typeof SkuTeamTeamRouteRouteWithChildren
@@ -184,7 +191,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/share': typeof ShareRoute
   '/updates': typeof UpdatesRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/$sku/new': typeof SkuNewRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
+  '/events/filters': typeof EventsFiltersRoute
   '/$sku': typeof SkuIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRoute
@@ -210,7 +218,7 @@ export interface FileRoutesById {
   '/$sku': typeof SkuRouteRouteWithChildren
   '/settings': typeof SettingsRouteRouteWithChildren
   '/contact': typeof ContactRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/share': typeof ShareRoute
   '/updates': typeof UpdatesRoute
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   '/$sku/new': typeof SkuNewRoute
   '/$sku/skills': typeof SkuSkillsRoute
   '/$sku/summary': typeof SkuSummaryRoute
+  '/events/filters': typeof EventsFiltersRoute
   '/$sku/': typeof SkuIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/$sku/team/$team': typeof SkuTeamTeamRouteRouteWithChildren
@@ -250,6 +259,7 @@ export interface FileRouteTypes {
     | '/$sku/new'
     | '/$sku/skills'
     | '/$sku/summary'
+    | '/events/filters'
     | '/$sku/'
     | '/settings/'
     | '/$sku/team/$team'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/$sku/new'
     | '/$sku/skills'
     | '/$sku/summary'
+    | '/events/filters'
     | '/$sku'
     | '/settings'
     | '/$sku/entry/$incidentId'
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
     | '/$sku/new'
     | '/$sku/skills'
     | '/$sku/summary'
+    | '/events/filters'
     | '/$sku/'
     | '/settings/'
     | '/$sku/team/$team'
@@ -314,7 +326,7 @@ export interface RootRouteChildren {
   SkuRouteRoute: typeof SkuRouteRouteWithChildren
   SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
   ContactRoute: typeof ContactRoute
-  EventsRoute: typeof EventsRoute
+  EventsRoute: typeof EventsRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   ShareRoute: typeof ShareRoute
   UpdatesRoute: typeof UpdatesRoute
@@ -441,6 +453,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuSummaryRouteImport
       parentRoute: typeof SkuRouteRoute
     }
+    '/events/filters': {
+      id: '/events/filters'
+      path: '/filters'
+      fullPath: '/events/filters'
+      preLoaderRoute: typeof EventsFiltersRouteImport
+      parentRoute: typeof EventsRoute
+    }
     '/settings/': {
       id: '/settings/'
       path: '/'
@@ -554,12 +573,23 @@ const SettingsRouteRouteWithChildren = SettingsRouteRoute._addFileChildren(
   SettingsRouteRouteChildren,
 )
 
+interface EventsRouteChildren {
+  EventsFiltersRoute: typeof EventsFiltersRoute
+}
+
+const EventsRouteChildren: EventsRouteChildren = {
+  EventsFiltersRoute: EventsFiltersRoute,
+}
+
+const EventsRouteWithChildren =
+  EventsRoute._addFileChildren(EventsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SkuRouteRoute: SkuRouteRouteWithChildren,
   SettingsRouteRoute: SettingsRouteRouteWithChildren,
   ContactRoute: ContactRoute,
-  EventsRoute: EventsRoute,
+  EventsRoute: EventsRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   ShareRoute: ShareRoute,
   UpdatesRoute: UpdatesRoute,
