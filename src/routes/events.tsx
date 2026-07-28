@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, LinkButton } from "~components/Button";
 import { Input } from "~components/Input";
 import { Spinner } from "~components/Spinner";
-import { getSkuTextColorClass } from "~utils/data/state";
+import { getSkuTextColorClass, isVIQRC, isV5 } from "~utils/data/state";
 import { useUnhideEvent } from "~utils/hooks/history";
 import { currentSeasons, useEvent, useEventSearch } from "~utils/hooks/robotevents";
 import { formatEventDate } from "~utils/time";
@@ -19,6 +19,16 @@ function isValidSKU(sku: string) {
   return !!sku.match(
     /RE-(VRC|V5RC|VEXU|VURC|VIQRC|VIQC|VAIRC|ADC)-[0-9]{2}-[0-9]{4}/gi
   );
+}
+
+function getEventTypeBadgeColor(eventType?: string | null): string {
+  if (isVIQRC(eventType)) {
+    return "bg-blue-600 text-white";
+  }
+  if (isV5(eventType)) {
+    return "bg-red-600 text-white";
+  }
+  return "bg-emerald-600 text-white";
 }
 
 export const EventsPage: React.FC = () => {
@@ -169,9 +179,29 @@ export const EventsPage: React.FC = () => {
         </div>
 
         {isFilterActive && (
-          <p className="text-zinc-400 text-sm mt-2 mx-1">
-            Filters have been applied, edit or remove these using the Filters button.
-          </p>
+          <div className="flex flex-col items-center justify-center text-center mt-3 mx-1 gap-2">
+            <p className="text-zinc-400 text-sm">
+              Filters have been applied, edit or remove these using the Filters button.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              {filters.region && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-600 text-white">
+                  Region: {filters.region}
+                </span>
+              )}
+              {filters.eventType && (
+                <span
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getEventTypeBadgeColor(
+                    filters.eventType
+                  )}`}
+                >
+                  Event Type:{" "}
+                  {EVENT_TYPES.find((t) => t.id === filters.eventType)?.name ??
+                    filters.eventType}
+                </span>
+              )}
+            </div>
+          </div>
         )}
 
         <Spinner show={isLoadingEventFromSKU} />

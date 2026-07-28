@@ -13,7 +13,6 @@ export const EVENT_TYPES: EventTypeOption[] = [
   { id: "VIQRC", name: "VEX IQ (VIQRC)", programId: 41 },
   { id: "VURC", name: "VEX U (VURC)", programId: 4 },
   { id: "VAIRC", name: "VEX AI (VAIRC)", programId: 57 },
-  { id: "ADC", name: "Aerial Drone (ADC)", programId: 44 },
 ];
 
 export type EventFilters = {

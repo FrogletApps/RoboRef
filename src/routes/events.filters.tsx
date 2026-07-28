@@ -7,25 +7,34 @@ import {
   EventFilters,
   EVENT_TYPES,
 } from "~utils/hooks/eventFilters";
-import { useGeolocation } from "~utils/hooks/meta";
-import { currentSeasons, useEventSearch } from "~utils/hooks/robotevents";
 
-const COMMON_REGIONS = [
+const VEX_REGIONS_AND_COUNTRIES = [
+  // US States & Territories
   "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
-  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana",
-  "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts",
-  "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska",
-  "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina",
-  "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island",
-  "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont",
-  "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming",
-  "Alberta", "British Columbia", "Manitoba", "New Brunswick", "Ontario", "Quebec",
-  "United Kingdom", "China", "Taiwan", "Japan", "Australia", "New Zealand", "Mexico"
+  "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois",
+  "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland",
+  "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana",
+  "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York",
+  "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
+  "Puerto Rico", "Rhode Island", "South Carolina", "South Dakota", "Tennessee",
+  "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
+  "Wisconsin", "Wyoming",
+  // Canadian Provinces
+  "Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador",
+  "Nova Scotia", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan",
+  // Australian States
+  "New South Wales", "Queensland", "South Australia", "Tasmania", "Victoria", "Western Australia",
+  // International VEX Countries & Regions
+  "Australia", "Bahrain", "Brazil", "Canada", "Chile", "China", "Chinese Taipei",
+  "Colombia", "Egypt", "Ethiopia", "Finland", "France", "Germany", "Hong Kong",
+  "Ireland", "Japan", "Jordan", "Macao", "Malaysia", "Mexico", "Morocco",
+  "Netherlands", "New Zealand", "Oman", "Paraguay", "Philippines", "Saudi Arabia",
+  "Singapore", "South Korea", "Spain", "Switzerland", "Taiwan", "Thailand",
+  "Tunisia", "Turkey", "United Arab Emirates", "United Kingdom", "United States", "Vietnam"
 ];
 
 export const EventFilterPage: React.FC = () => {
   const router = useRouter();
-  const { data: geo } = useGeolocation();
 
   const globalFilters = useEventFilterStore((state) => state.filters);
   const setGlobalFilters = useEventFilterStore((state) => state.setFilters);
@@ -33,25 +42,11 @@ export const EventFilterPage: React.FC = () => {
 
   const [filters, setFilters] = useState<EventFilters>(globalFilters);
 
-  const { data: events } = useEventSearch(
-    {
-      "season[]": currentSeasons,
-      "eventTypes[]": ["tournament"],
-    },
-    { placeholderData: (prev) => prev }
-  );
-
   const regionOptions = useMemo(() => {
-    const set = new Set<string>(COMMON_REGIONS);
-    if (geo?.region) set.add(geo.region);
-    if (events) {
-      for (const e of events) {
-        if (e.location?.region) set.add(e.location.region);
-        if (e.location?.country) set.add(e.location.country);
-      }
-    }
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [geo?.region, events]);
+    return Array.from(new Set(VEX_REGIONS_AND_COUNTRIES)).sort((a, b) =>
+      a.localeCompare(b)
+    );
+  }, []);
 
   const onClickApply = useCallback(() => {
     setGlobalFilters(filters);
