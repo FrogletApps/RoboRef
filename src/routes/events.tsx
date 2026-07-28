@@ -60,12 +60,14 @@ export const EventsPage: React.FC = () => {
     return queryObj;
   }, [filters.region, end]);
 
-  const { data: events, isPending: isLoadingEvents } = useEventSearch(
+  const { data: events, isFetching, isPending } = useEventSearch(
     searchParams,
     {
       placeholderData: (prev) => prev,
     }
   );
+
+  const isLoadingEvents = isFetching || isPending;
 
   const results = useMemo(() => {
     let list = events ?? [];
@@ -125,19 +127,35 @@ export const EventsPage: React.FC = () => {
     return results.filter((event) => event.location?.country === geo.country);
   }, [geo?.region, geo?.country, results]);
 
-  useEffect(() => {
-    const maxTime = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30 * 3);
+  const hasSearchOrFilter = useMemo(
+    () => query.length > 3 || isFilterActive,
+    [query, isFilterActive]
+  );
 
+  const maxTime = useMemo(
+    () => new Date(Date.now() + 1000 * 60 * 60 * 24 * 30 * 3),
+    []
+  );
+
+  useEffect(() => {
     const shouldLoadMore =
-      query.length > 3 &&
+      hasSearchOrFilter &&
       !isLoadingEvents &&
-      results.length < 1 &&
+      results.length < 3 &&
       end < maxTime;
 
     if (shouldLoadMore) {
       onClickMore();
     }
-  }, [query, results, isLoadingEvents, onClickMore, end]);
+  }, [hasSearchOrFilter, results.length, isLoadingEvents, onClickMore, end, maxTime]);
+
+  const isSearchComplete = useMemo(() => {
+    if (isLoadingEvents) return false;
+    if (hasSearchOrFilter) {
+      return end >= maxTime;
+    }
+    return true;
+  }, [isLoadingEvents, hasSearchOrFilter, end, maxTime]);
 
   return (
     <div className="overflow-y-auto flex flex-col gap-4">
@@ -253,49 +271,57 @@ export const EventsPage: React.FC = () => {
 
       <section className="mt-4 mb-4">
         <h2 className="text-lg font-bold text-zinc-100 mx-2">Events</h2>
-        <ul className="divide-y divide-zinc-700 border-y border-zinc-700 mt-2">
-          {results?.map((event) => (
-            <li
-              key={event.sku}
-              aria-label={`${event.name} at ${event.location?.venue}. ${event.sku}`}
-            >
-              <LinkButton
-                to={"/$sku"}
-                params={{ sku: event.sku }}
-                replace
-                onClick={() => {
-                  unhideEvent(event.sku);
-                }}
-                className="w-full bg-transparent rounded-none py-3 text-left flex flex-col items-start justify-start"
+        {isSearchComplete && results.length === 0 ? (
+          <p className="text-zinc-400 p-4 text-center border-y border-zinc-700 mt-2">
+            No events found
+          </p>
+        ) : (
+          <ul className="divide-y divide-zinc-700 border-y border-zinc-700 mt-2">
+            {results?.map((event) => (
+              <li
+                key={event.sku}
+                aria-label={`${event.name} at ${event.location?.venue}. ${event.sku}`}
               >
-                <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full">
-                  <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
-                    {event.sku}
-                  </span>
-                  {formatEventDate(event.start, event.end) ? (
-                    <>
-                      {" • "}
-                      <span>{formatEventDate(event.start, event.end)}</span>
-                    </>
-                  ) : null}
-                  {event.location?.venue ? (
-                    <>
-                      {" • "}
-                      <span>{event.location.venue}</span>
-                    </>
-                  ) : null}
-                </p>
-                <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
-                  {event.name}
-                </p>
-              </LinkButton>
-            </li>
-          ))}
-        </ul>
+                <LinkButton
+                  to={"/$sku"}
+                  params={{ sku: event.sku }}
+                  replace
+                  onClick={() => {
+                    unhideEvent(event.sku);
+                  }}
+                  className="w-full bg-transparent rounded-none py-3 text-left flex flex-col items-start justify-start"
+                >
+                  <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full">
+                    <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
+                      {event.sku}
+                    </span>
+                    {formatEventDate(event.start, event.end) ? (
+                      <>
+                        {" • "}
+                        <span>{formatEventDate(event.start, event.end)}</span>
+                      </>
+                    ) : null}
+                    {event.location?.venue ? (
+                      <>
+                        {" • "}
+                        <span>{event.location.venue}</span>
+                      </>
+                    ) : null}
+                  </p>
+                  <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
+                    {event.name}
+                  </p>
+                </LinkButton>
+              </li>
+            ))}
+          </ul>
+        )}
         <Spinner show={isLoadingEvents} />
-        <Button onClick={onClickMore} mode="normal" className="mt-4">
-          Load More
-        </Button>
+        {!isLoadingEvents && isSearchComplete && (
+          <Button onClick={onClickMore} mode="normal" className="mt-4">
+            Load More
+          </Button>
+        )}
       </section>
     </div>
   );
