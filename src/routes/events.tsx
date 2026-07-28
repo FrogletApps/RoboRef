@@ -141,7 +141,6 @@ export const EventsPage: React.FC = () => {
 
   return (
     <div className="overflow-y-auto flex flex-col gap-4">
-      <Spinner show={isLoadingEvents} />
       <section className="mt-4">
         <h2 className="text-lg font-bold text-zinc-100 mx-2">Search</h2>
         <div className="flex gap-2 items-center mt-2">
