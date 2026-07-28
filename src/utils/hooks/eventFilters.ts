@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export type EventTypeOption = {
   id: string;
@@ -26,7 +27,10 @@ export const DEFAULT_EVENT_FILTERS: EventFilters = {
 };
 
 export const isEventFilterApplied = (filters: EventFilters): boolean => {
-  return filters.region !== "" || filters.eventType !== "";
+  return (
+    (filters?.region ?? "") !== "" ||
+    (filters?.eventType ?? "") !== ""
+  );
 };
 
 interface EventFilterStore {
@@ -35,8 +39,15 @@ interface EventFilterStore {
   resetFilters: () => void;
 }
 
-export const useEventFilterStore = create<EventFilterStore>((set) => ({
-  filters: DEFAULT_EVENT_FILTERS,
-  setFilters: (filters) => set({ filters }),
-  resetFilters: () => set({ filters: DEFAULT_EVENT_FILTERS }),
-}));
+export const useEventFilterStore = create<EventFilterStore>()(
+  persist(
+    (set) => ({
+      filters: DEFAULT_EVENT_FILTERS,
+      setFilters: (filters) => set({ filters }),
+      resetFilters: () => set({ filters: DEFAULT_EVENT_FILTERS }),
+    }),
+    {
+      name: "roboref:event_filters",
+    }
+  )
+);
