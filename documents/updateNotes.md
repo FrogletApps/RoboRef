@@ -4,7 +4,6 @@
 - Fixed Team Info screen and made UI consistent
 - Added consistent pills across all notes lists
 - Added an automatic fix for a crash scenario
-- Updated dependencies
 
 ## 28 July 2026
 
