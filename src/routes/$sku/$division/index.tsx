@@ -8,11 +8,11 @@ import { EventManageTab } from "./-tabs/manage";
 import { EventRulesTab } from "./-tabs/rules";
 
 
-import { CalendarIcon as EventIconOutline } from "@heroicons/react/24/outline";
-import { CalendarIcon as EventIconSolid } from "@heroicons/react/24/solid";
+import { NumberedListIcon as ScheduleIconOutline } from "@heroicons/react/24/outline";
+import { NumberedListIcon as ScheduleIconSolid } from "@heroicons/react/24/solid";
 
-import { NumberedListIcon as MatchesIconOutline } from "@heroicons/react/24/outline";
-import { NumberedListIcon as MatchesIconSolid } from "@heroicons/react/24/solid";
+import { PlayIcon as MatchesIconOutline } from "@heroicons/react/24/outline";
+import { PlayIcon as MatchesIconSolid } from "@heroicons/react/24/solid";
 
 import { UserGroupIcon as TeamsIconOutline } from "@heroicons/react/24/outline";
 import { UserGroupIcon as TeamsIconSolid } from "@heroicons/react/24/solid";
@@ -25,13 +25,24 @@ import { BookOpenIcon as RulesIconSolid } from "@heroicons/react/24/solid";
 import { Tabs } from "~components/Tabs";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 
+export type EventHomeSearch = {
+  match?: number;
+};
+
 export const EventHome: React.FC = () => {
   const { data: event } = useCurrentEvent();
   const { mutateAsync: addEvent, isSuccess } = useAddEventVisited();
+  const search = Route.useSearch();
   const [selectedMatchId, setSelectedMatchId] = useState<number | undefined>(
-    undefined
+    search.match
   );
   const router = useRouter();
+
+  useEffect(() => {
+    if (search.match !== undefined) {
+      setSelectedMatchId(search.match);
+    }
+  }, [search.match]);
 
   useEffect(() => {
     if (event && !isSuccess) {
@@ -70,12 +81,12 @@ export const EventHome: React.FC = () => {
           {
             type: "content",
             id: "event",
-            label: "Event",
+            label: "Schedule",
             icon: (active) =>
               active ? (
-                <EventIconSolid height={24} className="inline" />
+                <ScheduleIconSolid height={24} className="inline" />
               ) : (
-                <EventIconOutline height={24} className="inline" />
+                <ScheduleIconOutline height={24} className="inline" />
               ),
             content: (
               <EventTab event={event} onSelectMatch={onSelectMatch} />
@@ -143,4 +154,12 @@ export const EventHome: React.FC = () => {
 
 export const Route = createFileRoute("/$sku/$division/")({
   component: EventHome,
+  validateSearch: (search: Record<string, unknown>): EventHomeSearch => ({
+    match:
+      typeof search.match === "number"
+        ? search.match
+        : typeof search.match === "string" && !isNaN(parseInt(search.match, 10))
+        ? parseInt(search.match, 10)
+        : undefined,
+  }),
 });
