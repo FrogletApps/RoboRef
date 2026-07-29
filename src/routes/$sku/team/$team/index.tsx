@@ -106,7 +106,7 @@ export const TeamNoteSummarySection: React.FC<{
               </div>
             </>
           ) : (
-            <p className="p-2 text-sm text-zinc-400 italic">No Recorded Entries!</p>
+            <p className="p-2 text-sm text-zinc-400 italic">No Notes Recorded!</p>
           )}
         </div>
       )}
@@ -163,6 +163,7 @@ export const TeamMatchScheduleSection: React.FC<{
               {matches.map((match) => (
                 <ClickableMatch
                   match={match}
+                  selectedTeam={team?.number}
                   key={match.id}
                   onClick={() => onClickMatch(match)}
                 />

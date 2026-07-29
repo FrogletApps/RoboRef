@@ -91,16 +91,33 @@ function matchTime(match: MatchData) {
     </span>
   );
 }
-export type ClickableMatch = {
+export type ClickableMatchProps = {
   match: Match;
+  selectedTeam?: string;
   onClick: React.EventHandler<React.MouseEvent<HTMLButtonElement>>;
 };
 
-export const ClickableMatch: React.FC<ClickableMatch> = ({
+export const ClickableMatch: React.FC<ClickableMatchProps> = ({
   match,
+  selectedTeam,
   onClick,
 }) => {
   const id = useId();
+
+  const teamAllianceColor = useMemo(() => {
+    if (!selectedTeam) return undefined;
+    const alliance = match.alliances.find((a) =>
+      a.teams.some((t) => t.team?.name === selectedTeam)
+    );
+    return alliance?.color;
+  }, [match, selectedTeam]);
+
+  const matchNumberColorClass =
+    teamAllianceColor === "red"
+      ? "text-red-400"
+      : teamAllianceColor === "blue"
+      ? "text-blue-400"
+      : "text-emerald-400";
 
   return (
     <div
@@ -111,12 +128,14 @@ export const ClickableMatch: React.FC<ClickableMatch> = ({
         mode={"transparent"}
         data-matchid={match.id}
         onClick={onClick}
-        className="flex-1 min-w-0 active:bg-zinc-600 pl-0 flex flex-col justify-center"
+        className="flex-1 min-w-0 active:bg-zinc-600 pl-0 flex flex-col justify-center text-left"
         aria-label={`Jump to ${match.name}`}
         id={id}
       >
-        <p className="text-emerald-400">{match.shortName()} </p>
-        <p className="text-sm">{matchTime(match)}</p>
+        <p className={twMerge("font-semibold", matchNumberColorClass)}>
+          {match.shortName()}
+        </p>
+        <p className="text-sm text-zinc-400">{matchTime(match)}</p>
       </Button>
       <label htmlFor={id} className="flex items-center justify-center shrink-0">
         <MatchContext match={match} />
