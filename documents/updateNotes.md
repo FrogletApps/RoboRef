@@ -1,6 +1,8 @@
 ## 29 July 2026
 
 - Allow event names/organisations to go across multiple lines on the home screen and search
+- Fixed Team Info screen and made UI consistent
+- Added consistent pills across all notes lists
 
 ## 28 July 2026
 
