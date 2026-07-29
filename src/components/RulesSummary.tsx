@@ -10,6 +10,14 @@ const highlights: Record<IncidentOutcome, string> = {
   Inspection: "text-zinc-300",
 };
 
+const outcomeOrder: Record<IncidentOutcome, number> = {
+  Major: 0,
+  Minor: 1,
+  Disabled: 2,
+  General: 3,
+  Inspection: 4,
+};
+
 export type RulesSummaryProps = {
   incidents: Incident[];
   filter?: (incident: Incident) => boolean;
@@ -29,7 +37,7 @@ export const RulesSummary: React.FC<RulesSummaryProps> = ({
     > = {};
 
     for (const incident of incidents) {
-      if (!filter?.(incident)) {
+      if (filter && !filter(incident)) {
         continue;
       }
 
@@ -50,9 +58,19 @@ export const RulesSummary: React.FC<RulesSummaryProps> = ({
       }
     }
 
-    return Object.values(rules).sort(
-      (a, b) => a.incidents.length - b.incidents.length
-    );
+    return Object.values(rules).sort((a, b) => {
+      const outcomeDiff =
+        (outcomeOrder[a.outcome] ?? 99) - (outcomeOrder[b.outcome] ?? 99);
+      if (outcomeDiff !== 0) return outcomeDiff;
+
+      const countDiff = b.incidents.length - a.incidents.length;
+      if (countDiff !== 0) return countDiff;
+
+      return a.rule.localeCompare(b.rule, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+    });
   }, [filter, incidents]);
 
   const visibleCounts = useMemo(
@@ -88,5 +106,86 @@ export const RulesSummary: React.FC<RulesSummaryProps> = ({
         </li>
       ) : null}
     </ul>
+  );
+};
+
+const OutcomePillClasses: Record<IncidentOutcome, string> = {
+  Major: "bg-red-500 text-white border-red-400",
+  Minor: "bg-yellow-400 text-yellow-950 border-yellow-300",
+  Disabled: "bg-blue-500 text-white border-blue-400",
+  General: "bg-zinc-700 text-zinc-100 border-zinc-600",
+  Inspection: "bg-zinc-700 text-zinc-100 border-zinc-600",
+};
+
+export type NoteSummaryPillsProps = {
+  incidents?: Incident[];
+  className?: string;
+};
+
+export const NoteSummaryPills: React.FC<NoteSummaryPillsProps> = ({
+  incidents,
+  className,
+}) => {
+  const pills = useMemo(() => {
+    if (!incidents || incidents.length === 0) return [];
+
+    const grouped: Record<
+      string,
+      { rule: string; outcome: IncidentOutcome; count: number }
+    > = {};
+
+    for (const incident of incidents) {
+      const ruleList =
+        incident.rules.length < 1 ? [incident.outcome] : incident.rules;
+      for (const rule of ruleList) {
+        const key = `${rule}:${incident.outcome}`;
+        if (grouped[key]) {
+          grouped[key].count += 1;
+        } else {
+          grouped[key] = {
+            rule,
+            outcome: incident.outcome,
+            count: 1,
+          };
+        }
+      }
+    }
+
+    return Object.values(grouped).sort((a, b) => {
+      const outcomeDiff =
+        (outcomeOrder[a.outcome] ?? 99) - (outcomeOrder[b.outcome] ?? 99);
+      if (outcomeDiff !== 0) return outcomeDiff;
+
+      const countDiff = b.count - a.count;
+      if (countDiff !== 0) return countDiff;
+
+      return a.rule.localeCompare(b.rule, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+    });
+  }, [incidents]);
+
+  if (pills.length === 0) return null;
+
+  return (
+    <div
+      className={twMerge(
+        "flex flex-wrap gap-1.5 pb-2 mb-2 border-b border-zinc-800/80",
+        className
+      )}
+    >
+      {pills.map(({ rule, outcome, count }) => (
+        <span
+          key={`${rule}-${outcome}`}
+          className={twMerge(
+            "px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold shadow-sm",
+            OutcomePillClasses[outcome]
+          )}
+        >
+          {count}x{rule.replace(/[<>]/g, "")}
+        </span>
+      ))}
+    </div>
   );
 };

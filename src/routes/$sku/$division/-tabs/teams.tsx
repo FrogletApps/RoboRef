@@ -1,21 +1,15 @@
-import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { EventData } from "@referee-fyi/robotevents";
 import { Spinner } from "~components/Spinner";
 import { useEventIncidents } from "~utils/hooks/incident";
 import { useDivisionTeams } from "~utils/hooks/robotevents";
 import { useCurrentDivision } from "~utils/hooks/state";
-import { ExclamationTriangleIcon, FlagIcon } from "@heroicons/react/20/solid";
+import { ExclamationTriangleIcon, FlagIcon, InformationCircleIcon } from "@heroicons/react/20/solid";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { IconLabel, Input } from "~components/Input";
 import { filterTeams } from "~utils/filterteams";
-import {
-  ArrowRightIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import { Button, LinkButton } from "~components/Button";
-import { MenuButton } from "~components/MenuButton";
-import { RulesSummary } from "~components/RulesSummary";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { LinkButton } from "~components/Button";
 import { DisconnectedWarning } from "~components/DisconnectedWarning";
 
 export type EventTagProps = {
@@ -23,7 +17,6 @@ export type EventTagProps = {
 };
 
 export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
-  const navigate = useNavigate();
   const division = useCurrentDivision();
   const {
     data: divisionTeams,
@@ -92,90 +85,10 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
         }}
       >
         {(team) => (
-          <MenuButton
-            mode="transparent"
-            menu={
-              <nav className="mt-2">
-                <div className="flex items-center gap-4 mb-4">
-                  <p className="overflow-hidden whitespace-nowrap text-ellipsis max-w-full flex-1">
-                    <span className="font-mono text-emerald-400">
-                      {team.number}
-                    </span>
-                    {" • "}
-                    <span>{team.team_name}</span>
-                  </p>
-                  <LinkButton
-                    to={"/$sku/team/$team"}
-                    params={{ sku: event.sku, team: team.number }}
-                  >
-                    View
-                    <ArrowRightIcon height={20} className="ml-2 inline" />
-                  </LinkButton>
-                </div>
-                <RulesSummary
-                  className="break-all"
-                  incidents={incidents ?? []}
-                  filter={(i) => i.team == team.number}
-                />
-                <Button
-                  mode="normal"
-                  className="mt-4"
-                  onClick={() =>
-                    navigate({
-                      to: "/$sku/new",
-                      params: { sku: event.sku },
-                      search: { team: team.number, outcome: "General" },
-                    })
-                  }
-                >
-                  <FlagIcon height={20} className="inline mr-2" />
-                  General
-                </Button>
-                <Button
-                  mode="normal"
-                  className="mt-4"
-                  onClick={() =>
-                    navigate({
-                      to: "/$sku/new",
-                      params: { sku: event.sku },
-                      search: { team: team.number, outcome: "Inspection" },
-                    })
-                  }
-                >
-                  <FlagIcon height={20} className="inline mr-2 " />
-                  Inspection
-                </Button>
-                <Button
-                  mode="normal"
-                  className="mt-4 bg-yellow-500"
-                  onClick={() =>
-                    navigate({
-                      to: "/$sku/new",
-                      params: { sku: event.sku },
-                      search: { team: team.number, outcome: "Minor" },
-                    })
-                  }
-                >
-                  <FlagIcon height={20} className="inline mr-2 " />
-                  Minor
-                </Button>
-                <Button
-                  mode="normal"
-                  className="mt-4 bg-red-500"
-                  onClick={() =>
-                    navigate({
-                      to: "/$sku/new",
-                      params: { sku: event.sku },
-                      search: { team: team.number, outcome: "Major" },
-                    })
-                  }
-                >
-                  <FlagIcon height={20} className="inline mr-2 " />
-                  Major
-                </Button>
-              </nav>
-            }
-            className="w-full h-full bg-transparent rounded-none py-3 text-left flex items-center justify-between gap-4 p-0 text-zinc-50"
+          <LinkButton
+            to={"/$sku/team/$team"}
+            params={{ sku: event.sku, team: team.number }}
+            className="w-full h-full bg-transparent rounded-none py-3 text-left flex items-center justify-between gap-4 p-0 text-zinc-50 active:bg-zinc-800/50"
             aria-label={`Team ${team.number} ${team.team_name}. ${
               majorIncidents.get(team.number) ?? 0
             } major violations. ${
@@ -190,21 +103,25 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
                 {team.team_name}
               </p>
             </div>
-            <div className="flex items-center gap-4 shrink-0 px-2">
+            <div className="flex items-center gap-3 shrink-0 px-2">
               <span className="text-red-400 flex items-center" aria-label={``}>
                 <FlagIcon height={20} className="inline" />
-                <span className="font-mono ml-2">
+                <span className="font-mono ml-1.5">
                   {majorIncidents.get(team.number) ?? 0}
                 </span>
               </span>
               <span className="text-yellow-400 flex items-center">
                 <ExclamationTriangleIcon height={20} className="inline" />
-                <span className="font-mono ml-2">
+                <span className="font-mono ml-1.5">
                   {minorIncidents.get(team.number) ?? 0}
                 </span>
               </span>
+              <span className="bg-blue-600 active:bg-blue-700 text-white text-xs font-semibold px-2.5 py-1.5 rounded-md flex items-center gap-1 shadow-sm ml-1">
+                <InformationCircleIcon height={16} width={16} className="inline" />
+                <span>Info</span>
+              </span>
             </div>
-          </MenuButton>
+          </LinkButton>
         )}
       </VirtualizedList>
     </section>

@@ -1,4 +1,4 @@
-import { Button, ButtonProps, LinkButton } from "~components/Button";
+import { Button, ButtonProps } from "~components/Button";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -10,9 +10,8 @@ import { useTeamIncidentsByMatch } from "~utils/hooks/incident";
 import { Incident as IncidentData } from "~utils/data/incident";
 import { Match } from "@referee-fyi/robotevents";
 import { Incident } from "~components/Incident";
-import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 import { MatchScratchpad } from "~components/scratchpad/Scratchpad";
-import { RulesSummary } from "~components/RulesSummary";
+import { NoteSummaryPills, RulesSummary } from "~components/RulesSummary";
 import { useNavigate } from "@tanstack/react-router";
 import { useCurrentEvent } from "~utils/hooks/state";
 
@@ -28,7 +27,6 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
   incidents,
 }) => {
   const [open, setOpen] = useState(false);
-  const { data: event } = useCurrentEvent();
 
   const teamAlliance = match.alliances.find((alliance) =>
     alliance.teams.some((t) => t.team?.name === number)
@@ -65,7 +63,8 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
       </summary>
       {/* For performance - don't render Incidents unless the dialog is open */}
       {open ? (
-        <>
+        <div className="p-2 bg-zinc-900/50">
+          <NoteSummaryPills incidents={incidents} />
           {incidents.map((incident) => (
             <Incident
               className="max-h-20 overflow-hidden"
@@ -73,17 +72,7 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
               key={incident.id}
             />
           ))}
-          {incidents.length > 0 ? (
-            <LinkButton
-              to="/$sku/team/$team/teamNotes"
-              params={{ sku: event?.sku ?? "", team: number }}
-              className="flex gap-2 items-center mt-2 justify-center h-12 w-full text-center"
-            >
-              <ArrowsPointingOutIcon height={20} />
-              <p>View all of {number}&apos;s notes</p>
-            </LinkButton>
-          ) : null}
-        </>
+        </div>
       ) : null}
     </details>
   );

@@ -1,58 +1,125 @@
 import { useEventMatchesForTeam, useEventTeam } from "~hooks/robotevents";
 import { Spinner } from "~components/Spinner";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useCurrentEvent } from "~hooks/state";
 import { useTeamIncidentsByEvent } from "~hooks/incident";
-import { Tabs } from "~components/Tabs";
-import { EventData } from "@referee-fyi/robotevents";
-import { TeamData } from "@referee-fyi/robotevents";
+import { EventData, TeamData, MatchData } from "@referee-fyi/robotevents";
 import { ClickableMatch } from "~components/Match";
-import { MatchData } from "@referee-fyi/robotevents";
 import { Incident } from "~components/Incident";
-import { VirtualizedList } from "~components/VirtualizedList";
-
-import {
-  FlagIcon,
-  NumberedListIcon,
-  PhotoIcon,
-} from "@heroicons/react/24/solid";
-import {
-  BookOpenIcon as RulesIconOutline,
-} from "@heroicons/react/24/outline";
-import {
-  BookOpenIcon as RulesIconSolid,
-} from "@heroicons/react/24/solid";
-import { EventRulesTab } from "../../$division/-tabs/rules";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { useEventAssetsForTeam } from "~utils/hooks/assets";
 import { AssetPreview } from "~components/Assets";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { LinkButton } from "~components/Button";
+import { NoteSummaryPills } from "~components/RulesSummary";
 
-export type TeamImagesTabProps = {
+type SectionId = "summary" | "schedule" | "images";
+
+export type TeamImagesSectionProps = {
+  teamNumber?: string;
   team?: string;
   sku?: string;
+  isOpen: boolean;
+  onToggle: () => void;
 };
 
-export const TeamImagesTab: React.FC<TeamImagesTabProps> = ({
+export const TeamImagesSection: React.FC<TeamImagesSectionProps> = ({
+  teamNumber,
   team,
   sku,
+  isOpen,
+  onToggle,
 }) => {
-  const assets = useEventAssetsForTeam(sku, team);
+  const targetTeam = teamNumber ?? team;
+  const assets = useEventAssetsForTeam(sku, targetTeam);
+
+  if (!assets || assets.length === 0) return null;
+
   return (
-    <div className="grid lg:grid-cols-6 grid-cols-2 md:grid-cols-3 mt-4 gap-2 overflow-y-auto">
-      {assets?.map((asset) => (asset ? <AssetPreview asset={asset} key={asset} /> : null))}
+    <div className="border border-zinc-800 rounded-lg overflow-hidden my-2 flex-shrink-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left flex gap-2 items-center justify-between cursor-pointer select-none active:bg-zinc-800 bg-zinc-900 py-3 px-4 z-10 border-b border-zinc-800"
+      >
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isOpen ? (
+            <ChevronDownIcon height={18} width={18} className="flex-shrink-0 text-zinc-400" />
+          ) : (
+            <ChevronRightIcon height={18} width={18} className="flex-shrink-0 text-zinc-400" />
+          )}
+          <h2 className="font-semibold text-zinc-100 flex-shrink-0">Team Images</h2>
+        </div>
+        <span className="text-xs font-mono text-zinc-400 ml-auto">
+          {assets.length} {assets.length === 1 ? "image" : "images"}
+        </span>
+      </button>
+      {isOpen && (
+        <div className="p-2 bg-zinc-900/50 max-h-[45vh] overflow-y-auto grid lg:grid-cols-6 grid-cols-2 md:grid-cols-3 gap-2">
+          {assets.map((asset) => (asset ? <AssetPreview asset={asset} key={asset} /> : null))}
+        </div>
+      )}
     </div>
   );
 };
 
-type EventTeamsTabProps = {
-  event: EventData | null | undefined;
-  team: TeamData | null | undefined;
+export const TeamNoteSummarySection: React.FC<{
+  teamNumber?: string;
+  sku?: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}> = ({ teamNumber, sku, isOpen, onToggle }) => {
+  const { data: incidents, isLoading } = useTeamIncidentsByEvent(teamNumber, sku);
+
+  return (
+    <div className={`border border-zinc-800 rounded-lg overflow-hidden flex flex-col ${isOpen ? "flex-1 min-h-0" : "flex-shrink-0"} my-1`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left flex gap-2 items-center justify-between cursor-pointer select-none active:bg-zinc-800 bg-zinc-900 py-3 px-4 z-10 border-b border-zinc-800 flex-shrink-0"
+      >
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isOpen ? (
+            <ChevronDownIcon height={18} width={18} className="flex-shrink-0 text-zinc-400" />
+          ) : (
+            <ChevronRightIcon height={18} width={18} className="flex-shrink-0 text-zinc-400" />
+          )}
+          <h2 className="font-semibold text-zinc-100 flex-shrink-0">Team Note Summary</h2>
+        </div>
+        {incidents ? (
+          <span className="text-xs font-mono text-zinc-400 ml-auto">
+            {incidents.length} {incidents.length === 1 ? "Note" : "Notes"}
+          </span>
+        ) : null}
+      </button>
+      {isOpen && (
+        <div className="p-2 bg-zinc-900/50 flex-1 min-h-0 overflow-y-auto">
+          <Spinner show={isLoading} />
+          {incidents && incidents.length > 0 ? (
+            <>
+              <NoteSummaryPills incidents={incidents} />
+              <div className="flex flex-col gap-2">
+                {incidents.map((incident) => (
+                  <Incident incident={incident} key={incident.id} className="h-20" />
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="p-2 text-sm text-zinc-400 italic">No Recorded Entries!</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
-export const TeamScheduleTab: React.FC<EventTeamsTabProps> = ({
-  event,
-  team,
-}) => {
+export const TeamMatchScheduleSection: React.FC<{
+  event: EventData | null | undefined;
+  team: TeamData | null | undefined;
+  isOpen: boolean;
+  onToggle: () => void;
+}> = ({ event, team, isOpen, onToggle }) => {
   const { data: matches, isLoading } = useEventMatchesForTeam(event, team);
   const navigate = useNavigate();
 
@@ -68,44 +135,45 @@ export const TeamScheduleTab: React.FC<EventTeamsTabProps> = ({
   );
 
   return (
-    <>
-      <Spinner show={isLoading} />
-      <ul className="flex-1 overflow-y-auto">
-        {matches?.map((match) => (
-          <ClickableMatch
-            match={match}
-            key={match.id}
-            onClick={() => onClickMatch(match)}
-          />
-        ))}
-      </ul>
-    </>
-  );
-};
-
-export const TeamIncidentsTab: React.FC<EventTeamsTabProps> = ({
-  team,
-  event,
-}) => {
-  const {
-    data: incidents,
-    isLoading: isIncidentsLoading,
-    isSuccess,
-  } = useTeamIncidentsByEvent(team?.number, event?.sku);
-
-  if (isSuccess && incidents.length < 1) {
-    return <p className="mt-4">No Recorded Entries!</p>;
-  }
-
-  return (
-    <ul className="contents">
-      <Spinner show={isIncidentsLoading} />
-      <VirtualizedList data={incidents} options={{ estimateSize: () => 88 }}>
-        {(incident) => (
-          <Incident incident={incident} key={incident.id} className="h-20" />
-        )}
-      </VirtualizedList>
-    </ul>
+    <div className={`border border-zinc-800 rounded-lg overflow-hidden flex flex-col ${isOpen ? "flex-1 min-h-0" : "flex-shrink-0"} my-1`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full text-left flex gap-2 items-center justify-between cursor-pointer select-none active:bg-zinc-800 bg-zinc-900 py-3 px-4 z-10 border-b border-zinc-800 flex-shrink-0"
+      >
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isOpen ? (
+            <ChevronDownIcon height={18} width={18} className="flex-shrink-0 text-zinc-400" />
+          ) : (
+            <ChevronRightIcon height={18} width={18} className="flex-shrink-0 text-zinc-400" />
+          )}
+          <h2 className="font-semibold text-zinc-100 flex-shrink-0">Match Schedule</h2>
+        </div>
+        {matches ? (
+          <span className="text-xs font-mono text-zinc-400 ml-auto">
+            {matches.length} {matches.length === 1 ? "match" : "matches"}
+          </span>
+        ) : null}
+      </button>
+      {isOpen && (
+        <div className="p-2 bg-zinc-900/50 flex-1 min-h-0 overflow-y-auto">
+          <Spinner show={isLoading} />
+          {matches && matches.length > 0 ? (
+            <ul className="divide-y divide-zinc-800">
+              {matches.map((match) => (
+                <ClickableMatch
+                  match={match}
+                  key={match.id}
+                  onClick={() => onClickMatch(match)}
+                />
+              ))}
+            </ul>
+          ) : (
+            <p className="p-2 text-sm text-zinc-400 italic">No matches scheduled</p>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -113,6 +181,12 @@ export const EventTeamsPage: React.FC = () => {
   const { team: number } = useParams({ strict: false });
   const { data: event } = useCurrentEvent();
   const { data: team } = useEventTeam(event, number ?? "");
+
+  const [openSection, setOpenSection] = useState<SectionId | null>("summary");
+
+  const toggleSection = (id: SectionId) => {
+    setOpenSection((prev) => (prev === id ? null : id));
+  };
 
   const teamLocation = useMemo(() => {
     if (!team) return null;
@@ -126,74 +200,47 @@ export const EventTeamsPage: React.FC = () => {
   }, [team]);
 
   return (
-    <section className="flex flex-col">
-      <header>
-        <h1 className="text-xl overflow-hidden whitespace-nowrap text-ellipsis max-w-[20ch] lg:max-w-prose mt-4">
-          <span className="font-mono text-emerald-400">{number}</span>
-          {" • "}
-          <span>{team?.team_name}</span>
-        </h1>
-        <p className="italic">{teamLocation}</p>
+    <section className="flex flex-col h-full min-h-0 overflow-hidden pb-2">
+      <header className="flex items-center justify-between gap-4 mt-2 mb-2 flex-shrink-0">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl overflow-hidden whitespace-nowrap text-ellipsis max-w-[20ch] lg:max-w-prose">
+            <span className="font-mono text-emerald-400">{number}</span>
+            {" • "}
+            <span>{team?.team_name}</span>
+          </h1>
+          <p className="italic text-sm text-zinc-400">{teamLocation}</p>
+        </div>
+        <LinkButton
+          to="/$sku/new"
+          params={{ sku: event?.sku ?? "" }}
+          search={{ team: number ?? "" }}
+          className="bg-emerald-600 active:bg-emerald-700 text-white font-semibold flex items-center justify-center gap-1.5 px-3 py-2 rounded-md shrink-0"
+        >
+          <PlusIcon height={20} className="w-5 h-5" />
+          <span>New Note</span>
+        </LinkButton>
       </header>
-      <Tabs
-        id={["/$sku/team/$team", "EventTeamsPage"]}
-        parts={{
-          tablist: {
-            className: "absolute bottom-0 right-0 left-0 z-30 p-0 bg-zinc-900",
-          },
-        }}
-      >
-        {[
-          {
-            type: "content",
-            id: "incidents",
-            label: "Incidents",
-            icon: (active) =>
-              active ? (
-                <FlagIcon height={24} className="inline" />
-              ) : (
-                <FlagIcon height={24} className="inline" />
-              ),
-            content: <TeamIncidentsTab event={event} team={team} />,
-          },
-          {
-            type: "content",
-            id: "schedule",
-            label: "Schedule",
-            icon: (active) =>
-              active ? (
-                <NumberedListIcon height={24} className="inline" />
-              ) : (
-                <NumberedListIcon height={24} className="inline" />
-              ),
-            content: <TeamScheduleTab event={event} team={team} />,
-          },
-          {
-            type: "content",
-            id: "assets",
-            label: "Images",
-            icon: (active) =>
-              active ? (
-                <PhotoIcon height={24} className="inline" />
-              ) : (
-                <PhotoIcon height={24} className="inline" />
-              ),
-            content: <TeamImagesTab sku={event?.sku} team={team?.number} />,
-          },
-          {
-            type: "content",
-            id: "rules",
-            label: "Rules",
-            icon: (active) =>
-              active ? (
-                <RulesIconSolid height={24} className="inline" />
-              ) : (
-                <RulesIconOutline height={24} className="inline" />
-              ),
-            content: <EventRulesTab event={event} />,
-          },
-        ]}
-      </Tabs>
+
+      <TeamNoteSummarySection
+        teamNumber={number}
+        sku={event?.sku}
+        isOpen={openSection === "summary"}
+        onToggle={() => toggleSection("summary")}
+      />
+      <div className={openSection === "summary" ? "mt-auto flex-shrink-0 flex flex-col" : "flex-1 min-h-0 flex flex-col"}>
+        <TeamMatchScheduleSection
+          event={event}
+          team={team}
+          isOpen={openSection === "schedule"}
+          onToggle={() => toggleSection("schedule")}
+        />
+        <TeamImagesSection
+          teamNumber={number}
+          sku={event?.sku}
+          isOpen={openSection === "images"}
+          onToggle={() => toggleSection("images")}
+        />
+      </div>
     </section>
   );
 };

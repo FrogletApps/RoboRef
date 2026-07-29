@@ -188,6 +188,7 @@ export const AppShell: React.FC = () => {
   const navigate = useNavigate();
   const router = useRouter();
   const location = useLocation();
+  const { team: teamParam } = useParams({ strict: false });
 
   const isIndex = location.pathname === "/";
   const isSettings = location.pathname === "/settings";
@@ -205,6 +206,7 @@ export const AppShell: React.FC = () => {
   const isDeleted = location.pathname.endsWith("/deleted");
   const isSummary = location.pathname.endsWith("/summary");
   const isFilters = location.pathname.endsWith("/filters");
+  const isTeamPage = Boolean(teamParam) && !isTeamNotes;
 
   const customHeaderTitle = isSettings
     ? "Settings"
@@ -236,6 +238,8 @@ export const AppShell: React.FC = () => {
     ? "Note Summary"
     : isFilters
     ? "Filter Notes"
+    : isTeamPage
+    ? `${teamParam} Team Info`
     : null;
 
   return (
