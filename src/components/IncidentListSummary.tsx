@@ -8,7 +8,7 @@ import {
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { Incident } from "~components/Incident";
-import { useRulesForEvent } from "~utils/hooks/rules";
+import { NoteSummaryPills } from "~components/RulesSummary";
 import { twMerge } from "tailwind-merge";
 import { useMutation } from "@tanstack/react-query";
 import { ReadyState, useShareConnection } from "~models/ShareConnection";
@@ -121,7 +121,6 @@ export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
   footer,
 }) => {
   const { data: event } = useCurrentEvent();
-  const { data: game } = useRulesForEvent(event);
   const filters = useFilterStore((state) => state.filters);
 
   const filteredIncidents = useMemo(() => {
@@ -178,25 +177,6 @@ export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
 
   const hasFiltersApplied = useMemo(() => isFilterApplied(filters), [filters]);
 
-  const commonRules = useMemo(() => {
-    if (!filteredIncidents) {
-      return [];
-    }
-
-    const ruleCounts: Record<string, number> = {};
-    for (const { rules } of filteredIncidents) {
-      for (const rule of rules) {
-        if (ruleCounts[rule]) {
-          ruleCounts[rule]++;
-        } else {
-          ruleCounts[rule] = 1;
-        }
-      }
-    }
-
-    return Object.entries(ruleCounts).sort((a, b) => b[1] - a[1]);
-  }, [filteredIncidents]);
-
   return (
     <section className="mt-4 flex flex-col max-h-full">
       <p className="mb-2">
@@ -234,31 +214,17 @@ export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
           Filters have been applied, edit or remove these using the Filters button. Only visible notes will be exported.
         </p>
       )}
-      <section className="flex gap-1 flex-wrap mt-3">
-        {commonRules.slice(0, 5).map(([rule, count]) => (
-          <div
-            className="font-mono bg-emerald-900 rounded-lg px-2 py-1 text-sm text-center"
-            key={rule}
-          >
-            <div className="flex gap-x-1">
-              {game?.rulesLookup?.[rule]?.icon && (
-                <img
-                  alt="Icon"
-                  className="max-h-5 max-w-5 object-contain"
-                  src={game?.rulesLookup?.[rule]?.icon}
-                ></img>
-              )}
-              {rule.replace(/[<>]/g, "")}
-              <span className="text-emerald-400 pl-1">{count}</span>
-            </div>
-          </div>
-        ))}
-      </section>
       <Spinner show={isPending} />
       <VirtualizedList
         data={filteredIncidents}
+        header={
+          <NoteSummaryPills
+            incidents={filteredIncidents}
+            className="mb-3 border-none pb-0"
+          />
+        }
         options={{ estimateSize: () => 64 }}
-        className="flex-1 mt-4"
+        className="flex-1 mt-3"
       >
         {(incident) => (
           <Incident

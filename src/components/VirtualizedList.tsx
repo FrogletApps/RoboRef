@@ -3,7 +3,7 @@ import {
   useVirtualizer,
   VirtualizerOptions,
 } from "@tanstack/react-virtual";
-import { useRef, JSX } from "react";
+import { useLayoutEffect, useRef, useState, JSX } from "react";
 import { twMerge } from "tailwind-merge";
 import { ComponentParts } from "./parts";
 
@@ -34,10 +34,27 @@ export const VirtualizedList = <T,>({
   ...props
 }: VirtualizedListProps<T>) => {
   const parentRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [scrollMargin, setScrollMargin] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = headerRef.current;
+    if (!el) {
+      setScrollMargin(0);
+      return;
+    }
+    setScrollMargin(el.offsetHeight);
+    const observer = new ResizeObserver(() => {
+      setScrollMargin(el.offsetHeight);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [header]);
 
   const virtualizer = useVirtualizer({
     getScrollElement: () => parentRef.current,
     count: data?.length ?? 0,
+    scrollMargin,
     ...options,
   });
 
@@ -50,7 +67,7 @@ export const VirtualizedList = <T,>({
       className={twMerge(props.className, "overflow-auto")}
       ref={parentRef}
     >
-      {header}
+      {header ? <div ref={headerRef}>{header}</div> : null}
       <ol
         style={{ width: "100%", height: totalSize, position: "relative" }}
         aria-setsize={data?.length ?? 0}
@@ -67,7 +84,7 @@ export const VirtualizedList = <T,>({
                   left: 0,
                   width: "100%",
                   height: `${size}px`,
-                  transform: `translateY(${start}px)`,
+                  transform: `translateY(${start - scrollMargin}px)`,
                 }}
               >
                 {children(data[index], index)}
