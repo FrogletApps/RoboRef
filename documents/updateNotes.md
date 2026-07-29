@@ -3,6 +3,7 @@
 - Allow event names/organisations to go across multiple lines on the home screen and search
 - Fixed Team Info screen and made UI consistent
 - Added consistent pills across all notes lists
+- Updated dependencies
 
 ## 28 July 2026
 
