@@ -189,9 +189,18 @@ export const TeamMatchScheduleSection: React.FC<{
   const onClickMatch = useCallback(
     (match: MatchData) => {
       if (!event) return;
+      const divisionId =
+        (match.division?.id ?? event.divisions?.[0]?.id)?.toString() ?? "1";
+      const tabId = "/$sku/$division/-EventHome";
       navigate({
-        to: "/$sku/match/$matchId",
-        params: { sku: event.sku, matchId: match.id.toString() },
+        to: "/$sku/$division",
+        params: { sku: event.sku, division: divisionId },
+        search: { match: match.id },
+        state: (state) => ({
+          ...state,
+          tabActive: tabId,
+          tabState: { ...state.tabState, [tabId]: { tab: 1 } },
+        }),
       });
     },
     [event, navigate]
@@ -210,7 +219,7 @@ export const TeamMatchScheduleSection: React.FC<{
           ) : (
             <ChevronRightIcon height={18} width={18} className="flex-shrink-0 text-zinc-400" />
           )}
-          <h2 className="font-semibold text-zinc-100 flex-shrink-0">Match Schedule</h2>
+          <h2 className="font-semibold text-zinc-100 flex-shrink-0">Team Match Schedule</h2>
         </div>
         {matches ? (
           <span className="text-xs font-mono text-zinc-400 ml-auto">
