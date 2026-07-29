@@ -1,3 +1,7 @@
+## 27 July 2026
+
+- Allow event names/organisations to go across multiple lines on the home screen and search
+
 ## 26 July 2026
 
 - Added event search filters
