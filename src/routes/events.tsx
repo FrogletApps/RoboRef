@@ -207,7 +207,7 @@ export const EventsPage: React.FC = () => {
         <Spinner show={isLoadingEventFromSKU} />
         {eventFromSKU && (
           <div className="border-y border-zinc-700 mt-2 p-3 flex flex-col items-start justify-start">
-            <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full">
+            <p className="text-sm break-words w-full">
               <span className={`font-mono ${getSkuTextColorClass(eventFromSKU.sku)}`}>
                 {eventFromSKU.sku}
               </span>
@@ -224,7 +224,7 @@ export const EventsPage: React.FC = () => {
                 </>
               ) : null}
             </p>
-            <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
+            <p className="break-words w-full">
               {eventFromSKU.name}
             </p>
             <LinkButton
@@ -271,7 +271,7 @@ export const EventsPage: React.FC = () => {
                   }}
                   className="w-full bg-transparent rounded-none py-3 text-left flex flex-col items-start justify-start"
                 >
-                  <p className="text-sm whitespace-nowrap text-ellipsis overflow-hidden w-full">
+                  <p className="text-sm break-words w-full">
                     <span className={`font-mono ${getSkuTextColorClass(event.sku)}`}>
                       {event.sku}
                     </span>
@@ -288,7 +288,7 @@ export const EventsPage: React.FC = () => {
                       </>
                     ) : null}
                   </p>
-                  <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
+                  <p className="break-words w-full">
                     {event.name}
                   </p>
                 </LinkButton>

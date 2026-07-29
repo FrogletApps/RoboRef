@@ -176,7 +176,7 @@ export const HomePage: React.FC = () => {
             key={event.sku}
           >
             <div className="text-sm flex">
-              <p className="whitespace-nowrap text-ellipsis overflow-hidden flex-1">
+              <p className="break-words flex-1 min-w-0">
                 <span
                   className={twMerge(
                     getSkuTextColorClass(event.sku),
@@ -202,7 +202,7 @@ export const HomePage: React.FC = () => {
                 <UserGroupIcon height={20} className="flex-shrink-0 ml-2" />
               ) : null}
             </div>
-            <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">{event.name}</p>
+            <p className="break-words w-full">{event.name}</p>
           </LinkButton>
         ))}
         {visibleEvents?.length === 0 ? (
