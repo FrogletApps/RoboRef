@@ -9,15 +9,29 @@ import { OUTCOMES } from "@referee-fyi/share";
 import { Filters, useFilterStore } from "~utils/hooks/filters";
 import { Spinner } from "~components/Spinner";
 
+export type FilterSearch = {
+  target?: "event" | "team";
+};
+
 export const FilterPage: React.FC = () => {
   const router = useRouter();
+  const { target } = Route.useSearch();
+  const isTeam = target === "team";
   const { data: event } = useCurrentEvent();
   const divisions = useMemo(() => event?.divisions ?? [], [event]);
   const { data: game } = useRulesForEvent(event);
 
-  const globalFilters = useFilterStore((state) => state.filters);
-  const setGlobalFilters = useFilterStore((state) => state.setFilters);
-  const resetGlobalFilters = useFilterStore((state) => state.resetFilters);
+  const eventFilters = useFilterStore((state) => state.filters);
+  const setEventFilters = useFilterStore((state) => state.setFilters);
+  const resetEventFilters = useFilterStore((state) => state.resetFilters);
+
+  const teamFilters = useFilterStore((state) => state.teamFilters);
+  const setTeamFilters = useFilterStore((state) => state.setTeamFilters);
+  const resetTeamFilters = useFilterStore((state) => state.resetTeamFilters);
+
+  const globalFilters = isTeam ? teamFilters : eventFilters;
+  const setGlobalFilters = isTeam ? setTeamFilters : setEventFilters;
+  const resetGlobalFilters = isTeam ? resetTeamFilters : resetEventFilters;
 
   const [filters, setFilters] = useState<Filters>(globalFilters);
 
@@ -79,7 +93,17 @@ export const FilterPage: React.FC = () => {
             />
           ))}
         </div>
-        {divisions.length > 0 ? (
+        <div>
+          <p className="font-medium">Display Options</p>
+          <Checkbox
+            label="Show Note Summary pills"
+            checked={filters.showPills ?? true}
+            onChange={(e) =>
+              setFiltersField("showPills", e.currentTarget.checked)
+            }
+          />
+        </div>
+        {!isTeam && divisions.length > 0 ? (
           <label>
             <p className="font-medium">Division</p>
             <Select
@@ -147,4 +171,7 @@ export const FilterPage: React.FC = () => {
 
 export const Route = createFileRoute("/$sku/filters")({
   component: FilterPage,
+  validateSearch: (search: Record<string, unknown>): FilterSearch => ({
+    target: search.target === "team" ? "team" : "event",
+  }),
 });

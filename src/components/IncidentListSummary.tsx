@@ -218,10 +218,12 @@ export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
       <VirtualizedList
         data={filteredIncidents}
         header={
-          <NoteSummaryPills
-            incidents={filteredIncidents}
-            className="mb-3 border-none pb-0"
-          />
+          filters.showPills !== false ? (
+            <NoteSummaryPills
+              incidents={filteredIncidents}
+              className="mb-3 border-none pb-0"
+            />
+          ) : null
         }
         options={{ estimateSize: () => 64 }}
         className="flex-1 mt-3"

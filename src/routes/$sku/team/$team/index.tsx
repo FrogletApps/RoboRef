@@ -6,13 +6,14 @@ import { useTeamIncidentsByEvent } from "~hooks/incident";
 import { EventData, TeamData, MatchData } from "@referee-fyi/robotevents";
 import { ClickableMatch } from "~components/Match";
 import { Incident } from "~components/Incident";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { useEventAssetsForTeam } from "~utils/hooks/assets";
 import { AssetPreview } from "~components/Assets";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { LinkButton } from "~components/Button";
 import { NoteSummaryPills } from "~components/RulesSummary";
+import { isFilterApplied, useFilterStore } from "~utils/hooks/filters";
 
 type SectionId = "summary" | "schedule" | "images";
 
@@ -71,6 +72,48 @@ export const TeamNoteSummarySection: React.FC<{
   onToggle: () => void;
 }> = ({ teamNumber, sku, isOpen, onToggle }) => {
   const { data: incidents, isLoading } = useTeamIncidentsByEvent(teamNumber, sku);
+  const teamFilters = useFilterStore((state) => state.teamFilters);
+
+  const filteredIncidents = useMemo(() => {
+    if (!incidents) return [];
+    return incidents.filter((incident) => {
+      if (!teamFilters.outcomes[incident.outcome]) {
+        return false;
+      }
+
+      const hasRule =
+        teamFilters.rules.length < 1 ||
+        teamFilters.rules.some((rule) => incident.rules.includes(rule.rule));
+      if (!hasRule) {
+        return false;
+      }
+
+      const people = new Set<string>();
+      for (const register of Object.values(incident.consistency)) {
+        people.add(register.peer);
+        for (const item of register.history) {
+          people.add(item.peer);
+        }
+      }
+
+      if (teamFilters.contact.size > 0) {
+        let hasMatch = false;
+        for (const person of people) {
+          if (teamFilters.contact.has(person)) {
+            hasMatch = true;
+            break;
+          }
+        }
+        if (!hasMatch) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [incidents, teamFilters]);
+
+  const hasFiltersApplied = useMemo(() => isFilterApplied(teamFilters), [teamFilters]);
 
   return (
     <div className={`border border-zinc-800 rounded-lg overflow-hidden flex flex-col ${isOpen ? "flex-1 min-h-0" : "flex-shrink-0"} my-1`}>
@@ -89,18 +132,38 @@ export const TeamNoteSummarySection: React.FC<{
         </div>
         {incidents ? (
           <span className="text-xs font-mono text-zinc-400 ml-auto">
-            {incidents.length} {incidents.length === 1 ? "Note" : "Notes"}
+            {hasFiltersApplied
+              ? `${filteredIncidents.length} / ${incidents.length} Notes`
+              : `${incidents.length} ${incidents.length === 1 ? "Note" : "Notes"}`}
           </span>
         ) : null}
       </button>
       {isOpen && (
         <div className="p-2 bg-zinc-900/50 flex-1 min-h-0 overflow-y-auto">
           <Spinner show={isLoading} />
-          {incidents && incidents.length > 0 ? (
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <LinkButton
+              to="/$sku/filters"
+              params={{ sku: sku ?? "" }}
+              search={{ target: "team" }}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium whitespace-nowrap"
+            >
+              <AdjustmentsHorizontalIcon className="w-4 h-4 flex-shrink-0" />
+              <span>Filters</span>
+            </LinkButton>
+          </div>
+          {hasFiltersApplied && (
+            <p className="text-zinc-400 text-xs mb-2">
+              Filters have been applied, edit or remove these using the Filters button.
+            </p>
+          )}
+          {filteredIncidents && filteredIncidents.length > 0 ? (
             <>
-              <NoteSummaryPills incidents={incidents} />
+              {teamFilters.showPills !== false && (
+                <NoteSummaryPills incidents={filteredIncidents} />
+              )}
               <div className="flex flex-col gap-2">
-                {incidents.map((incident) => (
+                {filteredIncidents.map((incident) => (
                   <Incident incident={incident} key={incident.id} className="h-20" />
                 ))}
               </div>
