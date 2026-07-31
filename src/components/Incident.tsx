@@ -120,12 +120,14 @@ export type IncidentMenuProps = {
   incident: IncidentData;
   readonly?: boolean;
   allowUndelete?: boolean;
+  onClose?: () => void;
 } & React.HTMLProps<HTMLDivElement>;
 
 export const IncidentMenu: React.FC<IncidentMenuProps> = ({
   incident,
   readonly,
   allowUndelete,
+  onClose,
   ...props
 }) => {
   const { data: event } = useCurrentEvent();
@@ -140,23 +142,28 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
     useUndeleteIncident();
   const [confirmUndelete, setConfirmUndelete] = useState(false);
 
-  const onUndelete = useCallback(async () => {
-    if (!confirmUndelete) {
-      setConfirmUndelete(true);
-      return;
-    }
+  const onUndelete = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!confirmUndelete) {
+        setConfirmUndelete(true);
+        return;
+      }
 
-    try {
-      await undeleteIncident(incident);
-      toast({ type: "info", message: "Undeleted Note" });
-    } catch (e) {
-      toast({
-        type: "error",
-        message: "Could not undelete note!",
-        context: JSON.stringify(e),
-      });
-    }
-  }, [confirmUndelete, incident, undeleteIncident]);
+      try {
+        await undeleteIncident(incident);
+        toast({ type: "info", message: "Undeleted Note" });
+        onClose?.();
+      } catch (err) {
+        toast({
+          type: "error",
+          message: "Could not undelete note!",
+          context: JSON.stringify(err),
+        });
+      }
+    },
+    [confirmUndelete, incident, undeleteIncident, onClose]
+  );
 
   return (
     <div {...props}>
@@ -236,7 +243,10 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
             <Button
               mode="normal"
               className="flex-1 text-center"
-              onClick={() => setConfirmUndelete(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setConfirmUndelete(false);
+              }}
             >
               Cancel
             </Button>

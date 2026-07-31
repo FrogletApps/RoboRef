@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from "react";
+import React, { useCallback, useId, useState } from "react";
 import { Button, ButtonProps } from "./Button";
 import { Dialog } from "./Dialog";
 
@@ -33,6 +33,8 @@ export const MenuButton: React.FC<MenuButtonProps> = ({ menu, ...props }) => {
   const id = useId();
   const [show, setShow] = useState(false);
 
+  const onClose = useCallback(() => setShow(false), []);
+
   const onButtonClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.currentTarget.blur();
@@ -44,7 +46,9 @@ export const MenuButton: React.FC<MenuButtonProps> = ({ menu, ...props }) => {
   return (
     <div className="relative w-full h-full">
       <Menu id={id} show={show} setShow={setShow}>
-        {menu}
+        {React.isValidElement(menu)
+          ? React.cloneElement(menu as React.ReactElement<any>, { onClose })
+          : menu}
       </Menu>
       <Button
         {...props}
