@@ -43,6 +43,11 @@ constraints drive a lot of our technical decisions:
    about a team that comes from outside the event we are running now, as this
    can reinforce fairness issues; every event should be a clean slate.
 
+## AI Coding Agents & Guidelines
+
+If you are using an AI coding assistant (e.g. Antigravity, Gemini, Claude, Cursor, Copilot), please refer to [`AGENTS.md`](./AGENTS.md) for full project rules and guidelines.
+
+
 ## Technologies
 
 This project makes extensive use of the following technologies.
