@@ -28,8 +28,12 @@ export const UpdatesPage: React.FC = () => {
     <main className="max-w-xl h-full w-full mx-auto flex-1 pb-6 overflow-y-auto markdown">
       <section className="mt-4">
         <h2 className="font-bold">Current Version</h2>
+        <p className="text-zinc-400 text-sm mt-2">
+          Use this to let a developer know what version you're using if you're having an issue
+        </p>
         <ClickToCopy message={__ROBOREF_VERSION__} />
       </section>
+      <br></br>
       <section className="mt-4">
         <Suspense fallback={<Spinner show />}>
           <ChangeLog />
