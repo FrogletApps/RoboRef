@@ -64,14 +64,20 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
       {/* For performance - don't render Incidents unless the dialog is open */}
       {open ? (
         <div className="p-2 bg-zinc-900/50">
-          <NoteSummaryPills incidents={incidents} />
-          {incidents.map((incident) => (
-            <Incident
-              className="max-h-20 overflow-hidden"
-              incident={incident}
-              key={incident.id}
-            />
-          ))}
+          {incidents.length > 0 ? (
+            <>
+              <NoteSummaryPills incidents={incidents} />
+              {incidents.map((incident) => (
+                <Incident
+                  className="max-h-20 overflow-hidden"
+                  incident={incident}
+                  key={incident.id}
+                />
+              ))}
+            </>
+          ) : (
+            <p className="p-2 text-sm text-zinc-400 italic">No notes recorded!</p>
+          )}
         </div>
       ) : null}
     </details>

@@ -169,7 +169,7 @@ export const TeamNoteSummarySection: React.FC<{
               </div>
             </>
           ) : (
-            <p className="p-2 text-sm text-zinc-400 italic">No Notes Recorded!</p>
+            <p className="p-2 text-sm text-zinc-400 italic">No notes recorded!</p>
           )}
         </div>
       )}
