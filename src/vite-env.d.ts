@@ -20,3 +20,9 @@ declare module "*.mdx" {
   const MDXComponent: (props: any) => React.ReactElement | null;
   export default MDXComponent;
 }
+
+declare module "*.md?raw" {
+  const content: string;
+  export default content;
+}
+

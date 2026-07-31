@@ -58,7 +58,7 @@ export default defineConfig(() => ({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "inline",
-      includeAssets: ["./rules/**/*.json", "updateNotes.md"],
+      includeAssets: ["./rules/**/*.json", "changeLog.md"],
       manifest: {
         id: "app.frogletapps.roboref.v1",
         name: "RoboRef",

@@ -1,3 +1,8 @@
+## 31 July 2026
+
+- Renamed 'Update Log' to 'Change Log' across navigation and headers
+- Only show Change Log on load if there have been changes added to it
+
 ## 29 July 2026
 
 - Allow event names/organisations to go across multiple lines on the home screen and search
