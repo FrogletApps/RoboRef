@@ -15,6 +15,7 @@ export const EventDeletedIncidentsPage: React.FC = () => {
       countLabel="Deleted Note"
       exportFilenamePrefix="deleted-incidents"
       readonlyIncidents
+      allowUndelete
     />
   );
 };

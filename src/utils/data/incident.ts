@@ -370,6 +370,25 @@ export async function deleteIncident(id: string): Promise<void> {
   });
 }
 
+export async function undeleteIncident(id: string): Promise<void> {
+  const incident = await getIncident(id);
+
+  if (!incident) {
+    return;
+  }
+
+  await bulkIndexRemove({
+    [`deleted_event_${incident.event}_idx`]: [incident],
+    [`deleted_team_${incident.team}_idx`]: [incident],
+  });
+
+  await bulkIndexInsert({
+    [`event_${incident.event}_idx`]: [incident],
+    [`team_${incident.team}_idx`]: [incident],
+    ["incidents"]: [incident],
+  });
+}
+
 export async function deleteManyIncidents(ids: string[]) {
   const incidents = (await getManyIncidents(ids)).filter((i) => !!i);
 
@@ -392,6 +411,33 @@ export async function deleteManyIncidents(ids: string[]) {
   );
 
   await bulkIndexInsert({ ...deletedEventIndices, ...deletedTeamIndices });
+}
+
+export async function undeleteManyIncidents(ids: string[]) {
+  const incidents = (await getManyIncidents(ids)).filter((i) => !!i);
+
+  if (incidents.length < 1) {
+    return;
+  }
+
+  const deletedEventIndices = Object.groupBy(
+    incidents,
+    (i) => `deleted_event_${i.event}_idx`
+  );
+  const deletedTeamIndices = Object.groupBy(
+    incidents,
+    (i) => `deleted_team_${i.team}_idx`
+  );
+
+  await bulkIndexRemove({ ...deletedEventIndices, ...deletedTeamIndices });
+
+  const eventIndices = Object.groupBy(
+    incidents,
+    (i) => `event_${i.event}_idx`
+  );
+  const teamIndices = Object.groupBy(incidents, (i) => `team_${i.team}_idx`);
+
+  await bulkIndexInsert({ ...eventIndices, ...teamIndices, incidents });
 }
 
 export async function getAllIncidents(): Promise<Incident[]> {

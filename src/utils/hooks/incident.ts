@@ -3,6 +3,7 @@ import {
   Incident,
   NewIncident,
   deleteIncident,
+  undeleteIncident,
   editIncident,
   generateIncidentId,
   getDeletedIncidentsForEvent,
@@ -134,7 +135,29 @@ export function useDeleteIncident() {
       } catch (e) {
         toast({
           type: "error",
-          message: "Could not delete incident!",
+          message: "Could not delete note!",
+          context: JSON.stringify(e),
+        });
+      }
+    },
+    onSettled: () => {
+      return queryClient.invalidateQueries({ queryKey: ["incidents"] });
+    },
+  });
+}
+
+export function useUndeleteIncident() {
+  const connection = useShareConnection(["undeleteIncident"]);
+  return useMutation({
+    mutationKey: ["undeleteIncident"],
+    mutationFn: async (incident: Incident) => {
+      try {
+        await undeleteIncident(incident.id);
+        await connection.undeleteIncident(incident);
+      } catch (e) {
+        toast({
+          type: "error",
+          message: "Could not undelete note!",
           context: JSON.stringify(e),
         });
       }

@@ -19,7 +19,9 @@ import { IncidentOutcome, Incident } from "~utils/data/incident";
 import {
   useDeleteIncident,
   useEditIncident,
+  useEventDeletedIncidents,
   useIncident,
+  useUndeleteIncident,
 } from "~utils/hooks/incident";
 import { useEventMatchesForTeam, useEventTeam } from "~utils/hooks/robotevents";
 import { Rule, useRulesForEvent } from "~utils/hooks/rules";
@@ -38,6 +40,15 @@ export const EditIncidentPage: React.FC = () => {
   const [incident, setIncident] = useState<Incident>();
   const { mutateAsync: deleteIncident } = useDeleteIncident();
   const { mutateAsync: editIncident } = useEditIncident();
+  const { mutateAsync: undeleteIncident, isPending: isUndeletePending } =
+    useUndeleteIncident();
+  const [confirmUndelete, setConfirmUndelete] = useState(false);
+
+  const { data: deletedIncidents } = useEventDeletedIncidents(sku);
+  const isDeleted = useMemo(
+    () => deletedIncidents?.some((i) => i.id === id) ?? false,
+    [deletedIncidents, id]
+  );
 
   const { data: incidentData, isLoading } = useIncident(id, { enabled: !!id });
   useEffect(() => {
@@ -210,7 +221,7 @@ export const EditIncidentPage: React.FC = () => {
 
     try {
       await deleteIncident(incident.id);
-      toast({ type: "info", message: "Deleted Incident" });
+      toast({ type: "info", message: "Deleted Note" });
 
       if (router.history.canGoBack()) {
         router.history.back();
@@ -220,18 +231,43 @@ export const EditIncidentPage: React.FC = () => {
     } catch (e) {
       toast({
         type: "error",
-        message: "Could not delete incident!",
+        message: "Could not delete note!",
         context: JSON.stringify(e),
       });
     }
   }, [deleteIncident, incident, router, navigate, sku]);
+
+  const onUndelete = useCallback(async () => {
+    if (!incident) return;
+    if (!confirmUndelete) {
+      setConfirmUndelete(true);
+      return;
+    }
+
+    try {
+      await undeleteIncident(incident);
+      toast({ type: "info", message: "Undeleted Note" });
+
+      if (router.history.canGoBack()) {
+        router.history.back();
+      } else {
+        navigate({ to: "/$sku", params: { sku: sku ?? "" } });
+      }
+    } catch (e) {
+      toast({
+        type: "error",
+        message: "Could not undelete note!",
+        context: JSON.stringify(e),
+      });
+    }
+  }, [confirmUndelete, incident, undeleteIncident, router, navigate, sku]);
 
   const onSave = useCallback(async () => {
     if (!incident) return;
 
     try {
       await editIncident(incident);
-      toast({ type: "info", message: "Saved Incident" });
+      toast({ type: "info", message: "Saved Note" });
 
       if (router.history.canGoBack()) {
         router.history.back();
@@ -241,7 +277,7 @@ export const EditIncidentPage: React.FC = () => {
     } catch (e) {
       toast({
         type: "error",
-        message: "Could not save incident!",
+        message: "Could not save note!",
         context: JSON.stringify(e),
       });
     }
@@ -407,13 +443,43 @@ export const EditIncidentPage: React.FC = () => {
       </section>
 
       <div className="flex gap-4 mt-6">
-        <Button
-          mode="dangerous"
-          className="flex-1 text-center"
-          onClick={onDelete}
-        >
-          Delete Entry
-        </Button>
+        {isDeleted ? (
+          confirmUndelete ? (
+            <div className="flex-1 flex gap-2">
+              <Button
+                mode="dangerous"
+                className="flex-1 text-center"
+                disabled={isUndeletePending}
+                onClick={onUndelete}
+              >
+                Are you sure?
+              </Button>
+              <Button
+                mode="normal"
+                className="flex-1 text-center"
+                onClick={() => setConfirmUndelete(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button
+              mode="primary"
+              className="flex-1 text-center"
+              onClick={onUndelete}
+            >
+              Undelete Note
+            </Button>
+          )
+        ) : (
+          <Button
+            mode="dangerous"
+            className="flex-1 text-center"
+            onClick={onDelete}
+          >
+            Delete Note
+          </Button>
+        )}
         <Button
           mode="primary"
           className="flex-1 text-center"

@@ -17,6 +17,7 @@ import {
   addServerIncident,
   deleteServerIncident,
   editServerIncident,
+  undeleteServerIncident,
   fetchInvitation,
   getAssetUploadURL,
   getSender,
@@ -30,6 +31,7 @@ import { signWebSocketConnectionURL } from "~utils/data/crypto";
 import {
   addIncident,
   deleteIncident,
+  undeleteIncident,
   deleteManyIncidents,
   getDeletedIncidentsForEvent,
   getIncidentsByEvent,
@@ -89,6 +91,7 @@ export type ShareConnectionActions = {
   addIncident(incident: Incident): Promise<void>;
   editIncident(incident: Incident): Promise<void>;
   deleteIncident(id: string): Promise<void>;
+  undeleteIncident(incident: Incident): Promise<void>;
   updateScratchpad(id: string, scratchpad: MatchScratchpad): Promise<void>;
   connect(invitation: UserInvitation): Promise<void>;
   disconnect(): Promise<void>;
@@ -191,6 +194,12 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
       }
       case "remove_incident": {
         await deleteIncident(data.id);
+        queryClient.invalidateQueries({ queryKey: ["incidents"] });
+        break;
+      }
+      case "undelete_incident": {
+        await undeleteIncident(data.incident.id);
+        await addIncident(data.incident);
         queryClient.invalidateQueries({ queryKey: ["incidents"] });
         break;
       }
@@ -439,6 +448,18 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
     }
 
     return get().send({ type: "remove_incident", id });
+  },
+
+  undeleteIncident: async (incident: Incident) => {
+    const store = get();
+    const connected = store.readyState === WebSocket.OPEN;
+    const invitation = store.invitation;
+    if (!connected && invitation) {
+      await undeleteServerIncident(incident, invitation.sku);
+      return;
+    }
+
+    return get().send({ type: "undelete_incident", incident });
   },
 
   updateScratchpad: async (id: string, scratchpad: MatchScratchpad) => {

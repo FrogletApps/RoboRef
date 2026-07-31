@@ -109,6 +109,7 @@ export type IncidentListSummaryProps = {
   countLabel: string;
   exportFilenamePrefix: string;
   readonlyIncidents?: boolean;
+  allowUndelete?: boolean;
   footer?: React.ReactNode;
 };
 
@@ -118,6 +119,7 @@ export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
   countLabel,
   exportFilenamePrefix,
   readonlyIncidents,
+  allowUndelete,
   footer,
 }) => {
   const { data: event } = useCurrentEvent();
@@ -233,6 +235,7 @@ export const IncidentListSummary: React.FC<IncidentListSummaryProps> = ({
             incident={incident}
             key={incident.id}
             readonly={readonlyIncidents}
+            allowUndelete={allowUndelete}
             className="h-14 overflow-hidden"
           />
         )}

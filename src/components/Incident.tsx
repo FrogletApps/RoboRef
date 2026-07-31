@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { twMerge } from "tailwind-merge";
 import {
   IncidentOutcome,
@@ -8,13 +9,15 @@ import { useCurrentEvent } from "~utils/hooks/state";
 import { useRulesForEvent } from "~utils/hooks/rules";
 import { MenuButton } from "./MenuButton";
 import { useEventTeam } from "~utils/hooks/robotevents";
-import { ButtonProps, LinkButton } from "./Button";
+import { ButtonProps, Button, LinkButton } from "./Button";
 import { usePeerUserName } from "~utils/data/share";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { Warning } from "./Warning";
 import { AssetPreview } from "./Assets";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { RulesDisplay } from "./Input";
+import { useUndeleteIncident } from "~utils/hooks/incident";
+import { toast } from "./Toast";
 
 const IncidentOutcomeBackgroundClasses: { [O in IncidentOutcome]: string } = {
   Minor: "bg-yellow-400 text-yellow-900",
@@ -27,6 +30,7 @@ const IncidentOutcomeBackgroundClasses: { [O in IncidentOutcome]: string } = {
 export type IncidentProps = {
   incident: IncidentData;
   readonly?: boolean;
+  allowUndelete?: boolean;
 } & ButtonProps;
 
 export type IncidentHighlightProps = {
@@ -72,6 +76,7 @@ export const IncidentHighlights: React.FC<IncidentHighlightProps> = ({
 export const Incident: React.FC<IncidentProps> = ({
   incident,
   readonly,
+  allowUndelete,
   ...props
 }) => {
   return (
@@ -81,6 +86,7 @@ export const Incident: React.FC<IncidentProps> = ({
         <IncidentMenu
           incident={incident}
           readonly={readonly}
+          allowUndelete={allowUndelete}
         />
       }
       {...props}
@@ -113,11 +119,13 @@ export const Incident: React.FC<IncidentProps> = ({
 export type IncidentMenuProps = {
   incident: IncidentData;
   readonly?: boolean;
+  allowUndelete?: boolean;
 } & React.HTMLProps<HTMLDivElement>;
 
 export const IncidentMenu: React.FC<IncidentMenuProps> = ({
   incident,
   readonly,
+  allowUndelete,
   ...props
 }) => {
   const { data: event } = useCurrentEvent();
@@ -127,6 +135,28 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
 
   const contactName = usePeerUserName(incident.consistency.outcome.peer);
   const date = new Date(incident.consistency.outcome.instant);
+
+  const { mutateAsync: undeleteIncident, isPending: isUndeletePending } =
+    useUndeleteIncident();
+  const [confirmUndelete, setConfirmUndelete] = useState(false);
+
+  const onUndelete = useCallback(async () => {
+    if (!confirmUndelete) {
+      setConfirmUndelete(true);
+      return;
+    }
+
+    try {
+      await undeleteIncident(incident);
+      toast({ type: "info", message: "Undeleted Note" });
+    } catch (e) {
+      toast({
+        type: "error",
+        message: "Could not undelete note!",
+        context: JSON.stringify(e),
+      });
+    }
+  }, [confirmUndelete, incident, undeleteIncident]);
 
   return (
     <div {...props}>
@@ -192,7 +222,35 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
           ) : null}
         </div>
       </div>
-      {readonly ? null : (
+      {allowUndelete ? (
+        confirmUndelete ? (
+          <div className="flex gap-2 mt-4">
+            <Button
+              mode="dangerous"
+              className="flex-1 text-center"
+              disabled={isUndeletePending}
+              onClick={onUndelete}
+            >
+              Are you sure?
+            </Button>
+            <Button
+              mode="normal"
+              className="flex-1 text-center"
+              onClick={() => setConfirmUndelete(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <Button
+            mode="primary"
+            className="w-full mt-4 text-center"
+            onClick={onUndelete}
+          >
+            Undelete Note
+          </Button>
+        )
+      ) : readonly ? null : (
         <LinkButton
           to="/$sku/entry/$incidentId"
           params={{ sku: event?.sku ?? "", incidentId: incident.id }}

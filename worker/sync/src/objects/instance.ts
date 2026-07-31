@@ -50,6 +50,7 @@ export class ShareInstance extends DurableObject {
       .get("/csv", () => this.handleCSV())
       .get("/json", () => this.handleJSON())
       .put("/incident", (r) => this.handleAddIncident(r))
+      .post("/incident/undelete", (r) => this.handleUndeleteIncident(r))
       .patch("/incident", (r) => this.handleEditIncident(r))
       .delete("/incident", (r) => this.handleDeleteIncident(r))
       .all("*", () =>
@@ -112,6 +113,10 @@ export class ShareInstance extends DurableObject {
 
   async deleteIncident(id: string): Promise<void> {
     return this.state.storage.put(this.KEYS.deletedIncident(id), true);
+  }
+
+  async undeleteIncident(id: string): Promise<void> {
+    await this.state.storage.delete(this.KEYS.deletedIncident(id));
   }
 
   async getIncident(id: string): Promise<Incident | undefined> {
@@ -438,6 +443,38 @@ export class ShareInstance extends DurableObject {
     });
   }
 
+  async handleUndeleteIncident(request: Request) {
+    const user = this.getRequestUser(request);
+    const client = this.clients[user.key];
+
+    const sender: WebSocketSender = client
+      ? {
+          type: "client",
+          name: client.user.name,
+          id: client.user.key,
+        }
+      : { type: "server" };
+
+    const incident = this.getRequestBody<Incident>(request);
+
+    if (!incident) {
+      return response({
+        success: false,
+        reason: "bad_request",
+        details: "Must specify a valid incident to undelete.",
+      });
+    }
+
+    await this.undeleteIncident(incident.id);
+    await this.addIncident(incident);
+    this.broadcast({ type: "undelete_incident", incident }, sender);
+
+    return response({
+      success: true,
+      data: incident,
+    });
+  }
+
   async handleWebsocket(request: Request) {
     const ip = request.headers.get("CF-Connecting-IP") ?? "0.0.0.0";
 
@@ -521,6 +558,16 @@ export class ShareInstance extends DurableObject {
             await this.deleteIncident(data.id);
             this.broadcast(
               { type: "remove_incident", id: data.id },
+              { type: "client", name: client.user.name, id: client.user.key }
+            );
+            break;
+          }
+          case "undelete_incident": {
+            const incident = data.incident;
+            await this.undeleteIncident(incident.id);
+            await this.addIncident(incident);
+            this.broadcast(
+              { type: "undelete_incident", incident },
               { type: "client", name: client.user.name, id: client.user.key }
             );
             break;

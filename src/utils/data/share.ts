@@ -343,6 +343,19 @@ export async function deleteServerIncident(
   return response.json();
 }
 
+export async function undeleteServerIncident(
+  incident: Incident,
+  sku: string
+): Promise<ShareResponse<APIPutIncidentResponseBody>> {
+  const url = new URL(`/api/${sku}/incident/undelete`, URL_BASE);
+
+  const response = await signedFetch(url, {
+    method: "POST",
+    body: JSON.stringify(incident),
+  });
+  return response.json();
+}
+
 export async function putRequestCode(
   sku: string
 ): Promise<ShareResponse<APIPutInvitationRequestResponseBody>> {
