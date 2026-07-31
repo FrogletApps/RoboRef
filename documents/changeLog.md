@@ -1,7 +1,7 @@
 ## 31 July 2026
 
-- Allow undeleting notes from Deleted Notes page with confirmation (#51)
 - Updated user interface labels to use Note/Notes consistently
+- Allow notes to be undeleted, this is tracked via note history.
 - Renamed 'Update Log' to 'Change Log' across navigation and headers
 - Only show Change Log on load if there have been changes added to it
 - UI tweaks for usability
