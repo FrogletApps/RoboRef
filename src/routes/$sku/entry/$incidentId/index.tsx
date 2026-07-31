@@ -26,9 +26,11 @@ import { useEventMatchesForTeam, useEventTeam } from "~utils/hooks/robotevents";
 import { Rule, useRulesForEvent } from "~utils/hooks/rules";
 import { useCurrentEvent } from "~utils/hooks/state";
 import { queryClient } from "~utils/data/query";
-import { LWWKeys } from "@referee-fyi/consistency";
+import { KeyRegister, LWWKeys } from "@referee-fyi/consistency";
 import { AssetPreview } from "~components/Assets";
 import { Spinner } from "~components/Spinner";
+import { timeAgo } from "~utils/time";
+import { usePeerUserName } from "~utils/data/share";
 
 export const EditIncidentPage: React.FC = () => {
   const navigate = useNavigate();
@@ -270,6 +272,24 @@ export const EditIncidentPage: React.FC = () => {
     });
   }, [incident, id, navigate, sku]);
 
+  const mostRecentRegister = useMemo(() => {
+    if (!incident || !incident.consistency) return null;
+    let newest: { peer: string; instant: string } | null = null;
+    for (const reg of Object.values(incident.consistency)) {
+      const r = reg as KeyRegister<Record<string, unknown>, string>;
+      if (!r || !r.instant) continue;
+      if (
+        !newest ||
+        new Date(r.instant).getTime() > new Date(newest.instant).getTime()
+      ) {
+        newest = r;
+      }
+    }
+    return newest;
+  }, [incident]);
+
+  const lastEditedUser = usePeerUserName(mostRecentRegister?.peer);
+
   if (isLoading || !incident) {
     return (
       <div className="max-w-xl h-full w-full mx-auto flex-1 p-4">
@@ -478,6 +498,12 @@ export const EditIncidentPage: React.FC = () => {
         >
           View Note History
         </Button>
+        {mostRecentRegister && (
+          <p className="text-center text-xs text-zinc-400 mt-2">
+            Last edited {lastEditedUser ? `by ${lastEditedUser}, ` : ""}
+            {timeAgo(new Date(mostRecentRegister.instant))}
+          </p>
+        )}
       </div>
     </div>
   );
