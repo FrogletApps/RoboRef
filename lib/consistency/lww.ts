@@ -95,11 +95,18 @@ export function mergeLWW<T extends BaseWithLWWConsistency>(
       continue;
     }
 
-    const localHistory = local.consistency[key];
-    const remoteHistory = remote.consistency[key];
+    const localHistory = local.consistency?.[key];
+    const remoteHistory = remote.consistency?.[key];
+
+    if (!remoteHistory) continue;
+
+    const localCount = localHistory?.count ?? 0;
+    const remoteCount = remoteHistory.count;
+    const localPeer = localHistory?.peer ?? "";
+    const remotePeer = remoteHistory.peer;
 
     // Local History is more advanced
-    const shouldReject = localHistory.count > remoteHistory.count;
+    const shouldReject = localCount > remoteCount;
 
     if (shouldReject) {
       rejected.push(key);
@@ -107,10 +114,9 @@ export function mergeLWW<T extends BaseWithLWWConsistency>(
 
     const shouldOverride =
       // Remote Count > Local Count
-      remoteHistory.count > localHistory.count ||
+      remoteCount > localCount ||
       // Tie Breaker
-      (remoteHistory.count === localHistory.count &&
-        remoteHistory.peer > localHistory.peer);
+      (remoteCount === localCount && remotePeer > localPeer);
 
     if (shouldOverride) {
       resolved[key] = remote[key];
@@ -175,12 +181,12 @@ export function equivalentLWW<T extends BaseWithLWWConsistency>({
       continue;
     }
 
-    const leftConsistency = left.consistency[key];
-    const rightConsistency = right.consistency[key];
+    const leftConsistency = left.consistency?.[key];
+    const rightConsistency = right.consistency?.[key];
 
     if (
-      leftConsistency.count !== rightConsistency.count ||
-      leftConsistency.peer !== rightConsistency.peer
+      (leftConsistency?.count ?? 0) !== (rightConsistency?.count ?? 0) ||
+      (leftConsistency?.peer ?? "") !== (rightConsistency?.peer ?? "")
     ) {
       return false;
     }
@@ -204,21 +210,22 @@ export function updateLWW<
   object: T,
   { key, value, peer, instant = new Date().toISOString() }: UpdateOptions<K, V>
 ): T {
-  const current = object.consistency[key].history as History<T, K>[];
+  const existingRegister = object.consistency?.[key] as KeyRegister<T, K> | undefined;
+  const currentHistory = (existingRegister?.history ?? []) as History<T, K>[];
   const register: KeyRegister<T, K> = {
-    count: object.consistency[key].count + 1,
+    count: (existingRegister?.count ?? 0) + 1,
     peer,
     instant,
-    history: current.concat({
+    history: currentHistory.concat({
       prev: object[key],
       peer,
-      instant: object.consistency[key].instant,
+      instant: existingRegister?.instant ?? instant,
     } as History<T, K>),
   };
   return {
     ...object,
     [key]: value,
-    consistency: { ...object.consistency, [key]: register },
+    consistency: { ...(object.consistency ?? {}), [key]: register },
   };
 }
 

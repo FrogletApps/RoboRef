@@ -1,10 +1,9 @@
 import {
   BaseWithLWWConsistency,
-  History,
   KeyRegister,
   LWWKeys,
 } from "@referee-fyi/consistency";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { timeAgo } from "~utils/time";
 import { Button } from "./Button";
@@ -12,29 +11,51 @@ import { Dialog, DialogBody, DialogHeader } from "./Dialog";
 import { UserCircleIcon, ClockIcon } from "@heroicons/react/20/solid";
 import { usePeerUserName } from "~utils/data/share";
 
-export type EditHistoryItemProps<
-  T extends Record<string, unknown>,
-  K extends keyof T,
-> = {
-  register: KeyRegister<T, K>;
-  i: number;
-  currentValue: T[K];
-  render?: (value: T[K]) => React.ReactNode;
+export type HistoryRecord = {
+  key: string;
+  prev: unknown;
+  to: unknown;
+  peer: string;
+  instant: string;
 };
 
-export const EditHistoryItem = <
-  T extends Record<string, unknown>,
-  K extends keyof T,
->({
-  register,
-  i,
+export type EditHistoryRecordItemProps = {
+  record: HistoryRecord;
+  render?: (value: unknown) => React.ReactNode;
+};
+
+export const EditHistoryRecordItem: React.FC<EditHistoryRecordItemProps> = ({
+  record,
   render = (value) => JSON.stringify(value),
-  currentValue,
-}: EditHistoryItemProps<T, K>) => {
-  const history = register.history[i] as History<T, K>;
-  const to = register.history[i + 1]?.prev ?? currentValue;
-  const user = usePeerUserName(history.peer);
-  const date = new Date(history.instant);
+}) => {
+  const user = usePeerUserName(record.peer);
+  const date = new Date(record.instant);
+
+  if (record.key === "deleted") {
+    const isDeletedAction = record.to === true;
+    return (
+      <section className="bg-zinc-700 p-2 rounded-md mb-4 grid gap-2 grid-cols-2">
+        <p className="mr-4">
+          <UserCircleIcon
+            height={20}
+            className="inline mr-2"
+            aria-hidden="true"
+          />
+          <span className="sr-only">User: </span>
+          {user}
+        </p>
+        <p>
+          <ClockIcon height={20} className="inline mr-2" aria-hidden="true" />
+          <span className="sr-only">Time: </span>
+          {date.toLocaleTimeString()}
+        </p>
+        <p className="col-span-2 font-semibold text-emerald-400">
+          {isDeletedAction ? "Deleted Note" : "Undeleted Note"}
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="bg-zinc-700 p-2 rounded-md mb-4 grid gap-2 grid-cols-2">
       <p className="mr-4">
@@ -53,11 +74,11 @@ export const EditHistoryItem = <
       </p>
       <p>
         <span>From </span>
-        {render(history.prev)}
+        {render(record.prev)}
       </p>
       <p>
         <span>To </span>
-        {render(to)}
+        {render(record.to)}
       </p>
     </section>
   );
@@ -70,7 +91,7 @@ export type EditHistoryDialogProps<
   open: boolean;
   onClose: () => void;
   value: T;
-  valueKey: K;
+  valueKey?: K;
   render?: (value: T[K]) => React.ReactNode;
 };
 
@@ -81,28 +102,53 @@ const EditHistoryDialog = <
   open,
   onClose,
   value,
-  valueKey,
   render,
 }: EditHistoryDialogProps<T, K>) => {
-  const consistency = value.consistency[valueKey] as KeyRegister<T, K>;
+  const allRecords = useMemo(() => {
+    if (!value || !value.consistency) return [];
+    const records: HistoryRecord[] = [];
+
+    for (const [key, register] of Object.entries(value.consistency)) {
+      const reg = register as KeyRegister<Record<string, unknown>, string>;
+      if (!reg || !reg.history) continue;
+
+      reg.history.forEach((h, i) => {
+        const to = reg.history[i + 1]?.prev ?? value[key];
+        records.push({
+          key,
+          prev: h.prev,
+          to,
+          peer: h.peer,
+          instant: h.instant,
+        });
+      });
+    }
+
+    return records.sort(
+      (a, b) => new Date(b.instant).getTime() - new Date(a.instant).getTime()
+    );
+  }, [value]);
+
   return (
     <Dialog
       mode="modal"
       open={open}
       onClose={onClose}
-      aria-label={`Edit History for ${valueKey}`}
+      aria-label="Edit History"
     >
       <DialogHeader title="Edit History" onClose={onClose} />
       <DialogBody className="p-2">
-        {consistency.history.map((history, i) => (
-          <EditHistoryItem
-            register={consistency}
-            i={i}
-            render={render}
-            currentValue={value[valueKey]}
-            key={history.instant}
-          />
-        ))}
+        {allRecords.length > 0 ? (
+          allRecords.map((record) => (
+            <EditHistoryRecordItem
+              record={record}
+              render={render as (value: unknown) => React.ReactNode}
+              key={`${record.key}-${record.instant}`}
+            />
+          ))
+        ) : (
+          <p className="text-zinc-400 text-center py-4">No edit history yet</p>
+        )}
       </DialogBody>
     </Dialog>
   );
@@ -129,11 +175,23 @@ export const EditHistory = <
   className,
   render,
 }: EditHistoryProps<T, K>) => {
-  const consistency = value?.consistency[valueKey];
-  const user = usePeerUserName(consistency?.peer);
+  const mostRecentRegister = useMemo(() => {
+    if (!value || !value.consistency) return null;
+    let newest: { peer: string; instant: string } | null = null;
+    for (const reg of Object.values(value.consistency)) {
+      const r = reg as KeyRegister<Record<string, unknown>, string>;
+      if (!r || !r.instant) continue;
+      if (!newest || new Date(r.instant).getTime() > new Date(newest.instant).getTime()) {
+        newest = r;
+      }
+    }
+    return newest;
+  }, [value]);
+
+  const user = usePeerUserName(mostRecentRegister?.peer);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  if (!consistency || !value) {
+  if (!mostRecentRegister || !value) {
     return (
       <div
         className={twMerge(
@@ -157,7 +215,7 @@ export const EditHistory = <
         )}
       >
         {user ? `${user}, ` : ""}
-        {timeAgo(new Date(consistency.instant))}
+        {timeAgo(new Date(mostRecentRegister.instant))}
       </p>
       <EditHistoryDialog
         open={historyOpen}

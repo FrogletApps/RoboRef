@@ -265,7 +265,7 @@ export async function newIncident({
   id,
 }: NewIncidentOptions): Promise<Incident> {
   const incident: Incident = initLWW({
-    value: { ...data, id },
+    value: { ...data, deleted: false, id },
     ignore: INCIDENT_IGNORE,
     peer,
   });
@@ -359,6 +359,14 @@ export async function deleteIncident(id: string): Promise<void> {
     return;
   }
 
+  const profile = await getShareProfile();
+  const updated = updateLWW(incident, {
+    key: "deleted" as any,
+    value: true,
+    peer: profile.key,
+  });
+  await setIncident(id, updated);
+
   await bulkIndexRemove({
     [`event_${incident.event}_idx`]: [incident],
     [`team_${incident.team}_idx`]: [incident],
@@ -376,6 +384,14 @@ export async function undeleteIncident(id: string): Promise<void> {
   if (!incident) {
     return;
   }
+
+  const profile = await getShareProfile();
+  const updated = updateLWW(incident, {
+    key: "deleted" as any,
+    value: false,
+    peer: profile.key,
+  });
+  await setIncident(id, updated);
 
   await bulkIndexRemove({
     [`deleted_event_${incident.event}_idx`]: [incident],

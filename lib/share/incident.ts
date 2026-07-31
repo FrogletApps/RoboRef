@@ -42,6 +42,7 @@ export type BaseIncident = {
   notes: string;
   assets: string[];
   flags: IncidentFlag[];
+  deleted?: boolean;
 };
 
 export const INCIDENT_IGNORE = ["id", "time", "event", "team"] as const;

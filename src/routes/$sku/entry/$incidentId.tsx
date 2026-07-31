@@ -17,7 +17,6 @@ import {
 } from "@referee-fyi/share";
 import { IncidentOutcome, Incident } from "~utils/data/incident";
 import {
-  useDeleteIncident,
   useEditIncident,
   useEventDeletedIncidents,
   useIncident,
@@ -38,7 +37,6 @@ export const EditIncidentPage: React.FC = () => {
   const id = incidentId ?? "";
 
   const [incident, setIncident] = useState<Incident>();
-  const { mutateAsync: deleteIncident } = useDeleteIncident();
   const { mutateAsync: editIncident } = useEditIncident();
   const { mutateAsync: undeleteIncident, isPending: isUndeletePending } =
     useUndeleteIncident();
@@ -216,26 +214,7 @@ export const EditIncidentPage: React.FC = () => {
     [incident?.flags, update]
   );
 
-  const onDelete = useCallback(async () => {
-    if (!incident) return;
 
-    try {
-      await deleteIncident(incident.id);
-      toast({ type: "info", message: "Deleted Note" });
-
-      if (router.history.canGoBack()) {
-        router.history.back();
-      } else {
-        navigate({ to: "/$sku", params: { sku: sku ?? "" } });
-      }
-    } catch (e) {
-      toast({
-        type: "error",
-        message: "Could not delete note!",
-        context: JSON.stringify(e),
-      });
-    }
-  }, [deleteIncident, incident, router, navigate, sku]);
 
   const onUndelete = useCallback(async () => {
     if (!incident) return;
@@ -442,51 +421,53 @@ export const EditIncidentPage: React.FC = () => {
         <EditHistory value={incident} valueKey="notes" />
       </section>
 
-      <div className="flex gap-4 mt-6">
+      <div className="mt-6">
         {isDeleted ? (
-          confirmUndelete ? (
-            <div className="flex-1 flex gap-2">
+          <div className="flex gap-4">
+            {confirmUndelete ? (
+              <div className="flex-1 flex gap-2">
+                <Button
+                  mode="dangerous"
+                  className="flex-1 text-center"
+                  disabled={isUndeletePending}
+                  onClick={onUndelete}
+                >
+                  Are you sure?
+                </Button>
+                <Button
+                  mode="normal"
+                  className="flex-1 text-center"
+                  onClick={() => setConfirmUndelete(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
               <Button
-                mode="dangerous"
+                mode="primary"
                 className="flex-1 text-center"
-                disabled={isUndeletePending}
                 onClick={onUndelete}
               >
-                Are you sure?
+                Undelete Note
               </Button>
-              <Button
-                mode="normal"
-                className="flex-1 text-center"
-                onClick={() => setConfirmUndelete(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          ) : (
+            )}
             <Button
               mode="primary"
               className="flex-1 text-center"
-              onClick={onUndelete}
+              onClick={onSave}
             >
-              Undelete Note
+              Save Changes
             </Button>
-          )
+          </div>
         ) : (
           <Button
-            mode="dangerous"
-            className="flex-1 text-center"
-            onClick={onDelete}
+            mode="primary"
+            className="w-full text-center"
+            onClick={onSave}
           >
-            Delete Note
+            Save Changes
           </Button>
         )}
-        <Button
-          mode="primary"
-          className="flex-1 text-center"
-          onClick={onSave}
-        >
-          Save Changes
-        </Button>
       </div>
     </div>
   );

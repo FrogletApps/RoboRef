@@ -16,7 +16,7 @@ import { Warning } from "./Warning";
 import { AssetPreview } from "./Assets";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { RulesDisplay } from "./Input";
-import { useUndeleteIncident } from "~utils/hooks/incident";
+import { useDeleteIncident, useUndeleteIncident } from "~utils/hooks/incident";
 import { toast } from "./Toast";
 
 const IncidentOutcomeBackgroundClasses: { [O in IncidentOutcome]: string } = {
@@ -142,6 +142,10 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
     useUndeleteIncident();
   const [confirmUndelete, setConfirmUndelete] = useState(false);
 
+  const { mutateAsync: deleteIncident, isPending: isDeletePending } =
+    useDeleteIncident();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   const onUndelete = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -163,6 +167,29 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
       }
     },
     [confirmUndelete, incident, undeleteIncident, onClose]
+  );
+
+  const onDelete = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!confirmDelete) {
+        setConfirmDelete(true);
+        return;
+      }
+
+      try {
+        await deleteIncident(incident.id);
+        toast({ type: "info", message: "Deleted Note" });
+        onClose?.();
+      } catch (err) {
+        toast({
+          type: "error",
+          message: "Could not delete note!",
+          context: JSON.stringify(err),
+        });
+      }
+    },
+    [confirmDelete, incident.id, deleteIncident, onClose]
   );
 
   return (
@@ -260,14 +287,44 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
             Undelete Note
           </Button>
         )
-      ) : readonly ? null : (
-        <LinkButton
-          to="/$sku/entry/$incidentId"
-          params={{ sku: event?.sku ?? "", incidentId: incident.id }}
-          className="w-full mt-4 text-center"
-        >
-          Edit + Delete
-        </LinkButton>
+      ) : readonly ? null : confirmDelete ? (
+        <div className="flex gap-2 mt-4">
+          <Button
+            mode="dangerous"
+            className="flex-1 text-center"
+            disabled={isDeletePending}
+            onClick={onDelete}
+          >
+            Are you sure?
+          </Button>
+          <Button
+            mode="normal"
+            className="flex-1 text-center"
+            onClick={(e) => {
+              e.stopPropagation();
+              setConfirmDelete(false);
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <div className="flex gap-2 mt-4">
+          <Button
+            mode="dangerous"
+            className="flex-1 text-center"
+            onClick={onDelete}
+          >
+            Delete Note
+          </Button>
+          <LinkButton
+            to="/$sku/entry/$incidentId"
+            params={{ sku: event?.sku ?? "", incidentId: incident.id }}
+            className="flex-1 text-center bg-emerald-600 active:bg-emerald-700 text-white"
+          >
+            Edit Note
+          </LinkButton>
+        </div>
       )}
     </div>
   );
