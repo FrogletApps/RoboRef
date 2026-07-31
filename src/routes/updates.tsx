@@ -25,7 +25,7 @@ export const UpdatesPage: React.FC = () => {
   }, []);
 
   return (
-    <main className="max-w-xl h-full w-full mx-auto flex-1 pb-6 overflow-y-auto markdown">
+    <main className="w-full h-full flex-1 px-4 pb-6 overflow-y-auto markdown">
       <section className="mt-4">
         <h2 className="font-bold">Current Version</h2>
         <p className="text-zinc-400 text-sm mt-2">

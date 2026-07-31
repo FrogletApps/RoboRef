@@ -1,9 +1,8 @@
 ## 31 July 2026
 
-- Added 'No notes recorded!' label when expanding a team with no notes in Matches view
-- Added explanatory note under the app version number
 - Renamed 'Update Log' to 'Change Log' across navigation and headers
 - Only show Change Log on load if there have been changes added to it
+- UI tweaks for usability
 
 ## 29 July 2026
 
