@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { timeAgo } from "~utils/time";
 import { Button } from "./Button";
-import { Dialog, DialogBody, DialogHeader } from "./Dialog";
 import { UserCircleIcon, ClockIcon } from "@heroicons/react/20/solid";
 import { usePeerUserName } from "~utils/data/share";
 
@@ -84,26 +83,24 @@ export const EditHistoryRecordItem: React.FC<EditHistoryRecordItemProps> = ({
   );
 };
 
-export type EditHistoryDialogProps<
+export type EditHistoryViewProps<
   T extends BaseWithLWWConsistency,
   K extends LWWKeys<T>,
 > = {
-  open: boolean;
-  onClose: () => void;
-  value: T;
+  value: T | null | undefined;
   valueKey?: K;
   render?: (value: T[K]) => React.ReactNode;
+  className?: string;
 };
 
-const EditHistoryDialog = <
+export const EditHistoryView = <
   T extends BaseWithLWWConsistency,
   K extends LWWKeys<T>,
 >({
-  open,
-  onClose,
   value,
   render,
-}: EditHistoryDialogProps<T, K>) => {
+  className,
+}: EditHistoryViewProps<T, K>) => {
   const allRecords = useMemo(() => {
     if (!value || !value.consistency) return [];
     const records: HistoryRecord[] = [];
@@ -129,28 +126,24 @@ const EditHistoryDialog = <
     );
   }, [value]);
 
+  if (!value) {
+    return null;
+  }
+
   return (
-    <Dialog
-      mode="modal"
-      open={open}
-      onClose={onClose}
-      aria-label="Edit History"
-    >
-      <DialogHeader title="Edit History" onClose={onClose} />
-      <DialogBody className="p-2">
-        {allRecords.length > 0 ? (
-          allRecords.map((record) => (
-            <EditHistoryRecordItem
-              record={record}
-              render={render as (value: unknown) => React.ReactNode}
-              key={`${record.key}-${record.instant}`}
-            />
-          ))
-        ) : (
-          <p className="text-zinc-400 text-center py-4">No edit history yet</p>
-        )}
-      </DialogBody>
-    </Dialog>
+    <div className={twMerge("flex flex-col gap-2", className)}>
+      {allRecords.length > 0 ? (
+        allRecords.map((record) => (
+          <EditHistoryRecordItem
+            record={record}
+            render={render as (value: unknown) => React.ReactNode}
+            key={`${record.key}-${record.instant}`}
+          />
+        ))
+      ) : (
+        <p className="text-zinc-400 text-center py-8">No edit history yet</p>
+      )}
+    </div>
   );
 };
 
@@ -203,34 +196,32 @@ export const EditHistory = <
   }
 
   return (
-    <div
-      className={twMerge("flex items-center justify-between mt-2", className)}
-    >
-      <p
-        className={twMerge(
-          "px-2 text-sm ",
-          dirty
-            ? "text-black italic bg-emerald-400 rounded-md"
-            : "text-emerald-400"
-        )}
-      >
-        {user ? `${user}, ` : ""}
-        {timeAgo(new Date(mostRecentRegister.instant))}
-      </p>
-      <EditHistoryDialog
-        open={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        value={value}
-        valueKey={valueKey}
-        render={render}
-      />
-      <Button
-        className="flex items-center w-max gap-2 py-1"
-        onClick={() => setHistoryOpen(true)}
-      >
-        <ClockIcon height={20} />
-        History
-      </Button>
+    <div className={twMerge("flex flex-col gap-2 mt-2", className)}>
+      <div className="flex items-center justify-between">
+        <p
+          className={twMerge(
+            "px-2 text-sm ",
+            dirty
+              ? "text-black italic bg-emerald-400 rounded-md"
+              : "text-emerald-400"
+          )}
+        >
+          {user ? `${user}, ` : ""}
+          {timeAgo(new Date(mostRecentRegister.instant))}
+        </p>
+        <Button
+          className="flex items-center w-max gap-2 py-1"
+          onClick={() => setHistoryOpen((open) => !open)}
+        >
+          <ClockIcon height={20} />
+          {historyOpen ? "Hide History" : "History"}
+        </Button>
+      </div>
+      {historyOpen && (
+        <div className="mt-2 border-t border-zinc-700 pt-3">
+          <EditHistoryView value={value} valueKey={valueKey} render={render} />
+        </div>
+      )}
     </div>
   );
 };

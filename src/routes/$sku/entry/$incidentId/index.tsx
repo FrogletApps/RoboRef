@@ -25,7 +25,7 @@ import {
 import { useEventMatchesForTeam, useEventTeam } from "~utils/hooks/robotevents";
 import { Rule, useRulesForEvent } from "~utils/hooks/rules";
 import { useCurrentEvent } from "~utils/hooks/state";
-import { EditHistory } from "~components/EditHistory";
+import { queryClient } from "~utils/data/query";
 import { LWWKeys } from "@referee-fyi/consistency";
 import { AssetPreview } from "~components/Assets";
 import { Spinner } from "~components/Spinner";
@@ -214,8 +214,6 @@ export const EditIncidentPage: React.FC = () => {
     [incident?.flags, update]
   );
 
-
-
   const onUndelete = useCallback(async () => {
     if (!incident) return;
     if (!confirmUndelete) {
@@ -261,6 +259,16 @@ export const EditIncidentPage: React.FC = () => {
       });
     }
   }, [editIncident, incident, router, navigate, sku]);
+
+  const onViewHistory = useCallback(() => {
+    if (incident) {
+      queryClient.setQueryData(["incidents", id], incident);
+    }
+    navigate({
+      to: "/$sku/entry/$incidentId/history",
+      params: { sku: sku ?? "", incidentId: id },
+    });
+  }, [incident, id, navigate, sku]);
 
   if (isLoading || !incident) {
     return (
@@ -416,12 +424,7 @@ export const EditIncidentPage: React.FC = () => {
         />
       </label>
 
-      <section className="mt-6">
-        <h2 className="font-bold text-lg mb-2">Edit History</h2>
-        <EditHistory value={incident} valueKey="notes" />
-      </section>
-
-      <div className="mt-6">
+      <div className="mt-6 mb-8">
         {isDeleted ? (
           <div className="flex gap-4">
             {confirmUndelete ? (
@@ -468,11 +471,18 @@ export const EditIncidentPage: React.FC = () => {
             Save Changes
           </Button>
         )}
+        <Button
+          mode="normal"
+          className="w-full text-center mt-3"
+          onClick={onViewHistory}
+        >
+          View Note History
+        </Button>
       </div>
     </div>
   );
 };
 
-export const Route = createFileRoute("/$sku/entry/$incidentId")({
+export const Route = createFileRoute("/$sku/entry/$incidentId/")({
   component: EditIncidentPage,
 });
