@@ -2,6 +2,7 @@
 
 - Added viewing options to QR code viewer: Stylised, Standard and HDR (on supported devices)
 - Fixed invite URL and QR code to consistently use roboref.fyi links
+- Bug fixes
 
 ## 31 July 2026
 

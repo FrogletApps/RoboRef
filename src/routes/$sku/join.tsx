@@ -29,21 +29,30 @@ export const EventJoinPage: React.FC = () => {
   const [isTimedOut, setIsTimedOut] = useState(false);
   const [timerKey, setTimerKey] = useState(0);
 
+  // Register user when they open
+  const { profile, updateProfile } = useShareConnection([
+    "updateProfile",
+    "profile",
+  ]);
+
+  const hasName = Boolean(profile?.name);
+
   // 2-minute timeout timer
   useEffect(() => {
+    if (!hasName) return;
     setIsTimedOut(false);
     const timer = setTimeout(() => {
       setIsTimedOut(true);
     }, TIMEOUT_DURATION_MS);
 
     return () => clearTimeout(timer);
-  }, [timerKey]);
+  }, [timerKey, hasName]);
 
   // Request Code
   const { data: requestCode, isLoading: isLoadingRequestCode } = useQuery({
     queryKey: ["request_code", sku],
     queryFn: () => putRequestCode(sku),
-    enabled: sku.length > 0 && !isTimedOut,
+    enabled: sku.length > 0 && !isTimedOut && hasName,
     gcTime: 600000,
     refetchInterval: isTimedOut ? false : 60000,
   });
@@ -52,32 +61,15 @@ export const EventJoinPage: React.FC = () => {
     return requestCode?.success ? requestCode.data.code : "";
   }, [requestCode]);
 
-  // Register user when they open
-  const { profile, updateProfile } = useShareConnection([
-    "updateProfile",
-    "profile",
-  ]);
-
   const [localName, setLocalName] = useState("");
-  const name = profile?.name;
 
   useEffect(() => {
-    if (!profile) {
-      return;
-    }
-    if (profile.name) {
+    if (profile?.name) {
       setLocalName(profile.name);
     } else {
       setLocalName("");
     }
-  }, [profile]);
-
-  useEffect(() => {
-    if (!name) {
-      return;
-    }
-    updateProfile({ name });
-  }, [profile, name, updateProfile]);
+  }, [profile?.name]);
 
   // Invitation
   const { data: invitation } = useQuery({
@@ -85,12 +77,17 @@ export const EventJoinPage: React.FC = () => {
     queryFn: () => fetchInvitation(sku),
     refetchInterval: isTimedOut ? false : 2000,
     networkMode: "always",
-    enabled: sku.length > 0 && !isTimedOut,
+    enabled: sku.length > 0 && !isTimedOut && hasName,
   });
 
   const { mutate: setNameContinue, isPending: isPendingSetNameContinue } =
     useMutation({
-      mutationFn: () => updateProfile({ name: localName }),
+      mutationFn: async () => {
+        const trimmed = localName.trim();
+        if (!trimmed) return;
+        await updateProfile({ name: trimmed });
+        await queryClient.invalidateQueries({ queryKey: ["request_code", sku] });
+      },
     });
 
   const onAcceptInvitation = useCallback(async () => {
@@ -113,10 +110,17 @@ export const EventJoinPage: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ["join_custom_get_invite"] });
   }, [sku]);
 
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (localName.trim()) {
+      setNameContinue();
+    }
+  };
+
   return (
     <section className="mt-4 flex flex-col px-2 max-w-lg mx-auto w-full">
-      {!profile ? (
-        <>
+      {!hasName ? (
+        <form onSubmit={handleNameSubmit}>
           <label>
             <h1 className="font-bold mt-4">Display Name</h1>
             <p className="text-zinc-400 text-sm mb-2">
@@ -129,16 +133,17 @@ export const EventJoinPage: React.FC = () => {
             />
           </label>
           <Button
-            className={twMerge("mt-4", !localName ? "opacity-50" : "")}
+            className={twMerge("mt-4 w-full", !localName.trim() ? "opacity-50" : "")}
+            disabled={!localName.trim() || isPendingSetNameContinue}
             mode="primary"
-            onClick={() => setNameContinue()}
+            type="submit"
           >
             Continue
           </Button>
-          <Spinner show={isPendingSetNameContinue} />
-        </>
+          <Spinner show={isPendingSetNameContinue} className="mt-4" />
+        </form>
       ) : null}
-      {profile && isTimedOut ? (
+      {hasName && isTimedOut ? (
         <section className="mt-4 flex flex-col">
           <Error
             message="Your invite code timed out, click the button below to retry. An admin will need to see the code to add you."
@@ -149,17 +154,27 @@ export const EventJoinPage: React.FC = () => {
           </Button>
         </section>
       ) : null}
-      {profile && !isTimedOut ? (
+      {hasName && !isTimedOut ? (
         <>
           <p className="mb-4">
             To join an existing instance, you will need an admin to invite you. Have
             them enter the code shown below on their device.
           </p>
-          <Spinner show={isLoadingRequestCode} />
-          <ClickToCopy
-            message={code}
-            className="font-mono text-6xl text-center"
-          />
+          {isLoadingRequestCode ? (
+            <Spinner show className="my-8" />
+          ) : code ? (
+            <ClickToCopy
+              message={code}
+              className="font-mono text-6xl text-center"
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-4 my-4">
+              <Error message="Unable to generate join code. Please check your connection and try again." />
+              <Button mode="primary" onClick={handleRetry}>
+                Retry
+              </Button>
+            </div>
+          )}
           {invitation?.data ? (
             <section className="mt-4">
               <nav className="flex justify-between items-center">
