@@ -35,6 +35,14 @@ export const QRCodeViewer: React.FC<QRCodeViewerProps> = ({
     };
   }, [text, mode]);
 
+  const toggleMode = React.useCallback(() => {
+    if (mode === "stylised") {
+      setMode("standard");
+    } else {
+      setMode("stylised");
+    }
+  }, [mode, setMode]);
+
   return (
     <div
       {...props}
@@ -60,9 +68,12 @@ export const QRCodeViewer: React.FC<QRCodeViewerProps> = ({
       </div>
 
       <div className="flex flex-col items-center gap-2 w-full">
-        <div
+        <button
+          type="button"
+          onClick={toggleMode}
+          aria-label="Toggle QR Code style"
           className={twMerge(
-            "w-64 h-64 p-4 rounded-xl flex items-center justify-center transition-all",
+            "w-64 h-64 p-4 rounded-xl flex items-center justify-center transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500",
             mode === "stylised"
               ? "bg-zinc-800/80 border border-zinc-700/50"
               : "bg-white border border-zinc-200",
@@ -76,7 +87,7 @@ export const QRCodeViewer: React.FC<QRCodeViewerProps> = ({
               mode === "stylised" ? "bg-transparent" : "bg-white"
             )}
           />
-        </div>
+        </button>
 
         {mode === "hdr" && (
           <p className="text-xs text-zinc-400 text-center max-w-xs leading-tight">
