@@ -18,8 +18,7 @@ export const EventInvitePage: React.FC = () => {
   const sku = event?.sku ?? skuParam ?? "";
 
   const joinUrl = useMemo(() => {
-    if (typeof window === "undefined") return `https://roboref.fyi/${sku}/join`;
-    return `${window.location.origin}/${sku}/join`;
+    return `https://roboref.fyi/${sku}/join`;
   }, [sku]);
 
   const [inviteCode, setInviteCode] = useState("");
@@ -134,7 +133,7 @@ export const EventInvitePage: React.FC = () => {
       <div className="mt-8 flex flex-col items-start gap-2 w-full">
         <h2 className="font-bold text-lg">Invite to Event</h2>
         <p className="text-zinc-400 text-sm">
-          Other users can use the QR code or link to access this event in RoboRef.
+          Other users can use the QR code or link to get a join code for this event in RoboRef.
         </p>
         <QRCodeViewer text={joinUrl} className="mt-2 max-w-none" />
       </div>
