@@ -14,8 +14,8 @@ export const QRCodeViewer: React.FC<QRCodeViewerProps> = ({
   className,
   ...props
 }) => {
-  const { mode, setMode } = useQRCodeMode();
-
+  const { mode, setMode, isHDRSupported } = useQRCodeMode();
+  
   const qrConfig = React.useMemo(() => {
     if (mode === "stylised") {
       return {
@@ -63,7 +63,7 @@ export const QRCodeViewer: React.FC<QRCodeViewerProps> = ({
         >
           <option value="stylised">Stylised</option>
           <option value="standard">Standard</option>
-          <option value="hdr">HDR</option>
+          {isHDRSupported && <option value="hdr">HDR</option>}
         </Select>
       </div>
 
@@ -89,12 +89,6 @@ export const QRCodeViewer: React.FC<QRCodeViewerProps> = ({
             )}
           />
         </button>
-
-        {mode === "hdr" && (
-          <p className="text-xs text-zinc-400 text-center max-w-xs leading-tight">
-            HDR will only fully work on supported browsers on supported devices
-          </p>
-        )}
       </div>
 
       <div className="w-full flex flex-col gap-3">

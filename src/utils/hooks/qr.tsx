@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { isHDRSupported as checkHDRSupport } from "~utils/ultrahdr";
 
 export type QRCodeMode = "stylised" | "standard" | "hdr";
 
 type QRCodeContextType = {
   mode: QRCodeMode;
   setMode: (mode: QRCodeMode) => void;
+  isHDRSupported: boolean;
 };
 
 const QRCodeContext = createContext<QRCodeContextType | undefined>(undefined);
@@ -12,6 +14,12 @@ const QRCodeContext = createContext<QRCodeContextType | undefined>(undefined);
 const STORAGE_KEY = "meta#qr_code_mode";
 
 export const QRCodeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [supportsHDR, setSupportsHDR] = useState(false);
+
+  useEffect(() => {
+    setSupportsHDR(checkHDRSupport());
+  }, []);
+
   const [mode, setModeState] = useState<QRCodeMode>(() => {
     if (typeof window === "undefined") return "stylised";
     const saved = localStorage.getItem(STORAGE_KEY) as QRCodeMode | null;
@@ -20,6 +28,9 @@ export const QRCodeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     return "stylised";
   });
+
+  // Fallback to stylised if HDR is selected but not supported
+  const activeMode = mode === "hdr" && !supportsHDR ? "stylised" : mode;
 
   const setMode = (newMode: QRCodeMode) => {
     setModeState(newMode);
@@ -40,7 +51,7 @@ export const QRCodeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   return (
-    <QRCodeContext.Provider value={{ mode, setMode }}>
+    <QRCodeContext.Provider value={{ mode: activeMode, setMode, isHDRSupported: supportsHDR }}>
       {children}
     </QRCodeContext.Provider>
   );

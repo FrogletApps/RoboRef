@@ -63,3 +63,39 @@ export function createUltraHDRJpeg(canvas: HTMLCanvasElement): string {
     return canvas.toDataURL("image/jpeg", 0.95);
   }
 }
+
+/**
+ * Detects if the current device has an HDR-capable display AND is running a Chromium-based browser
+ * that supports Ultra HDR (ISO 21496-1) gain map rendering.
+ */
+export function isHDRSupported(): boolean {
+  if (typeof window === "undefined") return false;
+
+  // 1. Hardware check: Screen must support High Dynamic Range (HDR)
+  const hasHDRDisplay = window.matchMedia("(dynamic-range: high)").matches;
+  if (!hasHDRDisplay) return false;
+
+  // 2. Exclude iOS / iPadOS (all iOS browsers use WebKit, which lacks client-side libultrahdr GainMap rendering)
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.maxTouchPoints > 2 && /Macintosh/i.test(ua));
+  if (isIOS) return false;
+
+  // 3. Exclude Firefox
+  const isFirefox = /Firefox|FxiOS/i.test(ua);
+  if (isFirefox) return false;
+
+  // 4. Exclude native Safari on macOS
+  const isSafari = /Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR|Brave/i.test(ua);
+  if (isSafari) return false;
+
+  // 5. Verify Chromium engine
+  const isChromium =
+    Boolean(
+      (navigator as any).userAgentData?.brands?.some((b: any) =>
+        /Chromium|Google Chrome|Microsoft Edge|Brave/i.test(b.brand)
+      )
+    ) || /Chrome|Chromium|Edg|OPR|Brave/i.test(ua);
+
+  return isChromium;
+}
+
