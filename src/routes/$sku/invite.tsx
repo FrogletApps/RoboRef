@@ -7,7 +7,7 @@ import { getSkuTextColorClass } from "~utils/data/state";
 import { Input, Checkbox } from "~components/Input";
 import { Button } from "~components/Button";
 import { ClickToCopy } from "~components/ClickToCopy";
-import { QRCode } from "~components/QRCode";
+import { QRCodeViewer } from "~components/QRCodeViewer";
 import { Spinner } from "~components/Spinner";
 import { Error, Success, Warning } from "~components/Warning";
 import { twMerge } from "tailwind-merge";
@@ -136,23 +136,7 @@ export const EventInvitePage: React.FC = () => {
         <p className="text-zinc-400 text-sm">
           Other users can use the QR code or link to access this event in RoboRef.
         </p>
-        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-xl flex flex-col items-center gap-5 w-full mt-2">
-          <div className="w-56 h-56 bg-zinc-800/80 p-4 rounded-xl border border-zinc-700/50 flex items-center justify-center">
-            <QRCode
-              config={{
-                text: joinUrl,
-                radius: 0.4,
-                ecLevel: "H",
-                fill: "#10b981",
-                background: null,
-              }}
-              className="w-full h-full p-0 bg-transparent"
-            />
-          </div>
-          <div className="w-full flex flex-col gap-3">
-            <ClickToCopy message={joinUrl} className="w-full justify-center text-center" />
-          </div>
-        </div>
+        <QRCodeViewer text={joinUrl} className="mt-2 max-w-none" />
       </div>
     </section>
   );

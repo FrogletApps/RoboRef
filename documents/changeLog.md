@@ -1,3 +1,7 @@
+## 01 August 2026
+
+- Added viewing options (Stylised, Standard, HDR) to QR code viewer
+
 ## 31 July 2026
 
 - Updated user interface labels to use Note/Notes consistently

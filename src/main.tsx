@@ -11,6 +11,7 @@ import { registerSW } from "virtual:pwa-register";
 import { initHistoryStore } from "~utils/hooks/history";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { ThemeProvider } from "~utils/hooks/theme";
+import { QRCodeProvider } from "~utils/hooks/qr";
 import {
   ErrorBoundary,
   ErrorContactDevFallback,
@@ -56,16 +57,18 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <ErrorBoundary>
-          <LazyMotion
-            features={() =>
-              import("~utils/animationFeature").then((t) => t.domMax)
-            }
-            strict
-          >
-            <RouterProvider router={router} />
-          </LazyMotion>
-        </ErrorBoundary>
+        <QRCodeProvider>
+          <ErrorBoundary>
+            <LazyMotion
+              features={() =>
+                import("~utils/animationFeature").then((t) => t.domMax)
+              }
+              strict
+            >
+              <RouterProvider router={router} />
+            </LazyMotion>
+          </ErrorBoundary>
+        </QRCodeProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </React.StrictMode>

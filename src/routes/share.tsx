@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { QRCode } from "~components/QRCode";
-import { ClickToCopy } from "~components/ClickToCopy";
+import { QRCodeViewer } from "~components/QRCodeViewer";
 import AppIcon from "/icons/roboref.svg?url";
 
 export const SharePage: React.FC = () => {
@@ -19,23 +18,7 @@ export const SharePage: React.FC = () => {
         </p>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-xl flex flex-col items-center gap-5 w-full max-w-sm">
-        <div className="w-64 h-64 bg-zinc-800/80 p-4 rounded-xl border border-zinc-700/50 flex items-center justify-center">
-          <QRCode
-            config={{
-              text: "https://roboref.fyi",
-              radius: 0.4,
-              ecLevel: "H",
-              fill: "#10b981",
-              background: null,
-            }}
-            className="w-full h-full p-0 bg-transparent"
-          />
-        </div>
-        <div className="w-full flex flex-col gap-3">
-          <ClickToCopy message="https://roboref.fyi" className="w-full justify-center text-center" />
-        </div>
-      </div>
+      <QRCodeViewer text="https://roboref.fyi" />
     </main>
   );
 };
