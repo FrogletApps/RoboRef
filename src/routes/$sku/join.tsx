@@ -157,8 +157,10 @@ export const EventJoinPage: React.FC = () => {
       {hasName && !isTimedOut ? (
         <>
           <p className="mb-4">
-            To join an existing instance, you will need an admin to invite you. Have
-            them enter the code shown below on their device.
+            To join an existing instance, you will need an admin to invite you. Ask them to enter the code shown below on their device.
+          </p>
+          <p>
+            If there is no RoboRef admin for the event, go back and select Begin Sharing instead.
           </p>
           {isLoadingRequestCode ? (
             <Spinner show className="my-8" />
