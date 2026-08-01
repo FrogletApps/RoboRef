@@ -1,13 +1,16 @@
 import type QrCreator from "qr-creator";
 import { useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
+import { createUltraHDRJpeg } from "~utils/ultrahdr";
 
 export type QRCodeProps = React.HTMLProps<HTMLDivElement> & {
   config: QrCreator.Config;
+  isHDR?: boolean;
 };
 
 export const QRCode: React.FC<QRCodeProps> = ({
   config,
+  isHDR,
   className,
   ...props
 }) => {
@@ -21,6 +24,8 @@ export const QRCode: React.FC<QRCodeProps> = ({
     let isMounted = true;
     const container = ref.current;
 
+    let createdBlobUrl: string | null = null;
+
     import("qr-creator").then(({ default: QrCreator }) => {
       if (!isMounted || !container) return;
       container.replaceChildren();
@@ -29,12 +34,31 @@ export const QRCode: React.FC<QRCodeProps> = ({
       const size = width > 0 ? width : config.size ?? 128;
 
       QrCreator.render({ size, ...config }, container);
+
+      if (isHDR) {
+        const canvas = container.querySelector("canvas");
+        if (canvas) {
+          try {
+            createdBlobUrl = createUltraHDRJpeg(canvas);
+            const img = document.createElement("img");
+            img.src = createdBlobUrl;
+            img.alt = "Ultra HDR QR Code";
+            img.className = "w-full h-full object-contain";
+            container.replaceChildren(img);
+          } catch (e) {
+            console.error("Failed to generate Ultra HDR JPEG:", e);
+          }
+        }
+      }
     });
 
     return () => {
       isMounted = false;
+      if (createdBlobUrl) {
+        URL.revokeObjectURL(createdBlobUrl);
+      }
     };
-  }, [config]);
+  }, [config, isHDR]);
 
   return (
     <div

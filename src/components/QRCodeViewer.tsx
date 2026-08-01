@@ -77,11 +77,12 @@ export const QRCodeViewer: React.FC<QRCodeViewerProps> = ({
             mode === "stylised"
               ? "bg-zinc-800/80 border border-zinc-700/50"
               : "bg-white border border-zinc-200",
-            mode === "hdr" && "bg-[color:display-p3_1_1_1] [filter:brightness(5)_contrast(2)] isolate"
+            mode === "hdr" && "bg-white"
           )}
         >
           <QRCode
             config={qrConfig}
+            isHDR={mode === "hdr"}
             className={twMerge(
               "w-full h-full p-0",
               mode === "stylised" ? "bg-transparent" : "bg-white"
