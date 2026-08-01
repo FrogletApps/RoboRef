@@ -1,6 +1,6 @@
 ## 01 August 2026
 
-- Added viewing options (Stylised, Standard, HDR) to QR code viewer
+- Added viewing options to QR code viewer: Stylised, Standard and HDR (on supported devices)
 
 ## 31 July 2026
 
