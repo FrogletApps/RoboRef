@@ -41,6 +41,16 @@ const generateVersionJson: Plugin = {
   },
 };
 
+const isTestEnv =
+  Boolean(process.env.VITE_REFEREE_FYI_SHARE_SERVER?.includes("test")) ||
+  process.env.VITE_REFEREE_FYI_ENV === "test" ||
+  process.env.CF_PAGES_PROJECT_NAME === "roboref-test";
+
+const appName = isTestEnv ? "RoboRef TEST" : "RoboRef";
+const appId = isTestEnv
+  ? "app.frogletapps.roboref.test.v1"
+  : "app.frogletapps.roboref.v1";
+
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
   plugins: [
@@ -51,7 +61,7 @@ export default defineConfig(() => ({
     mdx(),
     react(),
     vitePluginVersionMark({
-      name: "RoboRef",
+      name: appName,
       version: APP_VERSION,
     }),
     generateVersionJson,
@@ -60,9 +70,9 @@ export default defineConfig(() => ({
       injectRegister: "inline",
       includeAssets: ["./rules/**/*.json", "changeLog.md"],
       manifest: {
-        id: "app.frogletapps.roboref.v1",
-        name: "RoboRef",
-        short_name: "RoboRef",
+        id: appId,
+        name: appName,
+        short_name: appName,
         start_url: "/",
         display: "standalone",
         background_color: "#27272A",

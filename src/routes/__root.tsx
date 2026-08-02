@@ -208,6 +208,14 @@ export const AppShell: React.FC = () => {
       document.title = "RoboRef - LOCAL";
     } else if (env === "test") {
       document.title = "RoboRef - TEST";
+      const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+      if (appleTitle) {
+        appleTitle.setAttribute("content", "RoboRef TEST");
+      }
+      const appNameMeta = document.querySelector('meta[name="application-name"]');
+      if (appNameMeta) {
+        appNameMeta.setAttribute("content", "RoboRef TEST");
+      }
     } else {
       document.title = "RoboRef";
     }

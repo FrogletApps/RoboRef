@@ -1,6 +1,5 @@
 ## 02 August 2026
 
-- Added environment badge (LOCAL / TEST) to home screen header and browser tab title
 - Reimplemented photo uploads
 - Add icons to notes
 
