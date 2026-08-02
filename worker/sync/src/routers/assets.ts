@@ -46,6 +46,8 @@ assetRouter.get(
   }
 );
 
+const MAX_ASSET_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
+
 assetRouter.post(
   "/api/:sku/asset/upload",
   async (request: RequestHasInvitation, env: Env) => {
@@ -66,6 +68,15 @@ assetRouter.post(
         success: false,
         reason: "bad_request",
         details: "Unsupported asset type",
+      });
+    }
+
+    const contentLength = request.headers.get("content-length");
+    if (contentLength && parseInt(contentLength, 10) > MAX_ASSET_SIZE_BYTES) {
+      return response({
+        success: false,
+        reason: "bad_request",
+        details: "File size exceeds 20MB limit",
       });
     }
 
@@ -92,12 +103,27 @@ assetRouter.post(
           details: "Missing file payload",
         });
       }
+      if (file.size > MAX_ASSET_SIZE_BYTES) {
+        return response({
+          success: false,
+          reason: "bad_request",
+          details: "File size exceeds 20MB limit",
+        });
+      }
       body = await file.arrayBuffer();
       if (file.type) {
         contentType = file.type;
       }
     } else {
       body = await request.arrayBuffer();
+    }
+
+    if (body instanceof ArrayBuffer && body.byteLength > MAX_ASSET_SIZE_BYTES) {
+      return response({
+        success: false,
+        reason: "bad_request",
+        details: "File size exceeds 20MB limit",
+      });
     }
 
     if (!contentType.startsWith("image/")) {

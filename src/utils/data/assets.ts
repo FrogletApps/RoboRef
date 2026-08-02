@@ -1,6 +1,9 @@
 import { AssetType } from "@referee-fyi/share";
 import { get, getMany, set } from "./keyval";
 
+export const MAX_ASSET_SIZE_MB = 20;
+export const MAX_ASSET_SIZE_BYTES = MAX_ASSET_SIZE_MB * 1024 * 1024;
+
 export type LocalAssetType = AssetType;
 
 export type LocalAsset = {

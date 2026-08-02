@@ -11,7 +11,13 @@ import React, {
 } from "react";
 import { IconButton } from "./Button";
 import { TrashIcon } from "@heroicons/react/24/outline";
-import { compressImage, LocalAsset } from "~utils/data/assets";
+import {
+  compressImage,
+  LocalAsset,
+  MAX_ASSET_SIZE_BYTES,
+  MAX_ASSET_SIZE_MB,
+} from "~utils/data/assets";
+import { toast } from "./Toast";
 
 export type CheckboxBinding = {
   value: boolean;
@@ -451,7 +457,25 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
       const blob = e.target.files?.[0];
       if (!blob) return;
 
+      if (blob.size > MAX_ASSET_SIZE_BYTES) {
+        toast({
+          type: "warn",
+          message: `Photo must be under ${MAX_ASSET_SIZE_MB}MB.`,
+        });
+        e.target.value = "";
+        return;
+      }
+
       const compressed = await compressImage(blob);
+
+      if (compressed.size > MAX_ASSET_SIZE_BYTES) {
+        toast({
+          type: "warn",
+          message: `Photo must be under ${MAX_ASSET_SIZE_MB}MB.`,
+        });
+        e.target.value = "";
+        return;
+      }
 
       const asset: LocalAsset = {
         id: crypto.randomUUID(),
@@ -460,6 +484,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
       };
 
       onPick?.(asset);
+      e.target.value = "";
     },
     [fields, onPick]
   );

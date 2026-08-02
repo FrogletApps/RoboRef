@@ -1,4 +1,5 @@
 import { del, get, set } from "~utils/data/keyval";
+import { MAX_ASSET_SIZE_BYTES } from "~utils/data/assets";
 import type {
   ShareResponse,
   User,
@@ -552,6 +553,14 @@ export async function getAssetUploadURL(
 }
 
 export async function uploadAsset(targetUrl: string, data: Blob) {
+  if (data.size > MAX_ASSET_SIZE_BYTES) {
+    return {
+      success: false,
+      reason: "bad_request",
+      details: "File size exceeds 20MB limit",
+    };
+  }
+
   const url = targetUrl.startsWith("http")
     ? new URL(targetUrl)
     : new URL(targetUrl, URL_BASE);

@@ -59,6 +59,8 @@ import {
   getManyAssetUploadStatus,
   getManyLocalAssets,
   LocalAsset,
+  MAX_ASSET_SIZE_BYTES,
+  MAX_ASSET_SIZE_MB,
   setAssetUploadStatus,
 } from "~utils/data/assets";
 
@@ -357,6 +359,20 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
   },
 
   uploadAsset: async (sku: string, asset: LocalAsset) => {
+    if (asset.data.size > MAX_ASSET_SIZE_BYTES) {
+      toast({
+        type: "warn",
+        message: `Photo exceeds ${MAX_ASSET_SIZE_MB}MB limit.`,
+      });
+      const status: AssetUploadStatus = {
+        success: false,
+        date: new Date().toISOString(),
+        step: "upload",
+      };
+      setAssetUploadStatus(asset.id, status);
+      return status;
+    }
+
     const uploadURL = await getAssetUploadURL(sku, asset.id, asset.type);
     if (!uploadURL.success) {
       toast({ type: "warn", message: "Could not upload asset to server." });

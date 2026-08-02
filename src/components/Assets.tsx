@@ -1,10 +1,17 @@
 import { useCallback, useMemo, useState } from "react";
-import { compressImage, ImageLocalAsset, LocalAsset } from "~utils/data/assets";
+import {
+  compressImage,
+  ImageLocalAsset,
+  LocalAsset,
+  MAX_ASSET_SIZE_BYTES,
+  MAX_ASSET_SIZE_MB,
+} from "~utils/data/assets";
 import { twMerge } from "tailwind-merge";
 import { Dialog, DialogBody, DialogHeader } from "./Dialog";
 import { useAssetOriginalURL, useAssetPreviewURL } from "~utils/hooks/assets";
 import { useCurrentEvent } from "~utils/hooks/state";
 import { PhotoIcon } from "@heroicons/react/20/solid";
+import { toast } from "./Toast";
 
 export const PhotoFallback: React.FC<React.HTMLProps<HTMLDivElement>> = (
   props
@@ -40,7 +47,25 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
       const blob = e.target.files?.[0];
       if (!blob) return;
 
+      if (blob.size > MAX_ASSET_SIZE_BYTES) {
+        toast({
+          type: "warn",
+          message: `Photo must be under ${MAX_ASSET_SIZE_MB}MB.`,
+        });
+        e.target.value = "";
+        return;
+      }
+
       const compressed = await compressImage(blob);
+
+      if (compressed.size > MAX_ASSET_SIZE_BYTES) {
+        toast({
+          type: "warn",
+          message: `Photo must be under ${MAX_ASSET_SIZE_MB}MB.`,
+        });
+        e.target.value = "";
+        return;
+      }
 
       const asset: LocalAsset = {
         id: crypto.randomUUID(),
@@ -49,6 +74,7 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
       };
 
       onPick?.(asset);
+      e.target.value = "";
     },
     [fields, onPick]
   );
