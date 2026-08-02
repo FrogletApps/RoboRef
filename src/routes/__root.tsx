@@ -187,7 +187,7 @@ const RoboRefTitleBar: React.FC = () => {
         </span>
       )}
       {env === "test" && (
-        <span className="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded bg-amber-500 text-white flex-shrink-0 shadow-sm">
+        <span className="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded bg-yellow-400 text-black flex-shrink-0 shadow-sm">
           TEST VERSION
         </span>
       )}
