@@ -48,7 +48,7 @@ export const verifySignature = async (request: IRequest & Request) => {
     });
   }
 
-  const body = await request.text();
+  const body = await request.clone().text();
 
   const canonicalURL = new URL(request.url);
   canonicalURL.searchParams.delete("signature");
