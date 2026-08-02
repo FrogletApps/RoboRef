@@ -2,6 +2,7 @@
 
 - Reimplemented photo uploads
 - Add icons to notes
+- Bug fixes
 
 ## 01 August 2026
 

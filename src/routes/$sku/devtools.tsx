@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Spinner } from "~components/Spinner";
+import { getAppEnvironment } from "~utils/data/state";
 
 const LazyEventDevTools = React.lazy(
   () => import("./-components/DevToolsContent")
@@ -17,10 +18,11 @@ export const EventDevTools: React.FC = () => {
 export const Route = createFileRoute("/$sku/devtools")({
   component: EventDevTools,
   beforeLoad: () => {
-    if (!import.meta.env.DEV) {
+    if (getAppEnvironment() === "production") {
       throw redirect({
         to: "/",
       });
     }
   },
 });
+
