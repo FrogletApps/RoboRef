@@ -8,5 +8,5 @@ export type AssetMeta<T extends AssetType = AssetType> = {
 };
 
 export type ImageAssetMeta = AssetMeta<"image"> & {
-  images_id: string | null; // The ID from cloudflare.
+  contentType?: string;
 };

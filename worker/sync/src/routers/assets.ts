@@ -1,20 +1,14 @@
-import { Cloudflare } from "cloudflare";
 import { AutoRouter } from "itty-router";
 import { Env, RequestHasInvitation } from "../types";
 import { verifyInvitation, verifySignature, verifyUser } from "../utils/verify";
 import { response } from "../utils/request";
-import {
-  getAssetMeta,
-  getInvitation,
-  ImageAssetMeta,
-  setAssetMeta,
-} from "../utils/data";
+import { getAssetMeta, getInvitation, setAssetMeta } from "../utils/data";
 import {
   ApiGetAssetOriginalURLResponseBody,
   ApiGetAssetPreviewURLResponseBody,
   APIGetAssetUploadURLResponseBody,
+  ImageAssetMeta,
 } from "@referee-fyi/share";
-import { signAssetUrl } from "../utils/crypto";
 
 const assetRouter = AutoRouter<RequestHasInvitation, [Env]>({
   before: [verifySignature, verifyUser, verifyInvitation],
@@ -22,6 +16,38 @@ const assetRouter = AutoRouter<RequestHasInvitation, [Env]>({
 
 assetRouter.get(
   "/api/:sku/asset/upload_url",
+  async (request: RequestHasInvitation) => {
+    const sku = request.params.sku;
+    const type = request.query.type;
+    const id = request.query.id;
+
+    if (typeof id !== "string") {
+      return response({
+        success: false,
+        reason: "bad_request",
+        details: "Missing asset ID",
+      });
+    }
+
+    if (type !== "image") {
+      return response({
+        success: false,
+        reason: "bad_request",
+        details: "Unsupported asset type",
+      });
+    }
+
+    return response<APIGetAssetUploadURLResponseBody>({
+      success: true,
+      data: {
+        uploadURL: `/api/${sku}/asset/upload?id=${encodeURIComponent(id)}&type=${encodeURIComponent(type)}`,
+      },
+    });
+  }
+);
+
+assetRouter.post(
+  "/api/:sku/asset/upload",
   async (request: RequestHasInvitation, env: Env) => {
     const sku = request.params.sku;
     const type = request.query.type;
@@ -43,7 +69,7 @@ assetRouter.get(
       });
     }
 
-    // We will allow the owner to overwrite the asset, but not others.
+    // Allow owner to update/overwrite their asset, but prevent others from overwriting.
     const current = await getAssetMeta(env, id);
     if (current && current.owner !== request.user.key) {
       return response({
@@ -53,55 +79,56 @@ assetRouter.get(
       });
     }
 
-    const imageMeta: Omit<ImageAssetMeta, "images_id"> = {
+    let body: ArrayBuffer | ReadableStream;
+    let contentType = request.headers.get("content-type") || "image/jpeg";
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const file = formData.get("file") as File | null;
+      if (!file) {
+        return response({
+          success: false,
+          reason: "bad_request",
+          details: "Missing file payload",
+        });
+      }
+      body = await file.arrayBuffer();
+      if (file.type) {
+        contentType = file.type;
+      }
+    } else {
+      body = await request.arrayBuffer();
+    }
+
+    // Save object into R2 bucket
+    await env.IMAGES_BUCKET.put(id, body, {
+      httpMetadata: { contentType },
+    });
+
+    const meta: ImageAssetMeta = {
       id,
       type: "image",
       owner: request.user.key,
       sku,
+      contentType,
     };
 
-    const client = new Cloudflare({
-      apiEmail: env.CLOUDFLARE_EMAIL,
-      apiToken: env.CLOUDFLARE_API_KEY,
-    });
-
-    const directUploadResponse = await client.images.v2.directUploads.create({
-      account_id: env.CLOUDFLARE_IMAGES_ACCOUNT_ID,
-      metadata: JSON.stringify(imageMeta),
-      requireSignedURLs: true,
-    });
-
-    if (!directUploadResponse.id || !directUploadResponse.uploadURL) {
-      return response({
-        success: false,
-        reason: "server_error",
-        details: "Failed to create direct upload",
-      });
-    }
-
-    const meta: ImageAssetMeta = {
-      ...imageMeta,
-      images_id: directUploadResponse.id,
-    };
-
+    // Store asset metadata in KV namespace (retained for 30 days)
     await setAssetMeta(env, meta);
 
-    return response<APIGetAssetUploadURLResponseBody>({
+    return response({
       success: true,
-      data: {
-        uploadURL: directUploadResponse.uploadURL,
-      },
+      data: { id },
     });
   }
 );
 
 type RequestHasAssetAuthorization = RequestHasInvitation & {
   asset: ImageAssetMeta;
-  image: Cloudflare.Images.V1.Image;
 };
 
 async function ensureImageAuthorized(request: RequestHasInvitation, env: Env) {
-  const id = request.query.id;
+  const id = request.params.id || request.query.id;
   if (typeof id !== "string") {
     return response({
       success: false,
@@ -110,9 +137,9 @@ async function ensureImageAuthorized(request: RequestHasInvitation, env: Env) {
     });
   }
 
-  const meta = await env.ASSETS.get<ImageAssetMeta>(id, "json");
+  const meta = await getAssetMeta(env, id);
 
-  if (!meta || !meta.images_id) {
+  if (!meta) {
     return response({
       success: false,
       reason: "bad_request",
@@ -120,7 +147,7 @@ async function ensureImageAuthorized(request: RequestHasInvitation, env: Env) {
     });
   }
 
-  // The owner of the asset must be on the same instance as the requester.
+  // The owner of the asset must be on the same share instance as the requester.
   const ownerInvitation = await getInvitation(env, meta.owner, meta.sku);
   if (
     !ownerInvitation ||
@@ -134,47 +161,19 @@ async function ensureImageAuthorized(request: RequestHasInvitation, env: Env) {
     });
   }
 
-  const client = new Cloudflare({
-    apiEmail: env.CLOUDFLARE_EMAIL,
-    apiToken: env.CLOUDFLARE_API_KEY,
-  });
-
-  const image = await client.images.v1.get(meta.images_id, {
-    account_id: env.CLOUDFLARE_IMAGES_ACCOUNT_ID,
-  });
-
-  if (Object.hasOwn(image, "draft") || !image.uploaded) {
-    return response({
-      success: false,
-      reason: "bad_request",
-      details: "Image not uploaded",
-    });
-  }
-
-  request.asset = meta;
-  request.image = image;
+  (request as RequestHasAssetAuthorization).asset = meta;
 }
 
 assetRouter.get(
   "/api/:sku/asset/preview_url",
   ensureImageAuthorized,
   async (request: RequestHasAssetAuthorization) => {
-    const url = request.image.variants?.find((variant) =>
-      variant.endsWith("preview")
-    );
-    if (!url) {
-      return response({
-        success: false,
-        reason: "bad_request",
-        details: "Preview not found",
-      });
-    }
-
+    const id = request.query.id;
     return response<ApiGetAssetPreviewURLResponseBody>({
       success: true,
       data: {
         owner: request.asset.owner,
-        previewURL: url,
+        previewURL: `/api/${request.params.sku}/asset/${id}/file`,
       },
     });
   }
@@ -183,31 +182,37 @@ assetRouter.get(
 assetRouter.get(
   "/api/:sku/asset/url",
   ensureImageAuthorized,
-  async (request: RequestHasAssetAuthorization, env: Env) => {
-    const url = request.image.variants?.find((variant) =>
-      variant.endsWith("public")
-    );
-    if (!url) {
-      return response({
-        success: false,
-        reason: "bad_request",
-        details: "Original not found",
-      });
-    }
-
-    const signed = await signAssetUrl(
-      url,
-      env.CLOUDFLARE_IMAGES_SIGNATURE_TOKEN,
-      60 * 5
-    );
-
+  async (request: RequestHasAssetAuthorization) => {
+    const id = request.query.id;
     return response<ApiGetAssetOriginalURLResponseBody>({
       success: true,
       data: {
         owner: request.asset.owner,
-        url: signed.toString(),
+        url: `/api/${request.params.sku}/asset/${id}/file`,
       },
     });
+  }
+);
+
+assetRouter.get(
+  "/api/:sku/asset/:id/file",
+  ensureImageAuthorized,
+  async (request: RequestHasAssetAuthorization, env: Env) => {
+    const id = request.params.id;
+    const object = await env.IMAGES_BUCKET.get(id);
+
+    if (!object) {
+      return new Response("Image not found", { status: 404 });
+    }
+
+    const headers = new Headers();
+    object.writeHttpMetadata(headers);
+    if (object.httpEtag) {
+      headers.set("etag", object.httpEtag);
+    }
+    headers.set("Cache-Control", "public, max-age=31536000, immutable");
+
+    return new Response(object.body, { headers });
   }
 );
 

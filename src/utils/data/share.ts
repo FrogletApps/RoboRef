@@ -551,11 +551,15 @@ export async function getAssetUploadURL(
   return response.json();
 }
 
-export async function uploadAsset(url: string, data: Blob) {
+export async function uploadAsset(targetUrl: string, data: Blob) {
+  const url = targetUrl.startsWith("http")
+    ? new URL(targetUrl)
+    : new URL(targetUrl, URL_BASE);
+
   const formData = new FormData();
   formData.append("file", data);
 
-  const response = await fetch(url, {
+  const response = await signedFetch(url, {
     method: "POST",
     body: formData,
   });
@@ -583,6 +587,20 @@ export async function getAssetOriginalURL(
   const response = await signedFetch(url, { method: "GET" });
 
   return response.json();
+}
+
+export async function fetchAssetBlob(
+  sku: string,
+  id: string
+): Promise<Blob | null> {
+  const url = new URL(`/api/${sku}/asset/${id}/file`, URL_BASE);
+  const response = await signedFetch(url, { method: "GET" });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.blob();
 }
 
 export function usePeerUserName(peer?: string) {

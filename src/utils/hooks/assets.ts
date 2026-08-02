@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { getLocalAsset, LocalAsset, saveLocalAsset } from "~utils/data/assets";
 import { useTeamIncidentsByEvent } from "./incident";
 import { HookQueryOptions } from "./robotevents";
-import { getAssetOriginalURL, getAssetPreviewURL } from "~utils/data/share";
+import { fetchAssetBlob, getAssetOriginalURL, getAssetPreviewURL } from "~utils/data/share";
 import { useMemo } from "react";
 
 export function useLocalAsset(id?: string | null) {
@@ -66,6 +66,12 @@ export function useAssetPreviewURL(
         return null;
       }
 
+      const blob = await fetchAssetBlob(sku, id);
+      if (blob) {
+        await saveLocalAsset({ id, type: "image", data: blob });
+        return URL.createObjectURL(blob);
+      }
+
       const remote = await getAssetPreviewURL(sku, id);
       if (!remote || !remote.success) {
         return null;
@@ -92,6 +98,12 @@ export function useAssetOriginalURL(
 
       if (!sku) {
         return null;
+      }
+
+      const blob = await fetchAssetBlob(sku, id);
+      if (blob) {
+        await saveLocalAsset({ id, type: "image", data: blob });
+        return URL.createObjectURL(blob);
       }
 
       const remote = await getAssetOriginalURL(sku, id);

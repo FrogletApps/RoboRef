@@ -20,6 +20,7 @@ import {
   undeleteServerIncident,
   fetchInvitation,
   getAssetUploadURL,
+  uploadAsset as uploadAssetToServer,
   getSender,
   getShareData,
   getShareProfile,
@@ -368,19 +369,9 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
       return status;
     }
 
-    const file = new File([asset.data], `${sku}-${asset.id}`, {
-      type: asset.data.type,
-    });
+    const res = await uploadAssetToServer(uploadURL.data.uploadURL, asset.data);
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch(uploadURL.data.uploadURL, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
+    if (!res || !res.success) {
       toast({ type: "warn", message: "Could not upload asset to server." });
       const status: AssetUploadStatus = {
         success: false,

@@ -1,3 +1,7 @@
+## 02 August 2026
+
+- Reimplemented photo uploads
+
 ## 01 August 2026
 
 - Added viewing options to QR code viewer: Stylised, Standard and HDR (on supported devices)

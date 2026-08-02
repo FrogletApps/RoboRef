@@ -1,5 +1,7 @@
 import {
+  AssetMeta,
   AssetType,
+  ImageAssetMeta,
   Invitation,
   ShareInstanceMeta,
   User,
@@ -75,21 +77,13 @@ export async function getRequestCodeUserKey(
   return env.REQUEST_CODES.get<RequestCode>(`${sku}#${code}`, "json");
 }
 
-export type AssetMeta<T extends AssetType = AssetType> = {
-  id: string; // UUID (from client)
-  type: T;
-  owner: string; // Peer ID of asset
-  sku: string; // Event SKU of associated asset
-};
-
-export type ImageAssetMeta = AssetMeta<"image"> & {
-  images_id: string | null; // The ID from cloudflare.
-};
-
 export async function getAssetMeta(env: Env, id: string) {
-  return env.ASSETS.get<AssetMeta>(id, "json");
+  return env.ASSETS.get<ImageAssetMeta>(id, "json");
 }
 
-export async function setAssetMeta(env: Env, meta: AssetMeta) {
-  return env.ASSETS.put(meta.id, JSON.stringify(meta));
+export async function setAssetMeta(env: Env, meta: ImageAssetMeta) {
+  // Retain metadata for 30 days (2592000 seconds)
+  return env.ASSETS.put(meta.id, JSON.stringify(meta), {
+    expirationTtl: 2592000,
+  });
 }

@@ -40,7 +40,7 @@ import {
 import { useSaveAssets } from "~utils/hooks/assets";
 import { createFileRoute, useNavigate, useParams, useRouter } from "@tanstack/react-router";
 
-const ENABLE_IMAGE_UPLOAD = false;
+const ENABLE_IMAGE_UPLOAD = true;
 
 export const NewEntryPage: React.FC = () => {
   const navigate = useNavigate();

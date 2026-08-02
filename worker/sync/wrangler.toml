@@ -17,11 +17,6 @@ kv_namespaces = [
 routes = [{ pattern = "share.roboref.fyi", custom_domain = true }]
 workers_dev = true
 
-[env.prod.vars]
-# TODO: replace with your own Cloudflare account email and Images account id
-CLOUDFLARE_EMAIL = ""
-CLOUDFLARE_IMAGES_ACCOUNT_ID = ""
-
 [env.staging]
 name = "roboref-share-staging"
 compatibility_date = "2026-06-20"
@@ -36,11 +31,14 @@ kv_namespaces = [
 ]
 workers_dev = true
 
+[[env.prod.r2_buckets]]
+binding = "IMAGES_BUCKET"
+bucket_name = "roboref-images"
 
-[env.staging.vars]
-# TODO: replace with your own Cloudflare account email and Images account id
-CLOUDFLARE_EMAIL = ""
-CLOUDFLARE_IMAGES_ACCOUNT_ID = ""
+[[env.staging.r2_buckets]]
+binding = "IMAGES_BUCKET"
+bucket_name = "roboref-images-staging"
+preview_bucket_name = "roboref-images-dev"
 
 [[env.staging.durable_objects.bindings]]
 name = "INCIDENTS"

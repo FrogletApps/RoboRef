@@ -29,12 +29,8 @@ export interface Env {
   INCIDENTS: DurableObjectNamespace<ShareInstance>;
   SYSTEM_KEYS: KVNamespace;
   ASSETS: KVNamespace;
+  IMAGES_BUCKET: R2Bucket;
 
   // Secrets
   VEX_EVENTS_TOKEN: string;
-
-  CLOUDFLARE_EMAIL: string;
-  CLOUDFLARE_API_KEY: string;
-  CLOUDFLARE_IMAGES_ACCOUNT_ID: string;
-  CLOUDFLARE_IMAGES_SIGNATURE_TOKEN: string;
 }

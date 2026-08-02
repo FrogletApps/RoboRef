@@ -19,17 +19,13 @@ devices, the contents of the anomaly log is stored on our servers. This data may
 be accessed by the developers of RoboRef for quality assurance or technical
 support purposes.
 
-If you enter image data into RoboRef, this data is stored on your local
-device unless you utilize sharing functionality for that event. To enable
-multiple devices to share images, your device will upload images attached to any
-entries for the given event when you enable sharing. Images are _not_ publicly
-accessible, even if you know the URL. Technical guardrails are in place to
-prevent clients from accessing image data for an event unless both the creator
-device and the requesting device are currently on the same sharing instance for
-that event.
+If you enter image data into RoboRef, this data is stored locally on your device unless you enable the sharing functionality for that event. When sharing is enabled, attached images are securely uploaded to Cloudflare R2 Object Storage to synchronize across event referees.
 
-The RoboRef sync mechanism is currently built using Cloudflare Workers. All
-data is encrypted at rest using AES encryption.
+Images stored in Cloudflare R2 are **not** publicly accessible. Privacy and access control are strictly enforced: technical guardrails verify cryptographically signed user credentials and event invitation tokens, ensuring that clients can only access image data for an event if both the uploader and the requesting device are active participants on the same sharing instance for that event.
+
+To minimize data retention and protect privacy, images uploaded to Cloudflare R2 are automatically and permanently deleted after **30 days**.
+
+The RoboRef sync mechanism and image storage are built on Cloudflare Workers and Cloudflare R2 Object Storage. All data is encrypted at rest using AES encryption.
 
 ### How We Use Your Data
 
