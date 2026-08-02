@@ -25,6 +25,20 @@ import "./index.css";
 
 import { routeTree } from "./routeTree.gen";
 
+window.addEventListener("vite:preloadError", (event) => {
+  const PRELOAD_KEY = "vite_preload_reloaded";
+  if (!sessionStorage.getItem(PRELOAD_KEY)) {
+    sessionStorage.setItem(PRELOAD_KEY, "true");
+    window.location.reload();
+  } else {
+    event.preventDefault();
+  }
+});
+
+setTimeout(() => {
+  sessionStorage.removeItem("vite_preload_reloaded");
+}, 5000);
+
 const router = createRouter({
   routeTree,
   defaultPendingComponent: () => <Spinner show />,
