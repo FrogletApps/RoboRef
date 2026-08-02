@@ -36,9 +36,9 @@ workers_dev = true
 binding = "IMAGES_BUCKET"
 bucket_name = "roboref-images"
 
-# [[env.test.r2_buckets]]
-# binding = "IMAGES_BUCKET"
-# bucket_name = "roboref-images"
+[[env.test.r2_buckets]]
+binding = "IMAGES_BUCKET"
+bucket_name = "roboref-images-test"
 
 [[env.test.durable_objects.bindings]]
 name = "INCIDENTS"
