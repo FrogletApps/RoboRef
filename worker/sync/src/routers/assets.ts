@@ -100,6 +100,14 @@ assetRouter.post(
       body = await request.arrayBuffer();
     }
 
+    if (!contentType.startsWith("image/")) {
+      return response({
+        success: false,
+        reason: "bad_request",
+        details: "Only image files are allowed",
+      });
+    }
+
     // Save object into R2 bucket
     await env.IMAGES_BUCKET.put(id, body, {
       httpMetadata: { contentType },

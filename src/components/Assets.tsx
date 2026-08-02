@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { ImageLocalAsset, LocalAsset } from "~utils/data/assets";
+import { compressImage, ImageLocalAsset, LocalAsset } from "~utils/data/assets";
 import { twMerge } from "tailwind-merge";
 import { Dialog, DialogBody, DialogHeader } from "./Dialog";
 import { useAssetOriginalURL, useAssetPreviewURL } from "~utils/hooks/assets";
@@ -36,13 +36,15 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
   ...props
 }) => {
   const onChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const blob = e.target.files?.[0];
       if (!blob) return;
 
+      const compressed = await compressImage(blob);
+
       const asset: LocalAsset = {
         id: crypto.randomUUID(),
-        data: blob,
+        data: compressed,
         ...fields,
       };
 

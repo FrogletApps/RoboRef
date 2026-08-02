@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { IconButton } from "./Button";
 import { TrashIcon } from "@heroicons/react/24/outline";
-import { LocalAsset } from "~utils/data/assets";
+import { compressImage, LocalAsset } from "~utils/data/assets";
 
 export type CheckboxBinding = {
   value: boolean;
@@ -447,13 +447,15 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
   ...props
 }) => {
   const onChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const blob = e.target.files?.[0];
       if (!blob) return;
 
+      const compressed = await compressImage(blob);
+
       const asset: LocalAsset = {
         id: crypto.randomUUID(),
-        data: blob,
+        data: compressed,
         ...fields,
       };
 
