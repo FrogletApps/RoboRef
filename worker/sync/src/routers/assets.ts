@@ -56,6 +56,7 @@ assetRouter.post(
     const id = request.query.id;
 
     if (typeof id !== "string") {
+      console.error("[assetRouter.post] Missing asset ID", { id });
       return response({
         success: false,
         reason: "bad_request",
@@ -64,6 +65,7 @@ assetRouter.post(
     }
 
     if (type !== "image") {
+      console.error("[assetRouter.post] Unsupported asset type", { type });
       return response({
         success: false,
         reason: "bad_request",
@@ -73,6 +75,7 @@ assetRouter.post(
 
     const contentLength = request.headers.get("content-length");
     if (contentLength && parseInt(contentLength, 10) > MAX_ASSET_SIZE_BYTES) {
+      console.error("[assetRouter.post] File size exceeds 20MB limit (Content-Length)", { contentLength });
       return response({
         success: false,
         reason: "bad_request",
@@ -83,6 +86,7 @@ assetRouter.post(
     // Allow owner to update/overwrite their asset, but prevent others from overwriting.
     const current = await getAssetMeta(env, id);
     if (current && current.owner !== request.user.key) {
+      console.error("[assetRouter.post] Asset already exists with different owner", { owner: current.owner, user: request.user.key });
       return response({
         success: false,
         reason: "bad_request",
@@ -97,6 +101,7 @@ assetRouter.post(
       const formData = await request.formData();
       const file = formData.get("file") as File | null;
       if (!file) {
+        console.error("[assetRouter.post] Missing file payload in multipart form");
         return response({
           success: false,
           reason: "bad_request",
@@ -104,6 +109,7 @@ assetRouter.post(
         });
       }
       if (file.size > MAX_ASSET_SIZE_BYTES) {
+        console.error("[assetRouter.post] File size exceeds 20MB limit (File object)", { size: file.size });
         return response({
           success: false,
           reason: "bad_request",
@@ -119,6 +125,7 @@ assetRouter.post(
     }
 
     if (body instanceof ArrayBuffer && body.byteLength > MAX_ASSET_SIZE_BYTES) {
+      console.error("[assetRouter.post] File size exceeds 20MB limit (ArrayBuffer)", { byteLength: body.byteLength });
       return response({
         success: false,
         reason: "bad_request",
@@ -127,6 +134,7 @@ assetRouter.post(
     }
 
     if (!contentType.startsWith("image/")) {
+      console.error("[assetRouter.post] Only image files allowed", { contentType });
       return response({
         success: false,
         reason: "bad_request",
@@ -134,10 +142,19 @@ assetRouter.post(
       });
     }
 
-    // Save object into R2 bucket
-    await env.IMAGES_BUCKET.put(id, body, {
-      httpMetadata: { contentType },
-    });
+    try {
+      // Save object into R2 bucket
+      await env.IMAGES_BUCKET.put(id, body, {
+        httpMetadata: { contentType },
+      });
+    } catch (err) {
+      console.error("[assetRouter.post] R2 IMAGES_BUCKET.put failed!", err);
+      return response({
+        success: false,
+        reason: "server_error",
+        details: "R2 bucket write failed",
+      });
+    }
 
     const meta: ImageAssetMeta = {
       id,

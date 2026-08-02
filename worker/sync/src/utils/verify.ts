@@ -20,6 +20,7 @@ export const verifySignature = async (request: IRequest & Request) => {
     typeof publicKeyRaw !== "string" ||
     typeof isoDate !== "string"
   ) {
+    console.error("[verifySignature] Missing headers", { signature, publicKeyRaw, isoDate });
     return response({
       success: false,
       reason: "incorrect_code",
@@ -31,6 +32,7 @@ export const verifySignature = async (request: IRequest & Request) => {
 
   const skew = Math.abs(now.getTime() - dateToVerify.getTime());
   if (skew > 60 * 1000) {
+    console.error("[verifySignature] Date skew too large", { skew, isoDate, now: now.toISOString() });
     return response({
       success: false,
       reason: "bad_request",
@@ -41,6 +43,7 @@ export const verifySignature = async (request: IRequest & Request) => {
   const key = await importKey(publicKeyRaw);
 
   if (!key) {
+    console.error("[verifySignature] Invalid public key", { publicKeyRaw });
     return response({
       success: false,
       reason: "bad_request",
@@ -68,6 +71,7 @@ export const verifySignature = async (request: IRequest & Request) => {
   const valid = await verifyKeySignature(key, signature, message);
 
   if (!valid) {
+    console.error("[verifySignature] Signature verification failed!", { method: request.method, url: request.url });
     return response({
       success: false,
       reason: "incorrect_code",
@@ -84,6 +88,7 @@ export const verifyUser = async (request: SignedRequest, env: Env) => {
   const user: User | null = await getUser(env, request.keyHex);
 
   if (!user) {
+    console.error("[verifyUser] User not found in KV", { keyHex: request.keyHex });
     return response({
       success: false,
       reason: "bad_request",
@@ -107,6 +112,7 @@ export const verifyInvitation = async (
   );
 
   if (!invitation) {
+    console.error("[verifyInvitation] No invitation found for user and SKU", { userKey: request.user.key, sku });
     return response({
       success: false,
       reason: "incorrect_code",
@@ -121,6 +127,7 @@ export const verifyInvitation = async (
     request.query.user === request.keyHex;
 
   if (!invitation.accepted && !canBypassAcceptance) {
+    console.error("[verifyInvitation] Invitation not accepted", { userKey: request.user.key, sku });
     return response({
       success: false,
       reason: "bad_request",

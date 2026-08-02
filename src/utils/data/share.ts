@@ -112,7 +112,12 @@ export async function signedFetch(
   const id = await getShareSessionID();
   headers.set("X-Referee-FYI-Session", id);
 
-  return fetch(request, {
+  if (input instanceof Request) {
+    return fetch(new Request(input, { ...init, headers }));
+  }
+
+  return fetch(input, {
+    ...init,
     headers,
   });
 }
@@ -565,12 +570,12 @@ export async function uploadAsset(targetUrl: string, data: Blob) {
     ? new URL(targetUrl)
     : new URL(targetUrl, URL_BASE);
 
-  const formData = new FormData();
-  formData.append("file", data);
-
   const response = await signedFetch(url, {
     method: "POST",
-    body: formData,
+    headers: {
+      "Content-Type": data.type || "image/jpeg",
+    },
+    body: data,
   });
 
   return response.json();

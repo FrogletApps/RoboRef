@@ -42,9 +42,7 @@ router
   .get("/api/:sku/list", invitationRouter.fetch)
 
   // Asset Actions
-  .get("/api/:sku/asset/upload_url", assetRouter.fetch)
-  .get("/api/:sku/asset/preview_url", assetRouter.fetch)
-  .get("/api/:sku/asset/url", assetRouter.fetch)
+  .all("/api/:sku/asset/*", assetRouter.fetch)
 
   // Instance Actions
   .put("/api/:sku/invite", instanceRouter.fetch)
