@@ -123,9 +123,25 @@ export type WebSocketUpdateIncidentMessage = {
   incident: Incident;
 };
 
+export type WebSocketRemoveIncidentMessage = {
+  type: "remove_incident";
+  id: string;
+};
+
 export type WebSocketUndeleteIncidentMessage = {
   type: "undelete_incident";
   incident: Incident;
+};
+
+export type WebSocketUpdateScratchpadMessage = {
+  type: "scratchpad_update";
+  id: string;
+  scratchpad: MatchScratchpad;
+};
+
+export type WebSocketBroadcastMessage = {
+  type: "message";
+  message: string;
 };
 
 export type WebSocketPeerMessage =
