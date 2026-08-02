@@ -57,3 +57,45 @@ export function getSkuBgColorClass(sku?: string | null): string {
   }
   return "bg-emerald-400";
 }
+
+export type AppEnvironment = "local" | "test" | "production";
+
+export function getAppEnvironment(): AppEnvironment {
+  if (typeof window === "undefined") {
+    return "production";
+  }
+
+  const hostname = window.location.hostname;
+
+  const isLocalHost =
+    import.meta.env.DEV ||
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0" ||
+    hostname === "::1" ||
+    hostname === "[::1]" ||
+    hostname.endsWith(".local") ||
+    hostname.startsWith("127.") ||
+    hostname.startsWith("192.168.") ||
+    hostname.startsWith("10.") ||
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+
+  if (isLocalHost) {
+    return "local";
+  }
+
+  const shareServer =
+    (import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER as string | undefined) ?? "";
+  const isTest =
+    hostname.includes("test") ||
+    shareServer.includes("test") ||
+    import.meta.env.MODE === "test" ||
+    import.meta.env.VITE_REFEREE_FYI_ENV === "test";
+
+  if (isTest) {
+    return "test";
+  }
+
+  return "production";
+}
+

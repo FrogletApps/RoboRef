@@ -14,7 +14,7 @@ import { useMutation } from "@tanstack/react-query";
 import { runMigrations } from "../migrations";
 import { toast } from "~components/Toast";
 import { getEventInvitation, getShareProfile } from "~utils/data/share";
-import { getSkuTextColorClass } from "~utils/data/state";
+import { getAppEnvironment, getSkuTextColorClass } from "~utils/data/state";
 import {
   createRootRoute,
   Outlet,
@@ -170,6 +170,8 @@ const MigrationManager: React.FC = () => {
 };
 
 const RoboRefTitleBar: React.FC = () => {
+  const env = getAppEnvironment();
+
   return (
     <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm w-full min-w-0">
       <div className="p-1.5 px-2.5 bg-zinc-800 rounded-md border border-zinc-700/60 flex items-center justify-center aspect-auto">
@@ -179,6 +181,16 @@ const RoboRefTitleBar: React.FC = () => {
         <span className="text-zinc-100">RoboRef</span>
         <span className="text-zinc-400">.fyi</span>
       </h1>
+      {env === "local" && (
+        <span className="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded bg-red-600 text-white flex-shrink-0 shadow-sm">
+          LOCAL VERSION
+        </span>
+      )}
+      {env === "test" && (
+        <span className="px-2 py-0.5 text-xs font-mono font-bold tracking-wider rounded bg-amber-500 text-white flex-shrink-0 shadow-sm">
+          TEST VERSION
+        </span>
+      )}
     </header>
   );
 };
@@ -189,6 +201,17 @@ export const AppShell: React.FC = () => {
   const router = useRouter();
   const location = useLocation();
   const { team: teamParam } = useParams({ strict: false });
+
+  useEffect(() => {
+    const env = getAppEnvironment();
+    if (env === "local") {
+      document.title = "RoboRef - LOCAL";
+    } else if (env === "test") {
+      document.title = "RoboRef - TEST";
+    } else {
+      document.title = "RoboRef";
+    }
+  }, []);
 
   const isIndex = location.pathname === "/";
   const isSettings = location.pathname === "/settings";
