@@ -1,6 +1,7 @@
 ## 02 August 2026
 
 - Reimplemented photo uploads
+- Add icons to notes
 
 ## 01 August 2026
 
