@@ -14,7 +14,7 @@ import { usePeerUserName } from "~utils/data/share";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { Warning } from "./Warning";
 import { AssetPreview } from "./Assets";
-import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
+import { CameraIcon, EllipsisVerticalIcon, FlagIcon } from "@heroicons/react/20/solid";
 import { RulesDisplay } from "./Input";
 import { useDeleteIncident, useUndeleteIncident } from "~utils/hooks/incident";
 import { toast } from "./Toast";
@@ -69,6 +69,31 @@ export const IncidentHighlights: React.FC<IncidentHighlightProps> = ({
       ) : null}
       {incident.rules.length > 0 ? "•" : null}
       <span key={`${incident.id}-outcome`}>{incident.outcome}</span>
+      {incident.assets && incident.assets.length > 0 ? (
+        <>
+          {"•"}
+          <span
+            className="inline-flex items-center gap-0.5"
+            title={`${incident.assets.length} photo${incident.assets.length > 1 ? "s" : ""} attached`}
+          >
+            <CameraIcon className="h-4 w-4 inline-block opacity-80" />
+            {incident.assets.length > 1 ? (
+              <span className="text-xs font-semibold">{incident.assets.length}</span>
+            ) : null}
+          </span>
+        </>
+      ) : null}
+      {incident.flags?.includes("judge") ? (
+        <>
+          {"•"}
+          <span
+            className="inline-flex items-center"
+            title="Flagged for Judging"
+          >
+            <FlagIcon className="h-4 w-4 inline-block opacity-80" />
+          </span>
+        </>
+      ) : null}
     </>
   );
 };
