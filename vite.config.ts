@@ -61,8 +61,9 @@ export default defineConfig(() => ({
     mdx(),
     react(),
     vitePluginVersionMark({
-      name: appName,
+      name: "RoboRef",
       version: APP_VERSION,
+      ifLog: false,
     }),
     generateVersionJson,
     VitePWA({
@@ -187,6 +188,9 @@ export default defineConfig(() => ({
   ],
 
   base: "/",
+  define: {
+    __ROBOREF_VERSION__: JSON.stringify(APP_VERSION),
+  },
   resolve: {
     tsconfigPaths: true,
   },
