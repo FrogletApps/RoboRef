@@ -131,15 +131,15 @@ npm run dev
 
 
 ## Share Server Development
-For most development, you should probably use the staging sync server at
-`https://staging.share.referee.fyi`, but if you plan to make changes to
+For most development, you should probably use the test sync server at
+`https://test.share.roboref.fyi`, but if you plan to make changes to
 the share server, you can run it locally using this command
 
 ```
 npm run worker:dev
 ```
 You will need to update the share server URL in your `.env` to point to
-your local instance instead of the staging server.
+your local instance instead of the test server.
 
 
 ### [Optional] Secure Share Server Development Locally

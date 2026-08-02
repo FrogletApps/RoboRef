@@ -12,6 +12,8 @@
     "worker:dev:secure": "npm --prefix worker/sync run dev:secure",
     "worker:build": "npm run lib:build && npm --prefix worker/sync run build",
     "worker:deploy": "npm run lib:build && npm --prefix worker/sync run deploy",
+    "worker:deploy:test": "npm run lib:build && npm --prefix worker/sync run deploy:test",
+    "worker:deploy:live": "npm run lib:build && npm --prefix worker/sync run deploy:live",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
     "pages:build": "npm run lib:build && npm run frontend:build",
     "dev": "concurrently \"npm run frontend:dev\" \"npm run lib:dev\""

@@ -2,7 +2,7 @@
 name = "roboref-share"
 compatibility_date = "2026-06-20"
 
-[env.prod]
+[env.live]
 name = "roboref-share"
 compatibility_date = "2026-06-20"
 main = "./src/index.ts"
@@ -17,8 +17,8 @@ kv_namespaces = [
 routes = [{ pattern = "share.roboref.fyi", custom_domain = true }]
 workers_dev = true
 
-[env.staging]
-name = "roboref-share-staging"
+[env.test]
+name = "roboref-share-test"
 compatibility_date = "2026-06-20"
 main = "./src/index.ts"
 kv_namespaces = [
@@ -29,25 +29,27 @@ kv_namespaces = [
     { binding = "SYSTEM_KEYS", id = "946437fe93124c53a120911049cb68da", preview_id = "946437fe93124c53a120911049cb68da" },
     { binding = "ASSETS", id = "a38afb0b7a7641e4a007a499366c56bb" },
 ]
+routes = [{ pattern = "test.share.roboref.fyi", custom_domain = true }]
 workers_dev = true
 
-[[env.prod.r2_buckets]]
+[[env.live.r2_buckets]]
 binding = "IMAGES_BUCKET"
 bucket_name = "roboref-images"
 
-[[env.staging.r2_buckets]]
+[[env.test.r2_buckets]]
 binding = "IMAGES_BUCKET"
-bucket_name = "roboref-images-staging"
+bucket_name = "roboref-images-test"
 preview_bucket_name = "roboref-images-dev"
 
-[[env.staging.durable_objects.bindings]]
+[[env.test.durable_objects.bindings]]
 name = "INCIDENTS"
 class_name = "ShareInstance"
 
-[[env.prod.durable_objects.bindings]]
+[[env.live.durable_objects.bindings]]
 name = "INCIDENTS"
 class_name = "ShareInstance"
 
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["ShareInstance"]
+
