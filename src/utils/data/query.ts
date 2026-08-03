@@ -13,7 +13,7 @@ const CACHE_PREFIX = "tanstack-query";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      gcTime: 1000 * 30,
+      gcTime: 1000 * 60 * 5,
       persister: experimental_createQueryPersister<PersistedQuery>({
         buster: CACHE_BUSTER,
         prefix: CACHE_PREFIX,

@@ -41,6 +41,9 @@ setTimeout(() => {
 
 const router = createRouter({
   routeTree,
+  defaultPreload: "intent",
+  defaultPreloadStaleTime: 1000 * 60,
+  defaultPendingMs: 150,
   defaultPendingComponent: () => <Spinner show />,
   defaultErrorComponent: ({ error, reset, info }) => {
     const eventId = captureException(error, { extra: { info } });

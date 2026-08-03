@@ -1,5 +1,6 @@
 ## 03 August 2026
 
+- RoboRef caches data for longer for improved speed
 - Make photo UI consistent with the rest of the app
 - Make note preview UI consistent with the rest of the app
 - Can add new pictures when editing a note
