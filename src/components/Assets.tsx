@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   compressImage,
@@ -118,6 +118,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const onClick = useCallback(
     (e: React.MouseEvent) => {
@@ -133,7 +134,14 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setLoaded(false);
+      return;
+    }
+
+    if (imgRef.current?.complete) {
+      setLoaded(true);
+    }
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -145,7 +153,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open]);
+  }, [open, originalUrl, previewUrl]);
 
   const peerName = usePeerUserName(owner ?? undefined);
   const takenBy =
@@ -197,6 +205,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
               <div className="relative w-full h-full flex items-center justify-center min-h-0">
                 {!loaded && <PhotoFallback className="absolute w-full h-full" />}
                 <img
+                  ref={imgRef}
                   className={twMerge(
                     "max-w-full max-h-full object-contain rounded-md z-10 transition-opacity duration-200",
                     loaded ? "opacity-100" : "opacity-0"

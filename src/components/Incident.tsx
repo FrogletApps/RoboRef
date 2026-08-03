@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { twMerge } from "tailwind-merge";
+import { useNavigate } from "@tanstack/react-router";
 import {
   IncidentOutcome,
   Incident as IncidentData,
@@ -7,14 +8,13 @@ import {
 } from "~utils/data/incident";
 import { useCurrentEvent } from "~utils/hooks/state";
 import { useRulesForEvent } from "~utils/hooks/rules";
-import { MenuButton } from "./MenuButton";
 import { useEventTeam } from "~utils/hooks/robotevents";
-import { ButtonProps, Button, LinkButton } from "./Button";
+import { ButtonProps, Button, LinkButton, IconButton } from "./Button";
 import { usePeerUserName } from "~utils/data/share";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { Warning } from "./Warning";
 import { AssetPreview } from "./Assets";
-import { CameraIcon, EllipsisVerticalIcon, FlagIcon } from "@heroicons/react/20/solid";
+import { CameraIcon, EllipsisVerticalIcon, FlagIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { RulesDisplay } from "./Input";
 import { useDeleteIncident, useUndeleteIncident } from "~utils/hooks/incident";
 import { toast } from "./Toast";
@@ -104,20 +104,31 @@ export const Incident: React.FC<IncidentProps> = ({
   allowUndelete,
   ...props
 }) => {
+  const navigate = useNavigate();
+  const { data: event } = useCurrentEvent();
+
+  const onClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      navigate({
+        to: "/$sku/entry/$incidentId/view",
+        params: {
+          sku: event?.sku ?? incident.event ?? "",
+          incidentId: incident.id,
+        },
+      });
+    },
+    [navigate, event, incident]
+  );
+
   return (
-    <MenuButton
-      mode="transparent"
-      menu={
-        <IncidentMenu
-          incident={incident}
-          readonly={readonly}
-          allowUndelete={allowUndelete}
-        />
-      }
+    <button
+      type="button"
+      onClick={onClick}
       {...props}
       className={twMerge(
         IncidentOutcomeBackgroundClasses[incident.outcome],
-        "px-4 py-2 rounded-md mt-2 flex relative ",
+        "px-4 py-2 rounded-md mt-2 flex relative w-full text-left cursor-pointer active:opacity-80 transition-opacity",
         props.className
       )}
     >
@@ -137,7 +148,7 @@ export const Incident: React.FC<IncidentProps> = ({
       <div className="w-5 absolute right-2 h-full top-0 flex items-center">
         <EllipsisVerticalIcon height={20} className="text-zinc-950/80 h-5" />
       </div>
-    </MenuButton>
+    </button>
   );
 };
 
@@ -146,14 +157,13 @@ export type IncidentMenuProps = {
   readonly?: boolean;
   allowUndelete?: boolean;
   onClose?: () => void;
-} & React.HTMLProps<HTMLDivElement>;
+};
 
 export const IncidentMenu: React.FC<IncidentMenuProps> = ({
   incident,
   readonly,
   allowUndelete,
   onClose,
-  ...props
 }) => {
   const { data: event } = useCurrentEvent();
   const { data: team } = useEventTeam(event, incident.team);
@@ -218,18 +228,30 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
   );
 
   return (
-    <div {...props}>
-      <div className="overflow-y-auto max-h-[60vh]">
-        <div className="flex items-center gap-x-1 justify-between">
+    <>
+      <header className="flex items-center gap-3 h-[56px] py-2 px-3 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm w-full min-w-0">
+        <IconButton
+          onClick={onClose}
+          icon={<ChevronLeftIcon height={20} />}
+          className="p-1.5 px-2.5 bg-zinc-800 hover:bg-zinc-700/80 active:bg-zinc-700 rounded-md border border-zinc-700/60 transition-colors aspect-auto"
+          aria-label="Back"
+        />
+        <h1 className="text-xl font-bold font-mono tracking-tight text-zinc-100 overflow-hidden whitespace-nowrap text-ellipsis flex-1 min-w-0">
+          Note Preview
+        </h1>
+      </header>
+
+      <div className="flex-1 overflow-y-auto min-h-0 min-w-0 p-4 bg-zinc-900 border border-zinc-800 rounded-lg shadow-sm space-y-4">
+        <div className="flex items-center gap-x-1 justify-between text-sm">
           {contactName ? (
-            <span className="flex items-center gap-1">
-              <UserCircleIcon height={20} />
-              <span className="inline">{contactName}</span>
+            <span className="flex items-center gap-1.5 text-zinc-300">
+              <UserCircleIcon height={20} className="text-emerald-400" />
+              <span className="inline font-medium">{contactName}</span>
             </span>
           ) : (
             <span></span>
           )}
-          <span className="text-zinc-400">
+          <span className="text-zinc-400 font-mono text-xs">
             {date.toLocaleDateString(undefined, {
               month: "2-digit",
               day: "2-digit",
@@ -242,58 +264,109 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
             })}
           </span>
         </div>
-        <h2 className="mt-2">
+
+        <h2 className="text-lg font-semibold">
           <span className="text-emerald-400 font-mono">{incident.team}</span>
           {" • "}
-          <span>{team?.team_name}</span>
+          <span className="text-zinc-200">{team?.team_name}</span>
         </h2>
-        <div className="py-2 flex gap-x-2">
+
+        <div className="flex gap-x-2">
           <span
             className={twMerge(
               IncidentOutcomeBackgroundClasses[incident.outcome],
-              "p-1 rounded-md px-2"
+              "p-1 rounded-md px-2.5 text-sm font-semibold"
             )}
           >
             {incident.outcome}
           </span>
-          <span className="p-1 rounded-md px-2 bg-zinc-300 text-zinc-900">
+          <span className="p-1 rounded-md px-2.5 text-sm font-semibold bg-zinc-700 text-zinc-100">
             {incident.match ? matchToString(incident.match) : "Non-Match"}
           </span>
         </div>
-        <div>{incident.notes}</div>
-        <div className="grid grid-cols-4 gap-4 mt-2">
-          {incident.assets.map((asset) => (
-            <AssetPreview
-              key={asset}
-              asset={asset}
-              owner={incident.consistency?.outcome?.peer}
-              uploadedAt={incident.time}
-            />
-          ))}
-        </div>
-        <div className="mt-4">
-          {incident.rules
-            .map((rule) => rules?.rulesLookup?.[rule])
-            .map((rule) =>
-              rule ? (
-                <RulesDisplay key={rule.rule} rule={rule} className="mt-4" />
-              ) : null
-            )}
-        </div>
-        <div className="mt-4">
-          {incident.flags?.includes("judge") ? (
-            <Warning message="Flagged for Judging" />
+
+        <div className="bg-zinc-800/60 p-3 rounded-md border border-zinc-800 text-zinc-100 whitespace-pre-wrap">
+          {incident.notes}
+          {import.meta.env.DEV ? (
+            <span className="block font-mono text-xs text-zinc-500 mt-1">{incident.id}</span>
           ) : null}
         </div>
+
+        {incident.assets && incident.assets.length > 0 && (
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Attached Images</h3>
+            <div className="grid grid-cols-4 gap-3">
+              {incident.assets.map((asset) => (
+                <AssetPreview
+                  key={asset}
+                  asset={asset}
+                  owner={incident.consistency?.outcome?.peer}
+                  uploadedAt={incident.time}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {incident.rules && incident.rules.length > 0 && (
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Associated Rules</h3>
+            {incident.rules
+              .map((rule) => rules?.rulesLookup?.[rule])
+              .map((rule) =>
+                rule ? (
+                  <RulesDisplay key={rule.rule} rule={rule} className="mt-2" />
+                ) : null
+              )}
+          </div>
+        )}
+
+        {incident.flags?.includes("judge") && (
+          <div className="mt-4">
+            <Warning message="Flagged for Judging" />
+          </div>
+        )}
       </div>
-      {allowUndelete ? (
-        confirmUndelete ? (
-          <div className="flex gap-2 mt-4">
+
+      <footer className="bg-zinc-900 border border-zinc-800 rounded-lg p-3.5 shadow-sm flex-shrink-0">
+        {allowUndelete ? (
+          confirmUndelete ? (
+            <div className="flex gap-2">
+              <Button
+                mode="dangerous"
+                className="flex-1 text-center"
+                disabled={isUndeletePending}
+                onClick={onUndelete}
+              >
+                Are you sure?
+              </Button>
+              <Button
+                mode="normal"
+                className="flex-1 text-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConfirmUndelete(false);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button
+              mode="primary"
+              className="w-full text-center"
+              onClick={onUndelete}
+            >
+              Undelete Note
+            </Button>
+          )
+        ) : readonly ? null : confirmDelete ? (
+          <div className="flex gap-2">
             <Button
               mode="dangerous"
               className="flex-1 text-center"
-              disabled={isUndeletePending}
-              onClick={onUndelete}
+              disabled={isDeletePending}
+              onClick={onDelete}
             >
               Are you sure?
             </Button>
@@ -302,60 +375,32 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
               className="flex-1 text-center"
               onClick={(e) => {
                 e.stopPropagation();
-                setConfirmUndelete(false);
+                setConfirmDelete(false);
               }}
             >
               Cancel
             </Button>
           </div>
         ) : (
-          <Button
-            mode="primary"
-            className="w-full mt-4 text-center"
-            onClick={onUndelete}
-          >
-            Undelete Note
-          </Button>
-        )
-      ) : readonly ? null : confirmDelete ? (
-        <div className="flex gap-2 mt-4">
-          <Button
-            mode="dangerous"
-            className="flex-1 text-center"
-            disabled={isDeletePending}
-            onClick={onDelete}
-          >
-            Are you sure?
-          </Button>
-          <Button
-            mode="normal"
-            className="flex-1 text-center"
-            onClick={(e) => {
-              e.stopPropagation();
-              setConfirmDelete(false);
-            }}
-          >
-            Cancel
-          </Button>
-        </div>
-      ) : (
-        <div className="flex gap-2 mt-4">
-          <Button
-            mode="dangerous"
-            className="flex-1 text-center"
-            onClick={onDelete}
-          >
-            Delete Note
-          </Button>
-          <LinkButton
-            to="/$sku/entry/$incidentId"
-            params={{ sku: event?.sku ?? "", incidentId: incident.id }}
-            className="flex-1 text-center bg-emerald-600 active:bg-emerald-700 text-white"
-          >
-            Edit Note
-          </LinkButton>
-        </div>
-      )}
-    </div>
+          <div className="flex gap-2">
+            <Button
+              mode="dangerous"
+              className="flex-1 text-center"
+              onClick={onDelete}
+            >
+              Delete Note
+            </Button>
+            <LinkButton
+              to="/$sku/entry/$incidentId"
+              params={{ sku: event?.sku ?? "", incidentId: incident.id }}
+              className="flex-1 text-center bg-emerald-600 active:bg-emerald-700 text-white"
+            >
+              Edit Note
+            </LinkButton>
+          </div>
+        )}
+      </footer>
+    </>
   );
 };
+

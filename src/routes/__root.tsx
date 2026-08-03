@@ -232,8 +232,12 @@ export const AppShell: React.FC = () => {
   const isJoin = location.pathname.endsWith("/join");
   const isInvite = location.pathname.endsWith("/invite");
   const isNewNote = location.pathname.endsWith("/new");
+  const isNotePreview = location.pathname.endsWith("/view");
   const isNoteHistory = location.pathname.endsWith("/history");
-  const isEditNote = location.pathname.includes("/entry/") && !isNoteHistory;
+  const isEditNote =
+    location.pathname.includes("/entry/") &&
+    !isNoteHistory &&
+    !isNotePreview;
   const isTeamNotes = location.pathname.endsWith("/teamNotes");
   const isDeleted = location.pathname.endsWith("/deleted");
   const isSummary = location.pathname.endsWith("/summary");
@@ -260,6 +264,8 @@ export const AppShell: React.FC = () => {
     ? "Invite User"
     : isNewNote
     ? "New Note"
+    : isNotePreview
+    ? "Note Preview"
     : isNoteHistory
     ? "Note History"
     : isEditNote
