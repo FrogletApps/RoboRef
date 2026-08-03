@@ -6,9 +6,9 @@ import {
 import { del, get, set } from "~utils/data/keyval";
 
 // Cache buster key, used to forcibly invalidate queries
-export const CACHE_BUSTER = "v6";
+const CACHE_BUSTER = "v6";
 
-export const CACHE_PREFIX = "tanstack-query";
+const CACHE_PREFIX = "tanstack-query";
 
 export const queryClient = new QueryClient({
   defaultOptions: {

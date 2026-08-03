@@ -73,12 +73,3 @@ export function reportMeasurement(
   return setMeasurement(name, value, unit);
 }
 
-export function measure(name: string, executor: () => void) {
-  const start = performance.now();
-  executor();
-  const end = performance.now();
-
-  const duration = end - start;
-  reportMeasurement(name, duration, "millisecond");
-  return duration;
-}

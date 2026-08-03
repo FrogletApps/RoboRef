@@ -26,7 +26,7 @@ import {
 import { useRulesForSeason } from "~utils/hooks/rules";
 import { useCurrentEvent } from "~utils/hooks/state";
 
-export const EventDevToolsContent: React.FC = () => {
+const EventDevToolsContent: React.FC = () => {
   const params = useParams({ strict: false });
   const { data: event } = useCurrentEvent({
     networkMode: "always",
