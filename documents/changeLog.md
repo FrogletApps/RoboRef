@@ -1,3 +1,7 @@
+## 03 August 2026
+
+- Made photo UI consistent with the rest of the app
+
 ## 02 August 2026
 
 - Reimplemented photo uploads

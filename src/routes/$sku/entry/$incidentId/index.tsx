@@ -419,7 +419,12 @@ export const EditIncidentPage: React.FC = () => {
         <p className="mt-4 font-medium">Images</p>
         <div className="grid grid-cols-4 gap-4 mt-2">
           {incident.assets.map((asset) => (
-            <AssetPreview key={asset} asset={asset} />
+            <AssetPreview
+              key={asset}
+              asset={asset}
+              owner={incident.consistency?.outcome?.peer}
+              uploadedAt={incident.time}
+            />
           ))}
         </div>
       </div>
