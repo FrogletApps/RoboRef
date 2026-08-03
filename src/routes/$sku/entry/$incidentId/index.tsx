@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import { MatchData } from "@referee-fyi/robotevents";
-import { Button } from "~components/Button";
+import { Button, IconButton } from "~components/Button";
 import {
   Checkbox,
   Radio,
@@ -27,10 +27,15 @@ import { Rule, useRulesForEvent } from "~utils/hooks/rules";
 import { useCurrentEvent } from "~utils/hooks/state";
 import { queryClient } from "~utils/data/query";
 import { KeyRegister, LWWKeys } from "@referee-fyi/consistency";
-import { AssetPreview } from "~components/Assets";
+import { AssetPicker, AssetPreview } from "~components/Assets";
 import { Spinner } from "~components/Spinner";
 import { timeAgo } from "~utils/time";
 import { usePeerUserName } from "~utils/data/share";
+import { LocalAsset, saveLocalAsset } from "~utils/data/assets";
+import { ArrowUpTrayIcon, CameraIcon, TrashIcon } from "@heroicons/react/20/solid";
+import { twMerge } from "tailwind-merge";
+
+const ENABLE_IMAGE_UPLOAD = true;
 
 export const EditIncidentPage: React.FC = () => {
   const navigate = useNavigate();
@@ -241,6 +246,25 @@ export const EditIncidentPage: React.FC = () => {
     }
   }, [confirmUndelete, incident, undeleteIncident, router, navigate, sku]);
 
+  const onPickAsset = useCallback(
+    async (asset: LocalAsset) => {
+      await saveLocalAsset(asset);
+      update({
+        assets: [...(incident?.assets ?? []), asset.id],
+      });
+    },
+    [incident?.assets, update]
+  );
+
+  const onRemoveAsset = useCallback(
+    (assetId: string) => {
+      update({
+        assets: (incident?.assets ?? []).filter((id) => id !== assetId),
+      });
+    },
+    [incident?.assets, update]
+  );
+
   const onSave = useCallback(async () => {
     if (!incident) return;
 
@@ -417,15 +441,61 @@ export const EditIncidentPage: React.FC = () => {
 
       <div>
         <p className="mt-4 font-medium">Images</p>
-        <div className="grid grid-cols-4 gap-4 mt-2">
-          {incident.assets.map((asset) => (
-            <AssetPreview
-              key={asset}
-              asset={asset}
-              owner={incident.consistency?.outcome?.peer}
-              uploadedAt={incident.time}
+        {incident.assets && incident.assets.length > 0 && (
+          <section className="grid grid-cols-4 gap-2 mt-2">
+            {incident.assets.map((assetId) => (
+              <div className="relative" key={assetId}>
+                <IconButton
+                  className="absolute top-0 right-0 p-2 rounded-none rounded-bl-md rounded-tr-md bg-red-500 z-20"
+                  icon={<TrashIcon height={16} />}
+                  onClick={() => onRemoveAsset(assetId)}
+                />
+                <AssetPreview
+                  key={assetId}
+                  asset={assetId}
+                  owner={incident.consistency?.outcome?.peer}
+                  uploadedAt={incident.time}
+                />
+              </div>
+            ))}
+          </section>
+        )}
+        <div className="flex gap-3 mt-4">
+          <label
+            className={twMerge(
+              "flex-1 bg-zinc-700 rounded-md flex gap-2 items-center justify-center active:bg-zinc-800 focus-within:bg-zinc-800 focus-within:ring-2 ring-zinc-200 cursor-pointer px-3 py-2",
+              !ENABLE_IMAGE_UPLOAD && "opacity-50 cursor-not-allowed"
+            )}
+            aria-disabled={!ENABLE_IMAGE_UPLOAD}
+          >
+            <CameraIcon className="w-6 h-6 text-zinc-50" />
+            <span>Capture</span>
+            <AssetPicker
+              capture="environment"
+              accept="image/*"
+              className="sr-only"
+              fields={{ type: "image" }}
+              onPick={onPickAsset}
+              disabled={!ENABLE_IMAGE_UPLOAD}
             />
-          ))}
+          </label>
+          <label
+            className={twMerge(
+              "flex-1 bg-zinc-700 rounded-md flex gap-2 items-center justify-center active:bg-zinc-800 focus-within:bg-zinc-800 focus-within:ring-2 ring-zinc-200 cursor-pointer px-3 py-2",
+              !ENABLE_IMAGE_UPLOAD && "opacity-50 cursor-not-allowed"
+            )}
+            aria-disabled={!ENABLE_IMAGE_UPLOAD}
+          >
+            <ArrowUpTrayIcon className="w-6 h-6 text-zinc-50" />
+            <span>Upload</span>
+            <AssetPicker
+              accept="image/*"
+              className="sr-only"
+              fields={{ type: "image" }}
+              onPick={onPickAsset}
+              disabled={!ENABLE_IMAGE_UPLOAD}
+            />
+          </label>
         </div>
       </div>
 
