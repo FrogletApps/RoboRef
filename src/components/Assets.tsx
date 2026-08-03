@@ -10,7 +10,6 @@ import {
 } from "~utils/data/assets";
 import { twMerge } from "tailwind-merge";
 import {
-  useAssetOriginalURL,
   useAssetPreviewURL,
   useAssetUploadStatus,
 } from "~utils/hooks/assets";
@@ -98,7 +97,6 @@ export const AssetPicker: React.FC<AssetPickerProps> = ({
 export type ImagePreviewProps = {
   assetId?: string;
   previewUrl: string;
-  originalUrl?: string | null;
   owner?: string | null;
   uploadedAt?: string | Date | null;
 } & React.HTMLProps<HTMLImageElement>;
@@ -106,7 +104,6 @@ export type ImagePreviewProps = {
 export const ImagePreview: React.FC<ImagePreviewProps> = ({
   assetId,
   previewUrl,
-  originalUrl,
   owner,
   uploadedAt,
   className,
@@ -167,7 +164,6 @@ export const ImageAssetPreview: React.FC<LocalImageAssetPreviewProps> = ({
     <ImagePreview
       assetId={asset.id}
       previewUrl={url}
-      originalUrl={url}
       owner={owner ?? profile?.name ?? "You"}
       uploadedAt={uploadedAt ?? now}
     />
@@ -218,7 +214,6 @@ export const AssetPreview: React.FC<AssetPreviewProps> = ({
   const { data: event } = useCurrentEvent();
 
   const { data: previewUrl } = useAssetPreviewURL(event?.sku, asset);
-  const { data: originalUrl } = useAssetOriginalURL(event?.sku, asset);
   const { data: uploadStatus } = useAssetUploadStatus(asset);
 
   const uploadedAt = propUploadedAt ?? uploadStatus?.date;
@@ -231,7 +226,6 @@ export const AssetPreview: React.FC<AssetPreviewProps> = ({
     <ImagePreview
       assetId={asset}
       previewUrl={previewUrl ?? ""}
-      originalUrl={originalUrl}
       owner={propOwner}
       uploadedAt={uploadedAt}
     />
