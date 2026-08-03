@@ -4,9 +4,10 @@ import { useCurrentDivision, useCurrentEvent } from "~utils/hooks/state";
 import { useEventMatches } from "~utils/hooks/robotevents";
 import { Spinner } from "~components/Spinner";
 import { IconButton } from "~components/Button";
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/20/solid";
+import { ArrowLeftIcon, ArrowRightIcon, ClockIcon } from "@heroicons/react/20/solid";
 import { MatchContext } from "~components/Context";
-import { MatchTime } from "~components/Match";
+import { MatchTime, useMatchDelta } from "~components/Match";
+import { twMerge } from "tailwind-merge";
 import { EventMatchView } from "~components/MatchView";
 import { animate, PanInfo, useMotionValue } from "motion/react";
 import * as m from "motion/react-m";
@@ -60,6 +61,7 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
   }, [initialMatchId, matches]);
 
   const match = useMemo(() => matches?.[matchIndex], [matchIndex, matches]);
+  const delta = useMatchDelta(match);
 
   const hasNextMatch = matchIndex + 1 < (matches?.length ?? Infinity);
   const hasPrevMatch = matchIndex - 1 >= 0;
@@ -157,8 +159,8 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
       {event && (
         <UpcomingMatch event={event} onClickMatch={onClickUpcomingMatch} />
       )}
-      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 p-2 bg-zinc-900 border border-zinc-800 rounded-lg mb-3 flex-shrink-0">
-        <div className="flex items-center justify-start gap-2 min-w-0">
+      <header className="flex flex-col gap-1.5 p-2 bg-zinc-900 border border-zinc-800 rounded-lg mb-3 flex-shrink-0">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
           <IconButton
             icon={
               <ArrowLeftIcon
@@ -171,17 +173,9 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
             aria-label={`Previous Match: ${matches?.[matchIndex - 1]?.name ?? "None"}`}
             className="p-1.5 bg-zinc-800 rounded-md border border-zinc-700/60 aspect-auto shrink-0 disabled:bg-zinc-800 disabled:cursor-not-allowed enabled:hover:bg-zinc-700/80 enabled:active:bg-zinc-700"
           />
-          {scheduledTime ? (
-            <span className="text-zinc-100 font-mono whitespace-nowrap">
-              {scheduledTime}
-            </span>
-          ) : null}
-        </div>
-        <h1 className="text-xl font-bold font-mono text-zinc-100 text-center truncate px-2">
-          {match?.name ?? "Match Summary"}
-        </h1>
-        <div className="flex items-center justify-end gap-2 min-w-0">
-          {match && <MatchTime match={match} />}
+          <h1 className="text-xl font-bold font-mono text-zinc-100 text-center truncate px-2">
+            {match?.name ?? "Match Summary"}
+          </h1>
           <IconButton
             icon={
               <ArrowRightIcon
@@ -194,6 +188,30 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
             aria-label={`Next Match: ${matches?.[matchIndex + 1]?.name ?? "None"}`}
             className="p-1.5 bg-zinc-800 rounded-md border border-zinc-700/60 aspect-auto shrink-0 disabled:bg-zinc-800 disabled:cursor-not-allowed enabled:hover:bg-zinc-700/80 enabled:active:bg-zinc-700"
           />
+        </div>
+        <div className="flex items-center justify-between gap-2 text-xs sm:text-sm pt-1.5 border-t border-zinc-800/80 px-1">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <ClockIcon className="h-4 w-4 text-zinc-400 shrink-0" />
+            <span className="text-zinc-400 font-medium shrink-0">Scheduled for:</span>
+            <span className="text-zinc-100 font-mono whitespace-nowrap">
+              {scheduledTime ?? "Not Scheduled"}
+            </span>
+          </div>
+          {delta !== undefined ? (
+            <div
+              className={twMerge(
+                "flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-xs sm:text-sm font-medium shrink-0",
+                delta >= 0
+                  ? "bg-red-950/40 border-red-800/60 text-red-400"
+                  : delta >= -60000
+                  ? "bg-yellow-950/40 border-yellow-800/60 text-yellow-400"
+                  : "bg-emerald-950/40 border-emerald-800/60 text-emerald-400"
+              )}
+            >
+              <span>{delta < 0 ? "Early by:" : "Late by:"}</span>
+              <MatchTime match={match} />
+            </div>
+          ) : null}
         </div>
       </header>
 

@@ -4,22 +4,33 @@ import { MatchContext } from "./Context";
 import { Button } from "./Button";
 import { twMerge } from "tailwind-merge";
 
-function formatTime(ms: number) {
+function formatTime(ms: number, showSign = false) {
   const seconds = Math.floor(Math.abs(ms / 1000));
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.round(seconds % 60);
-  const t = [h, m > 9 ? m : h ? "0" + m : m || "0", s > 9 ? s : "0" + s]
-    .filter(Boolean)
-    .join(":");
-  return ms < 0 ? `-${t}` : `+${t}`;
+
+  let formatted = "";
+  if (h > 0) {
+    formatted = `${h}h ${m}m ${s}s`;
+  } else if (m > 0) {
+    formatted = `${m}m ${s}s`;
+  } else {
+    formatted = `${s}s`;
+  }
+
+  if (showSign) {
+    return ms < 0 ? `-${formatted}` : `+${formatted}`;
+  }
+  return formatted;
 }
 
 export type MatchTimeProps = {
   match?: MatchData;
+  showSign?: boolean;
 };
 
-export const MatchTime: React.FC<MatchTimeProps> = ({ match }) => {
+export function useMatchDelta(match?: MatchData) {
   const [now, setNow] = useState<number>(Date.now());
 
   const delta = useMemo(() => {
@@ -40,6 +51,15 @@ export const MatchTime: React.FC<MatchTimeProps> = ({ match }) => {
     return () => clearInterval(timer);
   }, []);
 
+  return delta;
+}
+
+export const MatchTime: React.FC<MatchTimeProps> = ({
+  match,
+  showSign = false,
+}) => {
+  const delta = useMatchDelta(match);
+
   if (typeof delta === "undefined") {
     return null;
   }
@@ -53,7 +73,7 @@ export const MatchTime: React.FC<MatchTimeProps> = ({ match }) => {
 
   return (
     <span className={twMerge("font-mono", colorClass)}>
-      {formatTime(delta)}
+      {formatTime(delta, showSign)}
     </span>
   );
 };
