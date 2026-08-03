@@ -29,6 +29,7 @@ import { Route as SkuSummaryRouteImport } from './routes/$sku/summary'
 import { Route as EventsFiltersRouteImport } from './routes/events.filters'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as SkuDivisionIndexRouteImport } from './routes/$sku/$division/index'
+import { Route as SkuAssetAssetIdRouteImport } from './routes/$sku/asset/$assetId'
 import { Route as SkuEntryIncidentIdRouteRouteImport } from './routes/$sku/entry/$incidentId/route'
 import { Route as SkuMatchMatchIdRouteImport } from './routes/$sku/match/$matchId'
 import { Route as SkuTeamTeamRouteRouteImport } from './routes/$sku/team/$team/route'
@@ -138,6 +139,11 @@ const SkuDivisionIndexRoute = SkuDivisionIndexRouteImport.update({
   path: '/$division/',
   getParentRoute: () => SkuRouteRoute,
 } as any)
+const SkuAssetAssetIdRoute = SkuAssetAssetIdRouteImport.update({
+  id: '/asset/$assetId',
+  path: '/asset/$assetId',
+  getParentRoute: () => SkuRouteRoute,
+} as any)
 const SkuEntryIncidentIdRouteRoute = SkuEntryIncidentIdRouteRouteImport.update({
   id: '/entry/$incidentId',
   path: '/entry/$incidentId',
@@ -202,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof SettingsIndexRoute
   '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRouteRouteWithChildren
   '/$sku/team/$team': typeof SkuTeamTeamRouteRouteWithChildren
+  '/$sku/asset/$assetId': typeof SkuAssetAssetIdRoute
   '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
   '/$sku/$division/': typeof SkuDivisionIndexRoute
   '/$sku/entry/$incidentId/history': typeof SkuEntryIncidentIdHistoryRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/events/filters': typeof EventsFiltersRoute
   '/$sku': typeof SkuIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/$sku/asset/$assetId': typeof SkuAssetAssetIdRoute
   '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
   '/$sku/$division': typeof SkuDivisionIndexRoute
   '/$sku/entry/$incidentId/history': typeof SkuEntryIncidentIdHistoryRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/settings/': typeof SettingsIndexRoute
   '/$sku/entry/$incidentId': typeof SkuEntryIncidentIdRouteRouteWithChildren
   '/$sku/team/$team': typeof SkuTeamTeamRouteRouteWithChildren
+  '/$sku/asset/$assetId': typeof SkuAssetAssetIdRoute
   '/$sku/match/$matchId': typeof SkuMatchMatchIdRoute
   '/$sku/$division/': typeof SkuDivisionIndexRoute
   '/$sku/entry/$incidentId/history': typeof SkuEntryIncidentIdHistoryRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/$sku/entry/$incidentId'
     | '/$sku/team/$team'
+    | '/$sku/asset/$assetId'
     | '/$sku/match/$matchId'
     | '/$sku/$division/'
     | '/$sku/entry/$incidentId/history'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/events/filters'
     | '/$sku'
     | '/settings'
+    | '/$sku/asset/$assetId'
     | '/$sku/match/$matchId'
     | '/$sku/$division'
     | '/$sku/entry/$incidentId/history'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/$sku/entry/$incidentId'
     | '/$sku/team/$team'
+    | '/$sku/asset/$assetId'
     | '/$sku/match/$matchId'
     | '/$sku/$division/'
     | '/$sku/entry/$incidentId/history'
@@ -509,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuDivisionIndexRouteImport
       parentRoute: typeof SkuRouteRoute
     }
+    '/$sku/asset/$assetId': {
+      id: '/$sku/asset/$assetId'
+      path: '/asset/$assetId'
+      fullPath: '/$sku/asset/$assetId'
+      preLoaderRoute: typeof SkuAssetAssetIdRouteImport
+      parentRoute: typeof SkuRouteRoute
+    }
     '/$sku/entry/$incidentId': {
       id: '/$sku/entry/$incidentId'
       path: '/entry/$incidentId'
@@ -611,6 +630,7 @@ interface SkuRouteRouteChildren {
   SkuIndexRoute: typeof SkuIndexRoute
   SkuEntryIncidentIdRouteRoute: typeof SkuEntryIncidentIdRouteRouteWithChildren
   SkuTeamTeamRouteRoute: typeof SkuTeamTeamRouteRouteWithChildren
+  SkuAssetAssetIdRoute: typeof SkuAssetAssetIdRoute
   SkuMatchMatchIdRoute: typeof SkuMatchMatchIdRoute
   SkuDivisionIndexRoute: typeof SkuDivisionIndexRoute
 }
@@ -627,6 +647,7 @@ const SkuRouteRouteChildren: SkuRouteRouteChildren = {
   SkuIndexRoute: SkuIndexRoute,
   SkuEntryIncidentIdRouteRoute: SkuEntryIncidentIdRouteRouteWithChildren,
   SkuTeamTeamRouteRoute: SkuTeamTeamRouteRouteWithChildren,
+  SkuAssetAssetIdRoute: SkuAssetAssetIdRoute,
   SkuMatchMatchIdRoute: SkuMatchMatchIdRoute,
   SkuDivisionIndexRoute: SkuDivisionIndexRoute,
 }
