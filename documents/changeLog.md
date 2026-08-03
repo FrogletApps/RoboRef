@@ -1,8 +1,7 @@
 ## 03 August 2026
 
-- Displayed Capture and Upload photo buttons side-by-side on New Note and Edit Note screens
-- Updated View Image screen to be a full-screen window consistent with other app pages, featuring a back button and matching header navigation
-- Added image metadata footer to View Image screen showing "Uploaded by" and "Date/Time uploaded"
+- Make photo UI consistent
+- Can add new pictures when editing a note
 
 ## 02 August 2026
 
