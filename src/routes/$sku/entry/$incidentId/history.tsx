@@ -37,20 +37,22 @@ const NoteHistoryPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl h-full w-full mx-auto flex-1 overflow-y-auto p-4 pb-12">
-      <header className="mb-4">
-        <h1 className="text-xl font-bold">
-          <span className="font-mono text-emerald-400">{incident.team}</span>
-          {" • "}
-          <span>{teamData?.team_name ?? "Note History"}</span>
-        </h1>
-      </header>
+    <div className="max-w-xl h-full w-full mx-auto flex-1 flex flex-col min-h-0 p-4">
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <header className="mb-4">
+          <h1 className="text-xl font-bold">
+            <span className="font-mono text-emerald-400">{incident.team}</span>
+            {" • "}
+            <span>{teamData?.team_name ?? "Note History"}</span>
+          </h1>
+        </header>
 
-      <section className="mt-2">
-        <EditHistoryView value={incident} />
-      </section>
+        <section className="mt-2">
+          <EditHistoryView value={incident} />
+        </section>
+      </div>
 
-      <div className="mt-8">
+      <div className="pt-4 flex-shrink-0">
         <Button mode="primary" className="w-full text-center" onClick={onBack}>
           Back to Edit Note
         </Button>
