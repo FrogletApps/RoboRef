@@ -217,7 +217,7 @@ const TeamSkillsTab: React.FC<TeamSkillsTabProps> = ({ event }) => {
   );
 };
 
-export const EventSkillsPage: React.FC = () => {
+const EventSkillsPage: React.FC = () => {
   const { data: event } = useCurrentEvent();
 
   const { mutateAsync: addEvent, isSuccess } = useAddEventVisited();

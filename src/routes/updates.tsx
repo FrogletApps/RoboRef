@@ -18,7 +18,7 @@ export function getChangeLogHash(content: string): string {
   return hash.toString(36);
 }
 
-export const UpdatesPage: React.FC = () => {
+const UpdatesPage: React.FC = () => {
   useEffect(() => {
     localStorage.setItem("last_seen_changelog_hash", getChangeLogHash(changeLogRaw));
     localStorage.setItem("version", __ROBOREF_VERSION__);

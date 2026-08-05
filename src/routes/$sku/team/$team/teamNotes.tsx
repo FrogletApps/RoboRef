@@ -5,7 +5,7 @@ import { VirtualizedList } from "~components/VirtualizedList";
 import { useTeamIncidentsByEvent } from "~utils/hooks/incident";
 import { useCurrentEvent } from "~utils/hooks/state";
 
-export const TeamNotesPage: React.FC = () => {
+const TeamNotesPage: React.FC = () => {
   const { team } = useParams({ strict: false });
   const { data: event } = useCurrentEvent();
   const { data: incidents } = useTeamIncidentsByEvent(team, event?.sku);

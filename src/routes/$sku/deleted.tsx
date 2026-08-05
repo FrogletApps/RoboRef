@@ -4,7 +4,7 @@ import { useCurrentEvent } from "~utils/hooks/state";
 import { createFileRoute } from "@tanstack/react-router";
 import { IncidentListSummary } from "~components/IncidentListSummary";
 
-export const EventDeletedIncidentsPage: React.FC = () => {
+const EventDeletedIncidentsPage: React.FC = () => {
   const { data: event } = useCurrentEvent();
   const { data: deleted, isPending } = useEventDeletedIncidents(event?.sku);
 

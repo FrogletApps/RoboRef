@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { QRCodeViewer } from "~components/QRCodeViewer";
 import AppIcon from "/icons/roboref.svg?url";
 
-export const SharePage: React.FC = () => {
+const SharePage: React.FC = () => {
   return (
     <main className="max-w-md w-full mx-auto flex-1 pt-6 px-4 pb-4 flex flex-col items-center justify-start gap-6 overflow-y-auto">
       <div className="flex flex-col items-center gap-2 text-center">

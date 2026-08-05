@@ -33,7 +33,7 @@ const VEX_REGIONS_AND_COUNTRIES = [
   "Tunisia", "Turkey", "United Arab Emirates", "United Kingdom", "United States", "Vietnam"
 ];
 
-export const EventFilterPage: React.FC = () => {
+const EventFilterPage: React.FC = () => {
   const router = useRouter();
 
   const globalFilters = useEventFilterStore((state) => state.filters);

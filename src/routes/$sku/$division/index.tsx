@@ -29,7 +29,7 @@ export type EventHomeSearch = {
   match?: number;
 };
 
-export const EventHome: React.FC = () => {
+const EventHome: React.FC = () => {
   const { data: event } = useCurrentEvent();
   const { mutateAsync: addEvent, isSuccess } = useAddEventVisited();
   const search = Route.useSearch();

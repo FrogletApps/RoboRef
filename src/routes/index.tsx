@@ -116,7 +116,7 @@ function useHomeEvents() {
   return isWorldsBuild() ? worldsEvents : recentUser;
 }
 
-export const HomePage: React.FC = () => {
+const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const events = useHomeEvents();
   const { data: hiddenEvents = [] } = useHiddenEvents();

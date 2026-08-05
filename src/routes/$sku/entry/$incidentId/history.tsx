@@ -7,7 +7,7 @@ import { useCurrentEvent } from "~utils/hooks/state";
 import { Spinner } from "~components/Spinner";
 import { Button } from "~components/Button";
 
-export const NoteHistoryPage: React.FC = () => {
+const NoteHistoryPage: React.FC = () => {
   const navigate = useNavigate();
   const router = useRouter();
   const { sku, incidentId } = useParams({ strict: false });

@@ -12,7 +12,7 @@ import { Spinner } from "~components/Spinner";
 import { Error, Success, Warning } from "~components/Warning";
 import { twMerge } from "tailwind-merge";
 
-export const EventInvitePage: React.FC = () => {
+const EventInvitePage: React.FC = () => {
   const { sku: skuParam } = useParams({ strict: false });
   const { data: event } = useCurrentEvent();
   const sku = event?.sku ?? skuParam ?? "";

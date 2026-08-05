@@ -12,7 +12,7 @@ import { isWorldsBuild } from "~utils/data/state";
 import { clearCache } from "~utils/sentry";
 import { useTheme, Theme } from "~utils/hooks/theme";
 
-export const SettingsPage: React.FC = () => {
+const SettingsPage: React.FC = () => {
   const { updateProfile, profile, userMetadata } = useShareConnection([
     "updateProfile",
     "profile",

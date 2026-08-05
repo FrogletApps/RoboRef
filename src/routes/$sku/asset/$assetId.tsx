@@ -14,7 +14,7 @@ export type ImagePreviewSearch = {
   uploadedAt?: string;
 };
 
-export const ImagePreviewPage: React.FC = () => {
+const ImagePreviewPage: React.FC = () => {
   const navigate = useNavigate();
   const router = useRouter();
   const { sku, assetId } = useParams({ strict: false });

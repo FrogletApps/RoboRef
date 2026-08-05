@@ -13,7 +13,7 @@ export type FilterSearch = {
   target?: "event" | "team";
 };
 
-export const FilterPage: React.FC = () => {
+const FilterPage: React.FC = () => {
   const router = useRouter();
   const { target } = Route.useSearch();
   const isTeam = target === "team";

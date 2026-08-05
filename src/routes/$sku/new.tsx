@@ -42,7 +42,7 @@ import { createFileRoute, useNavigate, useParams, useRouter } from "@tanstack/re
 
 const ENABLE_IMAGE_UPLOAD = true;
 
-export const NewEntryPage: React.FC = () => {
+const NewEntryPage: React.FC = () => {
   const navigate = useNavigate();
   const router = useRouter();
   const { sku } = useParams({ strict: false });

@@ -26,7 +26,7 @@ const IncidentOutcomeBackgroundClasses: { [O in IncidentOutcome]: string } = {
   Inspection: "bg-zinc-300 text-zinc-900",
 };
 
-export const NotePreviewPage: React.FC = () => {
+const NotePreviewPage: React.FC = () => {
   const navigate = useNavigate();
   const router = useRouter();
   const { sku, incidentId } = useParams({ strict: false });

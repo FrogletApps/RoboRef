@@ -8,7 +8,7 @@ import { useEventIncidents } from "~utils/hooks/incident";
 import { createFileRoute } from "@tanstack/react-router";
 import { IncidentListSummary } from "~components/IncidentListSummary";
 
-export const EventSummaryPage: React.FC = () => {
+const EventSummaryPage: React.FC = () => {
   const { data: event } = useCurrentEvent();
   const { mutateAsync: addEvent, isSuccess } = useAddEventVisited();
   const { data: incidents, isPending } = useEventIncidents(event?.sku);

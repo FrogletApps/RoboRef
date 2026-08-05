@@ -20,7 +20,7 @@ import { twMerge } from "tailwind-merge";
 
 const TIMEOUT_DURATION_MS = 120000; // 2 minutes
 
-export const EventJoinPage: React.FC = () => {
+const EventJoinPage: React.FC = () => {
   const { sku: skuParam } = useParams({ strict: false });
   const { data: event } = useCurrentEvent();
   const sku = event?.sku ?? skuParam ?? "";

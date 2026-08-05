@@ -250,7 +250,7 @@ export const TeamMatchScheduleSection: React.FC<{
   );
 };
 
-export const EventTeamsPage: React.FC = () => {
+const EventTeamsPage: React.FC = () => {
   const { team: number } = useParams({ strict: false });
   const { data: event } = useCurrentEvent();
   const { data: team } = useEventTeam(event, number ?? "");

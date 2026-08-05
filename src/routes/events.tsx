@@ -307,7 +307,7 @@ export const EventsPage: React.FC = () => {
   );
 };
 
-export const EventsRouteComponent: React.FC = () => {
+const EventsRouteComponent: React.FC = () => {
   const location = useLocation();
   if (location.pathname === "/events/filters") {
     return <Outlet />;

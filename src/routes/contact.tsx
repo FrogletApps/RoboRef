@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "~components/Button";
 import { logger } from "@sentry/react";
 
-export const ContactPage: React.FC = () => {
+const ContactPage: React.FC = () => {
   const [shouldError, setShouldError] = useState(false);
 
   if (shouldError) {

@@ -7,7 +7,7 @@ const LazyEventDevTools = React.lazy(
   () => import("./-components/DevToolsContent")
 );
 
-export const EventDevTools: React.FC = () => {
+const EventDevTools: React.FC = () => {
   return (
     <Suspense fallback={<Spinner show />}>
       <LazyEventDevTools />

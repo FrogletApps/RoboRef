@@ -37,7 +37,7 @@ import { twMerge } from "tailwind-merge";
 
 const ENABLE_IMAGE_UPLOAD = true;
 
-export const EditIncidentPage: React.FC = () => {
+const EditIncidentPage: React.FC = () => {
   const navigate = useNavigate();
   const router = useRouter();
   const { sku, incidentId } = useParams({ strict: false });

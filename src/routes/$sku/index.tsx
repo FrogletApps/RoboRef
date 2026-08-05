@@ -4,7 +4,7 @@ import { LinkButton } from "~components/Button";
 import { Spinner } from "~components/Spinner";
 import { useCurrentEvent } from "~hooks/state";
 
-export const EventDivisionPickerPage: React.FC = () => {
+const EventDivisionPickerPage: React.FC = () => {
   const { data: event } = useCurrentEvent({
     networkMode: "always",
     refetchOnMount: "always",
