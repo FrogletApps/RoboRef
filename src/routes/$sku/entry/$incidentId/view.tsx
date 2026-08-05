@@ -14,7 +14,12 @@ import { ClockIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { Warning } from "~components/Warning";
 import { AssetPreview } from "~components/Assets";
 import { RulesDisplay } from "~components/Input";
-import { useDeleteIncident, useIncident, useUndeleteIncident } from "~utils/hooks/incident";
+import {
+  useDeleteIncident,
+  useEventDeletedIncidents,
+  useIncident,
+  useUndeleteIncident,
+} from "~utils/hooks/incident";
 import { toast } from "~components/Toast";
 import { Spinner } from "~components/Spinner";
 
@@ -34,6 +39,14 @@ const NotePreviewPage: React.FC = () => {
 
   const { data: incident, isLoading } = useIncident(id, { enabled: !!id });
   const { data: event } = useCurrentEvent();
+  const eventSku = sku ?? event?.sku;
+
+  const { data: deletedIncidents } = useEventDeletedIncidents(eventSku);
+  const isDeleted = useMemo(
+    () => deletedIncidents?.some((i) => i.id === id) ?? false,
+    [deletedIncidents, id]
+  );
+
   const { data: team } = useEventTeam(event, incident?.team);
   const { data: rules } = useRulesForEvent(event);
 
@@ -51,7 +64,6 @@ const NotePreviewPage: React.FC = () => {
 
   const { mutateAsync: undeleteIncident, isPending: isUndeletePending } =
     useUndeleteIncident();
-  const [confirmUndelete, setConfirmUndelete] = useState(false);
 
   const { mutateAsync: deleteIncident, isPending: isDeletePending } =
     useDeleteIncident();
@@ -70,10 +82,6 @@ const NotePreviewPage: React.FC = () => {
 
   const onUndelete = useCallback(async () => {
     if (!incident) return;
-    if (!confirmUndelete) {
-      setConfirmUndelete(true);
-      return;
-    }
 
     try {
       await undeleteIncident(incident);
@@ -86,7 +94,7 @@ const NotePreviewPage: React.FC = () => {
         context: JSON.stringify(err),
       });
     }
-  }, [confirmUndelete, incident, undeleteIncident, onBack]);
+  }, [incident, undeleteIncident, onBack]);
 
   const onDelete = useCallback(async () => {
     if (!incident) return;
@@ -212,24 +220,15 @@ const NotePreviewPage: React.FC = () => {
       )}
 
       <div className="pt-4 border-t border-zinc-800 space-y-3">
-        {confirmUndelete ? (
-          <div className="flex gap-2">
-            <Button
-              mode="dangerous"
-              className="flex-1 text-center"
-              disabled={isUndeletePending}
-              onClick={onUndelete}
-            >
-              Are you sure?
-            </Button>
-            <Button
-              mode="normal"
-              className="flex-1 text-center"
-              onClick={() => setConfirmUndelete(false)}
-            >
-              Cancel
-            </Button>
-          </div>
+        {isDeleted ? (
+          <Button
+            mode="primary"
+            className="w-full text-center"
+            disabled={isUndeletePending}
+            onClick={onUndelete}
+          >
+            Undelete Note
+          </Button>
         ) : (
           <div className="space-y-3">
             <LinkButton

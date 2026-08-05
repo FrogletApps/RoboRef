@@ -1,6 +1,8 @@
 ## 05 August 2026
 
+- Added option to undelete notes directly with a single click when previewing deleted notes
 - Added more events to note history
+- Bug fixes
 - Updated dependencies
 
 ## 03 August 2026

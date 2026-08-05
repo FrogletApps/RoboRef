@@ -47,7 +47,6 @@ const EditIncidentPage: React.FC = () => {
   const { mutateAsync: editIncident } = useEditIncident();
   const { mutateAsync: undeleteIncident, isPending: isUndeletePending } =
     useUndeleteIncident();
-  const [confirmUndelete, setConfirmUndelete] = useState(false);
 
   const { data: deletedIncidents } = useEventDeletedIncidents(sku);
   const isDeleted = useMemo(
@@ -223,10 +222,6 @@ const EditIncidentPage: React.FC = () => {
 
   const onUndelete = useCallback(async () => {
     if (!incident) return;
-    if (!confirmUndelete) {
-      setConfirmUndelete(true);
-      return;
-    }
 
     try {
       await undeleteIncident(incident);
@@ -244,7 +239,7 @@ const EditIncidentPage: React.FC = () => {
         context: JSON.stringify(e),
       });
     }
-  }, [confirmUndelete, incident, undeleteIncident, router, navigate, sku]);
+  }, [incident, undeleteIncident, router, navigate, sku]);
 
   const onPickAsset = useCallback(
     async (asset: LocalAsset) => {
@@ -522,33 +517,14 @@ const EditIncidentPage: React.FC = () => {
       <div className="mt-6 mb-8">
         {isDeleted ? (
           <div className="flex gap-4">
-            {confirmUndelete ? (
-              <div className="flex-1 flex gap-2">
-                <Button
-                  mode="dangerous"
-                  className="flex-1 text-center"
-                  disabled={isUndeletePending}
-                  onClick={onUndelete}
-                >
-                  Are you sure?
-                </Button>
-                <Button
-                  mode="normal"
-                  className="flex-1 text-center"
-                  onClick={() => setConfirmUndelete(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <Button
-                mode="primary"
-                className="flex-1 text-center"
-                onClick={onUndelete}
-              >
-                Undelete Note
-              </Button>
-            )}
+            <Button
+              mode="primary"
+              className="flex-1 text-center"
+              disabled={isUndeletePending}
+              onClick={onUndelete}
+            >
+              Undelete Note
+            </Button>
             <Button
               mode="primary"
               className="flex-1 text-center"

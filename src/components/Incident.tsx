@@ -175,7 +175,6 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
 
   const { mutateAsync: undeleteIncident, isPending: isUndeletePending } =
     useUndeleteIncident();
-  const [confirmUndelete, setConfirmUndelete] = useState(false);
 
   const { mutateAsync: deleteIncident, isPending: isDeletePending } =
     useDeleteIncident();
@@ -184,10 +183,6 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
   const onUndelete = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!confirmUndelete) {
-        setConfirmUndelete(true);
-        return;
-      }
 
       try {
         await undeleteIncident(incident);
@@ -201,7 +196,7 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
         });
       }
     },
-    [confirmUndelete, incident, undeleteIncident, onClose]
+    [incident, undeleteIncident, onClose]
   );
 
   const onDelete = useCallback(
@@ -330,36 +325,14 @@ export const IncidentMenu: React.FC<IncidentMenuProps> = ({
 
       <footer className="bg-zinc-900 border border-zinc-800 rounded-lg p-3.5 shadow-sm flex-shrink-0">
         {allowUndelete ? (
-          confirmUndelete ? (
-            <div className="flex gap-2">
-              <Button
-                mode="dangerous"
-                className="flex-1 text-center"
-                disabled={isUndeletePending}
-                onClick={onUndelete}
-              >
-                Are you sure?
-              </Button>
-              <Button
-                mode="normal"
-                className="flex-1 text-center"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setConfirmUndelete(false);
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <Button
-              mode="primary"
-              className="w-full text-center"
-              onClick={onUndelete}
-            >
-              Undelete Note
-            </Button>
-          )
+          <Button
+            mode="primary"
+            className="w-full text-center"
+            disabled={isUndeletePending}
+            onClick={onUndelete}
+          >
+            Undelete Note
+          </Button>
         ) : readonly ? null : confirmDelete ? (
           <div className="flex gap-2">
             <Button
