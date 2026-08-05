@@ -3,6 +3,7 @@ import {
   KeyRegister,
   LWWKeys,
 } from "@referee-fyi/consistency";
+import { incidentMatchNameToString, IncidentMatch } from "@referee-fyi/share";
 import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { timeAgo } from "~utils/time";
@@ -23,6 +24,67 @@ export type EditHistoryRecordItemProps = {
   render?: (value: unknown) => React.ReactNode;
 };
 
+function renderOutcomeBadge(outcome: unknown) {
+  const label = String(outcome ?? "General");
+  let colorClass = "bg-zinc-600/50 text-zinc-300 border-zinc-500/30";
+  if (label === "Major") colorClass = "bg-red-500/20 text-red-400 border-red-500/30";
+  else if (label === "Minor") colorClass = "bg-amber-500/20 text-amber-400 border-amber-500/30";
+  else if (label === "Disabled") colorClass = "bg-rose-500/20 text-rose-400 border-rose-500/30";
+
+  return (
+    <span className={twMerge("px-2 py-0.5 rounded text-xs font-semibold border inline-block", colorClass)}>
+      {label}
+    </span>
+  );
+}
+
+function renderRulesList(rulesVal: unknown) {
+  const rules = Array.isArray(rulesVal) ? rulesVal : [];
+  if (rules.length === 0) {
+    return <span className="text-zinc-400 italic text-xs">None</span>;
+  }
+  return (
+    <div className="flex flex-wrap gap-1 inline-flex">
+      {rules.map((rule, idx) => (
+        <span
+          key={`${rule}-${idx}`}
+          className="px-1.5 py-0.5 rounded text-xs font-mono bg-sky-500/20 text-sky-300 border border-sky-500/30"
+        >
+          &lt;{String(rule)}&gt;
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function renderFlagsList(flagsVal: unknown) {
+  const flags = Array.isArray(flagsVal) ? flagsVal : [];
+  if (flags.length === 0) {
+    return <span className="text-zinc-400 italic text-xs">None</span>;
+  }
+  return (
+    <div className="flex flex-wrap gap-1 inline-flex">
+      {flags.map((flag, idx) => (
+        <span
+          key={`${flag}-${idx}`}
+          className="px-1.5 py-0.5 rounded text-xs font-semibold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
+        >
+          {String(flag) === "judge" ? "Flagged for Judges" : String(flag)}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function renderAssetCount(assetsVal: unknown) {
+  const count = Array.isArray(assetsVal) ? assetsVal.length : 0;
+  return (
+    <span className="text-xs text-zinc-300">
+      {count} photo{count === 1 ? "" : "s"}
+    </span>
+  );
+}
+
 export const EditHistoryRecordItem: React.FC<EditHistoryRecordItemProps> = ({
   record,
   render = (value) => JSON.stringify(value),
@@ -30,55 +92,212 @@ export const EditHistoryRecordItem: React.FC<EditHistoryRecordItemProps> = ({
   const user = usePeerUserName(record.peer);
   const date = new Date(record.instant);
 
+  // 1. Initial Creation Event
+  if (record.key === "created") {
+    return (
+      <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
+        <div className="flex justify-between text-xs text-zinc-400 mb-1">
+          <span>
+            <UserCircleIcon height={16} className="inline mr-1 text-emerald-400" aria-hidden="true" />
+            <span className="sr-only">User: </span>
+            {user || "Referee"}
+          </span>
+          <span>
+            <ClockIcon height={16} className="inline mr-1 text-zinc-400" aria-hidden="true" />
+            <span className="sr-only">Time: </span>
+            {date.toLocaleTimeString()}
+          </span>
+        </div>
+        <p className="font-semibold text-emerald-400 text-sm">Created Note</p>
+      </section>
+    );
+  }
+
+  // 2. Deletion / Restoration Event
   if (record.key === "deleted") {
     const isDeletedAction = record.to === true;
     return (
-      <section className="bg-zinc-700 p-2 rounded-md mb-4 grid gap-2 grid-cols-2">
-        <p className="mr-4">
-          <UserCircleIcon
-            height={20}
-            className="inline mr-2"
-            aria-hidden="true"
-          />
-          <span className="sr-only">User: </span>
-          {user}
-        </p>
-        <p>
-          <ClockIcon height={20} className="inline mr-2" aria-hidden="true" />
-          <span className="sr-only">Time: </span>
-          {date.toLocaleTimeString()}
-        </p>
-        <p className="col-span-2 font-semibold text-emerald-400">
+      <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
+        <div className="flex justify-between text-xs text-zinc-400 mb-1">
+          <span>
+            <UserCircleIcon height={16} className="inline mr-1 text-emerald-400" aria-hidden="true" />
+            <span className="sr-only">User: </span>
+            {user || "Referee"}
+          </span>
+          <span>
+            <ClockIcon height={16} className="inline mr-1 text-zinc-400" aria-hidden="true" />
+            <span className="sr-only">Time: </span>
+            {date.toLocaleTimeString()}
+          </span>
+        </div>
+        <p className={twMerge("font-semibold text-sm", isDeletedAction ? "text-red-400" : "text-emerald-400")}>
           {isDeletedAction ? "Deleted Note" : "Undeleted Note"}
         </p>
       </section>
     );
   }
 
-  return (
-    <section className="bg-zinc-700 p-2 rounded-md mb-4 grid gap-2 grid-cols-2">
-      <p className="mr-4">
-        <UserCircleIcon
-          height={20}
-          className="inline mr-2"
-          aria-hidden="true"
-        />
+  // Header info for property edit events
+  const header = (
+    <div className="flex justify-between text-xs text-zinc-400 mb-1">
+      <span>
+        <UserCircleIcon height={16} className="inline mr-1 text-emerald-400" aria-hidden="true" />
         <span className="sr-only">User: </span>
-        {user}
-      </p>
-      <p>
-        <ClockIcon height={20} className="inline mr-2" aria-hidden="true" />
+        {user || "Referee"}
+      </span>
+      <span>
+        <ClockIcon height={16} className="inline mr-1 text-zinc-400" aria-hidden="true" />
         <span className="sr-only">Time: </span>
         {date.toLocaleTimeString()}
+      </span>
+    </div>
+  );
+
+  // 3. Outcome / Severity change
+  if (record.key === "outcome") {
+    return (
+      <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
+        {header}
+        <p className="font-semibold text-amber-400 text-sm mb-2">Changed Severity / Outcome</p>
+        <div className="text-xs grid grid-cols-2 gap-2 bg-zinc-800/60 p-2 rounded">
+          <div>
+            <span className="text-zinc-400 block mb-1">From</span>
+            {renderOutcomeBadge(record.prev)}
+          </div>
+          <div>
+            <span className="text-zinc-400 block mb-1">To</span>
+            {renderOutcomeBadge(record.to)}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // 4. Game Rules cited change
+  if (record.key === "rules") {
+    return (
+      <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
+        {header}
+        <p className="font-semibold text-sky-400 text-sm mb-2">Updated Cited Rules</p>
+        <div className="text-xs grid grid-cols-2 gap-2 bg-zinc-800/60 p-2 rounded">
+          <div>
+            <span className="text-zinc-400 block mb-1">From</span>
+            {renderRulesList(record.prev)}
+          </div>
+          <div>
+            <span className="text-zinc-400 block mb-1">To</span>
+            {renderRulesList(record.to)}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // 5. Match context change
+  if (record.key === "match") {
+    const prevMatchStr = incidentMatchNameToString(record.prev as IncidentMatch | undefined);
+    const toMatchStr = incidentMatchNameToString(record.to as IncidentMatch | undefined);
+    return (
+      <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
+        {header}
+        <p className="font-semibold text-indigo-400 text-sm mb-2">Changed Match Context</p>
+        <div className="text-xs grid grid-cols-2 gap-2 bg-zinc-800/60 p-2 rounded">
+          <div>
+            <span className="text-zinc-400 block mb-1">From</span>
+            <span className="font-medium text-zinc-200">{prevMatchStr}</span>
+          </div>
+          <div>
+            <span className="text-zinc-400 block mb-1">To</span>
+            <span className="font-medium text-zinc-200">{toMatchStr}</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // 6. Flags change
+  if (record.key === "flags") {
+    return (
+      <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
+        {header}
+        <p className="font-semibold text-yellow-400 text-sm mb-2">Updated Flags</p>
+        <div className="text-xs grid grid-cols-2 gap-2 bg-zinc-800/60 p-2 rounded">
+          <div>
+            <span className="text-zinc-400 block mb-1">From</span>
+            {renderFlagsList(record.prev)}
+          </div>
+          <div>
+            <span className="text-zinc-400 block mb-1">To</span>
+            {renderFlagsList(record.to)}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // 7. Assets / Attachments change
+  if (record.key === "assets") {
+    return (
+      <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
+        {header}
+        <p className="font-semibold text-fuchsia-400 text-sm mb-2">Updated Attachments</p>
+        <div className="text-xs grid grid-cols-2 gap-2 bg-zinc-800/60 p-2 rounded">
+          <div>
+            <span className="text-zinc-400 block mb-1">From</span>
+            {renderAssetCount(record.prev)}
+          </div>
+          <div>
+            <span className="text-zinc-400 block mb-1">To</span>
+            {renderAssetCount(record.to)}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // 8. Notes text change
+  if (record.key === "notes") {
+    const prevText = String(record.prev ?? "");
+    const toText = String(record.to ?? "");
+    return (
+      <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
+        {header}
+        <p className="font-semibold text-emerald-400 text-sm mb-2">Updated Referee Notes</p>
+        <div className="text-xs space-y-2 bg-zinc-800/60 p-2 rounded">
+          <div>
+            <span className="text-zinc-400 block mb-0.5">From</span>
+            <p className="text-zinc-300 italic bg-zinc-900/40 p-1.5 rounded break-words whitespace-pre-wrap">
+              {prevText || "(empty)"}
+            </p>
+          </div>
+          <div>
+            <span className="text-zinc-400 block mb-0.5">To</span>
+            <p className="text-emerald-300 bg-zinc-900/40 p-1.5 rounded break-words whitespace-pre-wrap">
+              {toText || "(empty)"}
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // 9. Generic Property Fallback
+  return (
+    <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
+      {header}
+      <p className="font-semibold text-zinc-300 text-sm mb-2">
+        Updated {record.key.charAt(0).toUpperCase() + record.key.slice(1)}
       </p>
-      <p>
-        <span>From </span>
-        {render(record.prev)}
-      </p>
-      <p>
-        <span>To </span>
-        {render(record.to)}
-      </p>
+      <div className="text-xs grid grid-cols-2 gap-2 bg-zinc-800/60 p-2 rounded">
+        <div>
+          <span className="text-zinc-400 block mb-1">From</span>
+          <div className="text-zinc-300 break-words">{render(record.prev)}</div>
+        </div>
+        <div>
+          <span className="text-zinc-400 block mb-1">To</span>
+          <div className="text-zinc-300 break-words">{render(record.to)}</div>
+        </div>
+      </div>
     </section>
   );
 };
@@ -105,19 +324,56 @@ export const EditHistoryView = <
     if (!value || !value.consistency) return [];
     const records: HistoryRecord[] = [];
 
+    let earliestInstant = "";
+    let initialPeer = "";
+
+    if ("time" in value && value.time) {
+      earliestInstant = new Date(value.time as string | number | Date).toISOString();
+    }
+
     for (const [key, register] of Object.entries(value.consistency)) {
       const reg = register as KeyRegister<Record<string, unknown>, string>;
-      if (!reg || !reg.history) continue;
+      if (!reg) continue;
+
+      const firstHist = reg.history?.[0];
+      const regInitialInstant = firstHist ? firstHist.instant : reg.instant;
+      const regInitialPeer = firstHist ? firstHist.peer : reg.peer;
+
+      if (
+        !earliestInstant ||
+        (regInitialInstant && new Date(regInitialInstant).getTime() < new Date(earliestInstant).getTime())
+      ) {
+        earliestInstant = regInitialInstant;
+        initialPeer = regInitialPeer;
+      }
+      if (!initialPeer && regInitialPeer) {
+        initialPeer = regInitialPeer;
+      }
+
+      if (!reg.history) continue;
 
       reg.history.forEach((h, i) => {
-        const to = reg.history[i + 1]?.prev ?? value[key];
+        const nextHist = reg.history[i + 1];
+        const to = nextHist?.prev ?? value[key];
+        const editInstant = nextHist?.instant ?? reg.instant;
+
         records.push({
           key,
           prev: h.prev,
           to,
           peer: h.peer,
-          instant: h.instant,
+          instant: editInstant,
         });
+      });
+    }
+
+    if (earliestInstant) {
+      records.push({
+        key: "created",
+        prev: null,
+        to: null,
+        peer: initialPeer,
+        instant: earliestInstant,
       });
     }
 
@@ -225,3 +481,4 @@ export const EditHistory = <
     </div>
   );
 };
+

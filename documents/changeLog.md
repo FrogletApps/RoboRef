@@ -1,3 +1,8 @@
+## 05 August 2026
+
+- Added more events to note history
+- Updated dependencies
+
 ## 03 August 2026
 
 - RoboRef preloads pages and caches data for longer for improved speed
