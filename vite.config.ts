@@ -10,49 +10,62 @@ import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import { type Plugin } from "vite";
 
 // Single source of truth for the app version, formatted as
-// `YYYY-MM-DD-<short commit hash>` (build date + git short SHA).
+// `YYYY-MM-DD-<short commit hash>` (build date + git short SHA), with optional
+// environment suffix (`-TEST` or `-LOCAL`).
 // Fed to BOTH the baked-in `__ROBOREF_VERSION__` (via vite-plugin-version-mark)
 // and the `/version.json` the running app polls, so the two are always identical
 // within a build and the "Update Available" prompt only fires on a genuinely
 // newer deploy.
-const APP_VERSION = (() => {
-  const shortSHA = (() => {
-    try {
-      // git's default short SHA (shortest unambiguous prefix, ~7 chars)
-      return execSync("git rev-parse --short HEAD").toString().trim();
-    } catch {
-      // Fallback for environments without a git checkout (e.g. CI)
-      return (process.env.CF_PAGES_COMMIT_SHA || "unknown").slice(0, 7);
-    }
-  })();
-  const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC build date)
-  return `${date}-${shortSHA}`;
-})();
-
-const generateVersionJson: Plugin = {
-  name: "generate-version-json",
-  apply: "build",
-  buildStart() {
-    this.emitFile({
-      type: "asset",
-      fileName: "version.json",
-      source: JSON.stringify({ version: APP_VERSION }),
-    });
-  },
-};
-
-const isTestEnv =
-  Boolean(process.env.VITE_REFEREE_FYI_SHARE_SERVER?.includes("test")) ||
-  process.env.VITE_REFEREE_FYI_ENV === "test" ||
-  process.env.CF_PAGES_PROJECT_NAME === "roboref-test";
-
-const appName = isTestEnv ? "RoboRef TEST" : "RoboRef";
-const appId = isTestEnv
-  ? "app.frogletapps.roboref.test.v1"
-  : "app.frogletapps.roboref.v1";
 
 // https://vitejs.dev/config/
-export default defineConfig(() => ({
+export default defineConfig(({ command, mode }) => {
+  const isTestEnv =
+    Boolean(process.env.VITE_REFEREE_FYI_SHARE_SERVER?.includes("test")) ||
+    process.env.VITE_REFEREE_FYI_ENV === "test" ||
+    process.env.CF_PAGES_PROJECT_NAME === "roboref-test";
+
+  const isLocalEnv =
+    command === "serve" ||
+    mode === "development" ||
+    process.env.VITE_REFEREE_FYI_ENV === "local" ||
+    (!process.env.CF_PAGES &&
+      process.env.VITE_REFEREE_FYI_ENV !== "production" &&
+      !isTestEnv);
+
+  const envSuffix = isTestEnv ? "-TEST" : isLocalEnv ? "-LOCAL" : "";
+
+  const APP_VERSION = (() => {
+    const shortSHA = (() => {
+      try {
+        // git's default short SHA (shortest unambiguous prefix, ~7 chars)
+        return execSync("git rev-parse --short HEAD").toString().trim();
+      } catch {
+        // Fallback for environments without a git checkout (e.g. CI)
+        return (process.env.CF_PAGES_COMMIT_SHA || "unknown").slice(0, 7);
+      }
+    })();
+    const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC build date)
+    return `${date}-${shortSHA}${envSuffix}`;
+  })();
+
+  const generateVersionJson: Plugin = {
+    name: "generate-version-json",
+    apply: "build",
+    buildStart() {
+      this.emitFile({
+        type: "asset",
+        fileName: "version.json",
+        source: JSON.stringify({ version: APP_VERSION }),
+      });
+    },
+  };
+
+  const appName = isTestEnv ? "RoboRef TEST" : "RoboRef";
+  const appId = isTestEnv
+    ? "app.frogletapps.roboref.test.v1"
+    : "app.frogletapps.roboref.v1";
+
+  return {
   plugins: [
     TanStackRouterVite({
       target: "react",
@@ -220,4 +233,5 @@ export default defineConfig(() => ({
       },
     },
   },
-}));
+};
+});
