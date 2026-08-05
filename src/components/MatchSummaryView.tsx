@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EventData } from "@referee-fyi/robotevents";
 import { useCurrentDivision, useCurrentEvent } from "~utils/hooks/state";
 import { useEventMatches } from "~utils/hooks/robotevents";
@@ -11,7 +11,7 @@ import { twMerge } from "tailwind-merge";
 import { EventMatchView } from "~components/MatchView";
 import { animate, PanInfo, useMotionValue } from "motion/react";
 import * as m from "motion/react-m";
-import useResizeObserver from "use-resize-observer";
+import { useResizeObserver } from "use-resize-observer";
 import { UpcomingMatch } from "../routes/$sku/$division/-tabs/event";
 
 const transition = {
@@ -76,9 +76,8 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
     setMatchIndex([matchIndex - 1, true]);
   }, [hasPrevMatch, matchIndex, matches]);
 
-  // Swipey Swipe Animation
-  const { ref: containerRef, width: containerWidth = 0 } =
-    useResizeObserver<HTMLDivElement>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { width: containerWidth = 0 } = useResizeObserver({ ref: containerRef });
 
   const viewsToRender = [-1, 0, 1];
   const x = useMotionValue(0);

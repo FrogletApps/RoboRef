@@ -18,7 +18,6 @@ import {
 } from "~components/ErrorBoundary";
 import { Spinner } from "~components/Spinner";
 import { client as sentry } from "~utils/sentry";
-import { LazyMotion } from "motion/react";
 
 import "~utils/sentry";
 import "./index.css";
@@ -76,14 +75,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <ThemeProvider>
         <QRCodeProvider>
           <ErrorBoundary>
-            <LazyMotion
-              features={() =>
-                import("~utils/animationFeature").then((t) => t.domMax)
-              }
-              strict
-            >
-              <RouterProvider router={router} />
-            </LazyMotion>
+            <RouterProvider router={router} />
           </ErrorBoundary>
         </QRCodeProvider>
       </ThemeProvider>
