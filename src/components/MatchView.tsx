@@ -38,7 +38,7 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
 
   return (
     <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
-      <summary className="flex gap-2 items-center active:bg-zinc-700 max-w-full mt-0 sticky top-0 bg-zinc-900 h-16 z-10 px-2">
+      <summary className="flex gap-2 items-center active:bg-zinc-700 max-w-full mt-0 sticky top-0 bg-zinc-900 h-16 z-10 px-2 min-w-0 overflow-hidden">
         {open ? (
           <ChevronDownIcon height={16} width={16} className="flex-shrink-0" />
         ) : (
@@ -56,6 +56,7 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
           </p>
         </div>
         <RulesSummary
+          className="min-w-0 flex-1 flex-shrink overflow-hidden"
           incidents={incidents}
           filter={(i) => i.outcome !== "General" && i.match?.type !== "skills"}
         />
@@ -74,6 +75,9 @@ const TeamSummary: React.FC<TeamSummaryProps> = ({
                   key={incident.id}
                 />
               ))}
+              <div className="mt-2 flex justify-end">
+                <TeamFlagButton match={match} team={number} />
+              </div>
             </>
           ) : (
             <p className="p-2 text-sm text-zinc-400 italic">No notes recorded!</p>
@@ -110,6 +114,7 @@ export const TeamFlagButton: React.FC<TeamFlagButtonProps> = ({
           to: "/$sku/new",
           params: { sku: event?.sku ?? "" },
           search: { team, match: match?.id },
+          state: (s) => s,
         })
       }
       aria-label={`Add note for ${team}`}
@@ -126,14 +131,18 @@ export type EventMatchViewProps = {
 
 export const EventMatchView: React.FC<EventMatchViewProps> = ({ match }) => {
   const { data: incidentsByTeam } = useTeamIncidentsByMatch(match, {
-    initialData: () => {
+    placeholderData: (previousData) => {
+      if (previousData) {
+        return previousData;
+      }
       if (!match) {
         return [];
       }
 
-      const alliances = [match.alliance("red"), match.alliance("blue")];
-      const teams =
-        alliances.map((a) => a.teams.map((t) => t.team!.name)).flat() ?? [];
+      const matchObj = new Match(match);
+      const teams = matchObj.alliances
+        .flatMap((a) => a.teams.map((t) => t.team?.name))
+        .filter((t): t is string => !!t);
 
       return teams.map((team) => ({ team, incidents: [] }));
     },

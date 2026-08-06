@@ -324,7 +324,7 @@ export function useEventMatchesForTeam(
 
       if (color) {
         matches = matches.filter((match) =>
-          match.alliance(color).teams.some((t) => t.team?.id === team.id)
+          match.alliance(color)?.teams.some((t) => t.team?.id === team.id)
         );
       }
 

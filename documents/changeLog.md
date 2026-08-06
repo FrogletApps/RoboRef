@@ -1,3 +1,12 @@
+## 06 August 2026
+
+- Fixed match slider offset calculation so non-zero match indices (e.g. Match 4) position the active card at `left: 0%` instead of rendering 300% off-screen
+- Fixed crash on single-alliance competitions (such as VEX IQ) where team dropdown cards and "Add Note" buttons failed to render due to missing red alliance query
+- Fixed bottom navigation tab state persistence so returning from note creation preserves the active Matches tab view without defaulting to Schedule tab
+- Fixed matches tab resetting to upcoming match after submitting a note
+- Fixed query caching bug where placeholder data wiped out note summaries during background refetches on the matches tab
+- Fixed layout issue causing the "Add Note" button to be pushed off-screen when notes exist
+
 ## 05 August 2026
 
 - Added option to undelete notes directly with a single click when previewing deleted notes

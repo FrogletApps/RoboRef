@@ -37,26 +37,45 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
 
   const { data: matches, isLoading } = useEventMatches(event, division);
 
-  const [[matchIndex, animateMatchTransition], setMatchIndex] = useState<
-    [index: number, animate: boolean]
-  >([0, false]);
+  const [matchIndex, setMatchIndex] = useState<number>(0);
+
+  const isInitializedRef = useRef(false);
+  const prevInitialMatchIdRef = useRef<number | undefined>(initialMatchId);
 
   useEffect(() => {
     if (!matches || matches.length === 0) return;
-    if (initialMatchId !== undefined && !isNaN(initialMatchId)) {
+
+    if (
+      initialMatchId !== undefined &&
+      !isNaN(initialMatchId) &&
+      initialMatchId !== prevInitialMatchIdRef.current
+    ) {
+      prevInitialMatchIdRef.current = initialMatchId;
       const index = matches.findIndex((m) => m.id === initialMatchId);
       if (index !== -1) {
-        setMatchIndex([index, false]);
+        setMatchIndex(index);
         return;
       }
     }
+
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+
+    if (initialMatchId !== undefined && !isNaN(initialMatchId)) {
+      const index = matches.findIndex((m) => m.id === initialMatchId);
+      if (index !== -1) {
+        setMatchIndex(index);
+        return;
+      }
+    }
+
     const upcomingIndex = matches.findIndex(
       (m) => !m.started && m.alliances.every((a) => a.score === 0)
     );
     if (upcomingIndex !== -1) {
-      setMatchIndex([upcomingIndex, false]);
+      setMatchIndex(upcomingIndex);
     } else {
-      setMatchIndex([0, false]);
+      setMatchIndex(0);
     }
   }, [initialMatchId, matches]);
 
@@ -68,12 +87,12 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
 
   const onClickNextMatch = useCallback(() => {
     if (!matches || !hasNextMatch) return;
-    setMatchIndex([matchIndex + 1, true]);
+    setMatchIndex(matchIndex + 1);
   }, [hasNextMatch, matchIndex, matches]);
 
   const onClickPrevMatch = useCallback(() => {
     if (!matches || !hasPrevMatch) return;
-    setMatchIndex([matchIndex - 1, true]);
+    setMatchIndex(matchIndex - 1);
   }, [hasPrevMatch, matchIndex, matches]);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,47 +101,40 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
   const viewsToRender = [-1, 0, 1];
   const x = useMotionValue(0);
 
-  const calculateNewX = useCallback(
-    () => -matchIndex * containerWidth,
-    [matchIndex, containerWidth]
-  );
-
   const onDragEnd = useCallback(
     (_: Event, dragProps: PanInfo) => {
       const { offset, velocity } = dragProps;
+      const threshold = containerWidth > 0 ? containerWidth / 6 : 60;
 
       if (Math.abs(velocity.y) > Math.abs(velocity.x)) {
-        animate(x, calculateNewX(), transition);
+        animate(x, 0, transition);
         return;
       }
 
-      if (offset.x > containerWidth / 6) {
+      if (offset.x > threshold) {
         if (hasPrevMatch) {
           onClickPrevMatch();
+          x.set(0);
         } else {
-          animate(x, calculateNewX(), transition);
+          animate(x, 0, transition);
         }
-      } else if (offset.x < -containerWidth / 6) {
+      } else if (offset.x < -threshold) {
         if (hasNextMatch) {
           onClickNextMatch();
+          x.set(0);
         } else {
-          animate(x, calculateNewX(), transition);
+          animate(x, 0, transition);
         }
       } else {
-        animate(x, calculateNewX(), transition);
+        animate(x, 0, transition);
       }
     },
-    [calculateNewX, containerWidth, hasNextMatch, hasPrevMatch, onClickNextMatch, onClickPrevMatch, x]
+    [containerWidth, hasNextMatch, hasPrevMatch, onClickNextMatch, onClickPrevMatch, x]
   );
 
   useEffect(() => {
-    if (!animateMatchTransition) {
-      x.set(calculateNewX());
-      return;
-    }
-    const controls = animate(x, calculateNewX(), transition);
-    return controls.stop;
-  }, [matchIndex, calculateNewX, x, animateMatchTransition]);
+    x.set(0);
+  }, [matchIndex, x]);
 
   const scheduledTime = useMemo(() => {
     if (!match?.scheduled) return undefined;
@@ -143,7 +155,7 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
       const matchId = parseInt(matchIdStr, 10);
       const index = matches?.findIndex((m) => m.id === matchId);
       if (index !== undefined && index !== -1) {
-        setMatchIndex([index, true]);
+        setMatchIndex(index);
       }
     },
     [matches]
@@ -250,8 +262,7 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
                   width: "100%",
                   height: "100%",
                   x,
-                  left: (matchIndex + i) * containerWidth,
-                  right: (matchIndex + i) * containerWidth,
+                  left: `${i * 100}%`,
                   overflowY: "auto",
                 }}
                 draggable

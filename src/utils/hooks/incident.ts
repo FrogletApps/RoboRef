@@ -262,16 +262,16 @@ export function useTeamIncidentsByMatch(
   options?: HookQueryOptions<TeamIncidentsByMatch>
 ): UseQueryResult<TeamIncidentsByMatch> {
   return useQuery({
-    queryKey: ["incidents", "match", matchData],
+    queryKey: ["incidents", "match", matchData?.id ?? matchData],
     queryFn: async () => {
       if (!matchData) {
         return [];
       }
 
       const match = new Match(matchData);
-      const alliances = [match.alliance("red"), match.alliance("blue")];
-      const teams =
-        alliances.map((a) => a.teams.map((t) => t.team!.name)).flat() ?? [];
+      const teams = match.alliances
+        .flatMap((a) => a.teams.map((t) => t.team?.name))
+        .filter((t): t is string => !!t);
 
       const incidentsByTeam: TeamIncidentsByMatch = [];
 
@@ -285,6 +285,8 @@ export function useTeamIncidentsByMatch(
 
       return incidentsByTeam;
     },
+    staleTime: 0,
+    refetchOnMount: "always",
     ...options,
   });
 }
