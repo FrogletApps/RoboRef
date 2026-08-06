@@ -1,0 +1,34 @@
+# RoboRef
+
+> RoboRef (https://roboref.fyi) is an offline-first Progressive Web App (PWA) digital anomaly log designed for Head Referees at VEX Robotics competition tournaments. It enables referees to quickly log rule violations, view team summary histories, and synchronize notes across devices.
+
+## Core Pages
+
+- [Home](https://roboref.fyi/): Main entry point for selecting events and accessing referee tools.
+- [Events](https://roboref.fyi/events): Search and browse VEX Robotics competition events.
+- [Updates](https://roboref.fyi/updates): Version history and change log for RoboRef updates.
+- [Contact](https://roboref.fyi/contact): Information on how to contact the RoboRef maintainers.
+- [Privacy Policy](https://roboref.fyi/privacy): Data privacy policy and offline storage guidelines.
+
+## Key Features
+
+- **Offline-First Incident Logging**: Rapidly record match anomalies and rule infractions without relying on venue Wi-Fi or cellular connections.
+- **Team History & Summaries**: Inspect past warnings, major violations, and notes for teams before matches begin.
+- **Real-Time Device Sync**: Synchronize notes and incident logs across multiple referee devices using Cloudflare Workers & Durable Objects.
+- **Rules Reference**: Quick access to official VEX competition rulebooks and Q&As.
+
+## Resources & Documentation
+
+- [RoboRef Change Log](https://github.com/FrogletApps/RoboRef/blob/main/documents/changeLog.md): Human-readable user-facing changelog.
+- [Integrations Overview](https://github.com/FrogletApps/RoboRef/blob/main/documents/integrations.md): Documentation on integration with RobotEvents API and external data sources.
+
+## Referee FYI Resources
+
+> The Referee FYI resources should be relevant to RoboRef, but may change in the future.
+
+- [REC Foundation Library Guide](https://kb.roboticseducation.org/hc/en-us/articles/30288201102615-Using-the-Referee-FYI-Digital-Match-Anomaly-Log): Documentation on digital match anomaly logging.
+- [System Design Overview](https://docs.google.com/document/d/1RO-_xEvwzACjK_dqksD8rj3MRBHTFQBLiYOTrM4Bkjs/edit?tab=t.0): High-level system architecture and data model documentation.
+
+## Optional
+
+- [GitHub Repository](https://github.com/FrogletApps/RoboRef): Source code, issue tracker, and project repository.
