@@ -9,6 +9,12 @@
   Cache-Control: no-cache, no-store, must-revalidate
 /manifest.webmanifest
   Cache-Control: no-cache, no-store, must-revalidate
+/robots.txt
+  Cache-Control: no-cache, no-store, must-revalidate
+/sitemap.xml
+  Cache-Control: no-cache, no-store, must-revalidate
+
+
 
 # Hashed assets can be cached immutably for 1 year
 /assets/*
