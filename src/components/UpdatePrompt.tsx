@@ -1,4 +1,4 @@
-import { clearCache } from "~utils/sentry";
+import { clearCache } from "~utils/data/cache";
 import { Button } from "./Button";
 import { Info } from "./Warning";
 import { useCallback, useMemo } from "react";

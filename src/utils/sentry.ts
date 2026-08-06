@@ -4,24 +4,8 @@ import {
   setUser,
   setMeasurement,
 } from "@sentry/react";
-import { queryClient } from "./data/query";
 import { getShareProfile } from "./data/share";
-
-export async function clearCache() {
-  // Invalidate All Queries
-  await queryClient.invalidateQueries({ type: "all" });
-
-  // Unregister Service Workers
-  if ("serviceWorker" in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (const registration of registrations) {
-      await registration.unregister();
-    }
-  }
-
-  // Reload
-  window.location.reload();
-}
+export { clearCache } from "./data/cache";
 
 // VITE_SENTRY_DSN lets a build override the target Sentry project; it falls back
 // to the project's own DSN so reporting works even when the var is unset (a DSN

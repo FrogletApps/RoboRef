@@ -9,7 +9,7 @@ import { toast } from "~components/Toast";
 import { Info } from "~components/Warning";
 import { useShareConnection } from "~models/ShareConnection";
 import { isWorldsBuild } from "~utils/data/state";
-import { clearCache } from "~utils/sentry";
+import { clearCache } from "~utils/data/cache";
 import { useTheme, Theme } from "~utils/hooks/theme";
 
 const SettingsPage: React.FC = () => {
