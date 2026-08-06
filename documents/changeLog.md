@@ -2,6 +2,8 @@
 
 - Display red alliance teams above blue alliance teams on the matches tab
 - Fixed layout issue meaning notes couldn't be added to an IQ match
+- Fixed crashes after an update
+
 
 ## 05 August 2026
 
