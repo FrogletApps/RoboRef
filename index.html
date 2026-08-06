@@ -45,23 +45,26 @@
           if (!str) return false;
           const s = String(str).toLowerCase();
           return s.includes('failed to load module script') ||
+                 s.includes('expected a javascript-or-wasm module script') ||
                  s.includes('mime type') ||
+                 s.includes('strict mime type checking') ||
                  s.includes('dynamically imported module') ||
                  s.includes('failed to fetch') ||
-                 s.includes('chunkloaderror');
+                 s.includes('chunkloaderror') ||
+                 s.includes('loading chunk');
         }
 
         window.addEventListener('error', function(e) {
           const target = e.target;
           if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
             const src = target.src || target.href;
-            if (src && (src.includes('/assets/') || src.endsWith('.js'))) {
+            if (src) {
               handleAssetError(src.split('/').pop());
               return;
             }
           }
           const msg = e.message || (e.error && (e.error.message || e.error.stack)) || '';
-          if (isChunkError(msg)) {
+          if (isChunkError(msg) || isChunkError(String(e))) {
             handleAssetError('module_error');
           }
         }, true);
@@ -69,7 +72,7 @@
         window.addEventListener('unhandledrejection', function(e) {
           const reason = e.reason;
           const msg = reason ? (reason.message || reason.stack || String(reason)) : '';
-          if (isChunkError(msg)) {
+          if (isChunkError(msg) || isChunkError(String(reason))) {
             handleAssetError('unhandled_rejection');
           }
         });

@@ -181,8 +181,8 @@ export default defineConfig(({ command, mode }) => {
         ],
       },
       workbox: {
-        // All /api/* routes should always go to the server
-        navigateFallbackDenylist: [/^\/api/],
+        // All /api/* routes, static asset files, and asset requests should go to network / 404 naturally
+        navigateFallbackDenylist: [/^\/api/, /\.[a-zA-Z0-9]+$/, /\/assets\//],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
