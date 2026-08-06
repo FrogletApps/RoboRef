@@ -26,16 +26,16 @@ import { routeTree } from "./routeTree.gen";
 
 window.addEventListener("vite:preloadError", (event) => {
   const PRELOAD_KEY = "vite_preload_reloaded";
-  if (!sessionStorage.getItem(PRELOAD_KEY)) {
-    sessionStorage.setItem(PRELOAD_KEY, "true");
-    try {
+  try {
+    if (window.sessionStorage && !sessionStorage.getItem(PRELOAD_KEY)) {
+      sessionStorage.setItem(PRELOAD_KEY, "true");
       const url = new URL(window.location.href);
       url.searchParams.set("_cb", Date.now().toString());
       window.location.replace(url.toString());
-    } catch {
-      window.location.reload();
+    } else {
+      event.preventDefault();
     }
-  } else {
+  } catch {
     event.preventDefault();
   }
 });
