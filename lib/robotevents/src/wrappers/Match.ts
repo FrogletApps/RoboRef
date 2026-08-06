@@ -15,7 +15,11 @@ export class Match implements MatchData {
     this.field = data.field;
     this.scored = data.scored;
     this.name = data.name;
-    this.alliances = data.alliances;
+    this.alliances = data.alliances
+      ? [...data.alliances].sort((a, b) =>
+          a.color === "red" ? -1 : b.color === "red" ? 1 : 0
+        )
+      : [];
   }
   id: number;
   event: { id: number; name: string; code?: string | null };
