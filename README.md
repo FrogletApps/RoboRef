@@ -6,12 +6,13 @@ RoboRef is a fork of the 1st March 2025 build of Referee.FYI (from before the re
 
 ### Resources
 
-- [Privacy Policy](https://roboref.fyi/privacy)
+- [Change log](https://roboref.fyi/updates): Version history and change log for RoboRef updates.
+- [Contact](https://roboref.fyi/contact): Information on how to contact the RoboRef maintainers.
+- [Privacy Policy](https://roboref.fyi/privacy): Data privacy policy and offline storage guidelines.
 
 ### Referee FYI Resources
 
 The Referee FYI resources should be relevant to RoboRef, but may change in the future
 
 - [Using the Referee FYI Digital Match Anomaly Log - REC Foundation Library](https://kb.roboticseducation.org/hc/en-us/articles/30288201102615-Using-the-Referee-FYI-Digital-Match-Anomaly-Log)
-
 - [Referee FYI System Design Overview](https://docs.google.com/document/d/1RO-_xEvwzACjK_dqksD8rj3MRBHTFQBLiYOTrM4Bkjs/edit?tab=t.0)
