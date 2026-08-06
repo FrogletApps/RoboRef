@@ -21,7 +21,15 @@
           const reloadKey = 'roboref_asset_reload_' + (key || 'chunk');
           if (!sessionStorage.getItem(reloadKey)) {
             sessionStorage.setItem(reloadKey, '1');
-            var performReload = function() { window.location.reload(); };
+            var performReload = function() {
+              try {
+                var url = new URL(window.location.href);
+                url.searchParams.set('_cb', Date.now().toString());
+                window.location.replace(url.toString());
+              } catch (e) {
+                window.location.reload();
+              }
+            };
             var clearCaches = function() {
               if ('caches' in window) {
                 caches.keys().then(function(keys) {
