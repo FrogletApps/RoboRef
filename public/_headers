@@ -1,7 +1,18 @@
 # Control caching for HTML pages and app metadata so new deploys are loaded immediately
-/*
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+/registerSW.js
+  Cache-Control: no-cache, no-store, must-revalidate
+/version.json
+  Cache-Control: no-cache, no-store, must-revalidate
+/manifest.webmanifest
   Cache-Control: no-cache, no-store, must-revalidate
 
 # Hashed static assets can be cached immutably for 1 year
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
