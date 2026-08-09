@@ -33,7 +33,7 @@
     "@sentry/vite-plugin": "^5.4.0",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-query-persist-client": "^5.101.4",
-    "@tanstack/react-router": "^1.170.20",
+    "@tanstack/react-router": "^1.170.21",
     "@tanstack/react-virtual": "^3.14.9",
     "hdrify": "^0.12.1",
     "idb-keyval": "^6.3.0",
