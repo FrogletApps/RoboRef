@@ -18,38 +18,39 @@
         } catch (e) {}
 
         // Listen for asset loading errors (e.g. 404 on old hashed JS bundles after deployment)
+        var isClearing = false;
         function handleAssetError(key) {
+          if (isClearing) return;
+          isClearing = true;
           try {
-            const reloadKey = 'roboref_asset_reload_' + (key || 'chunk');
-            if (window.sessionStorage && !sessionStorage.getItem(reloadKey)) {
-              sessionStorage.setItem(reloadKey, '1');
-              var performReload = function() {
-                try {
-                  var url = new URL(window.location.href);
-                  url.searchParams.set('_cb', Date.now().toString());
-                  window.location.replace(url.toString());
-                } catch (e) {
-                  window.location.reload();
-                }
-              };
-              var clearCaches = function() {
-                if ('caches' in window) {
-                  caches.keys().then(function(keys) {
-                    return Promise.all(keys.map(function(k) { return caches.delete(k); }));
-                  }).catch(function() {}).finally(performReload);
-                } else {
-                  performReload();
-                }
-              };
-              if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
-                navigator.serviceWorker.getRegistrations().then(function(regs) {
-                  return Promise.all((regs || []).map(function(r) { return r.unregister(); }));
-                }).catch(function() {}).finally(clearCaches);
-              } else {
-                clearCaches();
+            var performReload = function() {
+              try {
+                var url = new URL(window.location.href);
+                url.searchParams.set('_cb', Date.now().toString());
+                window.location.replace(url.toString());
+              } catch (e) {
+                window.location.reload();
               }
+            };
+            var clearCaches = function() {
+              if ('caches' in window) {
+                caches.keys().then(function(keys) {
+                  return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+                }).catch(function() {}).finally(performReload);
+              } else {
+                performReload();
+              }
+            };
+            if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) {
+              navigator.serviceWorker.getRegistrations().then(function(regs) {
+                return Promise.all((regs || []).map(function(r) { return r.unregister(); }));
+              }).catch(function() {}).finally(clearCaches);
+            } else {
+              clearCaches();
             }
-          } catch (err) {}
+          } catch (err) {
+            window.location.reload();
+          }
         }
 
         function isChunkError(str) {
