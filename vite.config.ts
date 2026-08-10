@@ -20,16 +20,16 @@ import { type Plugin } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
   const isTestEnv =
-    Boolean(process.env.VITE_REFEREE_FYI_SHARE_SERVER?.includes("test")) ||
-    process.env.VITE_REFEREE_FYI_ENV === "test" ||
+    Boolean(process.env.VITE_ROBOREF_SHARE_SERVER?.includes("test")) ||
+    process.env.VITE_ROBOREF_ENV === "test" ||
     process.env.CF_PAGES_PROJECT_NAME === "roboref-test";
 
   const isLocalEnv =
     command === "serve" ||
     mode === "development" ||
-    process.env.VITE_REFEREE_FYI_ENV === "local" ||
+    process.env.VITE_ROBOREF_ENV === "local" ||
     (!process.env.CF_PAGES &&
-      process.env.VITE_REFEREE_FYI_ENV !== "production" &&
+      process.env.VITE_ROBOREF_ENV !== "production" &&
       !isTestEnv);
 
   const envSuffix = isTestEnv ? "-TEST" : isLocalEnv ? "-LOCAL" : "";

@@ -1,7 +1,7 @@
 {
   "name": "@roboref/worker-sync",
   "version": "1.0.0",
-  "description": "Sync Service for Referee FYI",
+  "description": "Sync Service for RoboRef",
   "scripts": {
     "dev": "wrangler dev --ip 0.0.0.0 --env test",
     "dev:remote": "wrangler dev --remote --env test",

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
   "$id": "https://roboref.pages.dev/rules/schema.json",
-  "title": "Referee FYI Game Schema",
-  "description": "Describes the shape of Referee FYI game descriptions.",
+  "title": "RoboRef Game Schema",
+  "description": "Describes the shape of RoboRef game descriptions.",
   "type": "object",
   "required": ["title", "season", "programs", "ruleGroups"],
   "properties": {

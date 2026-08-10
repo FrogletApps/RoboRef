@@ -272,7 +272,7 @@ const EventDevToolsContent: React.FC = () => {
           mode="dangerous"
           onClick={() =>
             setErrorChild({
-              "REFEREE FYI DEVTOOLS ERROR": new Error("Test Error"),
+              "ROBOREF DEVTOOLS ERROR": new Error("Test Error"),
             })
           }
         >

@@ -1,5 +1,5 @@
 export function getBuildMode() {
-  return import.meta.env.VITE_REFEREE_FYI_BUILD_MODE;
+  return import.meta.env.VITE_ROBOREF_BUILD_MODE;
 }
 
 export const WORLDS_EVENTS: string[] = [
@@ -85,12 +85,12 @@ export function getAppEnvironment(): AppEnvironment {
   }
 
   const shareServer =
-    (import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER as string | undefined) ?? "";
+    (import.meta.env.VITE_ROBOREF_SHARE_SERVER as string | undefined) ?? "";
   const isTest =
     hostname.includes("test") ||
     shareServer.includes("test") ||
     import.meta.env.MODE === "test" ||
-    import.meta.env.VITE_REFEREE_FYI_ENV === "test";
+    import.meta.env.VITE_ROBOREF_ENV === "test";
 
   if (isTest) {
     return "test";

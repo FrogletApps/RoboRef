@@ -30,7 +30,7 @@ import { useShareConnection } from "~models/ShareConnection";
 import { useMemo } from "react";
 
 export const SHARE_SERVER =
-  import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER ??
+  import.meta.env.VITE_ROBOREF_SHARE_SERVER ??
   "https://share.roboref.fyi";
 
 export const URL_BASE = `${SHARE_SERVER.replace(/\/api\/?$/, "")}/api`;
@@ -110,7 +110,7 @@ export async function signedFetch(
   signatureHeaders.forEach((value, key) => headers.set(key, value));
 
   const id = await getShareSessionID();
-  headers.set("X-Referee-FYI-Session", id);
+  headers.set("X-RoboRef-Session", id);
 
   if (input instanceof Request) {
     return fetch(new Request(input, { ...init, headers }));
@@ -485,7 +485,7 @@ export async function getIntegrationAPIIncidents(
   const headers = new Headers();
 
   const id = await getShareSessionID();
-  headers.set("X-Referee-FYI-Session", id);
+  headers.set("X-RoboRef-Session", id);
 
   const response = await fetch(url, { headers });
   const data = (await response.json()) as ShareResponse<Incident[]>;
@@ -506,7 +506,7 @@ export async function getIntegrationAPIUsers(
   const headers = new Headers();
 
   const id = await getShareSessionID();
-  headers.set("X-Referee-FYI-Session", id);
+  headers.set("X-RoboRef-Session", id);
 
   const response = await fetch(url, { headers });
   const data =
@@ -530,7 +530,7 @@ export async function deleteIntegrationAPIIncident(
   const headers = new Headers();
 
   const id = await getShareSessionID();
-  headers.set("X-Referee-FYI-Session", id);
+  headers.set("X-RoboRef-Session", id);
 
   const response = await fetch(url, { method: "DELETE", headers });
   const data = (await response.json()) as ShareResponse<

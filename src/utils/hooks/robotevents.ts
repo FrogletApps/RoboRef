@@ -28,7 +28,7 @@ import { createPersister } from "~utils/data/query";
 // forwards to events.vex.com server-side and injects the token from a secret.
 // So no token is sent from the browser here.
 const SHARE_SERVER =
-  import.meta.env.VITE_REFEREE_FYI_SHARE_SERVER ??
+  import.meta.env.VITE_ROBOREF_SHARE_SERVER ??
   "https://share.roboref.fyi";
 
 const client = Client({

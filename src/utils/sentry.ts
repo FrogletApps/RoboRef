@@ -10,11 +10,11 @@ export { clearCache } from "./data/cache";
 // VITE_SENTRY_DSN lets a build override the target Sentry project; it falls back
 // to the project's own DSN so reporting works even when the var is unset (a DSN
 // is public, so embedding it in the client bundle is safe). Mirrors the
-// VITE_REFEREE_FYI_SHARE_SERVER fallback pattern in utils/data/share.ts.
+// VITE_ROBOREF_SHARE_SERVER fallback pattern in utils/data/share.ts.
 const dsn =
   import.meta.env.VITE_SENTRY_DSN ??
   "https://23c85f2c7692228bd3aabb4a17577a2c@o4511592950595584.ingest.de.sentry.io/4511592960622672";
-const sentryEnvVar = import.meta.env.VITE_REFEREE_FYI_ENABLE_SENTRY as unknown;
+const sentryEnvVar = import.meta.env.VITE_ROBOREF_ENABLE_SENTRY as unknown;
 const enableSentryOverride =
   sentryEnvVar === "true" || (sentryEnvVar as unknown) === true
     ? true
