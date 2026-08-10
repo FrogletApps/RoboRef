@@ -3,7 +3,7 @@ import { response } from "./request";
 import { importKey, KEY_PREFIX, verifyKeySignature } from "./crypto";
 import { AuthenticatedRequest, Env, SignedRequest } from "../types";
 import { getInstance, getInvitation, getUser } from "./data";
-import { Invitation, ShareInstanceMeta, User } from "@referee-fyi/share";
+import { Invitation, ShareInstanceMeta, User } from "@roboref/share";
 
 export const verifySignature = async (request: IRequest & Request) => {
   const now = new Date();

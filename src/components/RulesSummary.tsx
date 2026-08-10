@@ -1,4 +1,4 @@
-import { Incident, IncidentOutcome } from "@referee-fyi/share";
+import { Incident, IncidentOutcome } from "@roboref/share";
 import React, { useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 

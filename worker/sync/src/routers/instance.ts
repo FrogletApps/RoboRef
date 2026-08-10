@@ -7,7 +7,7 @@ import {
   APIPutInviteResponseBody,
   Invitation,
   WebsocketServerUserRemoveMessage,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import {
   deleteInvitation,
   getInvitation,

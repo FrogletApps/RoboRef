@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { MatchData } from "@referee-fyi/robotevents";
-import { Year } from "@referee-fyi/robotevents";
+import { MatchData } from "@roboref/robotevents";
+import { Year } from "@roboref/robotevents";
 import { useEvent, useSeason } from "~utils/hooks/robotevents";
 import { HighStakesScratchpad } from "./HighStakes";
-import { ProgramAbbr } from "@referee-fyi/robotevents";
+import { ProgramAbbr } from "@roboref/robotevents";
 
 export type MatchScratchpadProps = {
   match: MatchData;

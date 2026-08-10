@@ -10,7 +10,7 @@ import {
   Invitation,
   ShareInstanceMeta,
   User,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import {
   getInstancesForEvent,
   getInvitation,

@@ -1,4 +1,4 @@
-import { programs, seasons } from "@referee-fyi/robotevents";
+import { programs, seasons } from "@roboref/robotevents";
 import { queueMigration } from "./utils";
 import { getRecentRules, setRecentRules } from "~utils/hooks/history";
 

@@ -12,7 +12,7 @@ import { NoteSummaryPills } from "~components/RulesSummary";
 import { twMerge } from "tailwind-merge";
 import { useMutation } from "@tanstack/react-query";
 import { ReadyState, useShareConnection } from "~models/ShareConnection";
-import { Incident as IncidentData } from "@referee-fyi/share";
+import { Incident as IncidentData } from "@roboref/share";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { useEventIncidents } from "~utils/hooks/incident";
 import { isFilterApplied, useFilterStore } from "~utils/hooks/filters";

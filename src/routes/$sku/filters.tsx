@@ -5,7 +5,7 @@ import { useRulesForEvent } from "~utils/hooks/rules";
 import { useShareConnection } from "~models/ShareConnection";
 import { Checkbox, RulesMultiSelect, Select } from "~components/Input";
 import { Button } from "~components/Button";
-import { OUTCOMES } from "@referee-fyi/share";
+import { OUTCOMES } from "@roboref/share";
 import { Filters, useFilterStore } from "~utils/hooks/filters";
 import { Spinner } from "~components/Spinner";
 

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { Rule } from "./rules";
-import { IncidentOutcome } from "@referee-fyi/share";
+import { IncidentOutcome } from "@roboref/share";
 
 export type Filters = {
   outcomes: Record<IncidentOutcome, boolean>;

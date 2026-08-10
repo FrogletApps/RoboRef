@@ -2,7 +2,7 @@ import {
   initLWW,
   updateLWW,
   WithLWWConsistency,
-} from "@referee-fyi/consistency";
+} from "@roboref/consistency";
 import { type NewIncident as OldIncident } from "./2024_05_07_matchSkills";
 import { queueMigration } from "./utils";
 import { getAllIncidents, setManyIncidents } from "~utils/data/incident";

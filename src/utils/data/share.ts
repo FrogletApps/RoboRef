@@ -22,7 +22,7 @@ import type {
   ApiGetAssetPreviewURLResponseBody,
   ApiGetAssetOriginalURLResponseBody,
   InvitationListItem,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import { Incident } from "./incident";
 import { queryClient } from "./query";
 import { exportPublicKey, getSignRequestHeaders } from "./crypto";

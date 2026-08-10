@@ -1,4 +1,4 @@
-import { AssetType } from "@referee-fyi/share";
+import { AssetType } from "@roboref/share";
 import { get, getMany, set } from "./keyval";
 
 export const MAX_ASSET_SIZE_MB = 20;

@@ -1,5 +1,5 @@
 {
-  "name": "@referee-fyi/robotevents",
+  "name": "@roboref/robotevents",
   "version": "1.0.0",
   "description": "Vendored fork of brenapp/robotevents (MIT) — programmatically access the RobotEvents API (events.vex.com). Vendored so season data and the API host can be maintained in-tree.",
   "type": "module",

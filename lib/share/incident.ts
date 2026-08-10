@@ -1,4 +1,4 @@
-import { WithLWWConsistency } from "@referee-fyi/consistency";
+import { WithLWWConsistency } from "@roboref/consistency";
 
 export const OUTCOMES = [
   "General",

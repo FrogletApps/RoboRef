@@ -15,10 +15,10 @@ import {
   type InstanceScratchpads,
   INCIDENT_IGNORE,
   incidentMatchNameToString,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import { getUser } from "../utils/data";
 import { Env, EventIncidentsInitData, RequestHasInvitation } from "../types";
-import { mergeLWW } from "@referee-fyi/consistency";
+import { mergeLWW } from "@roboref/consistency";
 import { DurableObject } from "cloudflare:workers";
 
 export type SessionClient = {

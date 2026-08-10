@@ -10,7 +10,7 @@ import {
   WebSocketMessage,
   WebSocketPayload,
   WebSocketPeerMessage,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import {
@@ -43,8 +43,8 @@ import {
 } from "~utils/data/incident";
 import { queryClient } from "~utils/data/query";
 import { toast } from "~components/Toast";
-import { MatchScratchpad } from "@referee-fyi/share";
-import { mergeMap } from "@referee-fyi/consistency";
+import { MatchScratchpad } from "@roboref/share";
+import { mergeMap } from "@roboref/consistency";
 import {
   getManyMatchScratchpads,
   getScratchpadIdsForEvent,

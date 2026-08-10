@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { EventData } from "@referee-fyi/robotevents";
+import { EventData } from "@roboref/robotevents";
 import { useEventMatches } from "~utils/hooks/robotevents";
 import { useCurrentDivision } from "~utils/hooks/state";
 import { Spinner } from "~components/Spinner";

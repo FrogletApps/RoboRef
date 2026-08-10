@@ -1,4 +1,4 @@
-import { ShareResponse } from "@referee-fyi/share";
+import { ShareResponse } from "@roboref/share";
 import { cors, json } from "itty-router";
 
 export const { preflight, corsify } = cors();

@@ -1,6 +1,6 @@
 ## 10 August 2026
 
-- Fixed package issue
+- Fixed package issue, and renamed internal packages
 - Updated dependencies
 
 ## 06 August 2026

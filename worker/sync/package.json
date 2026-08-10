@@ -1,5 +1,5 @@
 {
-  "name": "@referee-fyi/worker-sync",
+  "name": "@roboref/worker-sync",
   "version": "1.0.0",
   "description": "Sync Service for Referee FYI",
   "scripts": {
@@ -17,10 +17,10 @@
   "license": "ISC",
   "dependencies": {
     "@cloudflare/workers-types": "^5.20260728.1",
-    "@referee-fyi/consistency": "file:../../lib/consistency",
-    "@referee-fyi/pdf-export": "file:../../lib/pdf",
-    "@referee-fyi/robotevents": "file:../../lib/robotevents",
-    "@referee-fyi/share": "file:../../lib/share",
+    "@roboref/consistency": "file:../../lib/consistency",
+    "@roboref/pdf-export": "file:../../lib/pdf",
+    "@roboref/robotevents": "file:../../lib/robotevents",
+    "@roboref/share": "file:../../lib/share",
     "cloudflare": "^7.0.0",
     "iso-3166-1": "^2.1.1",
     "itty-router": "^5.0.24"

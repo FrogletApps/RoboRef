@@ -1,4 +1,4 @@
-import { Client } from "@referee-fyi/robotevents";
+import { Client } from "@roboref/robotevents";
 import { Env } from "../types";
 
 export function getRobotEventsClient(env: Env) {

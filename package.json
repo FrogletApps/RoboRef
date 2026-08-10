@@ -26,9 +26,9 @@
   ],
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@referee-fyi/consistency": "file:lib/consistency",
-    "@referee-fyi/robotevents": "file:lib/robotevents",
-    "@referee-fyi/share": "file:lib/share",
+    "@roboref/consistency": "file:lib/consistency",
+    "@roboref/robotevents": "file:lib/robotevents",
+    "@roboref/share": "file:lib/share",
     "@sentry/react": "^10.70.0",
     "@sentry/vite-plugin": "^5.4.0",
     "@tanstack/react-query": "^5.101.4",

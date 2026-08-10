@@ -1,7 +1,7 @@
-import { Match, ProgramAbbr } from "@referee-fyi/robotevents";
+import { Match, ProgramAbbr } from "@roboref/robotevents";
 import { useEvent } from "~utils/hooks/robotevents";
 import { twMerge } from "tailwind-merge";
-import { IdInfo } from "@referee-fyi/robotevents";
+import { IdInfo } from "@roboref/robotevents";
 import { ComponentParts } from "./parts";
 
 export type AllianceListProps = {

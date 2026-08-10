@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { EventData, ProgramCode } from "@referee-fyi/robotevents";
+import { EventData, ProgramCode } from "@roboref/robotevents";
 import { useCurrentSeason, useSeason } from "~utils/hooks/robotevents";
 import { Rule, useRulesForSeason } from "~utils/hooks/rules";
 import { RulesSelect } from "~components/Input";

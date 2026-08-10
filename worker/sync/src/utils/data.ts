@@ -5,7 +5,7 @@ import {
   Invitation,
   ShareInstanceMeta,
   User,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import { Env } from "../types";
 
 export async function setUser(env: Env, user: User): Promise<void> {

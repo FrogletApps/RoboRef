@@ -1,4 +1,4 @@
-import { ConsistentMap } from "@referee-fyi/consistency";
+import { ConsistentMap } from "@roboref/consistency";
 import type { Incident } from "./incident.ts";
 import type { MatchScratchpad } from "./index.ts";
 import type { Invitation } from "./server.js";

@@ -1,7 +1,7 @@
 import { AutoRouter, IRequest } from "itty-router";
 import { Env } from "../types";
 import { response } from "../utils/request";
-import { ApiGetMetaLocationResponseBody } from "@referee-fyi/share";
+import { ApiGetMetaLocationResponseBody } from "@roboref/share";
 import { whereAlpha2 } from "iso-3166-1";
 
 const COMMON_COUNTRIES = {

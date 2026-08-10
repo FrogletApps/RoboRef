@@ -8,7 +8,7 @@ import {
   ApiGetAssetPreviewURLResponseBody,
   APIGetAssetUploadURLResponseBody,
   ImageAssetMeta,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 
 const assetRouter = AutoRouter<RequestHasInvitation, [Env]>({
   before: [verifySignature, verifyUser, verifyInvitation],

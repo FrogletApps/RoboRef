@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { EventData } from "@referee-fyi/robotevents";
+import { EventData } from "@roboref/robotevents";
 import {
   Button,
   ExternalLinkButton,
@@ -41,7 +41,7 @@ import { ClickToCopy, ClickToCopyIcon } from "~components/ClickToCopy";
 import { twMerge } from "tailwind-merge";
 import { tryPersistStorage } from "~utils/data/keyval";
 import { UpdatePrompt } from "~components/UpdatePrompt";
-import { InvitationListItem } from "@referee-fyi/share";
+import { InvitationListItem } from "@roboref/share";
 import { isWorldsBuild, WORLDS_EVENTS } from "~utils/data/state";
 import { Incident } from "~components/Incident";
 import {
@@ -561,7 +561,7 @@ const SystemKeyInfo: React.FC<ManageTabProps> = ({ event }) => {
   } = useShareConnection(["userMetadata"]);
 
   const { data: response, isLoading } = useQuery({
-    queryKey: ["@referee-fyi", "get_instance_list", event.sku],
+    queryKey: ["@roboref", "get_instance_list", event.sku],
     queryFn: () => getInstancesForEvent(event.sku),
     enabled: isSystemKey,
   });

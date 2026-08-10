@@ -4,8 +4,8 @@ import {
   IncidentMatch,
   incidentMatchNameToString,
   User,
-} from "@referee-fyi/share";
-import { RobotEventsClient } from "@referee-fyi/robotevents";
+} from "@roboref/share";
+import { RobotEventsClient } from "@roboref/robotevents";
 
 export type GenerateIncidentReportPDFOptions = {
   sku: string;

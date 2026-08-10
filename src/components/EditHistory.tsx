@@ -2,8 +2,8 @@ import {
   BaseWithLWWConsistency,
   KeyRegister,
   LWWKeys,
-} from "@referee-fyi/consistency";
-import { incidentMatchNameToString, IncidentMatch } from "@referee-fyi/share";
+} from "@roboref/consistency";
+import { incidentMatchNameToString, IncidentMatch } from "@roboref/share";
 import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { timeAgo } from "~utils/time";

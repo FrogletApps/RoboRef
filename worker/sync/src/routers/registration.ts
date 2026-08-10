@@ -2,7 +2,7 @@ import { AutoRouter } from "itty-router";
 import { verifySignature } from "../utils/verify";
 import { Env, SignedRequest } from "../types";
 import { response } from "../utils/request";
-import { APIRegisterUserResponseBody, User } from "@referee-fyi/share";
+import { APIRegisterUserResponseBody, User } from "@roboref/share";
 import { setUser } from "../utils/data";
 import { isSystemKey } from "../utils/systemKey";
 

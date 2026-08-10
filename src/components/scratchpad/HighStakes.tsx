@@ -4,14 +4,14 @@ import {
   ClockIcon,
 } from "@heroicons/react/20/solid";
 import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
-import { MatchData, rounds } from "@referee-fyi/robotevents";
+import { MatchData, rounds } from "@roboref/robotevents";
 import { Checkbox, Radio } from "~components/Input";
 import {
   EditScratchpad,
   HighStakesMatchScratchpad,
   IncidentMatchHeadToHead,
   MatchScratchpad,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import {
   useDefaultScratchpad,
   useMatchScratchpad,

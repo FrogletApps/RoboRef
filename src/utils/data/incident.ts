@@ -1,7 +1,7 @@
 import { get, getMany, set, setMany, updateMany } from "~utils/data/keyval";
 import { v1 as uuid } from "uuid";
 import { Rule } from "~hooks/rules";
-import { Match } from "@referee-fyi/robotevents";
+import { Match } from "@roboref/robotevents";
 import {
   IncidentMatch,
   IncidentMatchSkills,
@@ -11,8 +11,8 @@ import {
   EditIncident,
   INCIDENT_IGNORE,
   BaseIncident,
-} from "@referee-fyi/share";
-import { initLWW, isKeyLWW, updateLWW } from "@referee-fyi/consistency";
+} from "@roboref/share";
+import { initLWW, isKeyLWW, updateLWW } from "@roboref/consistency";
 import { getShareProfile } from "./share";
 import { LocalAsset } from "./assets";
 

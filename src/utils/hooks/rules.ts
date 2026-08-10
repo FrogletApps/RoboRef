@@ -1,5 +1,5 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { EventData, ProgramAbbr, Season, Year } from "@referee-fyi/robotevents";
+import { EventData, ProgramAbbr, Season, Year } from "@roboref/robotevents";
 import { HookQueryOptions, useSeason } from "./robotevents";
 import { GAME_FETCHERS } from "~utils/data/rules";
 
@@ -44,7 +44,7 @@ export function useRulesForSeason(
   options?: HookQueryOptions<Game | null>
 ): UseQueryResult<Game | null> {
   return useQuery({
-    queryKey: ["@referee-fyi/useRulesForSeason", season?.id],
+    queryKey: ["@roboref/useRulesForSeason", season?.id],
     queryFn: async () => {
       if (!season || !season.id) {
         return null;

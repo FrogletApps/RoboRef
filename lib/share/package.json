@@ -1,5 +1,5 @@
 {
-  "name": "@referee-fyi/share",
+  "name": "@roboref/share",
   "type": "module",
   "private": true,
   "version": "1.0.0",
@@ -17,7 +17,7 @@
     "vitest": "^4.1.9"
   },
   "dependencies": {
-    "@referee-fyi/consistency": "file:../consistency",
-    "@referee-fyi/robotevents": "file:../robotevents"
+    "@roboref/consistency": "file:../consistency",
+    "@roboref/robotevents": "file:../robotevents"
   }
 }

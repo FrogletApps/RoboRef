@@ -1,10 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MatchData } from "@referee-fyi/robotevents";
+import { MatchData } from "@roboref/robotevents";
 import {
   EditScratchpad,
   MatchScratchpad,
   ScratchpadUnchangeableProperties,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import {
   editScratchpad,
   getDefaultScratchpad,
@@ -19,7 +19,7 @@ import { queryClient } from "~utils/data/query";
 import {
   LastWriteWinsConsistency,
   WithLWWConsistency,
-} from "@referee-fyi/consistency";
+} from "@roboref/consistency";
 import { useShareConnection } from "~models/ShareConnection";
 
 export function useMatchScratchpad<T extends MatchScratchpad>(

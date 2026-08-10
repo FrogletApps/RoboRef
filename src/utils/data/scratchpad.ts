@@ -7,16 +7,16 @@ import {
   SCRATCHPAD_IGNORE,
   HighStakesMatchScratchpad,
   RapidRelayMatchScratchpad,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import { getShareProfile } from "./share";
-import { MatchData, programs } from "@referee-fyi/robotevents";
-import { seasons } from "@referee-fyi/robotevents";
+import { MatchData, programs } from "@roboref/robotevents";
+import { seasons } from "@roboref/robotevents";
 import {
   initLWW,
   isKeyLWW,
   LWWKeys,
   updateLWW,
-} from "@referee-fyi/consistency";
+} from "@roboref/consistency";
 
 export function getScratchpadID(match: MatchData) {
   return `scratchpad_${match.event.code}_${

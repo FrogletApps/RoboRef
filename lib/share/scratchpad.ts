@@ -1,5 +1,5 @@
-import type { Color } from "@referee-fyi/robotevents";
-import { WithLWWConsistency } from "@referee-fyi/consistency";
+import type { Color } from "@roboref/robotevents";
+import { WithLWWConsistency } from "@roboref/consistency";
 import { IncidentMatchHeadToHead } from "./incident.js";
 
 export type SupportedGame = "High Stakes" | "Rapid Relay";

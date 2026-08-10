@@ -11,7 +11,7 @@ import {
 } from "~utils/data/share";
 import { exportPublicKey, signMessage } from "~utils/data/crypto";
 import { HookQueryOptions } from "./robotevents";
-import { Incident } from "@referee-fyi/share";
+import { Incident } from "@roboref/share";
 
 export type UseCreateShareOptions = {
   sku: string;
@@ -82,7 +82,7 @@ export function useIntegrationAPIIncidents(
   options?: HookQueryOptions<Incident[] | null>
 ) {
   return useQuery({
-    queryKey: ["@referee-fyi/useIntegrationAPIIncidents", sku, credentials],
+    queryKey: ["@roboref/useIntegrationAPIIncidents", sku, credentials],
     queryFn: () => getIntegrationAPIIncidents(sku, credentials),
     enabled: !!credentials,
     ...options,
@@ -95,7 +95,7 @@ export function useIntegrationAPIUsers(
   options?: HookQueryOptions<IntegrationUsersResponse | null>
 ) {
   return useQuery({
-    queryKey: ["@referee-fyi/useIntegrationAPIUsers", sku, credentials],
+    queryKey: ["@roboref/useIntegrationAPIUsers", sku, credentials],
     queryFn: () => getIntegrationAPIUsers(sku, credentials),
     enabled: !!credentials,
     ...options,
@@ -108,7 +108,7 @@ export function useIntegrationAPIDeleteIncident(
 ) {
   return useMutation({
     mutationKey: [
-      "@referee-fyi/useIntegrationAPIDeleteIncident",
+      "@roboref/useIntegrationAPIDeleteIncident",
       sku,
       credentials,
     ],

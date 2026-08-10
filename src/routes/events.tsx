@@ -13,7 +13,7 @@ import {
   isEventFilterApplied,
   EVENT_TYPES,
 } from "~utils/hooks/eventFilters";
-import { operations } from "@referee-fyi/robotevents";
+import { operations } from "@roboref/robotevents";
 
 function isValidSKU(sku: string) {
   return !!sku.match(

@@ -6,7 +6,7 @@ import {
   APIGetInvitationRequestResponseBody,
   APIPutInvitationRequestResponseBody,
   Invitation,
-} from "@referee-fyi/share";
+} from "@roboref/share";
 import {
   getInvitation,
   getRequestCodeUserKey,

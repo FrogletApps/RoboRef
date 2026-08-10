@@ -1,5 +1,5 @@
 import { IRequest } from "itty-router";
-import { ShareInstanceMeta, Invitation, User } from "@referee-fyi/share";
+import { ShareInstanceMeta, Invitation, User } from "@roboref/share";
 import { ShareInstance } from "./objects/instance";
 
 export type SignedRequest = IRequest & {
