@@ -1,4 +1,4 @@
-import { components } from "../generated/robotevents.js";
+import { components } from "../generated/vexevents.js";
 import { Color, IdInfo } from "../main.js";
 import { Alliance, MatchData, rounds } from "../types.js";
 
@@ -73,7 +73,7 @@ export class Match implements MatchData {
    * Gets the outcome of the match
    *
    * @example
-   * const team = await robotevents.teams.get("3796B");
+   * const team = await vexevents.teams.get("3796B");
    * const matches = await team.matches();
    *
    * for (const match of match) {

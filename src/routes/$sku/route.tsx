@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { queryClient } from "~utils/data/query";
-import { getUseEventQueryParams } from "~utils/hooks/robotevents";
+import { getUseEventQueryParams } from "~utils/hooks/vexevents";
 
 const RouteComponent: React.FC = () => {
   return <Outlet />;

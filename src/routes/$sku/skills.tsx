@@ -6,9 +6,9 @@ import { CodeBracketIcon, FlagIcon, PlayIcon } from "@heroicons/react/20/solid";
 import { Tabs } from "~components/Tabs";
 import { EventManageTab } from "./$division/-tabs/manage";
 import { Spinner } from "~components/Spinner";
-import { EventData } from "@roboref/robotevents";
-import { useEventSkills, useEventTeams } from "~utils/hooks/robotevents";
-import { Skill } from "@roboref/robotevents";
+import { EventData } from "@roboref/vexevents";
+import { useEventSkills, useEventTeams } from "~utils/hooks/vexevents";
+import { Skill } from "@roboref/vexevents";
 import { IconLabel, Input } from "~components/Input";
 
 import {

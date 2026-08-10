@@ -6,8 +6,8 @@
   "scripts": {
     "frontend:dev": "vite --host --port 3000",
     "frontend:build": "tsc && vite build",
-    "lib:dev": "concurrently \"npm --prefix lib/robotevents run dev\" \"npm --prefix lib/share run dev\" \"npm --prefix lib/consistency run dev\" \"npm --prefix lib/pdf  run dev\"",
-    "lib:build": "npm --prefix lib/robotevents run build && concurrently \"npm --prefix lib/share run build\" \"npm --prefix lib/consistency run build\" \"npm --prefix lib/pdf run build\"",
+    "lib:dev": "concurrently \"npm --prefix lib/vexevents run dev\" \"npm --prefix lib/share run dev\" \"npm --prefix lib/consistency run dev\" \"npm --prefix lib/pdf  run dev\"",
+    "lib:build": "npm --prefix lib/vexevents run build && concurrently \"npm --prefix lib/share run build\" \"npm --prefix lib/consistency run build\" \"npm --prefix lib/pdf run build\"",
     "worker:dev": "npm --prefix worker/sync run dev",
     "worker:dev:secure": "npm --prefix worker/sync run dev:secure",
     "worker:build": "npm run lib:build && npm --prefix worker/sync run build",
@@ -27,7 +27,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@roboref/consistency": "file:lib/consistency",
-    "@roboref/robotevents": "file:lib/robotevents",
+    "@roboref/vexevents": "file:lib/vexevents",
     "@roboref/share": "file:lib/share",
     "@sentry/react": "^10.70.0",
     "@sentry/vite-plugin": "^5.4.0",

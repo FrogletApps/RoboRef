@@ -20,7 +20,7 @@
 ## Resources & Documentation
 
 - [RoboRef Change Log](https://github.com/FrogletApps/RoboRef/blob/main/documents/changeLog.md): Human-readable user-facing changelog.
-- [Integrations Overview](https://github.com/FrogletApps/RoboRef/blob/main/documents/integrations.md): Documentation on integration with RobotEvents API and external data sources.
+- [Integrations Overview](https://github.com/FrogletApps/RoboRef/blob/main/documents/integrations.md): Documentation on integration with VEX Events API and external data sources.
 
 ## Referee FYI Resources
 

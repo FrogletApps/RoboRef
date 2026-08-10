@@ -1,4 +1,4 @@
-import { components, operations } from "../generated/robotevents.js";
+import { components, operations } from "../generated/vexevents.js";
 import { EventData } from "../types.js";
 import { Client, transformResponse } from "../utils/client.js";
 import { Match } from "./Match.js";

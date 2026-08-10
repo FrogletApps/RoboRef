@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useState } from "react";
-import { Match, MatchData } from "@roboref/robotevents";
+import { Match, MatchData } from "@roboref/vexevents";
 import { MatchContext } from "./Context";
 import { Button } from "./Button";
 import { twMerge } from "tailwind-merge";

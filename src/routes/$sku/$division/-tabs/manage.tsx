@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { EventData } from "@roboref/robotevents";
+import { EventData } from "@roboref/vexevents";
 import {
   Button,
   ExternalLinkButton,

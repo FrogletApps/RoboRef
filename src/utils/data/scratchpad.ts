@@ -9,8 +9,8 @@ import {
   RapidRelayMatchScratchpad,
 } from "@roboref/share";
 import { getShareProfile } from "./share";
-import { MatchData, programs } from "@roboref/robotevents";
-import { seasons } from "@roboref/robotevents";
+import { MatchData, programs } from "@roboref/vexevents";
+import { seasons } from "@roboref/vexevents";
 import {
   initLWW,
   isKeyLWW,

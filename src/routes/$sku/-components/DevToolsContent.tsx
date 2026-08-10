@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { ReactNode, useCallback, useRef, useState } from "react";
-import { ProgramCode } from "@roboref/robotevents";
+import { ProgramCode } from "@roboref/vexevents";
 import { Button, LinkButton } from "~components/Button";
 import { Input, Select } from "~components/Input";
 import { Spinner } from "~components/Spinner";
@@ -22,7 +22,7 @@ import {
   useCurrentSeason,
   useDivisionTeams,
   useEventMatches,
-} from "~utils/hooks/robotevents";
+} from "~utils/hooks/vexevents";
 import { useRulesForSeason } from "~utils/hooks/rules";
 import { useCurrentEvent } from "~utils/hooks/state";
 

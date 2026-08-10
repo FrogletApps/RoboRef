@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MatchData } from "@roboref/robotevents";
+import { MatchData } from "@roboref/vexevents";
 import {
   EditScratchpad,
   MatchScratchpad,
@@ -13,7 +13,7 @@ import {
   getScratchpadID,
   setMatchScratchpad,
 } from "~utils/data/scratchpad";
-import { useEvent } from "./robotevents";
+import { useEvent } from "./vexevents";
 import { getShareProfile } from "~utils/data/share";
 import { queryClient } from "~utils/data/query";
 import {

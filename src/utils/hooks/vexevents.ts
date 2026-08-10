@@ -19,10 +19,10 @@ import {
   operations,
   rounds,
   Match,
-} from "@roboref/robotevents";
+} from "@roboref/vexevents";
 import { createPersister } from "~utils/data/query";
 
-// RobotEvents (events.vex.com) cannot be called from the browser directly: it
+// VEX Events (events.vex.com) cannot be called from the browser directly: it
 // does not honor the cross-origin Bearer token and redirects to a login page
 // with no CORS headers. We route through the sync worker's proxy instead, which
 // forwards to events.vex.com server-side and injects the token from a secret.
@@ -36,7 +36,7 @@ const client = Client({
     token: "",
   },
   request: {
-    baseUrl: `${SHARE_SERVER.replace(/\/(api\/?)?$/, "")}/api/robotevents`,
+    baseUrl: `${SHARE_SERVER.replace(/\/(api\/?)?$/, "")}/api/vexevents`,
   },
 });
 
@@ -375,7 +375,7 @@ export function useEventTeam(
   });
 }
 
-// Update these each season — see seasons endpoint: /api/robotevents/seasons.
+// Update these each season — see seasons endpoint: /api/vexevents/seasons.
 export const currentSeasons: number[] = [
   // 2025-2026
   197, // V5RC Push Back
@@ -471,3 +471,4 @@ export function useCurrentSeason(program?: ProgramCode | null) {
   const id = program ? client.seasons?.[program]?.[CURRENT_YEAR] : undefined;
   return useSeason(id);
 }
+

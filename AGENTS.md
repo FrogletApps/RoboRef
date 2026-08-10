@@ -12,7 +12,7 @@ Welcome! This file (`AGENTS.md`) is the primary guidelines and context document 
 - **Frontend**: React 19, TypeScript, Vite, Tailwind CSS, TanStack Router, TanStack Query, Motion.
 - **Offline Storage**: IndexedDB via `idb-keyval`, local persistence via `@tanstack/react-query-persist-client`.
 - **Sync Worker**: Cloudflare Workers & Durable Objects (`worker/sync`).
-- **Shared Libraries**: `lib/robotevents`, `lib/share`, `lib/consistency`, `lib/pdf`.
+- **Shared Libraries**: `lib/vexevents`, `lib/share`, `lib/consistency`, `lib/pdf`.
 
 ---
 

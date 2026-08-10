@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@roboref/robotevents": "file:../robotevents",
+    "@roboref/vexevents": "file:../vexevents",
     "jspdf": "^4.2.1"
   }
 }

@@ -1,4 +1,4 @@
-import { programs, seasons } from "@roboref/robotevents";
+import { programs, seasons } from "@roboref/vexevents";
 import { Game } from "~utils/hooks/rules";
 
 import LevelUp from "/rules/VIQRC/2026-2027.json?url";
@@ -44,7 +44,7 @@ export const FullVolumeRules: () => Promise<Game> = async () =>
 // Supported games
 export const GAME_FETCHERS: Record<number, () => Promise<Game>> = {
   // 2026-2027
-  // The bundled `robotevents` package predates this season, so its
+  // The bundled `vexevents` package predates this season, so its
   // `seasons[program]` maps have no "2026-2027" key. Use the literal
   // events.vex.com season ids until the package is updated.
   203: LevelUpRules, // VIQRC Level Up
@@ -53,7 +53,7 @@ export const GAME_FETCHERS: Record<number, () => Promise<Game>> = {
   206: OverrideRules, // VAIRC Override
 
   // 2025-2026
-  // Same caveat as above: the bundled `robotevents` package has no
+  // Same caveat as above: the bundled `vexevents` package has no
   // "2025-2026" key, so use the literal events.vex.com season ids.
   197: PushBackRules, // V5RC Push Back
   198: PushBackRules, // VURC Push Back

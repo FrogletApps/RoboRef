@@ -10,7 +10,7 @@ import {
   IntegrationUsersResponse,
 } from "~utils/data/share";
 import { exportPublicKey, signMessage } from "~utils/data/crypto";
-import { HookQueryOptions } from "./robotevents";
+import { HookQueryOptions } from "./vexevents";
 import { Incident } from "@roboref/share";
 
 export type UseCreateShareOptions = {

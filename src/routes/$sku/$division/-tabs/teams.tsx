@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { EventData } from "@roboref/robotevents";
+import { EventData } from "@roboref/vexevents";
 import { Spinner } from "~components/Spinner";
 import { useEventIncidents } from "~utils/hooks/incident";
-import { useDivisionTeams } from "~utils/hooks/robotevents";
+import { useDivisionTeams } from "~utils/hooks/vexevents";
 import { useCurrentDivision } from "~utils/hooks/state";
 import { ExclamationTriangleIcon, FlagIcon, InformationCircleIcon } from "@heroicons/react/20/solid";
 import { VirtualizedList } from "~components/VirtualizedList";

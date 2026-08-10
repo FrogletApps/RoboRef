@@ -1,4 +1,4 @@
-import { components, operations } from "../generated/robotevents.js";
+import { components, operations } from "../generated/vexevents.js";
 import { TeamData } from "../types.js";
 import { Client, transformResponse } from "../utils/client.js";
 import { Event } from "./Event.js";
@@ -47,14 +47,14 @@ export class Team implements TeamData {
     | undefined;
 
   /**
-   * Gets the RobotEvents listing for the team
+   * Gets the VEX Events listing for the team
    */
   getURL() {
     return `https://events.vex.com/teams/${this.program.code}/${this.number}`;
   }
 
   /**
-   * Returns the raw response from RobotEvents
+   * Returns the raw response from VEX Events
    */
   getData(): TeamData {
     return {

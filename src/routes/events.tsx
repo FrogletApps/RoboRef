@@ -5,7 +5,7 @@ import { Input } from "~components/Input";
 import { Spinner } from "~components/Spinner";
 import { getSkuTextColorClass, isVIQRC, isV5 } from "~utils/data/state";
 import { useUnhideEvent } from "~utils/hooks/history";
-import { currentSeasons, useEvent, useEventSearch } from "~utils/hooks/robotevents";
+import { currentSeasons, useEvent, useEventSearch } from "~utils/hooks/vexevents";
 import { formatEventDate } from "~utils/time";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import {
@@ -13,7 +13,7 @@ import {
   isEventFilterApplied,
   EVENT_TYPES,
 } from "~utils/hooks/eventFilters";
-import { operations } from "@roboref/robotevents";
+import { operations } from "@roboref/vexevents";
 
 function isValidSKU(sku: string) {
   return !!sku.match(

@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getAssetUploadStatus, getLocalAsset, LocalAsset, saveLocalAsset } from "~utils/data/assets";
 import { useTeamIncidentsByEvent } from "./incident";
-import { HookQueryOptions } from "./robotevents";
+import { HookQueryOptions } from "./vexevents";
 import { fetchAssetBlob, getAssetOriginalURL, getAssetPreviewURL } from "~utils/data/share";
 import { useMemo } from "react";
 

@@ -4,7 +4,7 @@ import {
   useEventMatch,
   useEventTeam,
   useEventMatchesForTeam,
-} from "~hooks/robotevents";
+} from "~hooks/vexevents";
 import { Rule, useRulesForEvent } from "~utils/hooks/rules";
 import {
   Checkbox,
@@ -27,7 +27,7 @@ import { useAddRecentRules, useRecentRules } from "~utils/hooks/history";
 import { twMerge } from "tailwind-merge";
 import { toast } from "~components/Toast";
 import { Spinner } from "~components/Spinner";
-import { MatchData, programs } from "@roboref/robotevents";
+import { MatchData, programs } from "@roboref/vexevents";
 import { queryClient } from "~utils/data/query";
 import { IncidentFlag, IncidentMatchSkills } from "@roboref/share";
 import { AssetPicker, LocalAssetPreview } from "~components/Assets";

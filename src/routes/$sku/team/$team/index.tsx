@@ -1,9 +1,9 @@
-import { useEventMatchesForTeam, useEventTeam } from "~hooks/robotevents";
+import { useEventMatchesForTeam, useEventTeam } from "~hooks/vexevents";
 import { Spinner } from "~components/Spinner";
 import { useCallback, useMemo, useState } from "react";
 import { useCurrentEvent } from "~hooks/state";
 import { useTeamIncidentsByEvent } from "~hooks/incident";
-import { EventData, TeamData, MatchData } from "@roboref/robotevents";
+import { EventData, TeamData, MatchData } from "@roboref/vexevents";
 import { ClickableMatch } from "~components/Match";
 import { Incident } from "~components/Incident";
 import { PlusIcon, AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";

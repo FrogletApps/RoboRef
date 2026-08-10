@@ -1,10 +1,10 @@
-# RobotEvents
-Module that enables you to interact with the [RobotEvents API](https://www.robotevents.com/api/v2).
+# VEX Events
+Module that enables you to interact with the [VEX Events API](https://events.vex.com/api/v2).
 
 ## Basic Usage
 
 ```typescript
-import { Client } from "robotevents"
+import { Client } from "@roboref/vexevents"
 
 const client = Client({
     authorization: { token: "<AUTH TOKEN>" }

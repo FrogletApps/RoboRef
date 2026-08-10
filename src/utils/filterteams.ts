@@ -1,4 +1,4 @@
-import { TeamData } from "@roboref/robotevents";
+import { TeamData } from "@roboref/vexevents";
 
 export const filterTeams = (
   teams: TeamData[],

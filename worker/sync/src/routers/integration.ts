@@ -11,7 +11,7 @@ import {
   User,
 } from "@roboref/share";
 import { generateIncidentReportPDF } from "@roboref/pdf-export";
-import { getRobotEventsClient } from "../utils/robotevents";
+import { getVexEventsClient } from "../utils/vexevents";
 import { getSystemKeyMetadata } from "../utils/systemKey";
 
 export type VerificationGrantType = "bearer" | "system";
@@ -303,7 +303,7 @@ integrationRouter
     return stub.handleCSV();
   })
   .get("/incidents.pdf", async (request: VerifiedRequest, env: Env) => {
-    const client = getRobotEventsClient(env);
+    const client = getVexEventsClient(env);
 
     const id = env.INCIDENTS.idFromString(request.instance.secret);
     const stub = env.INCIDENTS.get(id);

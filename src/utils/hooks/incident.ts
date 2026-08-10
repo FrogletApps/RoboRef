@@ -19,13 +19,13 @@ import {
   useMutationState,
   useQuery,
 } from "@tanstack/react-query";
-import { Match, MatchData } from "@roboref/robotevents";
+import { Match, MatchData } from "@roboref/vexevents";
 import { toast } from "~components/Toast";
 import { useShareConnection } from "~models/ShareConnection";
 import { queryClient } from "~utils/data/query";
 import { getShareProfile } from "~utils/data/share";
 import { initLWW } from "@roboref/consistency";
-import { HookQueryOptions } from "./robotevents";
+import { HookQueryOptions } from "./vexevents";
 
 export function useIncident(
   id: string | undefined | null,

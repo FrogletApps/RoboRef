@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { useTeamIncidentsByMatch } from "~utils/hooks/incident";
 import { Incident as IncidentData } from "~utils/data/incident";
-import { Match } from "@roboref/robotevents";
+import { Match } from "@roboref/vexevents";
 import { Incident } from "~components/Incident";
 import { MatchScratchpad } from "~components/scratchpad/Scratchpad";
 import { NoteSummaryPills, RulesSummary } from "~components/RulesSummary";

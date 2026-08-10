@@ -18,11 +18,11 @@ constraints drive a lot of our technical decisions:
    less than 5 MB so it can be easily installed from poor internet during an
    event.
 2. RoboRef should make no assumptions about network connectivity once
-   installed. We depend on the Internet for RobotEvents data and
+   installed. We depend on the Internet for VEX Events data and
    the sharing server (if used). However, the user should be able to perform all
    actions, even when offline, and the application should reconcile those
    changes when connectivity is restored. This includes strong caching for
-   RobotEvents data.
+   VEX Events data.
 4. RoboRef should be designed first for small, touch-friendly devices, even
    at the expense of the desktop.
 5. RoboRef should protect incident data very carefully. The safest place
@@ -37,7 +37,7 @@ constraints drive a lot of our technical decisions:
 
 ### Non-Goals
 
-1. RoboRef does not replace Tournament Manager, RobotEvents, or TM Mobile.
+1. RoboRef does not replace Tournament Manager, VEX Events, or TM Mobile.
    We are aiming to replace the paper anomaly log. 
 2. Data should be isolated between events. We should not present information
    about a team that comes from outside the event we are running now, as this

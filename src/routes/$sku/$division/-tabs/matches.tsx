@@ -1,4 +1,4 @@
-import { EventData } from "@roboref/robotevents";
+import { EventData } from "@roboref/vexevents";
 import { MatchSummaryView } from "~components/MatchSummaryView";
 
 export type EventMatchesTabProps = {

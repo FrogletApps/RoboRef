@@ -4,7 +4,7 @@
 
 import { get, set } from "~utils/data/keyval";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { EventData } from "@roboref/robotevents";
+import { EventData } from "@roboref/vexevents";
 import { Rule } from "./rules";
 import { queryClient } from "~utils/data/query";
 

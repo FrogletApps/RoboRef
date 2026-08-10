@@ -7,7 +7,7 @@ import {
 } from "~utils/data/incident";
 import { useCurrentEvent } from "~utils/hooks/state";
 import { useRulesForEvent } from "~utils/hooks/rules";
-import { useEventTeam } from "~utils/hooks/robotevents";
+import { useEventTeam } from "~utils/hooks/vexevents";
 import { Button, LinkButton } from "~components/Button";
 import { usePeerUserName } from "~utils/data/share";
 import { ClockIcon, UserCircleIcon } from "@heroicons/react/24/outline";

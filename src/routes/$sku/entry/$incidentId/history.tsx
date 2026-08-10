@@ -2,7 +2,7 @@ import React from "react";
 import { createFileRoute, useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import { EditHistoryView } from "~components/EditHistory";
 import { useIncident } from "~utils/hooks/incident";
-import { useEventTeam } from "~utils/hooks/robotevents";
+import { useEventTeam } from "~utils/hooks/vexevents";
 import { useCurrentEvent } from "~utils/hooks/state";
 import { Spinner } from "~components/Spinner";
 import { Button } from "~components/Button";

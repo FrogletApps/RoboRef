@@ -9,7 +9,7 @@ import { invitationRouter } from "./routers/invitation";
 import { instanceRouter } from "./routers/instance";
 import { assetRouter } from "./routers/assets";
 import { metaRouter } from "./routers/meta";
-import { robotEventsRouter } from "./routers/robotevents";
+import { vexEventsRouter } from "./routers/vexevents";
 
 const router = AutoRouter<IRequest, [Env]>({
   before: [preflight, withParams],
@@ -21,9 +21,9 @@ router
   // External Integration API (just requires bearer token)
   .all("/api/integration/v1/:sku/*", integrationRouter.fetch)
 
-  // RobotEvents API proxy (browser -> worker -> events.vex.com).
+  // VEX Events API proxy (browser -> worker -> events.vex.com).
   // Must precede the "/api/:sku/:path+" catch-all below.
-  .all("/api/robotevents/*", robotEventsRouter.fetch)
+  .all("/api/vexevents/*", vexEventsRouter.fetch)
 
   // Meta Routes
   .get("/api/meta/location", metaRouter.fetch)

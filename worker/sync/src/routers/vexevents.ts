@@ -2,7 +2,7 @@ import { AutoRouter, IRequest } from "itty-router";
 import { Env } from "../types";
 
 /**
- * Server-side proxy for the RobotEvents API (events.vex.com).
+ * Server-side proxy for the VEX Events API (events.vex.com).
  *
  * The browser cannot call events.vex.com directly: it does not honor the
  * cross-origin Bearer token and 302-redirects to a login page that carries no
@@ -14,7 +14,7 @@ import { Env } from "../types";
  * The token therefore never ships in the public frontend bundle.
  */
 const UPSTREAM = "https://events.vex.com/api/v2";
-const PREFIX = "/api/robotevents/";
+const PREFIX = "/api/vexevents/";
 
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
@@ -51,15 +51,15 @@ function cacheSeconds(path: string): number {
   }
 }
 
-const robotEventsRouter = AutoRouter<
+const vexEventsRouter = AutoRouter<
   IRequest & Request,
   [Env, ExecutionContext]
 >({
   before: [],
 });
 
-robotEventsRouter.all(
-  "/api/robotevents/*",
+vexEventsRouter.all(
+  "/api/vexevents/*",
   async (request: IRequest & Request, env: Env, ctx: ExecutionContext) => {
     const url = new URL(request.url);
     const path = url.pathname.slice(PREFIX.length);
@@ -107,4 +107,4 @@ robotEventsRouter.all(
   },
 );
 
-export { robotEventsRouter };
+export { vexEventsRouter };

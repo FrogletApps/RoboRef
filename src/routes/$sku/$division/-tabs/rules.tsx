@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { EventData, ProgramCode } from "@roboref/robotevents";
-import { useCurrentSeason, useSeason } from "~utils/hooks/robotevents";
+import { EventData, ProgramCode } from "@roboref/vexevents";
+import { useCurrentSeason, useSeason } from "~utils/hooks/vexevents";
 import { Rule, useRulesForSeason } from "~utils/hooks/rules";
 import { RulesSelect } from "~components/Input";
 import { ExternalLinkButton } from "~components/Button";

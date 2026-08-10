@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate, useParams, useRouter } from "@tanstack/react-router";
-import { MatchData } from "@roboref/robotevents";
+import { MatchData } from "@roboref/vexevents";
 import { Button, IconButton } from "~components/Button";
 import {
   Checkbox,
@@ -22,7 +22,7 @@ import {
   useIncident,
   useUndeleteIncident,
 } from "~utils/hooks/incident";
-import { useEventMatchesForTeam, useEventTeam } from "~utils/hooks/robotevents";
+import { useEventMatchesForTeam, useEventTeam } from "~utils/hooks/vexevents";
 import { Rule, useRulesForEvent } from "~utils/hooks/rules";
 import { useCurrentEvent } from "~utils/hooks/state";
 import { queryClient } from "~utils/data/query";

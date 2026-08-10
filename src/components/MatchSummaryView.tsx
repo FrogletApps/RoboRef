@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { EventData } from "@roboref/robotevents";
+import { EventData } from "@roboref/vexevents";
 import { useCurrentDivision, useCurrentEvent } from "~utils/hooks/state";
-import { useEventMatches } from "~utils/hooks/robotevents";
+import { useEventMatches } from "~utils/hooks/vexevents";
 import { Spinner } from "~components/Spinner";
 import { IconButton } from "~components/Button";
 import { ArrowLeftIcon, ArrowRightIcon, ClockIcon } from "@heroicons/react/20/solid";

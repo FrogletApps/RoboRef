@@ -5,12 +5,12 @@ import {
   incidentMatchNameToString,
   User,
 } from "@roboref/share";
-import { RobotEventsClient } from "@roboref/robotevents";
+import { VexEventsClient } from "@roboref/vexevents";
 
 export type GenerateIncidentReportPDFOptions = {
   sku: string;
   users: User[];
-  client: RobotEventsClient;
+  client: VexEventsClient;
   incidents: Incident[];
   formatters: {
     date: Intl.DateTimeFormat;
@@ -54,7 +54,7 @@ export function teamComparison(a: string, b: string): number {
   return 0;
 }
 
-// The proper thing to do would be to fetch the actual round information from robotevents and compare them, but this is a good enough approximation for now.
+// The proper thing to do would be to fetch the actual round information from VEX Events and compare them, but this is a good enough approximation for now.
 const matchNameOrder = [
   "Practice",
   "Qualifier",

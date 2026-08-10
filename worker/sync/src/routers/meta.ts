@@ -19,7 +19,7 @@ const COMMON_COUNTRIES = {
 
 /**
  * Translates the ISO-3166-1 alpha-2 country code to the country name that
- * RobotEvents returns. As far as I can tell, they are using the Google Maps
+ * VEX Events returns. As far as I can tell, they are using the Google Maps
  * places API, for which the names do not match the ISO standard. This will call
  * out some exceptions, but will otherwise defer to iso-3166-1 full name.
  **/

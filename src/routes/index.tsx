@@ -2,7 +2,7 @@ import { Button, LinkButton } from "~components/Button";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ArrowPathIcon, Cog8ToothIcon, QrCodeIcon, UserGroupIcon } from "@heroicons/react/20/solid";
-import { useEventSearch } from "~utils/hooks/robotevents";
+import { useEventSearch } from "~utils/hooks/vexevents";
 import {
   useHiddenEvents,
   useRecentEvents,

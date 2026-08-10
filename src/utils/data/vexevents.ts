@@ -1,4 +1,4 @@
-import { MatchData, rounds } from "@roboref/robotevents";
+import { MatchData, rounds } from "@roboref/vexevents";
 
 export const ELIMINATION_ROUNDS = [
   rounds.RoundOf16,
@@ -10,3 +10,4 @@ export const ELIMINATION_ROUNDS = [
 export function isMatchElimination(match: MatchData): boolean {
   return ELIMINATION_ROUNDS.includes(match.round);
 }
+

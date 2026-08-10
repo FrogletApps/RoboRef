@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
-import { EventData } from "@roboref/robotevents";
-import { useEventMatches } from "~utils/hooks/robotevents";
+import { EventData } from "@roboref/vexevents";
+import { useEventMatches } from "~utils/hooks/vexevents";
 import { useCurrentDivision } from "~utils/hooks/state";
 import { Spinner } from "~components/Spinner";
 import { ClickableMatch, MatchTime } from "~components/Match";

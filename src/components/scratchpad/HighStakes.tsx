@@ -4,7 +4,7 @@ import {
   ClockIcon,
 } from "@heroicons/react/20/solid";
 import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
-import { MatchData, rounds } from "@roboref/robotevents";
+import { MatchData, rounds } from "@roboref/vexevents";
 import { Checkbox, Radio } from "~components/Input";
 import {
   EditScratchpad,
@@ -19,9 +19,9 @@ import {
   useUpdateMatchScratchpad,
 } from "~utils/hooks/scratchpad";
 import { EditHistory } from "~components/EditHistory";
-import { useEventMatches } from "~utils/hooks/robotevents";
+import { useEventMatches } from "~utils/hooks/vexevents";
 import { useCurrentDivision, useCurrentEvent } from "~utils/hooks/state";
-import { isMatchElimination } from "~utils/data/robotevents";
+import { isMatchElimination } from "~utils/data/vexevents";
 
 type ScratchpadState<T extends MatchScratchpad, K extends keyof T> = {
   match: MatchData;
