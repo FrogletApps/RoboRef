@@ -1,5 +1,6 @@
 ## 10 August 2026
 
+- You may need to clear your browser cache to load this version correctly if you used previous versions.
 - Fixed package issue, and renamed internal packages
 - Updated dependencies
 
