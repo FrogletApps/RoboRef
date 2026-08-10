@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@referee-fyi/robotevents": "^1.0.0",
+    "@referee-fyi/robotevents": "file:../robotevents",
     "jspdf": "^4.2.1"
   }
 }

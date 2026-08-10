@@ -17,7 +17,7 @@
     "vitest": "^4.1.9"
   },
   "dependencies": {
-    "@referee-fyi/consistency": "^1.0.0",
-    "@referee-fyi/robotevents": "^1.0.0"
+    "@referee-fyi/consistency": "file:../consistency",
+    "@referee-fyi/robotevents": "file:../robotevents"
   }
 }
