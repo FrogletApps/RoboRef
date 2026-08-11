@@ -153,9 +153,14 @@ const EventDevToolsContent: React.FC = () => {
   });
 
   // Error
+  const [shouldError, setShouldError] = useState(false);
   const [errorChild, setErrorChild] = useState<Record<string, unknown> | false>(
     false
   );
+
+  if (shouldError) {
+    throw new Error("Previewing error screen");
+  }
 
   return (
     <section className="mt-4">
@@ -268,16 +273,24 @@ const EventDevToolsContent: React.FC = () => {
       </nav>
       <section className="mt-4">
         <h2 className="font-bold">Throw an Error</h2>
-        <Button
-          mode="dangerous"
-          onClick={() =>
-            setErrorChild({
-              "ROBOREF DEVTOOLS ERROR": new Error("Test Error"),
-            })
-          }
-        >
-          Throw Error
-        </Button>
+        <div className="flex gap-2 mt-2">
+          <Button
+            mode="dangerous"
+            onClick={() => setShouldError(true)}
+          >
+            Preview Error Screen
+          </Button>
+          <Button
+            mode="dangerous"
+            onClick={() =>
+              setErrorChild({
+                "ROBOREF DEVTOOLS ERROR": new Error("Test Error"),
+              })
+            }
+          >
+            Throw Error
+          </Button>
+        </div>
         {errorChild as ReactNode}
       </section>
     </section>
