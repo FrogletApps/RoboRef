@@ -1,3 +1,7 @@
+## 11 August 2026
+
+- Minor UI improvements
+
 ## 10 August 2026
 
 - Fixed package issue, and renamed internal packages

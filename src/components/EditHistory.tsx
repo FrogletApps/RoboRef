@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { timeAgo } from "~utils/time";
 import { Button } from "./Button";
-import { UserCircleIcon, ClockIcon } from "@heroicons/react/20/solid";
+import { UserCircleIcon, ClockIcon, CalendarIcon } from "@heroicons/react/20/solid";
 import { usePeerUserName } from "~utils/data/share";
 
 export type HistoryRecord = {
@@ -92,22 +92,31 @@ export const EditHistoryRecordItem: React.FC<EditHistoryRecordItemProps> = ({
   const user = usePeerUserName(record.peer);
   const date = new Date(record.instant);
 
+  const header = (
+    <div className="grid grid-cols-3 items-center text-xs text-zinc-400 mb-1">
+      <span className="flex items-center justify-start min-w-0 truncate">
+        <UserCircleIcon height={16} className="inline mr-1 text-emerald-400 flex-shrink-0" aria-hidden="true" />
+        <span className="sr-only">User: </span>
+        <span className="truncate">{user || "Referee"}</span>
+      </span>
+      <span className="flex items-center justify-center">
+        <CalendarIcon height={16} className="inline mr-1 text-zinc-400 flex-shrink-0" aria-hidden="true" />
+        <span className="sr-only">Date: </span>
+        {date.toLocaleDateString()}
+      </span>
+      <span className="flex items-center justify-end">
+        <ClockIcon height={16} className="inline mr-1 text-zinc-400 flex-shrink-0" aria-hidden="true" />
+        <span className="sr-only">Time: </span>
+        {date.toLocaleTimeString()}
+      </span>
+    </div>
+  );
+
   // 1. Initial Creation Event
   if (record.key === "created") {
     return (
       <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
-        <div className="flex justify-between text-xs text-zinc-400 mb-1">
-          <span>
-            <UserCircleIcon height={16} className="inline mr-1 text-emerald-400" aria-hidden="true" />
-            <span className="sr-only">User: </span>
-            {user || "Referee"}
-          </span>
-          <span>
-            <ClockIcon height={16} className="inline mr-1 text-zinc-400" aria-hidden="true" />
-            <span className="sr-only">Time: </span>
-            {date.toLocaleTimeString()}
-          </span>
-        </div>
+        {header}
         <p className="font-semibold text-emerald-400 text-sm">Created Note</p>
       </section>
     );
@@ -118,40 +127,13 @@ export const EditHistoryRecordItem: React.FC<EditHistoryRecordItemProps> = ({
     const isDeletedAction = record.to === true;
     return (
       <section className="bg-zinc-700/80 p-3 rounded-md mb-3 border border-zinc-600/50">
-        <div className="flex justify-between text-xs text-zinc-400 mb-1">
-          <span>
-            <UserCircleIcon height={16} className="inline mr-1 text-emerald-400" aria-hidden="true" />
-            <span className="sr-only">User: </span>
-            {user || "Referee"}
-          </span>
-          <span>
-            <ClockIcon height={16} className="inline mr-1 text-zinc-400" aria-hidden="true" />
-            <span className="sr-only">Time: </span>
-            {date.toLocaleTimeString()}
-          </span>
-        </div>
+        {header}
         <p className={twMerge("font-semibold text-sm", isDeletedAction ? "text-red-400" : "text-emerald-400")}>
           {isDeletedAction ? "Deleted Note" : "Undeleted Note"}
         </p>
       </section>
     );
   }
-
-  // Header info for property edit events
-  const header = (
-    <div className="flex justify-between text-xs text-zinc-400 mb-1">
-      <span>
-        <UserCircleIcon height={16} className="inline mr-1 text-emerald-400" aria-hidden="true" />
-        <span className="sr-only">User: </span>
-        {user || "Referee"}
-      </span>
-      <span>
-        <ClockIcon height={16} className="inline mr-1 text-zinc-400" aria-hidden="true" />
-        <span className="sr-only">Time: </span>
-        {date.toLocaleTimeString()}
-      </span>
-    </div>
-  );
 
   // 3. Outcome / Severity change
   if (record.key === "outcome") {
