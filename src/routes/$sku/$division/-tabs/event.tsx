@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { EventData } from "@roboref/vexevents";
 import { useEventMatches, useEventTeams } from "~utils/hooks/vexevents";
 import { useCurrentDivision } from "~utils/hooks/state";
@@ -64,6 +64,19 @@ export const EventTab: React.FC<EventTabProps> = ({
   const { data: eventTeams } = useEventTeams(event);
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const [bottomPadding, setBottomPadding] = useState(120);
+
+  useLayoutEffect(() => {
+    const el = bottomRef.current;
+    if (!el) return;
+    setBottomPadding(64 + el.offsetHeight);
+    const observer = new ResizeObserver(() => {
+      setBottomPadding(64 + el.offsetHeight);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const teamInfoMap = useMemo(() => {
     const map = new Map<
@@ -200,9 +213,9 @@ export const EventTab: React.FC<EventTabProps> = ({
         <VirtualizedList
           data={filteredMatches}
           options={{ estimateSize: () => 64 }}
+          paddingBottom={bottomPadding}
           className="h-full"
           parts={{
-            list: { className: "pb-40" },
             item: { className: "w-full h-full flex items-center" },
           }}
         >
@@ -210,7 +223,10 @@ export const EventTab: React.FC<EventTabProps> = ({
         </VirtualizedList>
       </div>
 
-      <div className="absolute bottom-16 left-0 right-0 z-20 p-2 bg-zinc-900/80 backdrop-blur-sm flex flex-col gap-2">
+      <div
+        ref={bottomRef}
+        className="absolute bottom-16 left-0 right-0 z-20 p-2 bg-zinc-900/80 backdrop-blur-sm flex flex-col gap-2"
+      >
         <UpcomingMatch event={event} onClickMatch={onClickMatch} />
         <ExternalLinkButton
           href={`https://events.vex.com/${event.sku}.html`}

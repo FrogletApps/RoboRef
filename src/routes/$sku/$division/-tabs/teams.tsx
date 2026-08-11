@@ -127,9 +127,10 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
         <VirtualizedList
           data={filteredTeams}
           options={{ estimateSize: () => 64 }}
+          paddingBottom={80}
           className="h-full"
           parts={{
-            list: { className: "divide-y divide-zinc-700 mb-16" },
+            list: { className: "divide-y divide-zinc-700" },
             item: { className: "border-b border-zinc-700 w-full h-full flex items-center" },
           }}
         >

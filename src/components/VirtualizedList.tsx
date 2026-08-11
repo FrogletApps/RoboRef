@@ -20,6 +20,7 @@ export type VirtualizedListParts = ComponentParts<{
 export type VirtualizedListProps<T> = {
   data?: T[];
   header?: React.ReactNode;
+  paddingBottom?: number;
   children: (value: T, index: number) => React.ReactNode;
   options: Omit<UseVirtualizerOptions, "getScrollElement" | "count">;
 } & Omit<React.HTMLProps<HTMLDivElement>, "ref" | "data" | "children"> &
@@ -28,6 +29,7 @@ export type VirtualizedListProps<T> = {
 export const VirtualizedList = <T,>({
   data,
   header,
+  paddingBottom = 0,
   children,
   options,
   parts,
@@ -69,7 +71,11 @@ export const VirtualizedList = <T,>({
     >
       {header ? <div ref={headerRef}>{header}</div> : null}
       <ol
-        style={{ width: "100%", height: totalSize, position: "relative" }}
+        style={{
+          width: "100%",
+          height: totalSize + paddingBottom,
+          position: "relative",
+        }}
         aria-setsize={data?.length ?? 0}
         {...parts?.list}
       >
