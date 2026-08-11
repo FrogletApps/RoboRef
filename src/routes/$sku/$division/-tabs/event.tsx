@@ -70,9 +70,9 @@ export const EventTab: React.FC<EventTabProps> = ({
   useLayoutEffect(() => {
     const el = bottomRef.current;
     if (!el) return;
-    setBottomPadding(64 + el.offsetHeight);
+    setBottomPadding(48 + el.offsetHeight);
     const observer = new ResizeObserver(() => {
-      setBottomPadding(64 + el.offsetHeight);
+      setBottomPadding(48 + el.offsetHeight);
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -225,7 +225,7 @@ export const EventTab: React.FC<EventTabProps> = ({
 
       <div
         ref={bottomRef}
-        className="absolute bottom-16 left-0 right-0 z-20 p-2 bg-zinc-900/80 backdrop-blur-sm flex flex-col gap-2"
+        className="fixed bottom-16 left-0 right-0 z-20 px-5 py-2 bg-zinc-900/80 backdrop-blur-sm flex flex-col gap-2"
       >
         <UpcomingMatch event={event} onClickMatch={onClickMatch} />
         <ExternalLinkButton
