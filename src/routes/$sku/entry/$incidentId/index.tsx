@@ -25,7 +25,6 @@ import {
 import { useEventMatchesForTeam, useEventTeam } from "~utils/hooks/vexevents";
 import { Rule, useRulesForEvent } from "~utils/hooks/rules";
 import { useCurrentEvent } from "~utils/hooks/state";
-import { queryClient } from "~utils/data/query";
 import { KeyRegister, LWWKeys } from "@roboref/consistency";
 import { AssetPicker, AssetPreview } from "~components/Assets";
 import { Spinner } from "~components/Spinner";
@@ -281,16 +280,6 @@ const EditIncidentPage: React.FC = () => {
     }
   }, [editIncident, incident, router, navigate, sku]);
 
-  const onViewHistory = useCallback(() => {
-    if (incident) {
-      queryClient.setQueryData(["incidents", id], incident);
-    }
-    navigate({
-      to: "/$sku/entry/$incidentId/history",
-      params: { sku: sku ?? "", incidentId: id },
-    });
-  }, [incident, id, navigate, sku]);
-
   const mostRecentRegister = useMemo(() => {
     if (!incident || !incident.consistency) return null;
     let newest: { peer: string; instant: string } | null = null;
@@ -542,13 +531,6 @@ const EditIncidentPage: React.FC = () => {
             Save Changes
           </Button>
         )}
-        <Button
-          mode="normal"
-          className="w-full text-center mt-3"
-          onClick={onViewHistory}
-        >
-          View Note History
-        </Button>
         {mostRecentRegister && (
           <p className="text-center text-xs text-zinc-400 mt-2">
             Last edited {lastEditedUser ? `by ${lastEditedUser}, ` : ""}
