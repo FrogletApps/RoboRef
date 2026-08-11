@@ -239,7 +239,7 @@ const EventSkillsPage: React.FC = () => {
         className="flex-1"
         parts={{
           tablist: {
-            className: "absolute bottom-0 right-0 left-0 z-30 p-0 bg-zinc-900",
+            className: "fixed bottom-0 right-0 left-0 z-30 p-0 bg-zinc-900",
           },
         }}
       >
