@@ -67,7 +67,7 @@ const EventHome: React.FC = () => {
   );
 
   return event ? (
-    <section className="mt-4 flex flex-col">
+    <section className="mt-2 flex flex-col flex-1 h-full min-h-0 relative">
       <Tabs
         id={["/$sku/$division/", "EventHome"]}
         className="flex-1"

@@ -1,5 +1,6 @@
 ## 11 August 2026
 
+- Improved search for Schedule and Teams tabs
 - Minor UI improvements
 
 ## 10 August 2026
