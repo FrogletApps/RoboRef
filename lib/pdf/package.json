@@ -7,10 +7,14 @@
   "exports": "./index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "test": "vitest"
   },
   "author": "",
   "license": "ISC",
+  "devDependencies": {
+    "vitest": "^4.1.9"
+  },
   "dependencies": {
     "@roboref/vexevents": "file:../vexevents",
     "jspdf": "^4.2.1"
