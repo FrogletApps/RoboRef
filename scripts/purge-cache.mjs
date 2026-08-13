@@ -10,7 +10,7 @@
  *
  * Required environment variables:
  *   CF_ZONE_ID              – Cloudflare Zone ID for roboref.fyi
- *   CLOUDFLARE_API_TOKEN    – API token with Zone.Cache Purge permission
+ *   CF_PURGE_TOKEN           – API token with Zone.Cache Purge permission
  *
  * Usage:
  *   node scripts/purge-cache.mjs
@@ -33,12 +33,12 @@ try {
 } catch {}
 
 const zoneId = process.env.CF_ZONE_ID;
-const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+const apiToken = process.env.CF_PURGE_TOKEN;
 
 if (!zoneId || !apiToken) {
   const missing = [
     !zoneId && "CF_ZONE_ID",
-    !apiToken && "CLOUDFLARE_API_TOKEN",
+    !apiToken && "CF_PURGE_TOKEN",
   ].filter(Boolean);
   console.warn(
     `⚠️  Skipping cache purge: ${missing.join(" and ")} not set.\n` +
