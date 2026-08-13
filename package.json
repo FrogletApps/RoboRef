@@ -16,8 +16,9 @@
     "worker:deploy:live": "npm run lib:build && npm --prefix worker/sync run deploy:live",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
     "pages:build": "npm test && npm run lib:build && npm run frontend:build",
-    "pages:deploy:test": "npx cross-env VITE_ROBOREF_SHARE_SERVER=https://test.share.roboref.fyi npm run pages:build && wrangler pages deploy dist --project-name roboref-test",
-    "pages:deploy:live": "npx cross-env VITE_ROBOREF_ENV=production npm run pages:build && wrangler pages deploy dist --project-name roboref",
+    "pages:purge-cache": "node scripts/purge-cache.mjs",
+    "pages:deploy:test": "npx cross-env VITE_ROBOREF_SHARE_SERVER=https://test.share.roboref.fyi npm run pages:build && wrangler pages deploy dist --project-name roboref-test && npm run pages:purge-cache",
+    "pages:deploy:live": "npx cross-env VITE_ROBOREF_ENV=production npm run pages:build && wrangler pages deploy dist --project-name roboref && npm run pages:purge-cache",
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "concurrently \"npm run frontend:dev\" \"npm run lib:dev\""
