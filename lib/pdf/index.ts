@@ -55,6 +55,7 @@ export function teamComparison(a: string, b: string): number {
 }
 
 // The proper thing to do would be to fetch the actual round information from VEX Events and compare them, but this is a good enough approximation for now.
+// TODO: Improve this
 const matchNameOrder = [
   "Practice",
   "Qualifier",
@@ -64,6 +65,15 @@ const matchNameOrder = [
   "F",
   "Match",
 ];
+
+export function extractTrailingNumber(name: string): number {
+  let i = name.length - 1;
+  while (i >= 0 && name[i] >= "0" && name[i] <= "9") {
+    i--;
+  }
+  if (i === name.length - 1) return 0;
+  return parseInt(name.slice(i + 1), 10);
+}
 
 export function matchComparison(
   a: IncidentMatch | undefined,
@@ -107,8 +117,8 @@ export function matchComparison(
       return roundA - roundB;
     }
 
-    const instanceA = parseInt(a.name.match(/\d+$/)?.[0] ?? "0");
-    const instanceB = parseInt(b.name.match(/\d+$/)?.[0] ?? "0");
+    const instanceA = extractTrailingNumber(a.name);
+    const instanceB = extractTrailingNumber(b.name);
 
     if (instanceA !== instanceB) {
       return instanceA - instanceB;
