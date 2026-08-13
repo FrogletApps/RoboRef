@@ -14,10 +14,14 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "test": "vitest"
   },
   "author": "Brendan McGuire (vendored by referee.fyi fork)",
   "license": "MIT",
+  "devDependencies": {
+    "vitest": "^4.1.9"
+  },
   "dependencies": {
     "openapi-fetch": "^0.17.0",
     "openapi-typescript-helpers": "^0.1.0"
