@@ -1,3 +1,7 @@
+## 13 August 2026
+
+- Security and performance improvements to PDF incident report generation
+
 ## 11 August 2026
 
 - Improved search for Schedule and Teams tabs
