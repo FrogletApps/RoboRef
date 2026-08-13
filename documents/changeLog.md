@@ -1,6 +1,7 @@
 ## 13 August 2026
 
-- Security and performance improvements to PDF incident report generation
+- Security and performance improvements
+- Added build tests
 
 ## 11 August 2026
 
