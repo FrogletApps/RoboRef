@@ -1,5 +1,6 @@
 ## 16 August 2026
 
+- Fixed asset loading and MIME type errors after deploying app updates
 - Added status and error messages on Schedule, Matches, and Teams tabs when VEX Events data cannot be loaded or when schedules/teams have not been published yet
 - Fixed infinite spinner state on Matches tab when no matches exist
 
