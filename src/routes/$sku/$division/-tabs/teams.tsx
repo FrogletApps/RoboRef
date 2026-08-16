@@ -2,13 +2,13 @@ import { useMemo, useState } from "react";
 import { EventData } from "@roboref/vexevents";
 import { Spinner } from "~components/Spinner";
 import { useEventIncidents } from "~utils/hooks/incident";
-import { useDivisionTeams, useEventMatches } from "~utils/hooks/vexevents";
+import { useDivisionTeams, useEventMatches, useEventTeams } from "~utils/hooks/vexevents";
 import { useCurrentDivision } from "~utils/hooks/state";
 import { ExclamationTriangleIcon, FlagIcon } from "@heroicons/react/20/solid";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { IconLabel, Input } from "~components/Input";
 import { filterTeams } from "~utils/filterteams";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon, MagnifyingGlassIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 import { LinkButton } from "~components/Button";
 import { DisconnectedWarning } from "~components/DisconnectedWarning";
 
@@ -20,14 +20,25 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
   const division = useCurrentDivision();
   const {
     data: divisionTeams,
-    isLoading,
+    isLoading: isDivTeamsLoading,
+    isError: isDivTeamsError,
     isPaused,
   } = useDivisionTeams(event, division);
-  const { data: matches } = useEventMatches(event, division);
+  const {
+    isLoading: isEventTeamsLoading,
+    isError: isEventTeamsError,
+  } = useEventTeams(event);
+  const {
+    data: matches,
+    isLoading: isMatchesLoading,
+    isError: isMatchesError,
+  } = useEventMatches(event, division);
   const { data: incidents } = useEventIncidents(event.sku);
   const [filter, setFilter] = useState("");
 
   const teams = useMemo(() => divisionTeams?.teams ?? [], [divisionTeams]);
+  const isError = isDivTeamsError || isEventTeamsError || isMatchesError;
+  const isLoading = isDivTeamsLoading || isEventTeamsLoading || isMatchesLoading;
 
   const majorIncidents = useMemo(() => {
     if (!incidents) return new Map<string, number>();
@@ -123,53 +134,82 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
         </div>
       </div>
       <div className="flex-1 min-h-0 relative">
-        <Spinner show={isLoading || isPaused} />
-        <VirtualizedList
-          data={filteredTeams}
-          options={{ estimateSize: () => 64 }}
-          paddingBottom={80}
-          className="h-full"
-          parts={{
-            list: { className: "divide-y divide-zinc-700" },
-            item: { className: "border-b border-zinc-700 w-full h-full flex items-center" },
-          }}
-        >
-          {(team) => (
-            <LinkButton
-              to={"/$sku/team/$team"}
-              params={{ sku: event.sku, team: team.number }}
-              className="w-full h-full bg-transparent rounded-none py-3 text-left flex items-center justify-between gap-4 p-0 text-zinc-50 active:bg-zinc-800/50"
-              aria-label={`Team ${team.number} ${team.team_name}. ${
-                majorIncidents.get(team.number) ?? 0
-              } major violations. ${
-                minorIncidents.get(team.number) ?? 0
-              } minor violations`}
-            >
-              <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <p className="text-sm font-mono text-emerald-400 whitespace-nowrap text-ellipsis overflow-hidden w-full">
-                  {team.number}
-                </p>
-                <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
-                  {team.team_name}
-                </p>
-              </div>
-              <div className="flex items-center gap-3 shrink-0 px-2">
-                <span className="text-red-400 flex items-center" aria-label={``}>
-                  <FlagIcon height={20} className="inline" />
-                  <span className="font-mono ml-1.5">
-                    {majorIncidents.get(team.number) ?? 0}
+        <Spinner show={(isLoading || isPaused) && (!teams || teams.length === 0)} />
+        {!isLoading && !isPaused && isError ? (
+          <div className="flex-1 h-full flex flex-col items-center justify-center p-6 text-center text-zinc-400 gap-2">
+            <ExclamationCircleIcon className="w-10 h-10 text-zinc-500" />
+            <p className="text-base font-semibold text-zinc-200">
+              Data could not be loaded from VEX Events.
+            </p>
+            <p className="text-xs text-zinc-400 max-w-xs">
+              Please check your internet connection or try again later.
+            </p>
+          </div>
+        ) : !isLoading && !isPaused && (!teams || teams.length === 0) ? (
+          <div className="flex-1 h-full flex flex-col items-center justify-center p-6 text-center text-zinc-400 gap-2">
+            <UserGroupIcon className="w-10 h-10 text-zinc-500" />
+            <p className="text-base font-semibold text-zinc-200">
+              No teams registered yet
+            </p>
+            <p className="text-xs text-zinc-400 max-w-xs">
+              Teams will appear here once registered and published on VEX Events.
+            </p>
+          </div>
+        ) : !isLoading && !isPaused && filteredTeams.length === 0 ? (
+          <div className="flex-1 h-full flex flex-col items-center justify-center p-6 text-center text-zinc-400 gap-2">
+            <MagnifyingGlassIcon className="w-10 h-10 text-zinc-500" />
+            <p className="text-base font-medium text-zinc-300">
+              No teams found matching &ldquo;{filter}&rdquo;
+            </p>
+          </div>
+        ) : (
+          <VirtualizedList
+            data={filteredTeams}
+            options={{ estimateSize: () => 64 }}
+            paddingBottom={80}
+            className="h-full"
+            parts={{
+              list: { className: "divide-y divide-zinc-700" },
+              item: { className: "border-b border-zinc-700 w-full h-full flex items-center" },
+            }}
+          >
+            {(team) => (
+              <LinkButton
+                to={"/$sku/team/$team"}
+                params={{ sku: event.sku, team: team.number }}
+                className="w-full h-full bg-transparent rounded-none py-3 text-left flex items-center justify-between gap-4 p-0 text-zinc-50 active:bg-zinc-800/50"
+                aria-label={`Team ${team.number} ${team.team_name}. ${
+                  majorIncidents.get(team.number) ?? 0
+                } major violations. ${
+                  minorIncidents.get(team.number) ?? 0
+                } minor violations`}
+              >
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <p className="text-sm font-mono text-emerald-400 whitespace-nowrap text-ellipsis overflow-hidden w-full">
+                    {team.number}
+                  </p>
+                  <p className="whitespace-nowrap text-ellipsis overflow-hidden w-full">
+                    {team.team_name}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0 px-2">
+                  <span className="text-red-400 flex items-center" aria-label={``}>
+                    <FlagIcon height={20} className="inline" />
+                    <span className="font-mono ml-1.5">
+                      {majorIncidents.get(team.number) ?? 0}
+                    </span>
                   </span>
-                </span>
-                <span className="text-yellow-400 flex items-center">
-                  <ExclamationTriangleIcon height={20} className="inline" />
-                  <span className="font-mono ml-1.5">
-                    {minorIncidents.get(team.number) ?? 0}
+                  <span className="text-yellow-400 flex items-center">
+                    <ExclamationTriangleIcon height={20} className="inline" />
+                    <span className="font-mono ml-1.5">
+                      {minorIncidents.get(team.number) ?? 0}
+                    </span>
                   </span>
-                </span>
-              </div>
-            </LinkButton>
-          )}
-        </VirtualizedList>
+                </div>
+              </LinkButton>
+            )}
+          </VirtualizedList>
+        )}
       </div>
     </div>
   );

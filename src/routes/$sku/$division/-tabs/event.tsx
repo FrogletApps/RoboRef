@@ -5,7 +5,13 @@ import { useCurrentDivision } from "~utils/hooks/state";
 import { Spinner } from "~components/Spinner";
 import { ClickableMatch, MatchTime } from "~components/Match";
 import { Button, ExternalLinkButton } from "~components/Button";
-import { ArrowRightIcon, GlobeAltIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowRightIcon,
+  ExclamationCircleIcon,
+  GlobeAltIcon,
+  MagnifyingGlassIcon,
+  NumberedListIcon,
+} from "@heroicons/react/24/outline";
 import { IconLabel, Input } from "~components/Input";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { DisconnectedWarning } from "~components/DisconnectedWarning";
@@ -60,7 +66,7 @@ export const EventTab: React.FC<EventTabProps> = ({
   onSelectMatch,
 }) => {
   const division = useCurrentDivision();
-  const { data: matches, isLoading } = useEventMatches(event, division);
+  const { data: matches, isLoading, isError } = useEventMatches(event, division);
   const { data: eventTeams } = useEventTeams(event);
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
@@ -210,17 +216,46 @@ export const EventTab: React.FC<EventTabProps> = ({
       <div className="flex-1 min-h-0 relative">
         <Spinner show={isLoading} />
         <DisconnectedWarning />
-        <VirtualizedList
-          data={filteredMatches}
-          options={{ estimateSize: () => 64 }}
-          paddingBottom={bottomPadding}
-          className="h-full"
-          parts={{
-            item: { className: "w-full h-full flex items-center" },
-          }}
-        >
-          {(match) => <ClickableMatch match={match} onClick={onClickMatch} />}
-        </VirtualizedList>
+        {!isLoading && isError ? (
+          <div className="flex-1 h-full flex flex-col items-center justify-center p-6 text-center text-zinc-400 gap-2">
+            <ExclamationCircleIcon className="w-10 h-10 text-zinc-500" />
+            <p className="text-base font-semibold text-zinc-200">
+              Data could not be loaded from VEX Events.
+            </p>
+            <p className="text-xs text-zinc-400 max-w-xs">
+              Please check your internet connection or try again later.
+            </p>
+          </div>
+        ) : !isLoading && (!matches || matches.length === 0) ? (
+          <div className="flex-1 h-full flex flex-col items-center justify-center p-6 text-center text-zinc-400 gap-2">
+            <NumberedListIcon className="w-10 h-10 text-zinc-500" />
+            <p className="text-base font-semibold text-zinc-200">
+              No matches scheduled yet
+            </p>
+            <p className="text-xs text-zinc-400 max-w-xs">
+              Matches will appear here once the schedule is published.
+            </p>
+          </div>
+        ) : !isLoading && filteredMatches.length === 0 ? (
+          <div className="flex-1 h-full flex flex-col items-center justify-center p-6 text-center text-zinc-400 gap-2">
+            <MagnifyingGlassIcon className="w-10 h-10 text-zinc-500" />
+            <p className="text-base font-medium text-zinc-300">
+              No matches found matching &ldquo;{filter}&rdquo;
+            </p>
+          </div>
+        ) : (
+          <VirtualizedList
+            data={filteredMatches}
+            options={{ estimateSize: () => 64 }}
+            paddingBottom={bottomPadding}
+            className="h-full"
+            parts={{
+              item: { className: "w-full h-full flex items-center" },
+            }}
+          >
+            {(match) => <ClickableMatch match={match} onClick={onClickMatch} />}
+          </VirtualizedList>
+        )}
       </div>
 
       <div

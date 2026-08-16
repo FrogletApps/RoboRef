@@ -5,6 +5,7 @@ import { useEventMatches } from "~utils/hooks/vexevents";
 import { Spinner } from "~components/Spinner";
 import { IconButton } from "~components/Button";
 import { ArrowLeftIcon, ArrowRightIcon, ClockIcon } from "@heroicons/react/20/solid";
+import { ExclamationCircleIcon, PlayIcon } from "@heroicons/react/24/outline";
 import { MatchContext } from "~components/Context";
 import { MatchTime, useMatchDelta } from "~components/Match";
 import { twMerge } from "tailwind-merge";
@@ -35,7 +36,7 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
   const currentDivision = useCurrentDivision();
   const division = divisionProp ?? currentDivision;
 
-  const { data: matches, isLoading } = useEventMatches(event, division);
+  const { data: matches, isLoading, isError } = useEventMatches(event, division);
 
   const [matchIndex, setMatchIndex] = useState<number>(0);
 
@@ -161,8 +162,36 @@ export const MatchSummaryView: React.FC<MatchSummaryViewProps> = ({
     [matches]
   );
 
-  if (isLoading && !match) {
+  if (isLoading && !matches) {
     return <Spinner show />;
+  }
+
+  if (isError) {
+    return (
+      <section className="flex-1 flex flex-col items-center justify-center p-6 text-center text-zinc-400 gap-2">
+        <ExclamationCircleIcon className="w-10 h-10 text-zinc-500" />
+        <p className="text-base font-semibold text-zinc-200">
+          Data could not be loaded from VEX Events.
+        </p>
+        <p className="text-xs text-zinc-400 max-w-xs">
+          Please check your internet connection or try again later.
+        </p>
+      </section>
+    );
+  }
+
+  if (!matches || matches.length === 0) {
+    return (
+      <section className="flex-1 flex flex-col items-center justify-center p-6 text-center text-zinc-400 gap-2">
+        <PlayIcon className="w-10 h-10 text-zinc-500" />
+        <p className="text-base font-semibold text-zinc-200">
+          No matches scheduled yet
+        </p>
+        <p className="text-xs text-zinc-400 max-w-xs">
+          Matches will appear here once the schedule is published.
+        </p>
+      </section>
+    );
   }
 
   return (

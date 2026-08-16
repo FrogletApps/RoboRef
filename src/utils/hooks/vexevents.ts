@@ -159,8 +159,14 @@ export function useEventTeams<Select = TeamData[]>(
       const event = new Event(eventData, client.api);
       const teams = await event.teams(options, { signal });
 
+      if (teams.response && !teams.response.ok) {
+        throw new Error(
+          teams.response.statusText || "Failed to fetch teams from VEX Events"
+        );
+      }
+
       if (!teams.data) {
-        return [];
+        throw new Error("Failed to fetch teams from VEX Events");
       }
 
       return teams.data.map((team) => team.getData());
@@ -289,8 +295,14 @@ export function useEventMatches<T = Match[]>(
       const event = new Event(eventData, client.api);
       const matches = await event.matches(division, query);
 
+      if (matches.response && !matches.response.ok) {
+        throw new Error(
+          matches.response.statusText || "Failed to fetch matches from VEX Events"
+        );
+      }
+
       if (!matches.data) {
-        return [];
+        throw new Error("Failed to fetch matches from VEX Events");
       }
 
       return matches.data.sort(logicalMatchComparison);
