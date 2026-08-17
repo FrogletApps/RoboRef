@@ -144,12 +144,18 @@ export type WebSocketBroadcastMessage = {
   message: string;
 };
 
+export type WebSocketUpdateUserMessage = {
+  type: "update_user";
+  user: User;
+};
+
 export type WebSocketPeerMessage =
   | WebSocketAddIncidentMessage
   | WebSocketUpdateIncidentMessage
   | WebSocketRemoveIncidentMessage
   | WebSocketUndeleteIncidentMessage
   | WebSocketUpdateScratchpadMessage
+  | WebSocketUpdateUserMessage
   | WebSocketBroadcastMessage;
 
 export type InvitationListItem = Pick<Invitation, "admin"> & {
@@ -184,10 +190,18 @@ export type WebsocketServerUserRemoveMessage = {
   invitations: InvitationListItem[];
 };
 
+export type WebsocketServerUserUpdateMessage = {
+  type: "server_user_update";
+  user: User;
+  activeUsers: User[];
+  invitations: InvitationListItem[];
+};
+
 export type WebSocketServerMessage =
   | WebSocketServerShareInfoMessage
   | WebsocketServerUserAddMessage
-  | WebsocketServerUserRemoveMessage;
+  | WebsocketServerUserRemoveMessage
+  | WebsocketServerUserUpdateMessage;
 
 export type WebSocketMessage = WebSocketPeerMessage | WebSocketServerMessage;
 

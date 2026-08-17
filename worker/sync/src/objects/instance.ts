@@ -591,6 +591,17 @@ export class ShareInstance extends DurableObject {
             );
             break;
           }
+          case "update_user": {
+            const user = data.user;
+            client.user = user;
+            const activeUsers = this.getActiveUsers();
+            const invitations = await this.getInvitationList();
+            await this.broadcast(
+              { type: "server_user_update", user, invitations, activeUsers },
+              { type: "server" }
+            );
+            break;
+          }
         }
       } catch (err) {
         socket.send(JSON.stringify({ error: err }));

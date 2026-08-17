@@ -122,7 +122,21 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
     const current = await getShareProfile();
 
     const profile = { ...get().profile, ...current, ...updates };
-    set({ profile });
+
+    const updatedInvitations = get().invitations.map((inv) =>
+      inv.user.key === profile.key
+        ? { ...inv, user: { ...inv.user, name: profile.name } }
+        : inv
+    );
+    const updatedActiveUsers = get().activeUsers.map((u) =>
+      u.key === profile.key ? { ...u, name: profile.name } : u
+    );
+
+    set({
+      profile,
+      invitations: updatedInvitations,
+      activeUsers: updatedActiveUsers,
+    });
     saveShareProfile(profile);
 
     const user = await registerUser(profile);
@@ -137,6 +151,10 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
       username: profile.name,
       userMetadata,
     });
+
+    if (get().readyState === WebSocket.OPEN && get().websocket) {
+      await get().send({ type: "update_user", user: profile });
+    }
 
     return user;
   },
@@ -336,6 +354,10 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
       }
       case "server_user_remove": {
         toast({ type: "info", message: `${data.user.name} left.` });
+        set({ activeUsers: data.activeUsers, invitations: data.invitations });
+        break;
+      }
+      case "server_user_update": {
         set({ activeUsers: data.activeUsers, invitations: data.invitations });
         break;
       }
