@@ -261,15 +261,17 @@ const EventTeamsPage: React.FC = () => {
     setOpenSection((prev) => (prev === id ? null : id));
   };
 
-  const teamLocation = useMemo(() => {
+  const teamSubtitle = useMemo(() => {
     if (!team) return null;
-    return [
-      team?.location?.city,
-      team?.location?.region,
-      team?.location?.country,
+    const location = [
+      team.location?.city,
+      team.location?.region,
+      team.location?.country,
     ]
-      .filter((v) => !!v)
+      .filter(Boolean)
       .join(", ");
+
+    return [team.organization, location].filter(Boolean).join(" • ");
   }, [team]);
 
   return (
@@ -278,10 +280,16 @@ const EventTeamsPage: React.FC = () => {
         <div className="min-w-0 flex-1">
           <h1 className="text-xl truncate">
             <span className="font-mono text-emerald-400">{number}</span>
-            {" • "}
-            <span>{team?.team_name}</span>
+            {team?.team_name ? (
+              <>
+                {" • "}
+                <span>{team.team_name}</span>
+              </>
+            ) : null}
           </h1>
-          <p className="italic text-sm text-zinc-400 truncate">{teamLocation}</p>
+          {teamSubtitle ? (
+            <p className="italic text-sm text-zinc-400 truncate">{teamSubtitle}</p>
+          ) : null}
         </div>
         <LinkButton
           to="/$sku/new"

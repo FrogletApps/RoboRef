@@ -1,6 +1,6 @@
 ## 17 August 2026
 
-- Dynamically truncate team name and location in Team Info page header to maximize visible text
+- Improve Team Info page
 
 ## 16 August 2026
 
