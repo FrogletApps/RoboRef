@@ -46,7 +46,6 @@ export const QRCode: React.FC<QRCodeProps> = ({
             img.className = "w-full h-full object-contain";
             container.replaceChildren(img);
           } catch (e) {
-            console.error("Failed to generate Ultra HDR JPEG:", e);
           }
         }
       }
