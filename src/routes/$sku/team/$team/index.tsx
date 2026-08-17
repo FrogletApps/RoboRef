@@ -1,6 +1,6 @@
 import { useEventMatchesForTeam, useEventTeam } from "~hooks/vexevents";
 import { Spinner } from "~components/Spinner";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useCurrentEvent } from "~hooks/state";
 import { useTeamIncidentsByEvent } from "~hooks/incident";
 import { EventData, TeamData, MatchData } from "@roboref/vexevents";
@@ -261,43 +261,136 @@ const EventTeamsPage: React.FC = () => {
     setOpenSection((prev) => (prev === id ? null : id));
   };
 
-  const teamSubtitle = useMemo(() => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleMeasureRef = useRef<HTMLDivElement>(null);
+  const subtitleMeasureRef = useRef<HTMLDivElement>(null);
+
+  const [isTitleSplit, setIsTitleSplit] = useState(false);
+  const [isSubtitleSplit, setIsSubtitleSplit] = useState(false);
+
+  const teamLocation = useMemo(() => {
     if (!team) return null;
-    const location = [
+    return [
       team.location?.city,
       team.location?.region,
       team.location?.country,
     ]
       .filter(Boolean)
       .join(", ");
-
-    return [team.organization, location].filter(Boolean).join(" • ");
   }, [team]);
+
+  useLayoutEffect(() => {
+    const checkFit = () => {
+      if (!containerRef.current) return;
+      const containerWidth = containerRef.current.clientWidth;
+      if (containerWidth <= 0) return;
+
+      if (titleMeasureRef.current) {
+        const titleWidth = titleMeasureRef.current.getBoundingClientRect().width;
+        setIsTitleSplit(titleWidth > containerWidth);
+      } else {
+        setIsTitleSplit(false);
+      }
+
+      if (subtitleMeasureRef.current) {
+        const subtitleWidth = subtitleMeasureRef.current.getBoundingClientRect().width;
+        setIsSubtitleSplit(subtitleWidth > containerWidth);
+      } else {
+        setIsSubtitleSplit(false);
+      }
+    };
+
+    checkFit();
+
+    const element = containerRef.current;
+    if (!element) return;
+
+    const observer = new ResizeObserver(() => {
+      checkFit();
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [team?.team_name, team?.organization, teamLocation, number]);
 
   return (
     <section className="flex flex-col h-full min-h-0 overflow-hidden pb-2">
-      <header className="flex items-center justify-between gap-4 mt-2 mb-2 flex-shrink-0">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl truncate">
-            <span className="font-mono text-emerald-400">{number}</span>
-            {team?.team_name ? (
+      {/* Hidden measurement elements to determine if single-line text fits without truncation */}
+      <div
+        aria-hidden="true"
+        className="invisible absolute pointer-events-none -z-50 select-none overflow-hidden opacity-0 top-0 left-0 w-max max-w-none"
+      >
+        {team?.team_name ? (
+          <div ref={titleMeasureRef} className="text-xl whitespace-nowrap w-max">
+            <span className="font-mono">{number}</span>
+            {" • "}
+            <span>{team.team_name}</span>
+          </div>
+        ) : null}
+        {team?.organization && teamLocation ? (
+          <div
+            ref={subtitleMeasureRef}
+            className="text-sm whitespace-nowrap w-max"
+          >
+            <span>{team.organization}</span>
+            {" • "}
+            <span className="italic">{teamLocation}</span>
+          </div>
+        ) : null}
+      </div>
+
+      <header className="flex flex-col gap-2 mt-2 mb-2 flex-shrink-0">
+        <div ref={containerRef} className="min-w-0">
+          {isTitleSplit && team?.team_name ? (
+            <div>
+              <div className="text-xl font-mono text-emerald-400 truncate">
+                {number}
+              </div>
+              <h1 className="text-xl truncate">{team.team_name}</h1>
+            </div>
+          ) : (
+            <h1 className="text-xl truncate">
+              <span className="font-mono text-emerald-400">{number}</span>
+              {team?.team_name ? (
+                <>
+                  {" • "}
+                  <span>{team.team_name}</span>
+                </>
+              ) : null}
+            </h1>
+          )}
+
+          {team?.organization && teamLocation ? (
+            !isSubtitleSplit ? (
+              <p className="text-sm truncate">
+                <span className="text-zinc-300">{team.organization}</span>
+                <span className="text-zinc-400"> • </span>
+                <span className="italic text-zinc-400">{teamLocation}</span>
+              </p>
+            ) : (
               <>
-                {" • "}
-                <span>{team.team_name}</span>
+                <p className="text-sm text-zinc-300 truncate">{team.organization}</p>
+                <p className="italic text-xs text-zinc-400 truncate">{teamLocation}</p>
               </>
-            ) : null}
-          </h1>
-          {teamSubtitle ? (
-            <p className="italic text-sm text-zinc-400 truncate">{teamSubtitle}</p>
-          ) : null}
+            )
+          ) : (
+            <>
+              {team?.organization ? (
+                <p className="text-sm text-zinc-300 truncate">{team.organization}</p>
+              ) : null}
+              {teamLocation ? (
+                <p className="italic text-xs text-zinc-400 truncate">{teamLocation}</p>
+              ) : null}
+            </>
+          )}
         </div>
         <LinkButton
           to="/$sku/new"
           params={{ sku: event?.sku ?? "" }}
           search={{ team: number ?? "" }}
-          className="bg-emerald-600 active:bg-emerald-700 text-white font-semibold flex items-center justify-center gap-1.5 px-3 py-2 rounded-md shrink-0"
+          className="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0 rounded-md shadow-md"
         >
-          <PlusIcon height={20} className="w-5 h-5" />
+          <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
           <span>New Note</span>
         </LinkButton>
       </header>

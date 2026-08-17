@@ -279,7 +279,7 @@ export const AppShell: React.FC = () => {
     : isFilters
     ? "Filter Notes"
     : isTeamPage
-    ? `${teamParam} Team Info`
+    ? "Team Info"
     : null;
 
   return (

@@ -1,6 +1,6 @@
 ## 17 August 2026
 
-- Improve Team Info page
+- Improved Team Info page
 
 ## 16 August 2026
 
