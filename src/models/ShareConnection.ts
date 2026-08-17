@@ -137,7 +137,7 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
       invitations: updatedInvitations,
       activeUsers: updatedActiveUsers,
     });
-    saveShareProfile(profile);
+    await saveShareProfile(profile);
 
     const user = await registerUser(profile);
 
@@ -152,7 +152,7 @@ const useShareConnectionInternal = create<ShareConnection>((set, get) => ({
       userMetadata,
     });
 
-    if (get().readyState === WebSocket.OPEN && get().websocket) {
+    if (get().websocket && get().websocket?.readyState === WebSocket.OPEN) {
       await get().send({ type: "update_user", user: profile });
     }
 

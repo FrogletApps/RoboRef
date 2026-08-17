@@ -16,7 +16,7 @@ import {
   INCIDENT_IGNORE,
   incidentMatchNameToString,
 } from "@roboref/share";
-import { getUser } from "../utils/data";
+import { getUser, setUser } from "../utils/data";
 import { Env, EventIncidentsInitData, RequestHasInvitation } from "../types";
 import { mergeLWW } from "@roboref/consistency";
 import { DurableObject } from "cloudflare:workers";
@@ -229,7 +229,8 @@ export class ShareInstance extends DurableObject {
 
     const invitations: InvitationListItem[] = await Promise.all(
       users.map(async (key) => {
-        const user = await getUser(this.env, key);
+        const liveUser = this.clients[key]?.user;
+        const user = liveUser ?? (await getUser(this.env, key));
 
         return {
           user: user ?? { key, name: "<Unknown User>" },
@@ -593,7 +594,11 @@ export class ShareInstance extends DurableObject {
           }
           case "update_user": {
             const user = data.user;
+            if (this.clients[user.key]) {
+              this.clients[user.key].user = user;
+            }
             client.user = user;
+            await setUser(this.env, user);
             const activeUsers = this.getActiveUsers();
             const invitations = await this.getInvitationList();
             await this.broadcast(

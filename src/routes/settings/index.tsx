@@ -60,7 +60,14 @@ const SettingsPage: React.FC = () => {
           className="w-full mt-2"
           value={localName}
           onChange={(e) => setLocalName(e.currentTarget.value)}
-          onBlur={() => updateProfile({ name: localName })}
+          onBlur={() => {
+            const trimmed = localName.trim();
+            if (trimmed && trimmed !== profile?.name) {
+              updateProfile({ name: trimmed });
+              setLocalName(trimmed);
+              toast({ type: "info", message: "Saved display name." });
+            }
+          }}
         />
       </section>
       <section className="mt-4" aria-label="Theme selection">
