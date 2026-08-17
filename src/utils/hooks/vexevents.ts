@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   DefaultError,
   QueryKey,
@@ -354,13 +355,22 @@ export function useMatchTeams(
 ) {
   const { data: teams } = useEventTeams(event);
 
+  const teamsMap = useMemo(() => {
+    const map = new Map<number, TeamData>();
+    if (!teams) return map;
+    for (const t of teams) {
+      map.set(t.id, t);
+    }
+    return map;
+  }, [teams]);
+
   if (!teams || !match) {
     return [];
   }
 
   const teamsInMatch =
     match?.alliances.flatMap((a) => a.teams.map((a) => a.team?.id)) ?? [];
-  return teamsInMatch.map((id) => teams.find((t) => t.id === id)!);
+  return teamsInMatch.map((id) => teamsMap.get(id!)!);
 }
 
 export function useEventMatch(
