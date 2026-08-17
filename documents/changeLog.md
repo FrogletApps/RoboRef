@@ -3,6 +3,7 @@
 - Improved Team Info page
 - You can now always set your Display Name from the Manage tab
 - Fixed bug where Display Names sometimes wouldn't accept spaces
+- Migrated frontend and sync API hosting into a unified Cloudflare Worker with Static Assets for faster same-origin API calls
 
 ## 16 August 2026
 
