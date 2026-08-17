@@ -58,7 +58,6 @@ export function createUltraHDRJpeg(canvas: HTMLCanvasElement): string {
     const blob = new Blob([ultraHdrBytes as any], { type: "image/jpeg" });
     return URL.createObjectURL(blob);
   } catch (err) {
-    console.error("Failed to encode Ultra HDR JPEG:", err);
     // Fallback
     return canvas.toDataURL("image/jpeg", 0.95);
   }
