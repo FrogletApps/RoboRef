@@ -1,3 +1,7 @@
+## 17 August 2026
+
+- Dynamically truncate team name and location in Team Info page header to maximize visible text
+
 ## 16 August 2026
 
 - Fixed asset loading and MIME type errors after deploying app updates

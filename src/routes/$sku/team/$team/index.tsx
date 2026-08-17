@@ -276,12 +276,12 @@ const EventTeamsPage: React.FC = () => {
     <section className="flex flex-col h-full min-h-0 overflow-hidden pb-2">
       <header className="flex items-center justify-between gap-4 mt-2 mb-2 flex-shrink-0">
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl overflow-hidden whitespace-nowrap text-ellipsis max-w-[20ch] lg:max-w-prose">
+          <h1 className="text-xl truncate">
             <span className="font-mono text-emerald-400">{number}</span>
             {" • "}
             <span>{team?.team_name}</span>
           </h1>
-          <p className="italic text-sm text-zinc-400">{teamLocation}</p>
+          <p className="italic text-sm text-zinc-400 truncate">{teamLocation}</p>
         </div>
         <LinkButton
           to="/$sku/new"
