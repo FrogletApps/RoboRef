@@ -19,6 +19,7 @@ import {
   UserPlusIcon,
 } from "@heroicons/react/20/solid";
 import { Dialog, DialogBody } from "~components/Dialog";
+import { useNavigate } from "@tanstack/react-router";
 import {
   useCreateInstance,
   useEventInvitation,
@@ -38,7 +39,6 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 import { queryClient } from "~utils/data/query";
 import { ReadyState, useShareConnection } from "~models/ShareConnection";
 import { ClickToCopy, ClickToCopyIcon } from "~components/ClickToCopy";
-import { twMerge } from "tailwind-merge";
 import { tryPersistStorage } from "~utils/data/keyval";
 import { UpdatePrompt } from "~components/UpdatePrompt";
 import { InvitationListItem } from "@roboref/share";
@@ -121,42 +121,42 @@ export const ProfilePrompt: React.FC = () => {
     updateProfile,
   } = useShareConnection(["profile", "updateProfile"]);
 
-  const [localName, setLocalName] = useState("");
+  const [localName, setLocalName] = useState(name ?? "");
   useEffect(() => {
-    if (name) {
-      setLocalName(name);
-    }
+    setLocalName(name ?? "");
   }, [name]);
 
-  // Save
-  const { mutate: setNameContinue, isPending: isPendingSetNameContinue } =
-    useMutation({
-      mutationFn: () => updateProfile({ name: localName }),
-    });
+  const handleBlur = () => {
+    const trimmed = localName.trim();
+    if (trimmed !== name) {
+      updateProfile({ name: trimmed });
+      setLocalName(trimmed);
+      if (trimmed) {
+        toast({ type: "info", message: "Saved display name." });
+      }
+    }
+  };
 
   return (
-    <>
+    <section className="mt-4">
       <label>
-        <h1 className="font-bold mt-4">Display Name</h1>
+        <h2 className="font-bold">Display Name</h2>
         <p className="text-zinc-400 text-sm mb-2">
           Your display name when sharing and logging incidents
         </p>
         <Input
           className="w-full"
           value={localName}
-          onChange={(e) => setLocalName(e.currentTarget.value.trim())}
+          onChange={(e) => setLocalName(e.currentTarget.value)}
+          onBlur={handleBlur}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.currentTarget.blur();
+            }
+          }}
         />
       </label>
-      <Button
-        className={twMerge("mt-4", !localName ? "opacity-50" : "")}
-        mode="primary"
-        onClick={() => setNameContinue()}
-        disabled={!localName}
-      >
-        Save Name & Enable Sharing
-      </Button>
-      <Spinner show={isPendingSetNameContinue} />
-    </>
+    </section>
   );
 };
 
@@ -192,6 +192,8 @@ export const InstanceUserListItem: React.FC<InstanceUserListItemProps> = ({
 };
 
 export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
+  const navigate = useNavigate();
+
   // Dialogs
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 
@@ -261,17 +263,13 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
     },
   });
 
-  if (!connection.profile.name) {
-    return (
-      <section className="mt-4">
-        <h2 className="font-bold">Sharing</h2>
-        <p className="text-zinc-400 text-sm mb-2">
-          You must set your display name below to set up sharing
-        </p>
-        <ProfilePrompt />
-      </section>
-    );
-  }
+  const handleBeginSharingClick = () => {
+    if (!connection.profile?.name?.trim()) {
+      navigate({ to: "/$sku/share", params: { sku: event.sku } });
+      return;
+    }
+    onClickBeginSharing();
+  };
 
   const showSpinner =
     (connection.readyState !== ReadyState.Closed &&
@@ -289,8 +287,6 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
       />
 
       <h2 className="font-bold">Sharing</h2>
-      <p className="text-zinc-400 text-sm">Share Name: {connection.profile.name}</p>
-      <p className="text-zinc-400 text-sm">You can change your share name in the settings.</p>
       {isSharing ? (
         <div className="mt-2">
           {invitation?.admin ? (
@@ -364,8 +360,7 @@ export const ShareManager: React.FC<ManageTabProps> = ({ event }) => {
             <Button
               mode="primary"
               className="mt-2"
-              disabled={!connection.profile.name}
-              onClick={() => onClickBeginSharing()}
+              onClick={handleBeginSharingClick}
             >
               Begin Sharing
             </Button>
@@ -643,6 +638,7 @@ export const EventManageTab: React.FC<ManageTabProps> = ({ event }) => {
     <section className="max-w-xl max-h-full w-full mx-auto flex-1 mb-12 overflow-y-auto">
       <UpdatePrompt />
       <ShareManager event={event} />
+      <ProfilePrompt />
       <NoteSummaryLink event={event} />
       <HideEventSection event={event} />
       <IntegrationInfo event={event} />

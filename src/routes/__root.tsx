@@ -227,6 +227,8 @@ export const AppShell: React.FC = () => {
   const isEvents = location.pathname === "/events";
   const isEventFilters = location.pathname === "/events/filters";
   const isShare = location.pathname === "/share";
+  const isBeginSharing =
+    location.pathname.endsWith("/share") && location.pathname !== "/share";
   const isPrivacy = location.pathname === "/privacy";
   const isContact = location.pathname === "/contact";
   const isJoin = location.pathname.endsWith("/join");
@@ -254,6 +256,8 @@ export const AppShell: React.FC = () => {
     ? "Pick An Event"
     : isShare
     ? "Share RoboRef"
+    : isBeginSharing
+    ? "Begin Sharing"
     : isPrivacy
     ? "Privacy Policy"
     : isContact

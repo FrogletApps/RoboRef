@@ -1,6 +1,8 @@
 ## 17 August 2026
 
 - Improved Team Info page
+- You can now always set your Display Name from the Manage tab
+- Fixed bug where Display Names sometimes wouldn't accept spaces
 
 ## 16 August 2026
 
