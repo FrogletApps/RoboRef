@@ -401,20 +401,9 @@ export function getIntegrationAPIEndpoints(
   sku: string,
   query: IntegrationAPICredentials
 ) {
-  const json = new URL(
-    `/api/integration/v1/${sku}/incidents.json`,
-    SHARE_SERVER
-  );
-
-  const csv = new URL(
-    `/api/integration/v1/${sku}/incidents.csv`,
-    SHARE_SERVER
-  );
-
-  const pdf = new URL(
-    `/api/integration/v1/${sku}/incidents.pdf`,
-    SHARE_SERVER
-  );
+  const json = new URL(`/export/${sku}/incidents.json`, SHARE_SERVER);
+  const csv = new URL(`/export/${sku}/incidents.csv`, SHARE_SERVER);
+  const pdf = new URL(`/export/${sku}/incidents.pdf`, SHARE_SERVER);
 
   if (query.token) {
     json.searchParams.set("token", query.token);
@@ -435,10 +424,7 @@ export function getIntegrationAPIUsersEndpoint(
   sku: string,
   query: IntegrationAPICredentials
 ) {
-  const url = new URL(
-    `/api/integration/v1/${sku}/users`,
-    SHARE_SERVER
-  );
+  const url = new URL(`/export/${sku}/users`, SHARE_SERVER);
 
   if (query.token) {
     url.searchParams.set("token", query.token);
@@ -455,10 +441,7 @@ export function getIntegrationAPIDeleteIncidentEndpoint(
   sku: string,
   query: IntegrationAPICredentials
 ) {
-  const url = new URL(
-    `/api/integration/v1/${sku}/incident`,
-    SHARE_SERVER
-  );
+  const url = new URL(`/export/${sku}/incident`, SHARE_SERVER);
 
   if (query.token) {
     url.searchParams.set("token", query.token);

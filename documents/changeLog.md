@@ -3,6 +3,7 @@
 - **Important**: Old installs of RoboRef will need updating to this version to work correctly.
 - Backend hosting changes
 - API addresses have changed
+- Simplified reports and data export addresses to `/export/:sku/...`
 - Added more tests
 
 ## 17 August 2026

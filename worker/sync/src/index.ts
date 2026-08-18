@@ -2,7 +2,7 @@ import { AutoRouter, IRequest, withParams } from "itty-router";
 import { corsify, preflight } from "./utils/request";
 import { Env } from "./types";
 
-import { integrationRouter } from "./routers/integration";
+import { exportRouter, integrationRouter } from "./routers/integration";
 import { registrationRouter } from "./routers/registration";
 import { keyExchangeRouter } from "./routers/keyexchange";
 import { invitationRouter } from "./routers/invitation";
@@ -17,6 +17,9 @@ const router = AutoRouter<IRequest, [Env, ExecutionContext]>({
 });
 
 router
+
+  // Clean Export Routes
+  .all("/export/:sku/*", exportRouter.fetch)
 
   // External Integration API (just requires bearer token)
   .all("/api/integration/v1/:sku/*", integrationRouter.fetch)
@@ -57,8 +60,11 @@ export default {
   ): Promise<Response> {
     const url = new URL(request.url);
 
-    // API & WebSocket routes:
-    if (url.pathname.startsWith("/api/")) {
+    // API, Export & WebSocket routes:
+    if (
+      url.pathname.startsWith("/api/") ||
+      url.pathname.startsWith("/export/")
+    ) {
       return router.fetch(request, env, ctx);
     }
 
