@@ -1,3 +1,10 @@
+## 18 August 2026
+
+- **Important**: Old installs of RoboRef will need updating to this version to work correctly.
+- Backend hosting changes
+- API addresses have changed
+- Added more tests
+
 ## 17 August 2026
 
 - Improved Team Info page
