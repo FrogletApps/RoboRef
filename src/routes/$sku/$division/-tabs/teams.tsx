@@ -40,34 +40,23 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
   const isError = isDivTeamsError || isEventTeamsError || isMatchesError;
   const isLoading = isDivTeamsLoading || isEventTeamsLoading || isMatchesLoading;
 
-  const majorIncidents = useMemo(() => {
-    if (!incidents) return new Map<string, number>();
+  const { majorIncidents, minorIncidents } = useMemo(() => {
+    const major = new Map<string, number>();
+    const minor = new Map<string, number>();
 
-    const grouped = new Map<string, number>();
-
-    for (const incident of incidents) {
-      if (incident.outcome !== "Major") continue;
-      const key = incident.team ?? "<none>";
-      const count = grouped.get(key) ?? 0;
-      grouped.set(key, count + 1);
-    }
-
-    return grouped;
-  }, [incidents]);
-
-  const minorIncidents = useMemo(() => {
-    if (!incidents) return new Map<string, number>();
-
-    const grouped = new Map<string, number>();
+    if (!incidents) return { majorIncidents: major, minorIncidents: minor };
 
     for (const incident of incidents) {
-      if (incident.outcome === "Major") continue;
+      const isMajor = incident.outcome === "Major";
       const key = incident.team ?? "<none>";
-      const count = grouped.get(key) ?? 0;
-      grouped.set(key, count + 1);
+      if (isMajor) {
+        major.set(key, (major.get(key) ?? 0) + 1);
+      } else {
+        minor.set(key, (minor.get(key) ?? 0) + 1);
+      }
     }
 
-    return grouped;
+    return { majorIncidents: major, minorIncidents: minor };
   }, [incidents]);
 
   const matchTeamNumbers = useMemo(() => {
