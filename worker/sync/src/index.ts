@@ -11,7 +11,7 @@ import { assetRouter } from "./routers/assets";
 import { metaRouter } from "./routers/meta";
 import { vexEventsRouter } from "./routers/vexevents";
 
-const router = AutoRouter<IRequest, [Env]>({
+const router = AutoRouter<IRequest, [Env, ExecutionContext]>({
   before: [preflight, withParams],
   finally: [corsify],
 });
@@ -49,6 +49,56 @@ router
   .delete("/api/:sku/invite", instanceRouter.fetch)
   .all("/api/:sku/:path+", instanceRouter.fetch);
 
-export default { ...router };
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<Response> {
+    const url = new URL(request.url);
+
+    // API & WebSocket routes:
+    if (url.pathname.startsWith("/api/")) {
+      return router.fetch(request, env, ctx);
+    }
+
+    // Static Assets & Single-Page-Application client routes:
+    if (env.STATIC_ASSETS) {
+      const assetResponse = await env.STATIC_ASSETS.fetch(request);
+
+      const isStaticCodeOrAsset =
+        url.pathname.startsWith("/assets/") ||
+        url.pathname.startsWith("/icons/") ||
+        url.pathname.startsWith("/rules/") ||
+        url.pathname.startsWith("/screenshots/") ||
+        url.pathname.endsWith(".js") ||
+        url.pathname.endsWith(".css") ||
+        url.pathname.endsWith(".json") ||
+        url.pathname.endsWith(".map") ||
+        url.pathname.endsWith(".png") ||
+        url.pathname.endsWith(".svg") ||
+        url.pathname.endsWith(".ico") ||
+        url.pathname.endsWith(".webmanifest");
+
+      // Guard against serving HTML for missing JS/CSS/asset chunks
+      if (isStaticCodeOrAsset) {
+        const contentType = assetResponse.headers.get("content-type") || "";
+        if (contentType.includes("text/html") && !url.pathname.endsWith(".html")) {
+          return new Response("Asset Not Found", {
+            status: 404,
+            headers: {
+              "Content-Type": "text/plain",
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+            },
+          });
+        }
+      }
+
+      return assetResponse;
+    }
+
+    return new Response("Not Found", { status: 404 });
+  },
+};
 
 export { ShareInstance } from "./objects/instance";
