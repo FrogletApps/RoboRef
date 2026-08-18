@@ -1,29 +1,23 @@
-# Integration API
+# Reports and Data Export
 
-RoboRef supports an integration API that allows third-party applications to
-pull data from a sharing instance with the permission of an administrator on
-that instance. _Currently, this integration supports readonly access to Incident
-data._
+RoboRef supports an API that allows third-party applications to pull data from a sharing instance with the permission of an administrator on that instance. _Currently, this only supports readonly access to  Incident data._
 
 ## Bearer Token
 
-All access to the integration requires a bearer token from an instance
-administrator. The bearer token is cryptographically derived from the grantor's
-private key, which guarantees that bearer tokens are unique to instance
+All access to data requires a bearer token from an instance administrator. The bearer token is cryptographically derived from the their private key, which guarantees that bearer tokens are unique to instance
 administrators and invalid if the user leaves the instance.
 
-Instance Admins can access the bearer token (and data URLs) from the Manage tab
-for the event they are an administrator for.
+Instance Admins can access the bearer token (and data URLs) from the Manage tab for the event they are an administrator for.
 
 ## Supported Endpoints
 
-The primary URLs for data export and integration are
+The primary URLs for data export and reports are
 
 ```
 https://roboref.fyi/export/<SKU>/
 ```
 
-*(Legacy `/api/integration/v1/<SKU>/` paths are also supported for backwards compatibility.)*
+*(Legacy `/api/integration/v1/<SKU>/` paths are also supported for backwards compatibility - but this may be removed in a future update.)*
 
 where the SKU is the RobotEvents event code. All JSON endpoints return data in the form of a `ShareResponse`.
 
@@ -150,7 +144,7 @@ export type Incident = {
   // User-entered notes
   notes: string;
 
-  // Any attached assets. The integration API does not currently provide a way to grant access to assets.
+  // Any attached assets. The export API does not currently provide a way to grant access to assets.
   assets: string[];
 };
 
