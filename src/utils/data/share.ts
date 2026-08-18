@@ -31,7 +31,7 @@ import { useMemo } from "react";
 
 export const SHARE_SERVER =
   import.meta.env.VITE_ROBOREF_SHARE_SERVER ??
-  "https://share.roboref.fyi";
+  (typeof window !== "undefined" ? window.location.origin : "https://roboref.fyi");
 
 export const URL_BASE = `${SHARE_SERVER.replace(/\/api\/?$/, "")}/api`;
 
