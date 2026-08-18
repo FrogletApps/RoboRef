@@ -55,6 +55,11 @@ describe("timeAgo", () => {
     const input = new Date("2024-01-01T12:00:00Z"); // 0 seconds
     expect(timeAgo(input)).toBe("1 second ago");
   });
+
+  test("formats with custom locale", () => {
+    const input = new Date("2024-01-01T11:55:00Z");
+    expect(timeAgo(input, "es")).toBe("hace 5 minutos");
+  });
 });
 
 describe("formatEventDate", () => {
@@ -67,22 +72,30 @@ describe("formatEventDate", () => {
   });
 
   test("returns formatted start date if end date is not provided", () => {
-    expect(formatEventDate("2024-01-01")).toMatch(/Jan 1, 2024/);
+    expect(formatEventDate("2024-01-01", undefined, "en-US")).toMatch(/Jan 1, 2024/);
+    expect(formatEventDate("2024-01-01", undefined, "en-GB")).toMatch(/1 Jan 2024/);
   });
 
   test("returns formatted start date if end date is invalid", () => {
-    expect(formatEventDate("2024-01-01", "invalid-date")).toMatch(/Jan 1, 2024/);
+    expect(formatEventDate("2024-01-01", "invalid-date", "en-US")).toMatch(/Jan 1, 2024/);
+    expect(formatEventDate("2024-01-01", "invalid-date", "en-GB")).toMatch(/1 Jan 2024/);
   });
 
   test("returns formatted single day if start and end dates are the same day", () => {
-    expect(formatEventDate("2024-01-01T10:00:00Z", "2024-01-01T15:00:00Z")).toMatch(/Jan 1, 2024/);
+    expect(formatEventDate("2024-01-01T10:00:00Z", "2024-01-01T15:00:00Z", "en-US")).toMatch(/Jan 1, 2024/);
+    expect(formatEventDate("2024-01-01T10:00:00Z", "2024-01-01T15:00:00Z", "en-GB")).toMatch(/1 Jan 2024/);
   });
 
   test("returns formatted date range if start and end dates are different", () => {
-    const result = formatEventDate("2024-01-01", "2024-01-05");
+    const usResult = formatEventDate("2024-01-01", "2024-01-05", "en-US");
     // formatRange varies slightly between platforms, but should contain the start/end dates and the year
-    expect(result).toContain("2024");
-    expect(result).toMatch(/Jan 1/);
-    expect(result).toMatch(/5/);
+    expect(usResult).toContain("2024");
+    expect(usResult).toMatch(/Jan 1/);
+    expect(usResult).toMatch(/5/);
+
+    const gbResult = formatEventDate("2024-01-01", "2024-01-05", "en-GB");
+    expect(gbResult).toContain("2024");
+    expect(gbResult).toMatch(/1/);
+    expect(gbResult).toMatch(/5 Jan/);
   });
 });
