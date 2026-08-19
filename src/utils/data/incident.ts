@@ -361,7 +361,7 @@ export async function deleteIncident(id: string): Promise<void> {
 
   const profile = await getShareProfile();
   const updated = updateLWW(incident, {
-    key: "deleted" as any,
+    key: "deleted",
     value: true,
     peer: profile.key,
   });
@@ -387,7 +387,7 @@ export async function undeleteIncident(id: string): Promise<void> {
 
   const profile = await getShareProfile();
   const updated = updateLWW(incident, {
-    key: "deleted" as any,
+    key: "deleted",
     value: false,
     peer: profile.key,
   });
