@@ -20,7 +20,9 @@ export async function clearCache() {
         await caches.delete(key);
       }
     }
-  } catch {}
+  } catch (error) {
+    console.warn("Failed to clear cache:", error);
+  }
 
   // Hard reload with cache-buster
   try {
