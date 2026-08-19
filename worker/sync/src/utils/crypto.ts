@@ -7,12 +7,19 @@ const bufferToHex = (buffer: ArrayBuffer) =>
     .join("");
 
 export function ingestHex(hex: string): Uint8Array | null {
+  if (hex.length % 2 !== 0) {
+    return null;
+  }
+
   const keyBuffer = new Uint8Array(hex.length / 2);
 
   for (let i = 0; i < hex.length; i += 2) {
-    const value = Number.parseInt(hex[i] + hex[i + 1], 16);
+    const chunk = hex[i] + hex[i + 1];
+    const value = Number.parseInt(chunk, 16);
 
-    if (!Number.isFinite(value)) {
+    // Number.parseInt("ag", 16) returns 10 instead of NaN, because it parses "a".
+    // We need to ensure the chunk actually only contains valid hex characters.
+    if (!Number.isFinite(value) || value.toString(16).padStart(2, "0") !== chunk.toLowerCase()) {
       return null;
     }
 

@@ -226,11 +226,6 @@ const verify = async (request: IRequest, env: Env) => {
   return bearer;
 };
 
-const integrationRouter = AutoRouter<IRequest, [Env]>({
-  base: "/api/integration/v1/:sku",
-  before: [verify],
-});
-
 type VerifiedRequest = IRequest & {
   user: User;
   invitation: Invitation;
@@ -238,113 +233,132 @@ type VerifiedRequest = IRequest & {
   grantType: VerificationGrantType;
 };
 
-// Integration API (just requires bearer token)
-integrationRouter
-  .get("/verify", async (request: VerifiedRequest) => {
+const handleVerify = async (request: VerifiedRequest) => {
+  return response({
+    success: true,
+    data: {
+      valid: true,
+      user: request.user,
+      invitation: request.invitation.id,
+    },
+  });
+};
+
+const handleDeleteIncident = async (request: VerifiedRequest, env: Env) => {
+  const id = env.INCIDENTS.idFromString(request.instance.secret);
+  const stub = env.INCIDENTS.get(id);
+
+  const incidentId = request.query.id;
+  if (typeof incidentId !== "string") {
     return response({
-      success: true,
-      data: {
-        valid: true,
-        user: request.user,
-        invitation: request.invitation.id,
-      },
+      success: false,
+      reason: "bad_request",
+      details: "Must specify incident id.",
     });
-  })
-  .delete("/incident", async (request: VerifiedRequest, env: Env) => {
-    const id = env.INCIDENTS.idFromString(request.instance.secret);
-    const stub = env.INCIDENTS.get(id);
+  }
 
-    const incidentId = request.query.id;
-    if (typeof incidentId !== "string") {
-      return response({
-        success: false,
-        reason: "bad_request",
-        details: "Must specify incident id.",
-      });
-    }
-
-    if (request.grantType !== "system") {
-      return response({
-        success: false,
-        reason: "incorrect_code",
-        details: "You are not authorized to perform this action.",
-      });
-    }
-
-    await stub.deleteIncident(incidentId);
-
+  if (request.grantType !== "system") {
     return response({
-      success: true,
-      data: {},
+      success: false,
+      reason: "incorrect_code",
+      details: "You are not authorized to perform this action.",
     });
-  })
-  .get("/users", async (request: VerifiedRequest, env: Env) => {
-    const id = env.INCIDENTS.idFromString(request.instance.secret);
-    const stub = env.INCIDENTS.get(id);
-    const invitations = await stub.getInvitationList();
-    const active = await stub.getActiveUsers();
+  }
 
+  await stub.deleteIncident(incidentId);
+
+  return response({
+    success: true,
+    data: {},
+  });
+};
+
+const handleUsers = async (request: VerifiedRequest, env: Env) => {
+  const id = env.INCIDENTS.idFromString(request.instance.secret);
+  const stub = env.INCIDENTS.get(id);
+  const invitations = await stub.getInvitationList();
+  const active = await stub.getActiveUsers();
+
+  return response({
+    success: true,
+    data: {
+      invitations,
+      active,
+    },
+  });
+};
+
+const handleIncidentsJson = async (request: VerifiedRequest, env: Env) => {
+  const id = env.INCIDENTS.idFromString(request.instance.secret);
+  const stub = env.INCIDENTS.get(id);
+  return stub.handleJSON();
+};
+
+const handleIncidentsCsv = async (request: VerifiedRequest, env: Env) => {
+  const id = env.INCIDENTS.idFromString(request.instance.secret);
+  const stub = env.INCIDENTS.get(id);
+  return stub.handleCSV();
+};
+
+const handleIncidentsPdf = async (request: VerifiedRequest, env: Env) => {
+  const client = getVexEventsClient(env);
+
+  const id = env.INCIDENTS.idFromString(request.instance.secret);
+  const stub = env.INCIDENTS.get(id);
+
+  const incidentResponse = await stub.handleJSON();
+
+  const body = await (incidentResponse.json() as Promise<
+    ShareResponse<Incident[]>
+  >);
+
+  if (!body.success) {
     return response({
-      success: true,
-      data: {
-        invitations,
-        active,
-      },
+      success: false,
+      reason: "bad_request",
+      details: "Could not get incidents from the sharing server.",
     });
-  })
-  .get("/incidents.json", async (request: VerifiedRequest, env: Env) => {
-    const id = env.INCIDENTS.idFromString(request.instance.secret);
-    const stub = env.INCIDENTS.get(id);
-    return stub.handleJSON();
-  })
-  .get("/incidents.csv", async (request: VerifiedRequest, env: Env) => {
-    const id = env.INCIDENTS.idFromString(request.instance.secret);
-    const stub = env.INCIDENTS.get(id);
-    return stub.handleCSV();
-  })
-  .get("/incidents.pdf", async (request: VerifiedRequest, env: Env) => {
-    const client = getVexEventsClient(env);
+  }
 
-    const id = env.INCIDENTS.idFromString(request.instance.secret);
-    const stub = env.INCIDENTS.get(id);
+  const invitations = await stub.getInvitationList();
 
-    const incidentResponse = await stub.handleJSON();
+  const formatters = {
+    date: new Intl.DateTimeFormat("en-US", {
+      timeZone: `${request.cf?.timezone ?? "America/Chicago"}`,
+      dateStyle: "full",
+      timeStyle: "long",
+    }),
+  };
 
-    const body = await (incidentResponse.json() as Promise<
-      ShareResponse<Incident[]>
-    >);
-
-    if (!body.success) {
-      return response({
-        success: false,
-        reason: "bad_request",
-        details: "Could not get incidents from the sharing server.",
-      });
-    }
-
-    const invitations = await stub.getInvitationList();
-
-    const formatters = {
-      date: new Intl.DateTimeFormat("en-US", {
-        timeZone: `${request.cf?.timezone ?? "America/Chicago"}`,
-        dateStyle: "full",
-        timeStyle: "long",
-      }),
-    };
-
-    const output = await generateIncidentReportPDF({
-      sku: request.params.sku,
-      client,
-      incidents: body.data,
-      users: invitations.map((invitation) => invitation.user),
-      formatters,
-    });
-
-    return new Response(output, {
-      headers: {
-        "Content-Type": "application/pdf",
-      },
-    });
+  const output = await generateIncidentReportPDF({
+    sku: request.params.sku,
+    client,
+    incidents: body.data,
+    users: invitations.map((invitation) => invitation.user),
+    formatters,
   });
 
-export { integrationRouter };
+  return new Response(output, {
+    headers: {
+      "Content-Type": "application/pdf",
+    },
+  });
+};
+
+const createIntegrationRouter = (base: string) => {
+  return AutoRouter<IRequest, [Env]>({
+    base,
+    before: [verify],
+  })
+    .get("/verify", handleVerify)
+    .delete("/incident", handleDeleteIncident)
+    .get("/users", handleUsers)
+    .get("/incidents.json", handleIncidentsJson)
+    .get("/incidents.csv", handleIncidentsCsv)
+    .get("/incidents.pdf", handleIncidentsPdf);
+};
+
+const integrationRouter = createIntegrationRouter("/api/integration/v1/:sku");
+const exportRouter = createIntegrationRouter("/export/:sku");
+
+export { integrationRouter, exportRouter };
