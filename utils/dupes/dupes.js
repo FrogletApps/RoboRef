@@ -3,7 +3,7 @@ import config from "./config.json" assert { type: "json" };
 import fs from "fs/promises";
 
 const response = await fetch(
-  `https://share.roboref.fyi/api/integration/v1/${config.sku}/incidents.json?token=${config.bearer}`
+  `https://roboref.fyi/api/integration/v1/${config.sku}/incidents.json?token=${config.bearer}`
 );
 
 const json = await response.json();
