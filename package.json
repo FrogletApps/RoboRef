@@ -16,7 +16,7 @@
     "purge-cache": "node scripts/purge-cache.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev": "concurrently \"npm run frontend:dev\" \"npm run lib:dev\""
+    "dev": "concurrently \"npm run frontend:dev\" \"npm run lib:dev\" \"npm run worker:dev\""
   },
   "workspaces": [
     "lib/*",
