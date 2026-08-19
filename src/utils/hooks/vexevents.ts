@@ -29,7 +29,7 @@ import { createPersister } from "~utils/data/query";
 // So no token is sent from the browser here.
 const SHARE_SERVER =
   import.meta.env.VITE_ROBOREF_SHARE_SERVER ??
-  (typeof window !== "undefined" ? window.location.origin : "https://roboref.fyi");
+  "https://share.roboref.fyi";
 
 const client = Client({
   authorization: {

@@ -201,15 +201,6 @@ export default defineConfig(({ command, mode }) => {
   ],
 
   base: "/",
-  server: {
-    proxy: {
-      "/api": {
-        target: "http://127.0.0.1:8787",
-        changeOrigin: true,
-        ws: true,
-      },
-    },
-  },
   define: {
     __ROBOREF_VERSION__: JSON.stringify(APP_VERSION),
   },

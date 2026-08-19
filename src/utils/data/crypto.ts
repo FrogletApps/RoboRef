@@ -71,6 +71,7 @@ export async function getSignRequestHeaders(
   const message = [
     date.toISOString(),
     request.method,
+    canonicalURL.host,
     canonicalURL.pathname,
     canonicalURL.search,
     body,
