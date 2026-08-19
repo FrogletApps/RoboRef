@@ -55,7 +55,7 @@ export function createUltraHDRJpeg(canvas: HTMLCanvasElement): string {
     const ultraHdrBytes = writeJpegGainMap(encoding, { quality: 95 });
     
     // Create Blob and return Blob URL
-    const blob = new Blob([ultraHdrBytes], { type: "image/jpeg" });
+    const blob = new Blob([ultraHdrBytes as unknown as BlobPart], { type: "image/jpeg" });
     return URL.createObjectURL(blob);
   } catch (err) {
     // Fallback
