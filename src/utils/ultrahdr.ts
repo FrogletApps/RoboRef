@@ -55,7 +55,7 @@ export function createUltraHDRJpeg(canvas: HTMLCanvasElement): string {
     const ultraHdrBytes = writeJpegGainMap(encoding, { quality: 95 });
     
     // Create Blob and return Blob URL
-    const blob = new Blob([ultraHdrBytes as BlobPart], { type: "image/jpeg" });
+    const blob = new Blob([ultraHdrBytes], { type: "image/jpeg" });
     return URL.createObjectURL(blob);
   } catch (err) {
     // Fallback
@@ -88,9 +88,12 @@ export function isHDRSupported(): boolean {
   if (isSafari) return false;
 
   // 5. Verify Chromium engine
+  interface NavigatorUAData {
+    brands?: { brand: string; version: string }[];
+  }
   const isChromium =
     Boolean(
-      (navigator as any).userAgentData?.brands?.some((b: any) =>
+      (navigator as Navigator & { userAgentData?: NavigatorUAData }).userAgentData?.brands?.some(b =>
         /Chromium|Google Chrome|Microsoft Edge|Brave/i.test(b.brand)
       )
     ) || /Chrome|Chromium|Edg|OPR|Brave/i.test(ua);
