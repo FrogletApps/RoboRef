@@ -1,6 +1,9 @@
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, test } from "vitest";
-import { logicalMatchComparison } from "./vexevents.js";
-import { Match, MatchData, rounds } from "@roboref/vexevents";
+import { logicalMatchComparison, useMatchTeams } from "./vexevents.js";
+import { EventData, Match, MatchData, rounds, TeamData } from "@roboref/vexevents";
 
 const baseData: MatchData = {
   id: 1,
@@ -13,6 +16,65 @@ const baseData: MatchData = {
   name: "Match",
   alliances: [],
 };
+
+const sampleEvent: EventData = {
+  id: 10,
+  sku: "RE-V5RC-24-1234",
+  name: "V5RC State Championship",
+  start: "2026-03-01T08:00:00Z",
+  end: "2026-03-01T17:00:00Z",
+  season: { id: 197, name: "2025-2026 Push Back" },
+  program: { id: 1, name: "VEX V5 Robotics Competition", code: "V5RC" },
+  location: { city: "Austin", region: "Texas", country: "United States" },
+  divisions: [{ id: 1, name: "Division 1", order: 1 }],
+};
+
+const sampleTeams: TeamData[] = [
+  {
+    id: 101,
+    number: "1111A",
+    team_name: "Alpha Bots",
+    robot_name: "Alpha",
+    organization: "School A",
+    location: { city: "Austin", region: "Texas", country: "United States" },
+    registered: true,
+    program: { id: 1, name: "VEX V5 Robotics Competition", code: "V5RC" },
+    grade: "High School",
+  },
+  {
+    id: 102,
+    number: "2222B",
+    team_name: "Beta Bots",
+    robot_name: "Beta",
+    organization: "School B",
+    location: { city: "Dallas", region: "Texas", country: "United States" },
+    registered: true,
+    program: { id: 1, name: "VEX V5 Robotics Competition", code: "V5RC" },
+    grade: "High School",
+  },
+  {
+    id: 103,
+    number: "3333C",
+    team_name: "Gamma Bots",
+    robot_name: "Gamma",
+    organization: "School C",
+    location: { city: "Houston", region: "Texas", country: "United States" },
+    registered: true,
+    program: { id: 1, name: "VEX V5 Robotics Competition", code: "V5RC" },
+    grade: "High School",
+  },
+  {
+    id: 104,
+    number: "4444D",
+    team_name: "Delta Bots",
+    robot_name: "Delta",
+    organization: "School D",
+    location: { city: "San Antonio", region: "Texas", country: "United States" },
+    registered: true,
+    program: { id: 1, name: "VEX V5 Robotics Competition", code: "V5RC" },
+    grade: "High School",
+  },
+];
 
 describe("logicalMatchComparison", () => {
   test("orders rounds in correct tournament progression order", () => {
@@ -95,3 +157,129 @@ describe("Match persistence serialization / deserialization", () => {
     expect(rehydrated.teamOutcome("2222B")).toBe("win");
   });
 });
+
+describe("useMatchTeams", () => {
+  function renderUseMatchTeams(
+    event?: EventData | null,
+    match?: MatchData | null,
+    cachedTeams?: TeamData[]
+  ): TeamData[] {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+          staleTime: Infinity,
+        },
+      },
+    });
+
+    if (event && cachedTeams) {
+      queryClient.setQueryData(["teams", event.sku, undefined], cachedTeams);
+    }
+
+    let hookResult: TeamData[] = [];
+    function TestConsumer() {
+      hookResult = useMatchTeams(event, match);
+      return null;
+    }
+
+    renderToStaticMarkup(
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        React.createElement(TestConsumer, null)
+      )
+    );
+
+    return hookResult;
+  }
+
+  test("returns empty array if match is null or undefined", () => {
+    expect(renderUseMatchTeams(sampleEvent, null, sampleTeams)).toEqual([]);
+    expect(renderUseMatchTeams(sampleEvent, undefined, sampleTeams)).toEqual([]);
+  });
+
+  test("returns empty array if event is null or undefined", () => {
+    const match: MatchData = {
+      ...baseData,
+      alliances: [
+        {
+          color: "red",
+          score: 0,
+          teams: [{ team: { id: 101, name: "1111A", code: "1111A" }, sitting: false }],
+        },
+      ],
+    };
+
+    expect(renderUseMatchTeams(null, match, sampleTeams)).toEqual([]);
+    expect(renderUseMatchTeams(undefined, match, sampleTeams)).toEqual([]);
+  });
+
+  test("returns empty array if event teams data is not loaded", () => {
+    const match: MatchData = {
+      ...baseData,
+      alliances: [
+        {
+          color: "red",
+          score: 0,
+          teams: [{ team: { id: 101, name: "1111A", code: "1111A" }, sitting: false }],
+        },
+      ],
+    };
+
+    expect(renderUseMatchTeams(sampleEvent, match, undefined)).toEqual([]);
+  });
+
+  test("correctly maps match alliance teams to full TeamData objects in order", () => {
+    const match: MatchData = {
+      ...baseData,
+      alliances: [
+        {
+          color: "red",
+          score: 50,
+          teams: [
+            { team: { id: 101, name: "1111A", code: "1111A" }, sitting: false },
+            { team: { id: 102, name: "2222B", code: "2222B" }, sitting: false },
+          ],
+        },
+        {
+          color: "blue",
+          score: 45,
+          teams: [
+            { team: { id: 103, name: "3333C", code: "3333C" }, sitting: false },
+            { team: { id: 104, name: "4444D", code: "4444D" }, sitting: false },
+          ],
+        },
+      ],
+    };
+
+    const result = renderUseMatchTeams(sampleEvent, match, sampleTeams);
+
+    expect(result).toHaveLength(4);
+    expect(result[0]).toEqual(sampleTeams[0]);
+    expect(result[1]).toEqual(sampleTeams[1]);
+    expect(result[2]).toEqual(sampleTeams[2]);
+    expect(result[3]).toEqual(sampleTeams[3]);
+    expect(result.map((t) => t?.number)).toEqual(["1111A", "2222B", "3333C", "4444D"]);
+  });
+
+  test("handles match with single alliance or single team correctly", () => {
+    const match: MatchData = {
+      ...baseData,
+      alliances: [
+        {
+          color: "blue",
+          score: 20,
+          teams: [{ team: { id: 102, name: "2222B", code: "2222B" }, sitting: false }],
+        },
+      ],
+    };
+
+    const result = renderUseMatchTeams(sampleEvent, match, sampleTeams);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(sampleTeams[1]);
+  });
+});
+
+
