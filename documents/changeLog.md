@@ -1,7 +1,10 @@
+## 20 August 2026
+
+- Performance improvements
+
 ## 19 August 2026
 
 - Minor backend updates
-
 
 ## 18 August 2026
 
