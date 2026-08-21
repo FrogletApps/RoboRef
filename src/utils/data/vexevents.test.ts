@@ -26,10 +26,11 @@ describe("isMatchElimination", () => {
 
   test("returns false for non-elimination rounds", () => {
     const nonEliminationRounds = [
+      0, // None / Unknown
       rounds.Practice,
       rounds.Qualification,
       rounds.TopN,
-      rounds.RoundRobin
+      rounds.RoundRobin,
     ];
 
     for (const round of nonEliminationRounds) {
