@@ -2,7 +2,6 @@
 
 - Added a new indicator on the Teams for other notes
 - Performance improvements
-- Minor backend updates
 - Update dependencies
 
 ## 20 August 2026
