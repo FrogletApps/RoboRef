@@ -101,6 +101,16 @@ const EditIncidentPage: React.FC = () => {
     return Object.entries(divisions);
   }, [teamMatches]);
 
+  const teamMatchesMap = useMemo(() => {
+    const map = new Map<string, MatchData>();
+    if (!teamMatches) return map;
+
+    for (const match of teamMatches) {
+      map.set(`${match.division.id}@${match.name}`, match);
+    }
+    return map;
+  }, [teamMatches]);
+
   const { data: game } = useRulesForEvent(eventData);
 
   const onChangeIncidentMatch = useCallback(
@@ -116,12 +126,7 @@ const EditIncidentPage: React.FC = () => {
         return;
       }
 
-      const [division, name] = e.target.value.split("@");
-      const match = teamMatches?.find((match) => {
-        return (
-          match.division.id === Number.parseInt(division) && match.name === name
-        );
-      });
+      const match = teamMatchesMap.get(e.target.value);
 
       update({
         match: match
@@ -134,7 +139,7 @@ const EditIncidentPage: React.FC = () => {
           : undefined,
       });
     },
-    [teamMatches, update]
+    [teamMatchesMap, update]
   );
 
   const onChangeIncidentSkillsType = useCallback(
