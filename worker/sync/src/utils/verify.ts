@@ -62,7 +62,6 @@ export const verifySignature = async (request: IRequest & Request) => {
   const message = [
     dateToVerify.toISOString(),
     request.method,
-    canonicalURL.host,
     canonicalURL.pathname,
     canonicalURL.search,
     body,
