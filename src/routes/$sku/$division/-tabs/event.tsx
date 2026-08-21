@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { EventData } from "@roboref/vexevents";
+import { EventData, TeamData } from "@roboref/vexevents";
 import { useEventMatches, useEventTeams } from "~utils/hooks/vexevents";
 import { useCurrentDivision } from "~utils/hooks/state";
 import { Spinner } from "~components/Spinner";
@@ -152,12 +152,12 @@ export const EventTab: React.FC<EventTabProps> = ({
 
           const info = teamInfoMap.get(teamNumRaw);
           const teamName = (
-            (t.team as any)?.team_name ||
+            (t.team as unknown as TeamData)?.team_name ||
             info?.team_name ||
             ""
           ).toLowerCase();
           const orgName = (
-            (t.team as any)?.organization ||
+            (t.team as unknown as TeamData)?.organization ||
             info?.organization ||
             ""
           ).toLowerCase();
