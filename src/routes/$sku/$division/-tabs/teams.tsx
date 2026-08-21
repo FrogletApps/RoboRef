@@ -70,34 +70,44 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
     return grouped;
   }, [incidents]);
 
+  const normalizedMatches = useMemo(() => {
+    if (!matches) return [];
+    return matches.map((match) => {
+      const matchNameRaw = (match.name ?? "").toLowerCase();
+      const shortNameRaw = (match.shortName ? match.shortName() : "").toLowerCase();
+      return {
+        match,
+        matchNameRaw,
+        shortNameRaw,
+        matchIdStr: match.id?.toString() ?? "",
+        matchNameNorm: matchNameRaw.replace(/[^a-z0-9]/g, ""),
+        shortNameNorm: shortNameRaw.replace(/[^a-z0-9]/g, ""),
+      };
+    });
+  }, [matches]);
+
   const matchTeamNumbers = useMemo(() => {
     const set = new Set<string>();
-    if (!matches || !filter.trim()) return set;
+    if (!normalizedMatches || !filter.trim()) return set;
 
     const qRaw = filter.trim().toLowerCase();
     const qNorm = qRaw.replace(/[^a-z0-9]/g, "");
 
-    for (const match of matches) {
-      const matchNameRaw = (match.name ?? "").toLowerCase();
-      const shortNameRaw = (match.shortName ? match.shortName() : "").toLowerCase();
-      const matchIdStr = match.id?.toString() ?? "";
-
+    for (const normMatch of normalizedMatches) {
       let isMatch =
-        matchNameRaw.includes(qRaw) ||
-        shortNameRaw.includes(qRaw) ||
-        matchIdStr === qRaw;
+        normMatch.matchNameRaw.includes(qRaw) ||
+        normMatch.shortNameRaw.includes(qRaw) ||
+        normMatch.matchIdStr === qRaw;
 
       if (!isMatch && qNorm.length > 0) {
-        const matchNameNorm = matchNameRaw.replace(/[^a-z0-9]/g, "");
-        const shortNameNorm = shortNameRaw.replace(/[^a-z0-9]/g, "");
         isMatch =
-          matchNameNorm.includes(qNorm) ||
-          shortNameNorm.includes(qNorm) ||
-          matchIdStr === qNorm;
+          normMatch.matchNameNorm.includes(qNorm) ||
+          normMatch.shortNameNorm.includes(qNorm) ||
+          normMatch.matchIdStr === qNorm;
       }
 
       if (isMatch) {
-        for (const alliance of match.alliances ?? []) {
+        for (const alliance of normMatch.match.alliances ?? []) {
           for (const t of alliance.teams ?? []) {
             if (t.team?.name) {
               set.add(t.team.name.toUpperCase());
@@ -108,7 +118,7 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
     }
 
     return set;
-  }, [matches, filter]);
+  }, [normalizedMatches, filter]);
 
   const filteredTeams = useMemo(
     () => (teams ? filterTeams(teams, filter, matchTeamNumbers) : []),
