@@ -5,7 +5,7 @@ import {
   incidentMatchNameToString,
   User,
 } from "@roboref/share";
-import { VexEventsClient } from "@roboref/vexevents";
+import { VexEventsClient, MatchData, rounds } from "@roboref/vexevents";
 
 export type GenerateIncidentReportPDFOptions = {
   sku: string;
@@ -54,17 +54,69 @@ export function teamComparison(a: string, b: string): number {
   return 0;
 }
 
-// The proper thing to do would be to fetch the actual round information from VEX Events and compare them, but this is a good enough approximation for now.
-// TODO: Improve this
-const matchNameOrder = [
-  "Practice",
-  "Qualifier",
-  "R16",
-  "QF",
-  "SF",
-  "F",
-  "Match",
-];
+
+const ROUND_ORDER: Record<number, number> = {
+  [rounds.Practice]: 1,
+  [rounds.Qualification]: 2,
+  [rounds.RoundOf16]: 3,
+  [rounds.Quarterfinals]: 4,
+  [rounds.Semifinals]: 5,
+  [rounds.Finals]: 6,
+  [rounds.TopN]: 7,
+  [rounds.RoundRobin]: 8,
+};
+
+const getRoundOrder = (round: number) => ROUND_ORDER[round] ?? 99;
+
+function getMatchRoundOrder(
+  match: IncidentMatch,
+  matchData?: MatchData
+): number {
+  if (matchData) {
+    return getRoundOrder(matchData.round);
+  }
+
+  const upper = match.name.toUpperCase().trim();
+  if (
+    upper.startsWith("P ") ||
+    upper.startsWith("P#") ||
+    upper.startsWith("P_") ||
+    upper.includes("PRACTICE")
+  ) {
+    return 1;
+  }
+  if (
+    upper.startsWith("Q ") ||
+    upper.startsWith("Q#") ||
+    upper.startsWith("Q_") ||
+    upper.includes("QUAL")
+  ) {
+    return 2;
+  }
+  if (upper.startsWith("R16") || upper.includes("ROUND OF 16")) {
+    return 3;
+  }
+  if (upper.startsWith("QF") || upper.includes("QUARTER")) {
+    return 4;
+  }
+  if (upper.startsWith("SF") || upper.includes("SEMI")) {
+    return 5;
+  }
+  if (
+    upper.startsWith("F ") ||
+    upper.startsWith("F#") ||
+    upper.startsWith("F_") ||
+    upper.startsWith("F1") ||
+    upper.startsWith("F2") ||
+    upper.includes("FINAL")
+  ) {
+    return 6;
+  }
+  if (upper.includes("TOP") || upper.includes("ROUND ROBIN")) {
+    return 7;
+  }
+  return 99;
+}
 
 export function extractTrailingNumber(name: string): number {
   let i = name.length - 1;
@@ -77,7 +129,8 @@ export function extractTrailingNumber(name: string): number {
 
 export function matchComparison(
   a: IncidentMatch | undefined,
-  b: IncidentMatch | undefined
+  b: IncidentMatch | undefined,
+  matchMap?: Map<number, MatchData>
 ) {
   if (!a && !b) {
     return 0;
@@ -110,11 +163,26 @@ export function matchComparison(
       return a.division - b.division;
     }
 
-    const roundA = matchNameOrder.findIndex((name) => a.name.includes(name));
-    const roundB = matchNameOrder.findIndex((name) => b.name.includes(name));
+    const matchDataA = matchMap?.get(a.id);
+    const matchDataB = matchMap?.get(b.id);
 
-    if (roundA !== roundB) {
-      return roundA - roundB;
+    const orderA = getMatchRoundOrder(a, matchDataA);
+    const orderB = getMatchRoundOrder(b, matchDataB);
+
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+
+    if (matchDataA && matchDataB) {
+      if (matchDataA.instance !== matchDataB.instance) {
+        return matchDataA.instance - matchDataB.instance;
+      }
+
+      if (matchDataA.matchnum !== matchDataB.matchnum) {
+        return matchDataA.matchnum - matchDataB.matchnum;
+      }
+
+      return 0;
     }
 
     const instanceA = extractTrailingNumber(a.name);
@@ -130,13 +198,17 @@ export function matchComparison(
   return 0;
 }
 
-export function incidentComparison(a: Incident, b: Incident): number {
+export function incidentComparison(
+  a: Incident,
+  b: Incident,
+  matchMap?: Map<number, MatchData>
+): number {
   const teamComparisonResult = teamComparison(a.team, b.team);
   if (teamComparisonResult !== 0) {
     return teamComparisonResult;
   }
 
-  const matchComparisonResult = matchComparison(a.match, b.match);
+  const matchComparisonResult = matchComparison(a.match, b.match, matchMap);
   if (matchComparisonResult !== 0) {
     return matchComparisonResult;
   }
@@ -187,7 +259,32 @@ export async function generateIncidentReportPDF({
 
   const data: IncidentRow[] = [];
 
-  const incidentsInOrder = incidents.sort(incidentComparison);
+  const divisionsToFetch = new Set<number>();
+  for (const incident of incidents) {
+    if (incident.match?.type === "match") {
+      divisionsToFetch.add(incident.match.division);
+    }
+  }
+
+  const matchMap = new Map<number, MatchData>();
+  await Promise.all(
+    Array.from(divisionsToFetch).map(async (division) => {
+      try {
+        const matchesResponse = await event.data.matches(division);
+        if (matchesResponse.data) {
+          for (const match of matchesResponse.data) {
+            matchMap.set(match.id, match);
+          }
+        }
+      } catch {
+        // Fall back gracefully if division matches cannot be fetched
+      }
+    })
+  );
+
+  const incidentsInOrder = [...incidents].sort((a, b) =>
+    incidentComparison(a, b, matchMap)
+  );
 
   for (const incident of incidentsInOrder) {
     const contact = users.find(
