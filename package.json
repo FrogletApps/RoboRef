@@ -12,7 +12,7 @@
     "worker:dev": "wrangler dev --env test",
     "deploy:test": "npx cross-env VITE_ROBOREF_ENV=test npm run build && wrangler deploy -e test && node scripts/purge-cache.mjs",
     "deploy:live": "npx cross-env VITE_ROBOREF_ENV=production npm run build && wrangler deploy -e live && node scripts/purge-cache.mjs",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
+    "lint": "cross-env TSESTREE_SINGLE_RUN_ALLOW_INVALID_TS_VERSION=true eslint . --max-warnings 0 --fix",
     "purge-cache": "node scripts/purge-cache.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -47,6 +47,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260821.1",
+    "@eslint/js": "^10.0.1",
     "@mdx-js/rollup": "^3.1.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@tanstack/router-plugin": "^1.168.34",
