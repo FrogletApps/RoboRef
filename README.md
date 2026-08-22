@@ -6,7 +6,8 @@ RoboRef is a fork of the 1st March 2025 build of Referee.FYI (from before the re
 
 ### Resources
 
-- [Change log](https://roboref.fyi/updates): Version history and change log for RoboRef updates.
+- [Change log](https://roboref.fyi/changeLog): Version history and change log for RoboRef updates.
+- [Data Export & Reports](https://roboref.fyi/dataExport): API documentation for exporting incidents and live data.
 - [Contact](https://roboref.fyi/contact): Information on how to contact the RoboRef maintainers.
 - [Privacy Policy](https://roboref.fyi/privacy): Data privacy policy and offline storage guidelines.
 

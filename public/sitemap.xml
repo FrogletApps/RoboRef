@@ -11,12 +11,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://roboref.fyi/updates</loc>
+    <loc>https://roboref.fyi/changeLog</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://roboref.fyi/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://roboref.fyi/dataExport</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
