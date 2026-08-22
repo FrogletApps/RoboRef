@@ -130,15 +130,16 @@ npm run dev
 ```
 
 
-## Sync Worker Development
-For most development, you can use the test server at
-`https://test.roboref.fyi`, but if you plan to make changes to
-the sync worker, you can run it locally using this command:
+## Share Server Development
+For most development, you should probably use the test sync server at
+`https://test.share.roboref.fyi`, but if you plan to make changes to
+the share server, you can run it locally using this command
 
 ```
 npm run worker:dev
 ```
-During local development, Vite automatically proxies `/api` requests to the local worker on port 8787.
+You will need to update the share server URL in your `.env` to point to
+your local instance instead of the test server.
 
 
 ### [Optional] Secure Share Server Development Locally

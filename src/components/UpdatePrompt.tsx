@@ -29,7 +29,8 @@ export const UpdatePrompt: React.FC = () => {
   return (
     <Info message="Update Available!" className="bg-zinc-700 text-white">
       <p className="mt-2">
-        A new version of RoboRef is available. If you're on a stable internet connection, update now to stay in sync with other referees.
+        A new version of RoboRef is available. If you have stable Internet,
+        update now to ensure compatibility with the sharing server.
       </p>
       <Button className="mt-4" mode="primary" onClick={update}>
         Update App Version

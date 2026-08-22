@@ -1,18 +1,11 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "roboref"
-main = "./worker/sync/src/index.ts"
+name = "roboref-share"
 compatibility_date = "2026-06-20"
-
-[assets]
-directory = "./dist"
-binding = "STATIC_ASSETS"
-not_found_handling = "single-page-application"
-run_worker_first = true
 
 [env.live]
-name = "roboref"
+name = "roboref-share"
 compatibility_date = "2026-06-20"
-main = "./worker/sync/src/index.ts"
+main = "./src/index.ts"
 kv_namespaces = [
     { binding = "SHARES", id = "2ce07a6334454e018aa07a1adacbaae9" },
     { binding = "INVITATIONS", id = "f5c4fb7590e94433871d617492362aad" },
@@ -21,13 +14,13 @@ kv_namespaces = [
     { binding = "SYSTEM_KEYS", id = "946437fe93124c53a120911049cb68da" },
     { binding = "ASSETS", id = "a38afb0b7a7641e4a007a499366c56bb" },
 ]
-routes = [{ pattern = "roboref.fyi", custom_domain = true }]
+routes = [{ pattern = "share.roboref.fyi", custom_domain = true }]
 workers_dev = true
 
 [env.test]
-name = "roboref-test"
+name = "roboref-share-test"
 compatibility_date = "2026-06-20"
-main = "./worker/sync/src/index.ts"
+main = "./src/index.ts"
 kv_namespaces = [
     { binding = "SHARES", id = "e73e437bf1fb4428988df66b0da81b69" },
     { binding = "INVITATIONS", id = "75d11514b23845fd944de3f6c9cf3c7c" },
@@ -36,7 +29,7 @@ kv_namespaces = [
     { binding = "SYSTEM_KEYS", id = "3cbdcb8eed3d4047a75b10077dfd603c" },
     { binding = "ASSETS", id = "2573480f7f0f416f97c3014df3f401fd" },
 ]
-routes = [{ pattern = "test.roboref.fyi", custom_domain = true }]
+routes = [{ pattern = "test.share.roboref.fyi", custom_domain = true }]
 workers_dev = true
 
 [[env.live.r2_buckets]]

@@ -27,7 +27,7 @@ import { useAddRecentRules, useRecentRules } from "~utils/hooks/history";
 import { twMerge } from "tailwind-merge";
 import { toast } from "~components/Toast";
 import { Spinner } from "~components/Spinner";
-import { Match, MatchData, programs } from "@roboref/vexevents";
+import { MatchData, programs } from "@roboref/vexevents";
 import { queryClient } from "~utils/data/query";
 import { IncidentFlag, IncidentMatchSkills } from "@roboref/share";
 import { AssetPicker, LocalAssetPreview } from "~components/Assets";
@@ -84,17 +84,7 @@ const NewEntryPage: React.FC = () => {
       enabled: !division,
     });
 
-  const allTeamMatchesMap = useMemo(() => {
-    if (!allTeamMatches) return undefined;
-    const map = new Map<number, Match>();
-    for (const match of allTeamMatches) {
-      map.set(match.id, match);
-    }
-    return map;
-  }, [allTeamMatches]);
-
-  const allTeamsMatchesMatchData =
-    match !== undefined ? allTeamMatchesMap?.get(match) : undefined;
+  const allTeamsMatchesMatchData = allTeamMatches?.find((m) => m.id === match);
   const matchData = eventMatchData ?? allTeamsMatchesMatchData;
 
   const teamMatches = useMemo(() => {

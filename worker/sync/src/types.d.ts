@@ -22,7 +22,6 @@ export type EventIncidentsInitData = {
 };
 
 export interface Env {
-  STATIC_ASSETS: Fetcher;
   SHARES: KVNamespace;
   INVITATIONS: KVNamespace;
   USERS: KVNamespace;

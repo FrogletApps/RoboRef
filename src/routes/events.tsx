@@ -164,7 +164,7 @@ export const EventsPage: React.FC = () => {
         <div className="flex gap-2 items-center mt-2">
           <Input
             type="text"
-            placeholder="Enter an Event Name or VEX Event SKU"
+            placeholder="Enter an Event Name or VEX Event ID"
             className="px-4 py-3 rounded-md invalid:bg-red-500 flex-1"
             value={query}
             onChange={(e) => setQuery(e.currentTarget.value)}

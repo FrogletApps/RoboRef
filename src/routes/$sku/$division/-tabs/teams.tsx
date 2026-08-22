@@ -4,11 +4,7 @@ import { Spinner } from "~components/Spinner";
 import { useEventIncidents } from "~utils/hooks/incident";
 import { useDivisionTeams, useEventMatches, useEventTeams } from "~utils/hooks/vexevents";
 import { useCurrentDivision } from "~utils/hooks/state";
-import {
-  DocumentTextIcon,
-  ExclamationTriangleIcon,
-  FlagIcon,
-} from "@heroicons/react/20/solid";
+import { ExclamationTriangleIcon, FlagIcon } from "@heroicons/react/20/solid";
 import { VirtualizedList } from "~components/VirtualizedList";
 import { IconLabel, Input } from "~components/Input";
 import { filterTeams } from "~utils/filterteams";
@@ -44,75 +40,64 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
   const isError = isDivTeamsError || isEventTeamsError || isMatchesError;
   const isLoading = isDivTeamsLoading || isEventTeamsLoading || isMatchesLoading;
 
-  const { majorIncidents, minorIncidents, otherIncidents } = useMemo(() => {
-    const major = new Map<string, number>();
-    const minor = new Map<string, number>();
-    const other = new Map<string, number>();
+  const majorIncidents = useMemo(() => {
+    if (!incidents) return new Map<string, number>();
 
-    if (!incidents) {
-      return {
-        majorIncidents: major,
-        minorIncidents: minor,
-        otherIncidents: other,
-      };
-    }
+    const grouped = new Map<string, number>();
 
     for (const incident of incidents) {
+      if (incident.outcome !== "Major") continue;
       const key = incident.team ?? "<none>";
-      if (incident.outcome === "Major") {
-        major.set(key, (major.get(key) ?? 0) + 1);
-      } else if (incident.outcome === "Minor") {
-        minor.set(key, (minor.get(key) ?? 0) + 1);
-      } else {
-        other.set(key, (other.get(key) ?? 0) + 1);
-      }
+      const count = grouped.get(key) ?? 0;
+      grouped.set(key, count + 1);
     }
 
-    return {
-      majorIncidents: major,
-      minorIncidents: minor,
-      otherIncidents: other,
-    };
+    return grouped;
   }, [incidents]);
 
-  const normalizedMatches = useMemo(() => {
-    if (!matches) return [];
-    return matches.map((match) => {
-      const matchNameRaw = (match.name ?? "").toLowerCase();
-      const shortNameRaw = (match.shortName ? match.shortName() : "").toLowerCase();
-      return {
-        match,
-        matchNameRaw,
-        shortNameRaw,
-        matchIdStr: match.id?.toString() ?? "",
-        matchNameNorm: matchNameRaw.replace(/[^a-z0-9]/g, ""),
-        shortNameNorm: shortNameRaw.replace(/[^a-z0-9]/g, ""),
-      };
-    });
-  }, [matches]);
+  const minorIncidents = useMemo(() => {
+    if (!incidents) return new Map<string, number>();
+
+    const grouped = new Map<string, number>();
+
+    for (const incident of incidents) {
+      if (incident.outcome === "Major") continue;
+      const key = incident.team ?? "<none>";
+      const count = grouped.get(key) ?? 0;
+      grouped.set(key, count + 1);
+    }
+
+    return grouped;
+  }, [incidents]);
 
   const matchTeamNumbers = useMemo(() => {
     const set = new Set<string>();
-    if (!normalizedMatches || !filter.trim()) return set;
+    if (!matches || !filter.trim()) return set;
 
     const qRaw = filter.trim().toLowerCase();
     const qNorm = qRaw.replace(/[^a-z0-9]/g, "");
 
-    for (const normMatch of normalizedMatches) {
+    for (const match of matches) {
+      const matchNameRaw = (match.name ?? "").toLowerCase();
+      const shortNameRaw = (match.shortName ? match.shortName() : "").toLowerCase();
+      const matchIdStr = match.id?.toString() ?? "";
+
       let isMatch =
-        normMatch.matchNameRaw.includes(qRaw) ||
-        normMatch.shortNameRaw.includes(qRaw) ||
-        normMatch.matchIdStr === qRaw;
+        matchNameRaw.includes(qRaw) ||
+        shortNameRaw.includes(qRaw) ||
+        matchIdStr === qRaw;
 
       if (!isMatch && qNorm.length > 0) {
+        const matchNameNorm = matchNameRaw.replace(/[^a-z0-9]/g, "");
+        const shortNameNorm = shortNameRaw.replace(/[^a-z0-9]/g, "");
         isMatch =
-          normMatch.matchNameNorm.includes(qNorm) ||
-          normMatch.shortNameNorm.includes(qNorm) ||
-          normMatch.matchIdStr === qNorm;
+          matchNameNorm.includes(qNorm) ||
+          shortNameNorm.includes(qNorm) ||
+          matchIdStr === qNorm;
       }
 
       if (isMatch) {
-        for (const alliance of normMatch.match.alliances ?? []) {
+        for (const alliance of match.alliances ?? []) {
           for (const t of alliance.teams ?? []) {
             if (t.team?.name) {
               set.add(t.team.name.toUpperCase());
@@ -123,7 +108,7 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
     }
 
     return set;
-  }, [normalizedMatches, filter]);
+  }, [matches, filter]);
 
   const filteredTeams = useMemo(
     () => (teams ? filterTeams(teams, filter, matchTeamNumbers) : []),
@@ -197,9 +182,7 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
                   majorIncidents.get(team.number) ?? 0
                 } major violations. ${
                   minorIncidents.get(team.number) ?? 0
-                } minor violations. ${
-                  otherIncidents.get(team.number) ?? 0
-                } other notes`}
+                } minor violations`}
               >
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                   <p className="text-sm font-mono text-emerald-400 whitespace-nowrap text-ellipsis overflow-hidden w-full">
@@ -220,12 +203,6 @@ export const EventTeamsTab: React.FC<EventTagProps> = ({ event }) => {
                     <ExclamationTriangleIcon height={20} className="inline" />
                     <span className="font-mono ml-1.5">
                       {minorIncidents.get(team.number) ?? 0}
-                    </span>
-                  </span>
-                  <span className="text-zinc-400 flex items-center">
-                    <DocumentTextIcon height={20} className="inline" />
-                    <span className="font-mono ml-1.5">
-                      {otherIncidents.get(team.number) ?? 0}
                     </span>
                   </span>
                 </div>
