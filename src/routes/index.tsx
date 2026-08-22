@@ -22,7 +22,7 @@ import { formatEventDate } from "~utils/time";
 
 import "./markdown.css";
 import changeLogRaw from "../../documents/changeLog.md?raw";
-import { getChangeLogHash } from "./updates";
+import { getChangeLogHash } from "./changeLog";
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { EventPicker } from "./__root";
@@ -138,7 +138,7 @@ const HomePage: React.FC = () => {
     const currentHash = getChangeLogHash(changeLogRaw);
 
     if (userVersion && userVersion !== __ROBOREF_VERSION__ && lastSeenHash !== currentHash) {
-      navigate({ to: "/updates" });
+      navigate({ to: "/changeLog" });
     }
 
     localStorage.setItem("version", __ROBOREF_VERSION__);
@@ -149,7 +149,7 @@ const HomePage: React.FC = () => {
     <div className="overflow-y-auto flex flex-col gap-4">
       <nav className="grid grid-cols-3 gap-2 mt-4 mb-4 w-full">
         <LinkButton
-          to="/updates"
+          to="/changeLog"
           className="flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm font-medium whitespace-nowrap min-w-0"
         >
           <ArrowPathIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
