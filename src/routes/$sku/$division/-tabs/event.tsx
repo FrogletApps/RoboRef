@@ -152,12 +152,12 @@ export const EventTab: React.FC<EventTabProps> = ({
 
           const info = teamInfoMap.get(teamNumRaw);
           const teamName = (
-            (t.team as any)?.team_name ||
+            (t.team as { team_name?: string })?.team_name ||
             info?.team_name ||
             ""
           ).toLowerCase();
           const orgName = (
-            (t.team as any)?.organization ||
+            (t.team as { organization?: string })?.organization ||
             info?.organization ||
             ""
           ).toLowerCase();
