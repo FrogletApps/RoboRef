@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { EventData, TeamData } from "@roboref/vexevents";
+import { EventData } from "@roboref/vexevents";
 import { useEventMatches, useEventTeams } from "~utils/hooks/vexevents";
 import { useCurrentDivision } from "~utils/hooks/state";
 import { Spinner } from "~components/Spinner";
