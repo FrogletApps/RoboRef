@@ -223,7 +223,9 @@ export const AppShell: React.FC = () => {
 
   const isIndex = location.pathname === "/";
   const isSettings = location.pathname === "/settings";
-  const isUpdates = location.pathname === "/updates";
+  const isChangeLog =
+    location.pathname === "/changeLog" || location.pathname === "/updates";
+  const isDataExport = location.pathname === "/dataExport";
   const isEvents = location.pathname === "/events";
   const isEventFilters = location.pathname === "/events/filters";
   const isShare = location.pathname === "/share";
@@ -248,8 +250,10 @@ export const AppShell: React.FC = () => {
 
   const customHeaderTitle = isSettings
     ? "Settings"
-    : isUpdates
+    : isChangeLog
     ? "Change Log"
+    : isDataExport
+    ? "Data Export"
     : isEventFilters
     ? "Filter Events"
     : isEvents

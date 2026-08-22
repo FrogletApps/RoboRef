@@ -425,6 +425,9 @@ const IntegrationInfo: React.FC<ManageTabProps> = ({ event }) => {
       <ClickToCopy prefix="CSV" message={csv.toString()} className="flex-1" />
       <ClickToCopy prefix="JSON" message={json.toString()} className="flex-1" />
       <ClickToCopy prefix="BEARER" message={bearerToken} className="flex-1" />
+      <LinkButton to="/dataExport" className="w-full text-center mt-4">
+        Data Export Documentation
+      </LinkButton>
     </section>
   );
 };

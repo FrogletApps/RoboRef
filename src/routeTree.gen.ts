@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SkuRouteRouteImport } from './routes/$sku/route'
+import { Route as ChangeLogRouteImport } from './routes/changeLog'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DataExportRouteImport } from './routes/dataExport'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SettingsRouteRouteImport } from './routes/settings/route'
@@ -50,9 +52,19 @@ const SkuRouteRoute = SkuRouteRouteImport.update({
   path: '/$sku',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChangeLogRoute = ChangeLogRouteImport.update({
+  id: '/changeLog',
+  path: '/changeLog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataExportRoute = DataExportRouteImport.update({
+  id: '/dataExport',
+  path: '/dataExport',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsRoute = EventsRouteImport.update({
@@ -196,7 +208,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$sku': typeof SkuRouteRouteWithChildren
   '/settings': typeof SettingsRouteRouteWithChildren
+  '/changeLog': typeof ChangeLogRoute
   '/contact': typeof ContactRoute
+  '/dataExport': typeof DataExportRoute
   '/events': typeof EventsRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/share': typeof ShareRoute
@@ -226,7 +240,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/changeLog': typeof ChangeLogRoute
   '/contact': typeof ContactRoute
+  '/dataExport': typeof DataExportRoute
   '/events': typeof EventsRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/share': typeof ShareRoute
@@ -257,7 +273,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$sku': typeof SkuRouteRouteWithChildren
   '/settings': typeof SettingsRouteRouteWithChildren
+  '/changeLog': typeof ChangeLogRoute
   '/contact': typeof ContactRoute
+  '/dataExport': typeof DataExportRoute
   '/events': typeof EventsRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/share': typeof ShareRoute
@@ -291,7 +309,9 @@ export interface FileRouteTypes {
     | '/'
     | '/$sku'
     | '/settings'
+    | '/changeLog'
     | '/contact'
+    | '/dataExport'
     | '/events'
     | '/privacy'
     | '/share'
@@ -321,7 +341,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/changeLog'
     | '/contact'
+    | '/dataExport'
     | '/events'
     | '/privacy'
     | '/share'
@@ -351,7 +373,9 @@ export interface FileRouteTypes {
     | '/'
     | '/$sku'
     | '/settings'
+    | '/changeLog'
     | '/contact'
+    | '/dataExport'
     | '/events'
     | '/privacy'
     | '/share'
@@ -384,7 +408,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SkuRouteRoute: typeof SkuRouteRouteWithChildren
   SettingsRouteRoute: typeof SettingsRouteRouteWithChildren
+  ChangeLogRoute: typeof ChangeLogRoute
   ContactRoute: typeof ContactRoute
+  DataExportRoute: typeof DataExportRoute
   EventsRoute: typeof EventsRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   ShareRoute: typeof ShareRoute
@@ -407,11 +433,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkuRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/changeLog': {
+      id: '/changeLog'
+      path: '/changeLog'
+      fullPath: '/changeLog'
+      preLoaderRoute: typeof ChangeLogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dataExport': {
+      id: '/dataExport'
+      path: '/dataExport'
+      fullPath: '/dataExport'
+      preLoaderRoute: typeof DataExportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events': {
@@ -704,7 +744,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SkuRouteRoute: SkuRouteRouteWithChildren,
   SettingsRouteRoute: SettingsRouteRouteWithChildren,
+  ChangeLogRoute: ChangeLogRoute,
   ContactRoute: ContactRoute,
+  DataExportRoute: DataExportRoute,
   EventsRoute: EventsRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   ShareRoute: ShareRoute,

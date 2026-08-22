@@ -1,3 +1,8 @@
+## 22 August 2026
+
+- Added Data Export Documentation button to the Reports & Data Export section in the Manage tab and made it accessible in the README
+- Moved changelog from `/updates` to `/changelog` (but `/updates` will still work)
+
 ## 21 August 2026
 
 - Added a new indicator on the Teams for other notes

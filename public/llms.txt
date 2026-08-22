@@ -6,7 +6,8 @@
 
 - [Home](https://roboref.fyi/): Main entry point for selecting events and accessing referee tools.
 - [Events](https://roboref.fyi/events): Search and browse VEX Robotics competition events.
-- [Updates](https://roboref.fyi/updates): Version history and change log for RoboRef updates.
+- [Change Log](https://roboref.fyi/changeLog): Version history and change log for RoboRef updates.
+- [Data Export](https://roboref.fyi/dataExport): Documentation for reports and third-party data export API.
 - [Contact](https://roboref.fyi/contact): Information on how to contact the RoboRef maintainers.
 - [Privacy Policy](https://roboref.fyi/privacy): Data privacy policy and offline storage guidelines.
 

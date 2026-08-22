@@ -5,7 +5,7 @@ import "./markdown.css";
 
 const PrivacyPage: React.FC = () => {
   return (
-    <main className="max-w-prose md:max-w-screen-md lg:max-w-screen-lg mx-auto px-4 py-8 overflow-y-auto markdown mt-4">
+    <main className="w-full max-w-full md:max-w-3xl lg:max-w-4xl mx-auto px-2 sm:px-4 py-6 overflow-y-auto overflow-x-hidden min-w-0 flex-1 markdown">
       <PrivacyPolicy />
     </main>
   );
