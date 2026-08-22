@@ -1,29 +1,25 @@
-# Integration API
+# Reports and Data Export
 
-RoboRef supports an integration API that allows third-party applications to
-pull data from a sharing instance with the permission of an administrator on
-that instance. _Currently, this integration supports readonly access to Incident
-data._
+RoboRef supports an API that allows third-party applications to pull data from a sharing instance with the permission of an administrator on that instance. _Currently, this only supports readonly access to  Incident data._
 
 ## Bearer Token
 
-All access to the integration requires a bearer token from an instance
-administrator. The bearer token is cryptographically derived from the grantor's
-private key, which guarantees that bearer tokens are unique to instance
+All access to data requires a bearer token from an instance administrator. The bearer token is cryptographically derived from the their private key, which guarantees that bearer tokens are unique to instance
 administrators and invalid if the user leaves the instance.
 
-Instance Admins can access the bearer token (and data URLs) from the Manage tab
-for the event they are an administrator for.
+Instance Admins can access the bearer token (and data URLs) from the Manage tab for the event they are an administrator for.
 
 ## Supported Endpoints
 
-The base URL for the production integration API is
+The primary URLs for data export and reports are
 
 ```
-https://share.roboref.fyi/api/integration/v1/<SKU>/
+https://roboref.fyi/export/<SKU>/
 ```
 
-where the SKU is the RobotEvents event code. All endpoints return data in the form of a `ShareResponse`.
+*(Legacy `/api/integration/v1/<SKU>/` paths are also supported for backwards compatibility - but this may be removed in a future update.)*
+
+where the SKU is the RobotEvents event code. All JSON endpoints return data in the form of a `ShareResponse`.
 
 ```ts
 export type ShareResponseSuccess<T> = {
@@ -45,7 +41,7 @@ export type ShareResponseFailure = {
 export type ShareResponse<T> = ShareResponseSuccess<T> | ShareResponseFailure;
 ```
 
-### `https://share.roboref.fyi/api/integration/v1/<SKU>/verify`
+### `https://roboref.fyi/export/<SKU>/verify`
 
 The verify endpoint can be used to ensure that your bearer token is valid.
 
@@ -75,7 +71,7 @@ type VerifyResponse = ShareResponse<{
 }>;
 ```
 
-### `https://share.roboref.fyi/api/integration/v1/<SKU>/users`
+### `https://roboref.fyi/export/<SKU>/users`
 
 Gets information about the current users on the sharing instance.
 
@@ -98,7 +94,7 @@ type UsersResponse = ShareResponse<{
 }>;
 ```
 
-### `https://share.roboref.fyi/api/integration/v1/<SKU>/incidents.json`
+### `https://roboref.fyi/export/<SKU>/incidents.json`
 
 Returns all incidents for a given instance, in JSON form.
 
@@ -148,14 +144,14 @@ export type Incident = {
   // User-entered notes
   notes: string;
 
-  // Any attached assets. The integration API does not currently provide a way to grant access to assets.
+  // Any attached assets. The export API does not currently provide a way to grant access to assets.
   assets: string[];
 };
 
 type IncidentsResponse = ShareResponse<Incident[]>;
 ```
 
-### `https://share.roboref.fyi/api/integration/v1/<SKU>/incidents.csv`
+### `https://roboref.fyi/export/<SKU>/incidents.csv`
 
 Returns all incidents for a given instance, in CSV form.
 
@@ -169,7 +165,7 @@ Columns:
 Date,Time,ID,SKU,Division,Match,Team,Outcome,Rules,Notes
 ```
 
-### `https://share.roboref.fyi/api/integration/v1/<SKU>/incidents.pdf`
+### `https://roboref.fyi/export/<SKU>/incidents.pdf`
 
 Returns all incidents for a given instance, as a human-readable PDF report. The
 PDF is grouped by team, and is intended to be a format useful to show to judges
