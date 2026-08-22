@@ -1,5 +1,6 @@
 import { test, expect, describe } from "vitest";
 import { extractTrailingNumber, matchComparison } from "./index.js";
+import { MatchData, rounds } from "@roboref/vexevents";
 import { IncidentMatch } from "@roboref/share";
 
 describe("extractTrailingNumber", () => {
@@ -33,6 +34,46 @@ describe("extractTrailingNumber", () => {
 });
 
 describe("matchComparison", () => {
+
+  test("uses matchMap to order matches by round and instance when available", () => {
+    const q1: IncidentMatch = {
+      type: "match",
+      division: 1,
+      id: 1,
+      name: "Q 1",
+    };
+    const r16: IncidentMatch = {
+      type: "match",
+      division: 1,
+      id: 2,
+      name: "R16 1-1",
+    };
+    const qf: IncidentMatch = {
+      type: "match",
+      division: 1,
+      id: 3,
+      name: "QF 1-1",
+    };
+    const p1: IncidentMatch = {
+      type: "match",
+      division: 1,
+      id: 4,
+      name: "P 1",
+    };
+
+    const matchMap = new Map<number, MatchData>();
+    const baseMatchData: any = { division: { id: 1 }, event: { id: 1 } };
+    matchMap.set(1, { ...baseMatchData, id: 1, round: rounds.Qualification, instance: 1, matchnum: 1 });
+    matchMap.set(2, { ...baseMatchData, id: 2, round: rounds.RoundOf16, instance: 1, matchnum: 1 });
+    matchMap.set(3, { ...baseMatchData, id: 3, round: rounds.Quarterfinals, instance: 1, matchnum: 1 });
+    matchMap.set(4, { ...baseMatchData, id: 4, round: rounds.Practice, instance: 1, matchnum: 1 });
+
+    expect(matchComparison(p1, q1, matchMap)).toBeLessThan(0);
+    expect(matchComparison(q1, r16, matchMap)).toBeLessThan(0);
+    expect(matchComparison(r16, qf, matchMap)).toBeLessThan(0);
+    expect(matchComparison(qf, r16, matchMap)).toBeGreaterThan(0);
+  });
+
   test("handles undefined matches", () => {
     const matchA: IncidentMatch = {
       type: "match",
