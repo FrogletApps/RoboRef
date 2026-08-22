@@ -1,5 +1,6 @@
 import { test, expect, describe } from "vitest";
-import { extractTrailingNumber, matchComparison } from "./index.js";
+import { extractTrailingNumber, makeMatchComparison } from "./index.js";
+const matchComparison = makeMatchComparison([]);
 import { IncidentMatch } from "@roboref/share";
 
 describe("extractTrailingNumber", () => {
