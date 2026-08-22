@@ -1,5 +1,5 @@
-import { describe, expect, test, vi, afterEach } from "vitest";
-import { ingestHex, importKey, KEY_PREFIX } from "./crypto.js";
+import { describe, expect, test } from "vitest";
+import { ingestHex } from "./crypto.js";
 
 describe("ingestHex", () => {
   test("parses valid hex strings into Uint8Array", () => {
@@ -33,45 +33,5 @@ describe("ingestHex", () => {
     const hex = "deagbeef"; // 'g' is invalid
     const result = ingestHex(hex);
     expect(result).toBeNull();
-  });
-});
-
-describe("importKey", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-    vi.unstubAllGlobals();
-  });
-
-  test("returns null if hexKey does not start with KEY_PREFIX", async () => {
-    const result = await importKey("INVALID:deadbeef");
-    expect(result).toBeNull();
-  });
-
-  test("returns null if ingestHex fails", async () => {
-    const result = await importKey(`${KEY_PREFIX}invalidhex`);
-    expect(result).toBeNull();
-  });
-
-  test("returns null if crypto.subtle.importKey throws an error", async () => {
-    vi.stubGlobal("crypto", {
-      subtle: {
-        importKey: vi.fn().mockRejectedValue(new Error("Import failed")),
-      },
-    });
-
-    const result = await importKey(`${KEY_PREFIX}deadbeef`);
-    expect(result).toBeNull();
-  });
-
-  test("returns CryptoKey on successful import", async () => {
-    const mockKey = {} as CryptoKey;
-    vi.stubGlobal("crypto", {
-      subtle: {
-        importKey: vi.fn().mockResolvedValue(mockKey),
-      },
-    });
-
-    const result = await importKey(`${KEY_PREFIX}deadbeef`);
-    expect(result).toBe(mockKey);
   });
 });

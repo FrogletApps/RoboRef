@@ -1,6 +1,6 @@
-export function timeAgo(input: Date, locales: Intl.LocalesArgument = "en") {
+export function timeAgo(input: Date) {
   const date = new Date(input);
-  const formatter = new Intl.RelativeTimeFormat(locales);
+  const formatter = new Intl.RelativeTimeFormat("en");
   const ranges = {
     years: 3600 * 24 * 365,
     months: 3600 * 24 * 30,
@@ -23,11 +23,7 @@ export function timeAgo(input: Date, locales: Intl.LocalesArgument = "en") {
   return formatter.format(-1, "seconds");
 }
 
-export function formatEventDate(
-  start?: string,
-  end?: string,
-  locales?: Intl.LocalesArgument
-): string | undefined {
+export function formatEventDate(start?: string, end?: string): string | undefined {
   if (!start) return undefined;
 
   const startDate = new Date(start);
@@ -36,7 +32,7 @@ export function formatEventDate(
   const endDate = end ? new Date(end) : undefined;
   const isValidEnd = endDate && !isNaN(endDate.getTime());
 
-  const formatter = new Intl.DateTimeFormat(locales, {
+  const formatter = new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",

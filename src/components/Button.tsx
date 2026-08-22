@@ -87,7 +87,7 @@ export const ExternalLinkButton: React.FC<ExternalLinkButtonProps> = (
   return (
     <a
       target="_blank"
-      rel="noopener noreferrer"
+      rel="noopener"
       {...props}
       className={twMerge(
         "inline-block rounded-md bg-zinc-700 text-zinc-100 text-left px-3 py-2",
