@@ -3,7 +3,7 @@ import eslint from '@eslint/js';
 export default [
   eslint.configs.recommended,
   {
-    ignores: ['dist/**', 'build/**', '.github/**', 'node_modules/**', 'lib/*/dist/**', 'lib/*/build/**', 'utils/**', 'worker/**', 'scripts/**'],
+    ignores: ['dist/**', 'build/**', '.github/**', 'node_modules/**', 'lib/*/dist/**', 'lib/*/build/**', 'utils/**', 'worker/**', 'scripts/**', '.wrangler/**'],
   },
   {
     rules: {
