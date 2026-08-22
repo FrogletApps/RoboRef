@@ -68,17 +68,55 @@ const ROUND_ORDER: Record<number, number> = {
 
 const getRoundOrder = (round: number) => ROUND_ORDER[round] ?? 99;
 
-// Fallback approximation if map data is not available
-// TODO: Improve this
-const matchNameOrder = [
-  "Practice",
-  "Qualifier",
-  "R16",
-  "QF",
-  "SF",
-  "F",
-  "Match",
-];
+function getMatchRoundOrder(
+  match: IncidentMatch,
+  matchData?: MatchData
+): number {
+  if (matchData) {
+    return getRoundOrder(matchData.round);
+  }
+
+  const upper = match.name.toUpperCase().trim();
+  if (
+    upper.startsWith("P ") ||
+    upper.startsWith("P#") ||
+    upper.startsWith("P_") ||
+    upper.includes("PRACTICE")
+  ) {
+    return 1;
+  }
+  if (
+    upper.startsWith("Q ") ||
+    upper.startsWith("Q#") ||
+    upper.startsWith("Q_") ||
+    upper.includes("QUAL")
+  ) {
+    return 2;
+  }
+  if (upper.startsWith("R16") || upper.includes("ROUND OF 16")) {
+    return 3;
+  }
+  if (upper.startsWith("QF") || upper.includes("QUARTER")) {
+    return 4;
+  }
+  if (upper.startsWith("SF") || upper.includes("SEMI")) {
+    return 5;
+  }
+  if (
+    upper.startsWith("F ") ||
+    upper.startsWith("F#") ||
+    upper.startsWith("F_") ||
+    upper.startsWith("F1") ||
+    upper.startsWith("F2") ||
+    upper.includes("FINAL")
+  ) {
+    return 6;
+  }
+  if (upper.includes("TOP") || upper.includes("ROUND ROBIN")) {
+    return 7;
+  }
+  return 99;
+}
 
 export function extractTrailingNumber(name: string): number {
   let i = name.length - 1;
@@ -125,35 +163,26 @@ export function matchComparison(
       return a.division - b.division;
     }
 
-    if (matchMap) {
-      const matchDataA = matchMap.get(a.id);
-      const matchDataB = matchMap.get(b.id);
+    const matchDataA = matchMap?.get(a.id);
+    const matchDataB = matchMap?.get(b.id);
 
-      if (matchDataA && matchDataB) {
-        const orderA = getRoundOrder(matchDataA.round);
-        const orderB = getRoundOrder(matchDataB.round);
+    const orderA = getMatchRoundOrder(a, matchDataA);
+    const orderB = getMatchRoundOrder(b, matchDataB);
 
-        if (orderA !== orderB) {
-          return orderA - orderB;
-        }
-
-        if (matchDataA.instance !== matchDataB.instance) {
-          return matchDataA.instance - matchDataB.instance;
-        }
-
-        if (matchDataA.matchnum !== matchDataB.matchnum) {
-          return matchDataA.matchnum - matchDataB.matchnum;
-        }
-
-        return 0;
-      }
+    if (orderA !== orderB) {
+      return orderA - orderB;
     }
 
-    const roundA = matchNameOrder.findIndex((name) => a.name.includes(name));
-    const roundB = matchNameOrder.findIndex((name) => b.name.includes(name));
+    if (matchDataA && matchDataB) {
+      if (matchDataA.instance !== matchDataB.instance) {
+        return matchDataA.instance - matchDataB.instance;
+      }
 
-    if (roundA !== roundB) {
-      return roundA - roundB;
+      if (matchDataA.matchnum !== matchDataB.matchnum) {
+        return matchDataA.matchnum - matchDataB.matchnum;
+      }
+
+      return 0;
     }
 
     const instanceA = extractTrailingNumber(a.name);
@@ -238,16 +267,22 @@ export async function generateIncidentReportPDF({
   }
 
   const matchMap = new Map<number, MatchData>();
-  for (const division of divisionsToFetch) {
-    const matchesResponse = await event.data.matches(division);
-    if (matchesResponse.data) {
-      for (const match of matchesResponse.data) {
-        matchMap.set(match.id, match);
+  await Promise.all(
+    Array.from(divisionsToFetch).map(async (division) => {
+      try {
+        const matchesResponse = await event.data.matches(division);
+        if (matchesResponse.data) {
+          for (const match of matchesResponse.data) {
+            matchMap.set(match.id, match);
+          }
+        }
+      } catch {
+        // Fall back gracefully if division matches cannot be fetched
       }
-    }
-  }
+    })
+  );
 
-  const incidentsInOrder = incidents.sort((a, b) =>
+  const incidentsInOrder = [...incidents].sort((a, b) =>
     incidentComparison(a, b, matchMap)
   );
 
