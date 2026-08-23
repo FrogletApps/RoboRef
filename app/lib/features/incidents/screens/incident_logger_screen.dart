@@ -6,22 +6,24 @@ import '../state/incident_controller.dart';
 import '../widgets/severity_badge.dart';
 import '../../settings/state/sync_settings_controller.dart';
 
-class IncidentLoggerScreen extends ConsumerStatefulWidget {
+class IncidentLoggerScreen extends StatefulWidget {
   const IncidentLoggerScreen({super.key});
 
   @override
-  ConsumerState<IncidentLoggerScreen> createState() => _IncidentLoggerScreenState();
+  State<IncidentLoggerScreen> createState() => _IncidentLoggerScreenState();
 }
 
-class _IncidentLoggerScreenState extends ConsumerState<IncidentLoggerScreen> {
+class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
   String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
-    final notesAsync = ref.watch(activeTournamentNotesProvider);
-    final settings = ref.watch(syncSettingsProvider);
+    return Consumer(
+      builder: (context, ref, child) {
+        final notesAsync = ref.watch(activeTournamentNotesProvider);
+        final settings = ref.watch(syncSettingsProvider);
 
-    return Scaffold(
+        return Scaffold(
       appBar: AppBar(
         title: Column(
           children: [
@@ -64,7 +66,7 @@ class _IncidentLoggerScreenState extends ConsumerState<IncidentLoggerScreen> {
                 prefixIcon: const Icon(Icons.search),
                 isDense: true,
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.4),
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -200,7 +202,7 @@ class _IncidentLoggerScreenState extends ConsumerState<IncidentLoggerScreen> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
-                                  onPressed: () => _confirmDelete(context, note.id),
+                                  onPressed: () => _confirmDelete(context, ref, note.id),
                                 ),
                               ],
                             ),
@@ -221,9 +223,11 @@ class _IncidentLoggerScreenState extends ConsumerState<IncidentLoggerScreen> {
         label: const Text('Log Incident'),
       ),
     );
+      },
+    );
   }
 
-  void _confirmDelete(BuildContext context, String id) {
+  void _confirmDelete(BuildContext context, WidgetRef ref, String id) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -255,14 +259,14 @@ class _IncidentLoggerScreenState extends ConsumerState<IncidentLoggerScreen> {
   }
 }
 
-class AddIncidentSheet extends ConsumerStatefulWidget {
+class AddIncidentSheet extends StatefulWidget {
   const AddIncidentSheet({super.key});
 
   @override
-  ConsumerState<AddIncidentSheet> createState() => _AddIncidentSheetState();
+  State<AddIncidentSheet> createState() => _AddIncidentSheetState();
 }
 
-class _AddIncidentSheetState extends ConsumerState<AddIncidentSheet> {
+class _AddIncidentSheetState extends State<AddIncidentSheet> {
   final _teamController = TextEditingController();
   final _matchController = TextEditingController();
   final _notesController = TextEditingController();
@@ -281,143 +285,147 @@ class _AddIncidentSheetState extends ConsumerState<AddIncidentSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-        top: 16,
-        left: 16,
-        right: 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Log Match Incident / Rule Note',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Row(
+    return Consumer(
+      builder: (context, ref, child) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            top: 16,
+            left: 16,
+            right: 16,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _teamController,
-                    textCapitalization: TextCapitalization.characters,
-                    decoration: const InputDecoration(
-                      labelText: 'Team Number *',
-                      hintText: 'e.g. 1234A',
-                      border: OutlineInputBorder(),
-                      isDense: true,
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: _matchController,
-                    textCapitalization: TextCapitalization.characters,
-                    decoration: const InputDecoration(
-                      labelText: 'Match (Optional)',
-                      hintText: 'e.g. Q42',
-                      border: OutlineInputBorder(),
-                      isDense: true,
+                const SizedBox(height: 12),
+                const Text(
+                  'Log Match Incident / Rule Note',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _teamController,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: const InputDecoration(
+                          labelText: 'Team Number *',
+                          hintText: 'e.g. 1234A',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: _matchController,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: const InputDecoration(
+                          labelText: 'Match (Optional)',
+                          hintText: 'e.g. Q42',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text('Severity Level', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'minor', label: Text('Minor')),
-                ButtonSegment(value: 'warning', label: Text('Warning')),
-                ButtonSegment(value: 'major', label: Text('Major')),
-                ButtonSegment(value: 'd_q', label: Text('DQ')),
-              ],
-              selected: {_severity},
-              onSelectionChanged: (val) => setState(() => _severity = val.first),
-            ),
-            const SizedBox(height: 16),
-            const Text('Rule Infractions', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: _quickRules.map((rule) {
-                final isSelected = _selectedRules.contains(rule);
-                return FilterChip(
-                  label: Text(rule),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedRules.add(rule);
-                      } else {
-                        _selectedRules.remove(rule);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _notesController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Referee Notes / Context',
-                hintText: 'Describe details, warnings given, or match conditions...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
+                const SizedBox(height: 16),
+                const Text('Severity Level', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'minor', label: Text('Minor')),
+                    ButtonSegment(value: 'warning', label: Text('Warning')),
+                    ButtonSegment(value: 'major', label: Text('Major')),
+                    ButtonSegment(value: 'd_q', label: Text('DQ')),
+                  ],
+                  selected: {_severity},
+                  onSelectionChanged: (val) => setState(() => _severity = val.first),
                 ),
-                onPressed: () {
-                  final team = _teamController.text.trim();
-                  if (team.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please enter a team number')),
+                const SizedBox(height: 16),
+                const Text('Rule Infractions', style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: _quickRules.map((rule) {
+                    final isSelected = _selectedRules.contains(rule);
+                    return FilterChip(
+                      label: Text(rule),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedRules.add(rule);
+                          } else {
+                            _selectedRules.remove(rule);
+                          }
+                        });
+                      },
                     );
-                    return;
-                  }
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _notesController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Referee Notes / Context',
+                    hintText: 'Describe details, warnings given, or match conditions...',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      final team = _teamController.text.trim();
+                      if (team.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter a team number')),
+                        );
+                        return;
+                      }
 
-                  ref.read(incidentControllerProvider.notifier).addNote(
-                    teamNumber: team,
-                    matchId: _matchController.text.trim().isEmpty ? null : _matchController.text.trim(),
-                    ruleCodes: _selectedRules.toList(),
-                    severity: _severity,
-                    notes: _notesController.text.trim(),
-                  );
+                      ref.read(incidentControllerProvider.notifier).addNote(
+                        teamNumber: team,
+                        matchId: _matchController.text.trim().isEmpty ? null : _matchController.text.trim(),
+                        ruleCodes: _selectedRules.toList(),
+                        severity: _severity,
+                        notes: _notesController.text.trim(),
+                      );
 
-                  Navigator.pop(context);
-                },
-                child: const Text('Save & Sync Incident', style: TextStyle(fontSize: 16)),
-              ),
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Save & Sync Incident', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

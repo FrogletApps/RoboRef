@@ -4,26 +4,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../incidents/widgets/severity_badge.dart';
 
-class TeamListScreen extends ConsumerStatefulWidget {
+class TeamListScreen extends StatefulWidget {
   const TeamListScreen({super.key});
 
   @override
-  ConsumerState<TeamListScreen> createState() => _TeamListScreenState();
+  State<TeamListScreen> createState() => _TeamListScreenState();
 }
 
-class _TeamListScreenState extends ConsumerState<TeamListScreen> {
+class _TeamListScreenState extends State<TeamListScreen> {
   String _search = '';
 
   @override
   Widget build(BuildContext context) {
-    final notesAsync = ref.watch(activeTournamentNotesProvider);
+    return Consumer(
+      builder: (context, ref, child) {
+        final notesAsync = ref.watch(activeTournamentNotesProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Team Histories'),
-      ),
-      body: Column(
-        children: [
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Team Histories'),
+          ),
+          body: Column(
+            children: [
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
@@ -32,7 +34,7 @@ class _TeamListScreenState extends ConsumerState<TeamListScreen> {
                 prefixIcon: const Icon(Icons.search),
                 isDense: true,
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.4),
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -148,6 +150,8 @@ class _TeamListScreenState extends ConsumerState<TeamListScreen> {
           ),
         ],
       ),
+    );
+      },
     );
   }
 

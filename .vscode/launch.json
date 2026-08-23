@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "RoboRef App (Chrome - Web)",
+      "cwd": "app",
+      "request": "launch",
+      "type": "dart",
+      "args": ["--web-renderer", "html"]
+    },
+    {
+      "name": "RoboRef App (Android Device / Emulator)",
+      "cwd": "app",
+      "request": "launch",
+      "type": "dart"
+    }
+  ]
+}

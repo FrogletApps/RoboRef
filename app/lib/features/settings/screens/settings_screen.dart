@@ -3,26 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/sync_settings_controller.dart';
 import '../../incidents/state/incident_controller.dart';
 
-class SettingsScreen extends ConsumerStatefulWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _skuController;
   late TextEditingController _nameController;
   late TextEditingController _serverController;
-
-  @override
-  void initState() {
-    super.initState();
-    final settings = ref.read(syncSettingsProvider);
-    _skuController = TextEditingController(text: settings.currentSku);
-    _nameController = TextEditingController(text: settings.refereeName);
-    _serverController = TextEditingController(text: settings.serverUrl);
-  }
+  bool _initialized = false;
 
   @override
   void dispose() {
@@ -34,15 +26,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(syncSettingsProvider);
+    return Consumer(
+      builder: (context, ref, child) {
+        final settings = ref.watch(syncSettingsProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Referee & Sync Settings'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
+        if (!_initialized) {
+          _skuController = TextEditingController(text: settings.currentSku);
+          _nameController = TextEditingController(text: settings.refereeName);
+          _serverController = TextEditingController(text: settings.serverUrl);
+          _initialized = true;
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Referee & Sync Settings'),
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
           const Text(
             'Tournament & Referee Setup',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -93,7 +94,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 20),
           Card(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
@@ -144,6 +145,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ],
       ),
+    );
+      },
     );
   }
 }
