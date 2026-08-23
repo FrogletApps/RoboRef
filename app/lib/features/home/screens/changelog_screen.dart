@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// Data model representing a release section in the changelog.
 class ChangeLogRelease {
@@ -75,28 +76,20 @@ List<ChangeLogRelease> parseChangeLogReleases(String markdown) {
   return releases;
 }
 
-/// Loads changelog content from `documents/changeLog.md`.
+/// Loads changelog content from `assets/changeLog.md`.
 Future<String> loadChangeLogMarkdown({String? overridePath}) async {
-  final path = overridePath ?? '../documents/changeLog.md';
-  try {
-    return await rootBundle.loadString(path);
-  } catch (_) {
-    // Fallback for environments where the key might omit the leading `../`
-    if (overridePath == null) {
-      try {
-        return await rootBundle.loadString('documents/changeLog.md');
-      } catch (_) {}
-    }
-    rethrow;
-  }
+  final path = overridePath ?? 'assets/changeLog.md';
+  return await rootBundle.loadString(path);
 }
 
 class ChangeLogScreen extends StatefulWidget {
   final String? changelogAssetPath;
+  final String? overrideVersion;
 
   const ChangeLogScreen({
     super.key,
     this.changelogAssetPath,
+    this.overrideVersion,
   });
 
   @override
@@ -104,7 +97,7 @@ class ChangeLogScreen extends StatefulWidget {
 }
 
 class _ChangeLogScreenState extends State<ChangeLogScreen> {
-  final String version = '1.0.0+1';
+  String _version = '2026.8.23+1';
   late Future<List<ChangeLogRelease>> _changelogFuture;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
@@ -112,7 +105,28 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.overrideVersion != null) {
+      _version = widget.overrideVersion!;
+    } else {
+      _loadAppVersion();
+    }
     _loadChangeLog();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      setState(() {
+        if (info.buildNumber.isNotEmpty) {
+          _version = '${info.version}+${info.buildNumber}';
+        } else {
+          _version = info.version;
+        }
+      });
+    } catch (_) {
+      // Fallback to default version if platform channel is unavailable (e.g. tests)
+    }
   }
 
   @override
@@ -342,7 +356,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'v$version',
+                        'v$_version',
                         style: const TextStyle(
                           fontFamily: 'monospace',
                           fontWeight: FontWeight.bold,
@@ -353,7 +367,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                   ),
                   TextButton.icon(
                     onPressed: () {
-                      Clipboard.setData(ClipboardData(text: version));
+                      Clipboard.setData(ClipboardData(text: _version));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Version copied to clipboard'),

@@ -1,50 +1,85 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roboref/features/home/screens/changelog_screen.dart';
 
+String getPubspecVersion() {
+  final pubspecFile = File('pubspec.yaml');
+  if (!pubspecFile.existsSync()) {
+    throw StateError('pubspec.yaml not found at ${Directory.current.path}');
+  }
+  final content = pubspecFile.readAsStringSync();
+  final match = RegExp(r'^version:\s*([^\s]+)', multiLine: true).firstMatch(content);
+  if (match == null) {
+    throw StateError('Could not find version in pubspec.yaml');
+  }
+  return match.group(1)!.trim();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('ChangeLog Parsing', () {
+  final currentVersion = getPubspecVersion();
+
+  group('ChangeLog Parsing & Version Alignment', () {
     test('parses markdown into structured releases', () {
       const sample = '''
 # Change Log
 
-## 23 August 2026
+## 2026.8.23+1
 
 - **Clean-Slate Rebuild**: Complete ground-up rebuild using Flutter.
 - **Venue LAN Sync Priority (`roboref.local`)**: Default connection.
 - Simple bullet without bold title.
 
-## 20 August 2026
+## 2026.8.20+1
 
 - **Initial Commit**: Project initialized.
 ''';
 
       final releases = parseChangeLogReleases(sample);
       expect(releases.length, 2);
-      expect(releases[0].title, '23 August 2026');
+      expect(releases[0].title, '2026.8.23+1');
       expect(releases[0].itemCount, 3);
       expect(releases[0].markdownContent.contains('Clean-Slate Rebuild'), isTrue);
       expect(releases[0].markdownContent.contains('roboref.local'), isTrue);
 
-      expect(releases[1].title, '20 August 2026');
+      expect(releases[1].title, '2026.8.20+1');
       expect(releases[1].itemCount, 1);
       expect(releases[1].markdownContent.contains('Initial Commit'), isTrue);
     });
 
-    test('parses actual changeLog.md file from disk assets', () async {
+    test('top changelog release title matches current version in pubspec.yaml', () async {
       final raw = await loadChangeLogMarkdown();
       final releases = parseChangeLogReleases(raw);
 
-      expect(releases.isNotEmpty, isTrue);
-      expect(releases.first.title, '23 August 2026');
-      expect(releases.first.itemCount, greaterThanOrEqualTo(7));
+      expect(releases.isNotEmpty, isTrue, reason: 'Changelog must contain at least one release');
+      expect(
+        releases.first.title,
+        equals(currentVersion),
+        reason:
+            'The most recent changelog heading at the top of changeLog.md ("${releases.first.title}") '
+            'must match the current pubspec.yaml version ("$currentVersion"). '
+            'Please update changeLog.md to include "## $currentVersion" as the top section heading.',
+      );
+    });
+
+    test('root documents/changeLog.md matches app/assets/changeLog.md and current version', () {
+      final docFile = File('../documents/changeLog.md');
+      if (docFile.existsSync()) {
+        final docContent = docFile.readAsStringSync();
+        final docReleases = parseChangeLogReleases(docContent);
+        expect(
+          docReleases.first.title,
+          equals(currentVersion),
+          reason: 'The top release title in documents/changeLog.md must match pubspec.yaml version ($currentVersion)',
+        );
+      }
     });
   });
 
   group('ChangeLogScreen Widget Tests', () {
-    testWidgets('renders ChangeLogScreen, version card, and changelog items', (tester) async {
+    testWidgets('renders current version in version card and as top item in release history', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ChangeLogScreen(),
@@ -56,19 +91,19 @@ void main() {
       });
       await tester.pumpAndSettle();
 
-      // Check AppBar
+      // 1. Check AppBar
       expect(find.text('Change Log'), findsOneWidget);
 
-      // Check Version Card
+      // 2. Check Version Card displays current version
       expect(find.text('Current Version'), findsOneWidget);
-      expect(find.text('v1.0.0+1'), findsOneWidget);
+      expect(find.text('v$currentVersion'), findsOneWidget);
       expect(find.text('Copy'), findsOneWidget);
 
-      // Check Release History
+      // 3. Check Release History header and verify current version is the top release title
       expect(find.text('Release History'), findsOneWidget);
-      expect(find.text('23 August 2026'), findsOneWidget);
+      expect(find.text(currentVersion), findsOneWidget);
 
-      // Check markdown content is present
+      // 4. Check markdown content is present
       expect(find.textContaining('Clean-Slate Rebuild', findRichText: true), findsWidgets);
       expect(find.textContaining('roboref.local', findRichText: true), findsWidgets);
     });
@@ -142,6 +177,23 @@ void main() {
 
       expect(find.text('Unable to load change log'), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
+    });
+
+    testWidgets('renders custom overrideVersion when provided', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: ChangeLogScreen(
+            overrideVersion: '2026.8.23+99',
+          ),
+        ),
+      );
+
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('v2026.8.23+99'), findsOneWidget);
     });
   });
 }
