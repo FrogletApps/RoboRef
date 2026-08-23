@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roboref/features/home/screens/changelog_screen.dart';
 
@@ -7,7 +6,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ChangeLog Parsing', () {
-    test('parses standard markdown changelog with bold titles and inline code', () {
+    test('parses markdown into structured releases', () {
       const sample = '''
 # Change Log
 
@@ -22,28 +21,25 @@ void main() {
 - **Initial Commit**: Project initialized.
 ''';
 
-      final releases = parseChangeLog(sample);
+      final releases = parseChangeLogReleases(sample);
       expect(releases.length, 2);
       expect(releases[0].title, '23 August 2026');
-      expect(releases[0].items.length, 3);
-      expect(releases[0].items[0].boldTitle, 'Clean-Slate Rebuild');
-      expect(releases[0].items[0].description, 'Complete ground-up rebuild using Flutter.');
-      expect(releases[0].items[1].boldTitle, 'Venue LAN Sync Priority (`roboref.local`)');
-      expect(releases[0].items[2].boldTitle, isNull);
-      expect(releases[0].items[2].description, 'Simple bullet without bold title.');
+      expect(releases[0].itemCount, 3);
+      expect(releases[0].markdownContent.contains('Clean-Slate Rebuild'), isTrue);
+      expect(releases[0].markdownContent.contains('roboref.local'), isTrue);
 
       expect(releases[1].title, '20 August 2026');
-      expect(releases[1].items.length, 1);
-      expect(releases[1].items[0].boldTitle, 'Initial Commit');
+      expect(releases[1].itemCount, 1);
+      expect(releases[1].markdownContent.contains('Initial Commit'), isTrue);
     });
 
-    test('parses actual documents/changeLog.md file', () async {
-      final raw = await rootBundle.loadString('../documents/changeLog.md');
-      final releases = parseChangeLog(raw);
+    test('parses actual changeLog.md file from disk assets', () async {
+      final raw = await loadChangeLogMarkdown();
+      final releases = parseChangeLogReleases(raw);
 
       expect(releases.isNotEmpty, isTrue);
       expect(releases.first.title, '23 August 2026');
-      expect(releases.first.items.length, greaterThanOrEqualTo(7));
+      expect(releases.first.itemCount, greaterThanOrEqualTo(7));
     });
   });
 
@@ -72,8 +68,8 @@ void main() {
       expect(find.text('Release History'), findsOneWidget);
       expect(find.text('23 August 2026'), findsOneWidget);
 
-      // Check that changelog entries from documents/changeLog.md are displayed
-      expect(find.textContaining('Clean-Slate Rebuild', findRichText: true), findsOneWidget);
+      // Check markdown content is present
+      expect(find.textContaining('Clean-Slate Rebuild', findRichText: true), findsWidgets);
       expect(find.textContaining('roboref.local', findRichText: true), findsWidgets);
     });
 
@@ -106,7 +102,7 @@ void main() {
       await tester.tap(find.text('Clear search'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Clean-Slate Rebuild', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Clean-Slate Rebuild', findRichText: true), findsWidgets);
     });
 
     testWidgets('copies version to clipboard when copy button is tapped', (tester) async {

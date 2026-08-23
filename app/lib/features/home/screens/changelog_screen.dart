@@ -1,122 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
-/// Data model representing a release date / section in the change log.
+/// Data model representing a release section in the changelog.
 class ChangeLogRelease {
   final String title;
-  final List<ChangeLogItem> items;
+  final String markdownContent;
+  final int itemCount;
 
   const ChangeLogRelease({
     required this.title,
-    required this.items,
+    required this.markdownContent,
+    required this.itemCount,
   });
 }
 
-/// Data model representing an individual bullet item in the change log.
-class ChangeLogItem {
-  final String rawText;
-  final String? boldTitle;
-  final String description;
-
-  const ChangeLogItem({
-    required this.rawText,
-    this.boldTitle,
-    required this.description,
-  });
-}
-
-/// Parses raw markdown text from `documents/changeLog.md` into structured [ChangeLogRelease] objects.
-List<ChangeLogRelease> parseChangeLog(String markdownContent) {
-  final lines = markdownContent.split('\n');
+/// Parses raw markdown text from `documents/changeLog.md` into structured [ChangeLogRelease] sections.
+List<ChangeLogRelease> parseChangeLogReleases(String markdown) {
+  final lines = markdown.split('\n');
   final releases = <ChangeLogRelease>[];
+
   String? currentTitle;
-  final currentItems = <ChangeLogItem>[];
+  final currentLines = <String>[];
 
   void commitRelease() {
     final title = currentTitle;
-    if (title != null && currentItems.isNotEmpty) {
+    if (title != null && currentLines.isNotEmpty) {
+      final content = currentLines.join('\n').trim();
+      final itemCount = currentLines
+          .where((l) => l.trim().startsWith('- ') || l.trim().startsWith('* ') || RegExp(r'^\s*\d+\.').hasMatch(l))
+          .length;
+
       releases.add(
         ChangeLogRelease(
           title: title,
-          items: List.unmodifiable(currentItems),
+          markdownContent: content,
+          itemCount: itemCount > 0 ? itemCount : 1,
         ),
       );
-      currentItems.clear();
+      currentLines.clear();
     }
   }
 
-  for (var line in lines) {
-    line = line.trim();
-    if (line.isEmpty) continue;
+  for (final rawLine in lines) {
+    final line = rawLine.trimRight();
+    final trimmed = line.trim();
 
-    // Header matching (## 23 August 2026, ### v1.0.0, etc.)
-    if (line.startsWith('## ') || line.startsWith('### ')) {
+    if (trimmed.startsWith('## ') || trimmed.startsWith('### ')) {
       commitRelease();
-      currentTitle = line.replaceFirst(RegExp(r'^#+\s*'), '').trim();
-    } else if (line.startsWith('# ')) {
+      currentTitle = trimmed.replaceFirst(RegExp(r'^#+\s*'), '').trim();
+    } else if (trimmed.startsWith('# ') && currentTitle == null) {
       // Top-level document title (e.g. # Change Log) - skip
       continue;
-    } else if (line.startsWith('- ') || line.startsWith('* ') || RegExp(r'^\d+\.\s').hasMatch(line)) {
-      currentTitle ??= 'Recent Updates';
-      final rawItem = line.replaceFirst(RegExp(r'^(?:[-*]|\d+\.)\s*'), '').trim();
-
-      // Check for bold title format: **Title**: Description or **Title** - Description
-      final boldWithSeparatorRegex = RegExp(r'^\*\*(.+?)\*\*(?:\s*[:\-–—]\s*)(.*)$');
-      final match = boldWithSeparatorRegex.firstMatch(rawItem);
-
-      if (match != null) {
-        currentItems.add(
-          ChangeLogItem(
-            rawText: rawItem,
-            boldTitle: match.group(1)?.trim(),
-            description: match.group(2)?.trim() ?? '',
-          ),
-        );
-      } else {
-        // Check for **Title** Description without colon
-        final boldOnlyRegex = RegExp(r'^\*\*(.+?)\*\*\s*(.*)$');
-        final boldMatch = boldOnlyRegex.firstMatch(rawItem);
-        if (boldMatch != null && boldMatch.group(2)!.isNotEmpty) {
-          currentItems.add(
-            ChangeLogItem(
-              rawText: rawItem,
-              boldTitle: boldMatch.group(1)?.trim(),
-              description: boldMatch.group(2)?.trim() ?? '',
-            ),
-          );
-        } else {
-          // Regular bullet without bold title
-          currentItems.add(
-            ChangeLogItem(
-              rawText: rawItem,
-              description: rawItem,
-            ),
-          );
-        }
+    } else {
+      if (currentTitle != null) {
+        currentLines.add(line);
       }
-    } else if (currentTitle != null && currentItems.isNotEmpty) {
-      // Multi-line continuation of previous bullet
-      final last = currentItems.removeLast();
-      currentItems.add(
-        ChangeLogItem(
-          rawText: '${last.rawText} $line',
-          boldTitle: last.boldTitle,
-          description: '${last.description} $line',
-        ),
-      );
     }
   }
 
   commitRelease();
+
+  // If no ## headings were found, treat whole document as single release
+  if (releases.isEmpty && markdown.trim().isNotEmpty) {
+    releases.add(
+      ChangeLogRelease(
+        title: 'Release Notes',
+        markdownContent: markdown.trim(),
+        itemCount: 1,
+      ),
+    );
+  }
+
   return releases;
 }
 
+/// Loads changelog content from `documents/changeLog.md`.
+Future<String> loadChangeLogMarkdown({String? overridePath}) async {
+  final path = overridePath ?? '../documents/changeLog.md';
+  try {
+    return await rootBundle.loadString(path);
+  } catch (_) {
+    // Fallback for environments where the key might omit the leading `../`
+    if (overridePath == null) {
+      try {
+        return await rootBundle.loadString('documents/changeLog.md');
+      } catch (_) {}
+    }
+    rethrow;
+  }
+}
+
 class ChangeLogScreen extends StatefulWidget {
-  final String changelogAssetPath;
+  final String? changelogAssetPath;
 
   const ChangeLogScreen({
     super.key,
-    this.changelogAssetPath = '../documents/changeLog.md',
+    this.changelogAssetPath,
   });
 
   @override
@@ -143,17 +123,19 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
 
   void _loadChangeLog() {
     setState(() {
-      _changelogFuture = _fetchAndParseChangeLog();
+      _changelogFuture = _fetchReleases();
     });
   }
 
-  Future<List<ChangeLogRelease>> _fetchAndParseChangeLog() async {
-    final rawMarkdown = await rootBundle.loadString(widget.changelogAssetPath);
-    return parseChangeLog(rawMarkdown);
+  Future<List<ChangeLogRelease>> _fetchReleases() async {
+    final rawMarkdown = await loadChangeLogMarkdown(overridePath: widget.changelogAssetPath);
+    return parseChangeLogReleases(rawMarkdown);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Change Log'),
@@ -193,7 +175,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
               return ListView(
                 padding: const EdgeInsets.all(16.0),
                 children: [
-                  _buildVersionCard(context),
+                  _buildVersionCard(context, isDark),
                   const SizedBox(height: 24),
                   Card(
                     color: Colors.red.shade900.withValues(alpha: 0.15),
@@ -238,40 +220,19 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
               padding: const EdgeInsets.all(16.0),
               children: [
                 // 1. Current Version Card with Copy action
-                _buildVersionCard(context),
+                _buildVersionCard(context, isDark),
                 const SizedBox(height: 20),
 
-                // 2. Search & Filter Bar (if changelog is populated)
+                // 2. Search & Filter Bar
                 if (releases.isNotEmpty) ...[
                   _buildSearchBar(context),
                   const SizedBox(height: 16),
                 ],
 
                 // 3. Release History Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Release History',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    if (releases.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${releases.fold<int>(0, (sum, r) => sum + r.items.length)} total updates',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                  ],
+                const Text(
+                  'Release History',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
 
@@ -279,7 +240,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                 if (filteredReleases.isEmpty)
                   _buildEmptyState(context)
                 else
-                  ...filteredReleases.map((release) => _buildReleaseCard(context, release)),
+                  ...filteredReleases.map((release) => _buildReleaseCard(context, release, isDark)),
               ],
             );
           },
@@ -294,17 +255,19 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
 
     final result = <ChangeLogRelease>[];
     for (final release in releases) {
-      final matchingItems = release.items.where((item) {
-        return item.rawText.toLowerCase().contains(lowerQuery) ||
-            (item.boldTitle?.toLowerCase().contains(lowerQuery) ?? false) ||
-            item.description.toLowerCase().contains(lowerQuery);
-      }).toList();
+      if (release.title.toLowerCase().contains(lowerQuery) ||
+          release.markdownContent.toLowerCase().contains(lowerQuery)) {
+        // Filter lines inside markdown if matching specific bullets
+        final lines = release.markdownContent.split('\n');
+        final matchingLines = lines.where((l) => l.toLowerCase().contains(lowerQuery)).toList();
 
-      if (matchingItems.isNotEmpty || release.title.toLowerCase().contains(lowerQuery)) {
+        final contentToUse = matchingLines.isNotEmpty ? matchingLines.join('\n') : release.markdownContent;
+
         result.add(
           ChangeLogRelease(
             title: release.title,
-            items: matchingItems.isNotEmpty ? matchingItems : release.items,
+            markdownContent: contentToUse,
+            itemCount: matchingLines.isNotEmpty ? matchingLines.length : release.itemCount,
           ),
         );
       }
@@ -313,9 +276,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
   }
 
   /// Version Card with Copy button
-  Widget _buildVersionCard(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+  Widget _buildVersionCard(BuildContext context, bool isDark) {
     return Card(
       color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
       shape: RoundedRectangleBorder(
@@ -487,10 +448,8 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
     );
   }
 
-  /// Individual Release Card
-  Widget _buildReleaseCard(BuildContext context, ChangeLogRelease release) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+  /// Release Card rendering Markdown via MarkdownBody
+  Widget _buildReleaseCard(BuildContext context, ChangeLogRelease release, bool isDark) {
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
       shape: RoundedRectangleBorder(
@@ -504,185 +463,81 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Release Header (Date / Version Title + Item Count)
+            // Release Header (Date / Version Title)
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.event_note_rounded,
-                      size: 18,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      release.title,
-                      style: TextStyle(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ],
+                Icon(
+                  Icons.event_note_rounded,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF27272A) : const Color(0xFFF4F4F5),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isDark ? const Color(0xFF3F3F46) : const Color(0xFFE4E4E7),
-                    ),
-                  ),
-                  child: Text(
-                    '${release.items.length} ${release.items.length == 1 ? 'item' : 'items'}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
-                    ),
+                const SizedBox(width: 8),
+                Text(
+                  release.title,
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
 
-            // List of Items in this release
-            ...release.items.map((item) => _buildChangeLogItemRow(context, item)),
+            // Authentic Markdown Rendering
+            MarkdownBody(
+              data: release.markdownContent,
+              selectable: true,
+              styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                p: TextStyle(
+                  fontSize: 13.5,
+                  height: 1.45,
+                  color: isDark ? const Color(0xFFE4E4E7) : const Color(0xFF27272A),
+                ),
+                listBullet: TextStyle(
+                  fontSize: 13.5,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+                listBulletPadding: const EdgeInsets.only(right: 6),
+                listIndent: 16,
+                strong: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                code: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.primary,
+                  backgroundColor: isDark ? const Color(0xFF27272A) : const Color(0xFFF4F4F5),
+                ),
+                codeblockDecoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF18181B) : const Color(0xFFF4F4F5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF3F3F46) : const Color(0xFFE4E4E7),
+                  ),
+                ),
+                a: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+              onTapLink: (text, href, title) {
+                if (href != null) {
+                  Clipboard.setData(ClipboardData(text: href));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Link copied: $href'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),
     );
-  }
-
-  /// Individual item row with bullet indicator and rich text rendering
-  Widget _buildChangeLogItemRow(BuildContext context, ChangeLogItem item) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Bullet indicator icon
-          Container(
-            margin: const EdgeInsets.only(top: 5.5, right: 10),
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              shape: BoxShape.circle,
-            ),
-          ),
-
-          // Content with RichText (supports bold titles, inline code spans, etc.)
-          Expanded(
-            child: _buildFormattedText(context, item),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Builds formatted rich text handling bold title and inline code segments (`code`)
-  Widget _buildFormattedText(BuildContext context, ChangeLogItem item) {
-    final spans = <InlineSpan>[];
-    final defaultStyle = TextStyle(
-      fontSize: 13.5,
-      height: 1.35,
-      color: Theme.of(context).colorScheme.onSurface,
-    );
-
-    // 1. Add bold title if present
-    if (item.boldTitle != null && item.boldTitle!.isNotEmpty) {
-      spans.addAll(_parseInlineCodeSpans(
-        context,
-        item.boldTitle!,
-        baseStyle: defaultStyle.copyWith(
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
-      ));
-
-      spans.add(TextSpan(
-        text: item.description.isNotEmpty ? ': ' : '',
-        style: defaultStyle.copyWith(fontWeight: FontWeight.bold),
-      ));
-    }
-
-    // 2. Add description with inline code formatting
-    if (item.description.isNotEmpty) {
-      spans.addAll(_parseInlineCodeSpans(
-        context,
-        item.description,
-        baseStyle: defaultStyle,
-      ));
-    }
-
-    return RichText(
-      text: TextSpan(
-        style: defaultStyle,
-        children: spans,
-      ),
-    );
-  }
-
-  /// Helper to convert text containing inline backticks `example` into formatted spans
-  List<InlineSpan> _parseInlineCodeSpans(
-    BuildContext context,
-    String text, {
-    required TextStyle baseStyle,
-  }) {
-    final spans = <InlineSpan>[];
-    final regex = RegExp(r'`([^`]+)`');
-    int lastMatchEnd = 0;
-
-    for (final match in regex.allMatches(text)) {
-      if (match.start > lastMatchEnd) {
-        spans.add(TextSpan(
-          text: text.substring(lastMatchEnd, match.start),
-          style: baseStyle,
-        ));
-      }
-
-      final codeText = match.group(1) ?? '';
-      final isDark = Theme.of(context).brightness == Brightness.dark;
-
-      spans.add(
-        WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF27272A) : const Color(0xFFF4F4F5),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: isDark ? const Color(0xFF3F3F46) : const Color(0xFFE4E4E7),
-              ),
-            ),
-            child: Text(
-              codeText,
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: baseStyle.fontSize != null ? baseStyle.fontSize! * 0.9 : 12,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      lastMatchEnd = match.end;
-    }
-
-    if (lastMatchEnd < text.length) {
-      spans.add(TextSpan(
-        text: text.substring(lastMatchEnd),
-        style: baseStyle,
-      ));
-    }
-
-    return spans;
   }
 }
