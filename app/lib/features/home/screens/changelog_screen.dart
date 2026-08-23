@@ -12,32 +12,13 @@ class ChangeLogScreen extends StatelessWidget {
       {
         'date': '23 August 2026',
         'items': [
-          'Implemented dedicated RoboRef Home screen with tournament discovery and quick referee tools',
-          'Added color-coded SKU formatting (Red for V5RC/VRC/VEX U, Blue for VIQRC, Emerald for ADC)',
-          'Added local SQLite persistence for recent events and incident logs with Drift',
-          'Added one-click tournament switching and direct SKU validation',
-        ]
-      },
-      {
-        'date': '22 August 2026',
-        'items': [
-          'Added Data Export and referee report summaries',
-          'Enhanced team note tracking and severity classification (Major vs Minor violations)',
-          'Added responsive dark referee UI for field tablets and mobile devices',
-        ]
-      },
-      {
-        'date': '21 August 2026',
-        'items': [
-          'Added live peer sync connection manager for venue Wi-Fi referee mesh network',
-          'Improved team search and rule code indexing for High Stakes and Rapid Relay',
-        ]
-      },
-      {
-        'date': '18 August 2026',
-        'items': [
-          'Initial release of RoboRef Flutter cross-platform referee utility',
-          'Offline-first architecture with automatic sync reconnect',
+          'Brand Identity & Icon Assets: Integrated canonical RoboRef logo across in-app UI, Web PWA icons/favicons, Android mipmaps, and iOS AppIcon set',
+          'Clean-Slate Rebuild: Complete ground-up rebuild using Flutter & Dart for cross-platform Android, iOS, and Web',
+          'Match Schedule & Field Inspection: Added full tournament match schedule view with alliance team indicators and field inspection links',
+          'VEXEvents API Integration: Direct retrieval of tournament match schedules and team rosters by SKU',
+          'Tournament Manager (TM) CSV Import: Added support for manual paste/import of Tournament Manager team and match schedule CSVs for offline venue readiness',
+          'Venue LAN Sync Priority (roboref.local): Set http://roboref.local:8080 as the preferred default connection with automatic LAN server status detection',
+          'Universal Sync Server: TypeScript + Hono sync server for both local Raspberry Pi venue deployment and Cloudflare Workers cloud deployment',
         ]
       },
     ];

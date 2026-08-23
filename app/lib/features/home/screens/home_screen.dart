@@ -278,18 +278,18 @@ class HomeScreen extends ConsumerWidget {
         children: [
           // Logo box
           Container(
-            padding: const EdgeInsets.all(6),
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF27272A) : Colors.white,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: isDark ? const Color(0xFF3F3F46) : const Color(0xFFD4D4D8),
               ),
             ),
-            child: const Icon(
-              Icons.sports_score_rounded,
-              size: 20,
-              color: Color(0xFF1E88E5),
+            clipBehavior: Clip.antiAlias,
+            child: Image.asset(
+              'assets/icons/roboref-192x192.png',
+              fit: BoxFit.cover,
             ),
           ),
           const SizedBox(width: 10),

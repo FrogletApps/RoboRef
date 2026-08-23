@@ -23,18 +23,25 @@ class ShareScreen extends StatelessWidget {
               children: [
                 // App Logo & Title
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  width: 64,
+                  height: 64,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.sports_score_rounded,
-                    size: 40,
-                    color: Color(0xFF1E88E5),
+                  clipBehavior: Clip.antiAlias,
+                  child: Image.asset(
+                    'assets/icons/roboref-512x512.png',
+                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(height: 16),
