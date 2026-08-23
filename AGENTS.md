@@ -33,6 +33,9 @@ When assisting with code modifications or feature implementations, AI agents **M
 - Prioritize touch-friendly, small-screen mobile layouts.
 - Ensure high contrast, clear visual feedback, and fast referee workflows on the field.
 
+### E. Material Design 3 Principles
+- Follow **Material Design 3 (M3)** principles and component guidelines across all UI implementations, styling, and navigation patterns unless specifically guided not to.
+
 ---
 
 ## 3. Key Development Commands
