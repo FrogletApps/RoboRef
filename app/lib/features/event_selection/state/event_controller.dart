@@ -77,15 +77,15 @@ const List<EventModel> preloadedEvents = [
     region: 'Texas',
   ),
   EventModel(
-    sku: 'RE-ADC-24-9001',
-    name: '2026 Aerial Drone Competition National Championship',
-    program: 'ADC',
+    sku: 'RE-VAIRC-24-8912',
+    name: '2026 VEX Robotics World Championship - VEX AI',
+    program: 'VEX AI',
     season: '2026-2027',
-    startDate: '2026-05-14T08:00:00Z',
-    endDate: '2026-05-16T18:00:00Z',
-    venue: 'Mid-America Center',
-    city: 'Council Bluffs',
-    region: 'Iowa',
+    startDate: '2026-04-25T08:00:00Z',
+    endDate: '2026-04-28T18:00:00Z',
+    venue: 'Kay Bailey Hutchison Convention Center',
+    city: 'Dallas',
+    region: 'Texas',
   ),
 ];
 

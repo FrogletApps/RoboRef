@@ -15,7 +15,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   String _searchQuery = '';
   String _selectedProgram = 'All';
 
-  final List<String> _programs = const ['All', 'V5RC', 'VIQRC', 'VEX U', 'ADC'];
+  final List<String> _programs = const ['All', 'V5RC', 'VIQRC', 'VEX U', 'VEX AI'];
 
   @override
   void dispose() {
@@ -30,8 +30,15 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
     // Filter preloaded events
     final filteredEvents = preloadedEvents.where((e) {
-      if (_selectedProgram != 'All' && e.program.toUpperCase() != _selectedProgram.toUpperCase()) {
-        return false;
+      if (_selectedProgram != 'All') {
+        final prog = _selectedProgram.toUpperCase();
+        final eventProg = e.program.toUpperCase();
+        final matches = (eventProg == prog) ||
+            (prog == 'VEX U' && eventProg == 'VURC') ||
+            (prog == 'VURC' && eventProg == 'VEX U') ||
+            (prog == 'VEX AI' && (eventProg == 'VAIRC' || eventProg == 'VAIC')) ||
+            (prog == 'VAIRC' && eventProg == 'VEX AI');
+        if (!matches) return false;
       }
       if (cleanQuery.isEmpty) return true;
 
@@ -114,7 +121,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                               ? const Color(0xFF1E88E5)
                               : program == 'V5RC' || program == 'VEX U'
                                   ? const Color(0xFFD32F2F)
-                                  : Theme.of(context).colorScheme.primary,
+                                  : program == 'VEX AI'
+                                      ? const Color(0xFF8E24AA)
+                                      : Theme.of(context).colorScheme.primary,
                           labelStyle: TextStyle(
                             color: isSelected ? Colors.white : null,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

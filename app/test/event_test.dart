@@ -1,7 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:roboref/database/app_database.dart';
+import 'package:roboref/features/event_selection/screens/event_selection_screen.dart';
+import 'package:roboref/features/event_selection/state/event_controller.dart';
 
 void main() {
   group('AppDatabase Event Operations', () {
@@ -55,6 +59,50 @@ void main() {
       await db.unhideEvent('RE-V5RC-24-8909');
       recent = await db.watchRecentEvents().first;
       expect(recent.length, equals(1));
+    });
+  });
+
+  group('Preloaded Events & Event Selection Screen Tests', () {
+    test('preloadedEvents only contains official VEX programs', () {
+      const officialPrograms = {'V5RC', 'VIQRC', 'VEX U', 'VEX AI'};
+      for (final event in preloadedEvents) {
+        expect(officialPrograms.contains(event.program), isTrue);
+      }
+      expect(preloadedEvents.any((e) => e.program == 'V5RC'), isTrue);
+      expect(preloadedEvents.any((e) => e.program == 'VIQRC'), isTrue);
+      expect(preloadedEvents.any((e) => e.program == 'VEX U'), isTrue);
+      expect(preloadedEvents.any((e) => e.program == 'VEX AI'), isTrue);
+    });
+
+    testWidgets('EventSelectionScreen renders correct program chips and filters properly', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: EventSelectionScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Check Program Filter Chips
+      expect(find.widgetWithText(FilterChip, 'All'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'V5RC'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'VIQRC'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'VEX U'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'VEX AI'), findsOneWidget);
+
+      // Verify preloaded list contains V5RC and VIQRC events
+      expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
+      expect(find.text('RE-VIQRC-24-8913'), findsOneWidget);
+
+      // Tap VEX AI filter chip
+      await tester.tap(find.widgetWithText(FilterChip, 'VEX AI'));
+      await tester.pumpAndSettle();
+
+      // Verify only VEX AI event is shown
+      expect(find.text('RE-VAIRC-24-8912'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-8909'), findsNothing);
+      expect(find.text('RE-VIQRC-24-8913'), findsNothing);
     });
   });
 }

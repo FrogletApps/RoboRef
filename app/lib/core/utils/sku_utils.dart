@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 /// Regex matching official VEX Tournament SKUs
 final RegExp skuRegex = RegExp(
-  r'^RE-(VRC|V5RC|VEXU|VURC|VIQRC|VIQC|VAIRC|ADC)-[0-9]{2}-[0-9]{4}$',
+  r'^RE-(VRC|V5RC|VEXU|VURC|VIQRC|VIQC|VAIRC)-[0-9]{2}-[0-9]{4}$',
   caseSensitive: false,
 );
 
@@ -20,6 +20,13 @@ bool isVIQRC(String? sku) {
   return upper.contains('VIQRC') || upper.contains('VIQC');
 }
 
+/// Check if the SKU represents a VEX AI Robotics Competition event
+bool isVAIRC(String? sku) {
+  if (sku == null || sku.isEmpty) return false;
+  final upper = sku.toUpperCase();
+  return upper.contains('VAIRC') || upper.contains('VAIC') || upper.contains('VEX AI');
+}
+
 /// Check if the SKU represents a V5RC / VRC / VEX U competition event
 bool isV5(String? sku) {
   if (sku == null || sku.isEmpty) return false;
@@ -28,7 +35,6 @@ bool isV5(String? sku) {
       upper.contains('VRC') ||
       upper.contains('VEXU') ||
       upper.contains('VURC') ||
-      upper.contains('VAIRC') ||
       upper.contains('V5');
 }
 
@@ -36,11 +42,11 @@ bool isV5(String? sku) {
 String getSkuProgram(String? sku) {
   if (sku == null || sku.isEmpty) return 'VEX';
   if (isVIQRC(sku)) return 'VIQRC';
+  if (isVAIRC(sku)) return 'VEX AI';
   if (sku.toUpperCase().contains('VEXU') || sku.toUpperCase().contains('VURC')) {
     return 'VEX U';
   }
   if (isV5(sku)) return 'V5RC';
-  if (sku.toUpperCase().contains('ADC')) return 'ADC';
   return 'VEX';
 }
 
@@ -48,6 +54,9 @@ String getSkuProgram(String? sku) {
 Color getSkuColor(String? sku) {
   if (isVIQRC(sku)) {
     return const Color(0xFF42A5F5); // Blue
+  }
+  if (isVAIRC(sku)) {
+    return const Color(0xFFAB47BC); // Purple for VEX AI
   }
   if (isV5(sku)) {
     return const Color(0xFFEF5350); // Red

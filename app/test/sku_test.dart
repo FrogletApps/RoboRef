@@ -7,18 +7,22 @@ void main() {
       expect(isValidSku('RE-V5RC-24-8909'), isTrue);
       expect(isValidSku('RE-VIQRC-24-8913'), isTrue);
       expect(isValidSku('RE-VURC-24-8911'), isTrue);
-      expect(isValidSku('RE-ADC-24-9001'), isTrue);
+      expect(isValidSku('RE-VAIRC-24-8912'), isTrue);
       expect(isValidSku('re-vrc-24-1234'), isTrue);
 
       expect(isValidSku('INVALID-SKU'), isFalse);
+      expect(isValidSku('RE-ADC-24-9001'), isFalse);
       expect(isValidSku('RE-V5RC-24'), isFalse);
       expect(isValidSku('RE-UNKNOWN-24-1234'), isFalse);
     });
 
-    test('Detects VIQRC and V5 programs', () {
+    test('Detects VIQRC, VAIRC, and V5 programs', () {
       expect(isVIQRC('RE-VIQRC-24-8913'), isTrue);
       expect(isVIQRC('RE-VIQC-24-8913'), isTrue);
       expect(isVIQRC('RE-V5RC-24-8909'), isFalse);
+
+      expect(isVAIRC('RE-VAIRC-24-8912'), isTrue);
+      expect(isVAIRC('RE-V5RC-24-8909'), isFalse);
 
       expect(isV5('RE-V5RC-24-8909'), isTrue);
       expect(isV5('RE-VRC-24-1234'), isTrue);
@@ -28,7 +32,7 @@ void main() {
       expect(getSkuProgram('RE-V5RC-24-8909'), equals('V5RC'));
       expect(getSkuProgram('RE-VIQRC-24-8913'), equals('VIQRC'));
       expect(getSkuProgram('RE-VURC-24-8911'), equals('VEX U'));
-      expect(getSkuProgram('RE-ADC-24-9001'), equals('ADC'));
+      expect(getSkuProgram('RE-VAIRC-24-8912'), equals('VEX AI'));
     });
 
     test('Formats date ranges accurately', () {
