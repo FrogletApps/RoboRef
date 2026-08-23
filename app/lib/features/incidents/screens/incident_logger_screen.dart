@@ -7,7 +7,12 @@ import '../widgets/severity_badge.dart';
 import '../../settings/state/sync_settings_controller.dart';
 
 class IncidentLoggerScreen extends StatefulWidget {
-  const IncidentLoggerScreen({super.key});
+  final bool showAppBar;
+
+  const IncidentLoggerScreen({
+    super.key,
+    this.showAppBar = true,
+  });
 
   @override
   State<IncidentLoggerScreen> createState() => _IncidentLoggerScreenState();
@@ -24,37 +29,39 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
         final settings = ref.watch(syncSettingsProvider);
 
         return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          children: [
-            const Text('RoboRef', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            Text(
-              settings.currentSku,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: settings.isSyncing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : const Icon(Icons.sync),
-            tooltip: 'Sync Notes',
-            onPressed: settings.isSyncing
-                ? null
-                : () {
-                    ref.read(incidentControllerProvider.notifier).triggerSync();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Syncing with referee network...'), duration: Duration(seconds: 1)),
-                    );
-                  },
-          ),
-        ],
-      ),
+          appBar: widget.showAppBar
+              ? AppBar(
+                  title: Column(
+                    children: [
+                      const Text('RoboRef', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(
+                        settings.currentSku,
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: settings.isSyncing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : const Icon(Icons.sync),
+                      tooltip: 'Sync Notes',
+                      onPressed: settings.isSyncing
+                          ? null
+                          : () {
+                              ref.read(incidentControllerProvider.notifier).triggerSync();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Syncing with referee network...'), duration: Duration(seconds: 1)),
+                              );
+                            },
+                    ),
+                  ],
+                )
+              : null,
       body: Column(
         children: [
           // Search / Filter bar

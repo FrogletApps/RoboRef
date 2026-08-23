@@ -8,7 +8,12 @@ import '../../settings/state/sync_settings_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
 
 class MatchScheduleScreen extends StatefulWidget {
-  const MatchScheduleScreen({super.key});
+  final bool showAppBar;
+
+  const MatchScheduleScreen({
+    super.key,
+    this.showAppBar = true,
+  });
 
   @override
   State<MatchScheduleScreen> createState() => _MatchScheduleScreenState();
@@ -26,24 +31,26 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
         final settings = ref.watch(syncSettingsProvider);
 
         return Scaffold(
-          appBar: AppBar(
-            title: Column(
-              children: [
-                const Text('Match Schedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                Text(
-                  settings.currentSku,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
-                ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.download),
-                tooltip: 'Load / Import Schedule',
-                onPressed: () => _showImportSheet(context),
-              ),
-            ],
-          ),
+          appBar: widget.showAppBar
+              ? AppBar(
+                  title: Column(
+                    children: [
+                      const Text('Match Schedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(
+                        settings.currentSku,
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.download),
+                      tooltip: 'Load / Import Schedule',
+                      onPressed: () => _showImportSheet(context),
+                    ),
+                  ],
+                )
+              : null,
           body: Column(
             children: [
               // Search / Filter

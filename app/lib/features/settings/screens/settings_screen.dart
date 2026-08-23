@@ -5,7 +5,12 @@ import '../../incidents/state/incident_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final bool showAppBar;
+
+  const SettingsScreen({
+    super.key,
+    this.showAppBar = true,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -39,9 +44,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Referee & Sync Settings'),
-          ),
+          appBar: widget.showAppBar
+              ? AppBar(
+                  title: const Text('Referee & Sync Settings'),
+                )
+              : null,
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,7 +10,7 @@ import 'package:roboref/features/incidents/state/incident_controller.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
 
 void main() {
-  testWidgets('RoboRefApp HomeScreen initial render test', (WidgetTester tester) async {
+  testWidgets('RoboRefApp Hierarchical Navigation test (Home Hub -> Event Workspace)', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
       'current_sku': 'TEST-SKU-2026',
       'referee_name': 'Test Referee',
@@ -22,48 +23,84 @@ void main() {
       DatabaseConnection(NativeDatabase.memory()),
     );
 
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        databaseProvider.overrideWithValue(testDb),
+      ],
+    );
+
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-          databaseProvider.overrideWithValue(testDb),
-        ],
+      UncontrolledProviderScope(
+        container: container,
         child: const RoboRefApp(),
       ),
     );
 
     await tester.pumpAndSettle();
 
-    // Verify navigation bar destinations
-    expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Incidents'), findsOneWidget);
-    expect(find.text('Matches'), findsOneWidget);
-    expect(find.text('Teams'), findsOneWidget);
-    expect(find.text('Settings'), findsNWidgets(2)); // One in Quick Actions, one in Bottom Navigation
+    // 1. Verify Home Screen has NO bottom navigation bar
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.text('Incidents'), findsNothing);
+    expect(find.text('Matches'), findsNothing);
+    expect(find.text('Teams'), findsNothing);
 
     // Verify Home Screen quick actions and primary action
     expect(find.text('Change Log'), findsOneWidget);
     expect(find.text('Share RoboRef'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget); // In Quick Actions
     expect(find.text('Add a new event'), findsOneWidget);
-    expect(find.text('Recent Tournaments'), findsOneWidget);
+    expect(find.text('Recent Tournaments'), findsNothing);
+    expect(find.text('Browse All'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.text('Welcome to RoboRef!'), findsOneWidget);
 
-    // Test navigating to Event Selection Screen
+    // 2. Test navigating to Event Selection Screen
     await tester.tap(find.text('Add a new event'));
     await tester.pumpAndSettle();
 
     expect(find.text('Pick An Event'), findsOneWidget);
     expect(find.text('Search by SKU (RE-...) or event name'), findsOneWidget);
 
-    // Test selecting a preloaded championship event
+    // 3. Test selecting a preloaded championship event
     expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
     await tester.tap(find.text('RE-V5RC-24-8909'));
     await tester.pumpAndSettle();
 
-    // Verify returning to home and recent list displays the selected tournament
+    // Verify returning to home and recent list displays the selected tournament with header
+    expect(find.text('Recent Tournaments'), findsOneWidget);
     expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
     expect(find.text('ACTIVE'), findsOneWidget);
+    expect(find.text('Welcome to RoboRef!'), findsNothing);
+    expect(find.byType(NavigationBar), findsNothing); // Still on Home screen
 
-    await testDb.close();
+    // 4. Tap the tournament card to enter the Event Workspace
+    await tester.tap(find.text('RE-V5RC-24-8909'));
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 100));
+    });
+    await tester.pumpAndSettle();
+
+    // Verify Event Workspace now displays the NavigationBar with all 4 event destinations
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('Incidents'), findsOneWidget);
+    expect(find.text('Matches'), findsOneWidget);
+    expect(find.text('Teams'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
+
+    // 5. Test navigating back to Home Hub
+    await tester.pageBack();
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 100));
+    });
+    await tester.pumpAndSettle();
+
+    // Verify we are back on Home Screen without bottom navigation
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.text('Recent Tournaments'), findsOneWidget);
+    expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
+
+    container.dispose();
+    await tester.pump(const Duration(seconds: 1));
   });
 }

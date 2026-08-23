@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../../event_selection/screens/event_selection_screen.dart';
 import '../../event_selection/state/event_controller.dart';
+import '../../event_workspace/screens/event_workspace_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import 'changelog_screen.dart';
@@ -44,52 +45,27 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // 4. Recent Events List / Welcome Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Recent Tournaments',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const EventSelectionScreen()),
-                      );
-                    },
-                    icon: const Icon(Icons.search, size: 16),
-                    label: const Text('Browse All', style: TextStyle(fontSize: 13)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Reactive Recent Events Stream
               recentEventsAsync.when(
-                loading: () => const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32.0),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-                error: (err, stack) => Card(
-                  color: Colors.red.shade900.withValues(alpha: 0.2),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text('Error loading recent events: $err'),
-                  ),
-                ),
+                loading: () => _buildWelcomeCard(context),
+                error: (err, stack) => _buildWelcomeCard(context),
                 data: (events) {
                   if (events.isEmpty) {
                     return _buildWelcomeCard(context);
                   }
 
                   return Column(
-                    children: events.map((event) {
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Recent Tournaments',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...events.map((event) {
                       final isActive = event.sku.toUpperCase() == settings.currentSku.toUpperCase();
                       final color = getSkuColor(event.sku);
                       final dateRange = formatEventDateRange(event.startDate, event.endDate);
@@ -119,6 +95,12 @@ class HomeScreen extends ConsumerWidget {
                             );
                             if (onNavigateToIncidents != null) {
                               onNavigateToIncidents!();
+                            } else {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const EventWorkspaceScreen(),
+                                ),
+                              );
                             }
                           },
                           child: Padding(
@@ -241,10 +223,11 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
                       );
-                    }).toList(),
-                  );
-                },
-              ),
+                    }),
+                  ],
+                );
+              },
+            ),
               const SizedBox(height: 20),
             ],
           ),
@@ -519,7 +502,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'To get started, add a new event using the button above.',
+            'To get started, tap the "Add a new event" button above.',
             style: TextStyle(
               fontSize: 13.5,
               color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF52525B),

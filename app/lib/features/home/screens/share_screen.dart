@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class ShareScreen extends StatelessWidget {
   const ShareScreen({super.key});
@@ -76,13 +77,17 @@ class ShareScreen extends StatelessWidget {
                   elevation: 4,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: [
-                        // Custom styled QR-like visual code representation
-                        CustomPaint(
-                          size: const Size(200, 200),
-                          painter: _QrCodePainter(),
+                        // Functional QR code linking to https://roboref.fyi
+                        QrImageView(
+                          data: shareUrl,
+                          version: QrVersions.auto,
+                          size: 200,
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.all(8.0),
+                          errorCorrectionLevel: QrErrorCorrectLevel.M,
                         ),
                         const SizedBox(height: 12),
                         const Text(
@@ -145,65 +150,4 @@ class ShareScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-class _QrCodePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.fill;
-
-    final cell = size.width / 21;
-
-    // Corner 1 (Top-Left)
-    _drawFinderPattern(canvas, paint, 0, 0, cell);
-    // Corner 2 (Top-Right)
-    _drawFinderPattern(canvas, paint, 14 * cell, 0, cell);
-    // Corner 3 (Bottom-Left)
-    _drawFinderPattern(canvas, paint, 0, 14 * cell, cell);
-
-    // Decorative data grid dots for QR representation
-    final sampleDots = [
-      const Point(8, 2), const Point(9, 2), const Point(11, 2), const Point(12, 2),
-      const Point(8, 4), const Point(10, 4), const Point(12, 4),
-      const Point(2, 8), const Point(4, 8), const Point(6, 8), const Point(8, 8),
-      const Point(10, 8), const Point(14, 8), const Point(16, 8), const Point(18, 8),
-      const Point(3, 10), const Point(7, 10), const Point(10, 10), const Point(13, 10),
-      const Point(17, 10), const Point(5, 12), const Point(8, 12), const Point(11, 12),
-      const Point(15, 12), const Point(18, 12), const Point(8, 14), const Point(10, 14),
-      const Point(12, 14), const Point(16, 14), const Point(9, 16), const Point(11, 16),
-      const Point(13, 16), const Point(17, 16), const Point(8, 18), const Point(12, 18),
-      const Point(15, 18), const Point(18, 18),
-    ];
-
-    for (final pt in sampleDots) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(pt.x * cell, pt.y * cell, cell * 0.9, cell * 0.9),
-          const Radius.circular(1.5),
-        ),
-        paint,
-      );
-    }
-  }
-
-  void _drawFinderPattern(Canvas canvas, Paint paint, double x, double y, double cell) {
-    // Outer square
-    canvas.drawRect(Rect.fromLTWH(x, y, 7 * cell, 7 * cell), paint);
-    // Inner white square
-    final whitePaint = Paint()..color = Colors.white;
-    canvas.drawRect(Rect.fromLTWH(x + cell, y + cell, 5 * cell, 5 * cell), whitePaint);
-    // Center square
-    canvas.drawRect(Rect.fromLTWH(x + 2 * cell, y + 2 * cell, 3 * cell, 3 * cell), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class Point {
-  final double x;
-  final double y;
-  const Point(this.x, this.y);
 }

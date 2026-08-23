@@ -7,7 +7,12 @@ import '../state/team_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 
 class TeamListScreen extends StatefulWidget {
-  const TeamListScreen({super.key});
+  final bool showAppBar;
+
+  const TeamListScreen({
+    super.key,
+    this.showAppBar = true,
+  });
 
   @override
   State<TeamListScreen> createState() => _TeamListScreenState();
@@ -24,25 +29,27 @@ class _TeamListScreenState extends State<TeamListScreen> {
         final registeredTeamsAsync = ref.watch(activeTournamentTeamsProvider);
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Team Histories'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.download),
-                tooltip: 'Load / Import Teams',
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          appBar: widget.showAppBar
+              ? AppBar(
+                  title: const Text('Team Histories'),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.download),
+                      tooltip: 'Load / Import Teams',
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                          ),
+                          builder: (ctx) => const EventImportSheet(),
+                        );
+                      },
                     ),
-                    builder: (ctx) => const EventImportSheet(),
-                  );
-                },
-              ),
-            ],
-          ),
+                  ],
+                )
+              : null,
           body: Column(
             children: [
               Padding(
