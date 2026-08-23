@@ -1,0 +1,34 @@
+{
+  "name": "roboref-sync-server",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Universal sync server for RoboRef deployable to Cloudflare Workers and Raspberry Pi",
+  "main": "src/index.node.ts",
+  "scripts": {
+    "dev:cf": "wrangler dev src/index.cf.ts",
+    "deploy:cf": "wrangler deploy src/index.cf.ts",
+    "dev:node": "tsx watch src/index.node.ts",
+    "start:node": "tsx src/index.node.ts",
+    "build:node": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@hono/node-ws": "^1.0.4",
+    "better-sqlite3": "^11.8.1",
+    "dotenv": "^16.4.7",
+    "hono": "^4.6.14",
+    "ws": "^8.18.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241230.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.2",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "wrangler": "^3.99.0"
+  }
+}
