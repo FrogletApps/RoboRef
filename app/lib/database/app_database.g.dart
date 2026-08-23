@@ -41,6 +41,31 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
   late final GeneratedColumn<String> endDate = GeneratedColumn<String>(
       'end_date', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _venueMeta = const VerificationMeta('venue');
+  @override
+  late final GeneratedColumn<String> venue = GeneratedColumn<String>(
+      'venue', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _cityMeta = const VerificationMeta('city');
+  @override
+  late final GeneratedColumn<String> city = GeneratedColumn<String>(
+      'city', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _regionMeta = const VerificationMeta('region');
+  @override
+  late final GeneratedColumn<String> region = GeneratedColumn<String>(
+      'region', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isHiddenMeta =
+      const VerificationMeta('isHidden');
+  @override
+  late final GeneratedColumn<bool> isHidden = GeneratedColumn<bool>(
+      'is_hidden', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_hidden" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -48,8 +73,19 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
       'updated_at', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns =>
-      [sku, name, program, season, startDate, endDate, updatedAt];
+  List<GeneratedColumn> get $columns => [
+        sku,
+        name,
+        program,
+        season,
+        startDate,
+        endDate,
+        venue,
+        city,
+        region,
+        isHidden,
+        updatedAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -96,6 +132,22 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     } else if (isInserting) {
       context.missing(_endDateMeta);
     }
+    if (data.containsKey('venue')) {
+      context.handle(
+          _venueMeta, venue.isAcceptableOrUnknown(data['venue']!, _venueMeta));
+    }
+    if (data.containsKey('city')) {
+      context.handle(
+          _cityMeta, city.isAcceptableOrUnknown(data['city']!, _cityMeta));
+    }
+    if (data.containsKey('region')) {
+      context.handle(_regionMeta,
+          region.isAcceptableOrUnknown(data['region']!, _regionMeta));
+    }
+    if (data.containsKey('is_hidden')) {
+      context.handle(_isHiddenMeta,
+          isHidden.isAcceptableOrUnknown(data['is_hidden']!, _isHiddenMeta));
+    }
     if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
@@ -123,6 +175,14 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
           .read(DriftSqlType.string, data['${effectivePrefix}start_date'])!,
       endDate: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}end_date'])!,
+      venue: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}venue']),
+      city: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}city']),
+      region: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}region']),
+      isHidden: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_hidden'])!,
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
     );
@@ -141,6 +201,10 @@ class Event extends DataClass implements Insertable<Event> {
   final String season;
   final String startDate;
   final String endDate;
+  final String? venue;
+  final String? city;
+  final String? region;
+  final bool isHidden;
   final int updatedAt;
   const Event(
       {required this.sku,
@@ -149,6 +213,10 @@ class Event extends DataClass implements Insertable<Event> {
       required this.season,
       required this.startDate,
       required this.endDate,
+      this.venue,
+      this.city,
+      this.region,
+      required this.isHidden,
       required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -159,6 +227,16 @@ class Event extends DataClass implements Insertable<Event> {
     map['season'] = Variable<String>(season);
     map['start_date'] = Variable<String>(startDate);
     map['end_date'] = Variable<String>(endDate);
+    if (!nullToAbsent || venue != null) {
+      map['venue'] = Variable<String>(venue);
+    }
+    if (!nullToAbsent || city != null) {
+      map['city'] = Variable<String>(city);
+    }
+    if (!nullToAbsent || region != null) {
+      map['region'] = Variable<String>(region);
+    }
+    map['is_hidden'] = Variable<bool>(isHidden);
     map['updated_at'] = Variable<int>(updatedAt);
     return map;
   }
@@ -171,6 +249,12 @@ class Event extends DataClass implements Insertable<Event> {
       season: Value(season),
       startDate: Value(startDate),
       endDate: Value(endDate),
+      venue:
+          venue == null && nullToAbsent ? const Value.absent() : Value(venue),
+      city: city == null && nullToAbsent ? const Value.absent() : Value(city),
+      region:
+          region == null && nullToAbsent ? const Value.absent() : Value(region),
+      isHidden: Value(isHidden),
       updatedAt: Value(updatedAt),
     );
   }
@@ -185,6 +269,10 @@ class Event extends DataClass implements Insertable<Event> {
       season: serializer.fromJson<String>(json['season']),
       startDate: serializer.fromJson<String>(json['startDate']),
       endDate: serializer.fromJson<String>(json['endDate']),
+      venue: serializer.fromJson<String?>(json['venue']),
+      city: serializer.fromJson<String?>(json['city']),
+      region: serializer.fromJson<String?>(json['region']),
+      isHidden: serializer.fromJson<bool>(json['isHidden']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
   }
@@ -198,6 +286,10 @@ class Event extends DataClass implements Insertable<Event> {
       'season': serializer.toJson<String>(season),
       'startDate': serializer.toJson<String>(startDate),
       'endDate': serializer.toJson<String>(endDate),
+      'venue': serializer.toJson<String?>(venue),
+      'city': serializer.toJson<String?>(city),
+      'region': serializer.toJson<String?>(region),
+      'isHidden': serializer.toJson<bool>(isHidden),
       'updatedAt': serializer.toJson<int>(updatedAt),
     };
   }
@@ -209,6 +301,10 @@ class Event extends DataClass implements Insertable<Event> {
           String? season,
           String? startDate,
           String? endDate,
+          Value<String?> venue = const Value.absent(),
+          Value<String?> city = const Value.absent(),
+          Value<String?> region = const Value.absent(),
+          bool? isHidden,
           int? updatedAt}) =>
       Event(
         sku: sku ?? this.sku,
@@ -217,6 +313,10 @@ class Event extends DataClass implements Insertable<Event> {
         season: season ?? this.season,
         startDate: startDate ?? this.startDate,
         endDate: endDate ?? this.endDate,
+        venue: venue.present ? venue.value : this.venue,
+        city: city.present ? city.value : this.city,
+        region: region.present ? region.value : this.region,
+        isHidden: isHidden ?? this.isHidden,
         updatedAt: updatedAt ?? this.updatedAt,
       );
   Event copyWithCompanion(EventsCompanion data) {
@@ -227,6 +327,10 @@ class Event extends DataClass implements Insertable<Event> {
       season: data.season.present ? data.season.value : this.season,
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
       endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      venue: data.venue.present ? data.venue.value : this.venue,
+      city: data.city.present ? data.city.value : this.city,
+      region: data.region.present ? data.region.value : this.region,
+      isHidden: data.isHidden.present ? data.isHidden.value : this.isHidden,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -240,14 +344,18 @@ class Event extends DataClass implements Insertable<Event> {
           ..write('season: $season, ')
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
+          ..write('venue: $venue, ')
+          ..write('city: $city, ')
+          ..write('region: $region, ')
+          ..write('isHidden: $isHidden, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(sku, name, program, season, startDate, endDate, updatedAt);
+  int get hashCode => Object.hash(sku, name, program, season, startDate,
+      endDate, venue, city, region, isHidden, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -258,6 +366,10 @@ class Event extends DataClass implements Insertable<Event> {
           other.season == this.season &&
           other.startDate == this.startDate &&
           other.endDate == this.endDate &&
+          other.venue == this.venue &&
+          other.city == this.city &&
+          other.region == this.region &&
+          other.isHidden == this.isHidden &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -268,6 +380,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
   final Value<String> season;
   final Value<String> startDate;
   final Value<String> endDate;
+  final Value<String?> venue;
+  final Value<String?> city;
+  final Value<String?> region;
+  final Value<bool> isHidden;
   final Value<int> updatedAt;
   final Value<int> rowid;
   const EventsCompanion({
@@ -277,6 +393,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.season = const Value.absent(),
     this.startDate = const Value.absent(),
     this.endDate = const Value.absent(),
+    this.venue = const Value.absent(),
+    this.city = const Value.absent(),
+    this.region = const Value.absent(),
+    this.isHidden = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -287,6 +407,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
     required String season,
     required String startDate,
     required String endDate,
+    this.venue = const Value.absent(),
+    this.city = const Value.absent(),
+    this.region = const Value.absent(),
+    this.isHidden = const Value.absent(),
     required int updatedAt,
     this.rowid = const Value.absent(),
   })  : sku = Value(sku),
@@ -303,6 +427,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Expression<String>? season,
     Expression<String>? startDate,
     Expression<String>? endDate,
+    Expression<String>? venue,
+    Expression<String>? city,
+    Expression<String>? region,
+    Expression<bool>? isHidden,
     Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -313,6 +441,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
       if (season != null) 'season': season,
       if (startDate != null) 'start_date': startDate,
       if (endDate != null) 'end_date': endDate,
+      if (venue != null) 'venue': venue,
+      if (city != null) 'city': city,
+      if (region != null) 'region': region,
+      if (isHidden != null) 'is_hidden': isHidden,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -325,6 +457,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
       Value<String>? season,
       Value<String>? startDate,
       Value<String>? endDate,
+      Value<String?>? venue,
+      Value<String?>? city,
+      Value<String?>? region,
+      Value<bool>? isHidden,
       Value<int>? updatedAt,
       Value<int>? rowid}) {
     return EventsCompanion(
@@ -334,6 +470,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
       season: season ?? this.season,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
+      venue: venue ?? this.venue,
+      city: city ?? this.city,
+      region: region ?? this.region,
+      isHidden: isHidden ?? this.isHidden,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -360,6 +500,18 @@ class EventsCompanion extends UpdateCompanion<Event> {
     if (endDate.present) {
       map['end_date'] = Variable<String>(endDate.value);
     }
+    if (venue.present) {
+      map['venue'] = Variable<String>(venue.value);
+    }
+    if (city.present) {
+      map['city'] = Variable<String>(city.value);
+    }
+    if (region.present) {
+      map['region'] = Variable<String>(region.value);
+    }
+    if (isHidden.present) {
+      map['is_hidden'] = Variable<bool>(isHidden.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<int>(updatedAt.value);
     }
@@ -378,6 +530,10 @@ class EventsCompanion extends UpdateCompanion<Event> {
           ..write('season: $season, ')
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
+          ..write('venue: $venue, ')
+          ..write('city: $city, ')
+          ..write('region: $region, ')
+          ..write('isHidden: $isHidden, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2000,6 +2156,10 @@ typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   required String season,
   required String startDate,
   required String endDate,
+  Value<String?> venue,
+  Value<String?> city,
+  Value<String?> region,
+  Value<bool> isHidden,
   required int updatedAt,
   Value<int> rowid,
 });
@@ -2010,6 +2170,10 @@ typedef $$EventsTableUpdateCompanionBuilder = EventsCompanion Function({
   Value<String> season,
   Value<String> startDate,
   Value<String> endDate,
+  Value<String?> venue,
+  Value<String?> city,
+  Value<String?> region,
+  Value<bool> isHidden,
   Value<int> updatedAt,
   Value<int> rowid,
 });
@@ -2040,6 +2204,18 @@ class $$EventsTableFilterComposer
 
   ColumnFilters<String> get endDate => $composableBuilder(
       column: $table.endDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get venue => $composableBuilder(
+      column: $table.venue, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get city => $composableBuilder(
+      column: $table.city, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get region => $composableBuilder(
+      column: $table.region, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isHidden => $composableBuilder(
+      column: $table.isHidden, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
@@ -2072,6 +2248,18 @@ class $$EventsTableOrderingComposer
   ColumnOrderings<String> get endDate => $composableBuilder(
       column: $table.endDate, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get venue => $composableBuilder(
+      column: $table.venue, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get city => $composableBuilder(
+      column: $table.city, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get region => $composableBuilder(
+      column: $table.region, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isHidden => $composableBuilder(
+      column: $table.isHidden, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
@@ -2102,6 +2290,18 @@ class $$EventsTableAnnotationComposer
 
   GeneratedColumn<String> get endDate =>
       $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<String> get venue =>
+      $composableBuilder(column: $table.venue, builder: (column) => column);
+
+  GeneratedColumn<String> get city =>
+      $composableBuilder(column: $table.city, builder: (column) => column);
+
+  GeneratedColumn<String> get region =>
+      $composableBuilder(column: $table.region, builder: (column) => column);
+
+  GeneratedColumn<bool> get isHidden =>
+      $composableBuilder(column: $table.isHidden, builder: (column) => column);
 
   GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -2136,6 +2336,10 @@ class $$EventsTableTableManager extends RootTableManager<
             Value<String> season = const Value.absent(),
             Value<String> startDate = const Value.absent(),
             Value<String> endDate = const Value.absent(),
+            Value<String?> venue = const Value.absent(),
+            Value<String?> city = const Value.absent(),
+            Value<String?> region = const Value.absent(),
+            Value<bool> isHidden = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2146,6 +2350,10 @@ class $$EventsTableTableManager extends RootTableManager<
             season: season,
             startDate: startDate,
             endDate: endDate,
+            venue: venue,
+            city: city,
+            region: region,
+            isHidden: isHidden,
             updatedAt: updatedAt,
             rowid: rowid,
           ),
@@ -2156,6 +2364,10 @@ class $$EventsTableTableManager extends RootTableManager<
             required String season,
             required String startDate,
             required String endDate,
+            Value<String?> venue = const Value.absent(),
+            Value<String?> city = const Value.absent(),
+            Value<String?> region = const Value.absent(),
+            Value<bool> isHidden = const Value.absent(),
             required int updatedAt,
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2166,6 +2378,10 @@ class $$EventsTableTableManager extends RootTableManager<
             season: season,
             startDate: startDate,
             endDate: endDate,
+            venue: venue,
+            city: city,
+            region: region,
+            isHidden: isHidden,
             updatedAt: updatedAt,
             rowid: rowid,
           ),

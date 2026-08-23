@@ -1,6 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:http/http.dart' as http;
+
+enum ServerConnectionStatus {
+  unknown,
+  connectedLocal,
+  connectedCloud,
+  unreachable,
+}
 
 class SyncSettingsState {
   final String currentSku;
@@ -10,6 +18,7 @@ class SyncSettingsState {
   final bool isSyncing;
   final String? lastSyncTime;
   final String? lastError;
+  final ServerConnectionStatus connectionStatus;
 
   SyncSettingsState({
     required this.currentSku,
@@ -19,6 +28,7 @@ class SyncSettingsState {
     this.isSyncing = false,
     this.lastSyncTime,
     this.lastError,
+    this.connectionStatus = ServerConnectionStatus.unknown,
   });
 
   SyncSettingsState copyWith({
@@ -29,6 +39,7 @@ class SyncSettingsState {
     bool? isSyncing,
     String? lastSyncTime,
     String? lastError,
+    ServerConnectionStatus? connectionStatus,
   }) {
     return SyncSettingsState(
       currentSku: currentSku ?? this.currentSku,
@@ -38,6 +49,7 @@ class SyncSettingsState {
       isSyncing: isSyncing ?? this.isSyncing,
       lastSyncTime: lastSyncTime ?? this.lastSyncTime,
       lastError: lastError,
+      connectionStatus: connectionStatus ?? this.connectionStatus,
     );
   }
 }
@@ -50,11 +62,12 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
           currentSku: prefs.getString('current_sku') ?? 'DEMO-EVENT-2026',
           refereeName: prefs.getString('referee_name') ?? 'Head Referee',
           deviceId: prefs.getString('device_id') ?? const Uuid().v4(),
-          serverUrl: prefs.getString('server_url') ?? 'http://127.0.0.1:8080',
+          serverUrl: prefs.getString('server_url') ?? 'http://roboref.local:8080',
         )) {
     if (!prefs.containsKey('device_id')) {
       prefs.setString('device_id', state.deviceId);
     }
+    checkServerHealth();
   }
 
   void setSku(String sku) {
@@ -70,6 +83,7 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
   void setServerUrl(String url) {
     prefs.setString('server_url', url);
     state = state.copyWith(serverUrl: url);
+    checkServerHealth();
   }
 
   void setSyncing(bool syncing, {String? error}) {
@@ -78,6 +92,27 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
       lastError: error,
       lastSyncTime: syncing ? state.lastSyncTime : DateTime.now().toIso8601String(),
     );
+  }
+
+  Future<void> checkServerHealth() async {
+    try {
+      final uri = Uri.parse('${state.serverUrl}/api/health');
+      final res = await http.get(uri).timeout(const Duration(seconds: 3));
+      if (res.statusCode == 200) {
+        final isLocal = state.serverUrl.contains('roboref.local') ||
+            state.serverUrl.contains('127.0.0.1') ||
+            state.serverUrl.contains('192.168.') ||
+            state.serverUrl.contains('10.') ||
+            state.serverUrl.contains('localhost');
+        state = state.copyWith(
+          connectionStatus: isLocal
+              ? ServerConnectionStatus.connectedLocal
+              : ServerConnectionStatus.connectedCloud,
+        );
+        return;
+      }
+    } catch (_) {}
+    state = state.copyWith(connectionStatus: ServerConnectionStatus.unreachable);
   }
 }
 

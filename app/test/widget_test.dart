@@ -9,7 +9,7 @@ import 'package:roboref/features/incidents/state/incident_controller.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
 
 void main() {
-  testWidgets('RoboRefApp initial screen smoke test', (WidgetTester tester) async {
+  testWidgets('RoboRefApp HomeScreen initial render test', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
       'current_sku': 'TEST-SKU-2026',
       'referee_name': 'Test Referee',
@@ -34,12 +34,35 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // Verify main header and navigation destinations are rendered
-    expect(find.text('RoboRef'), findsOneWidget);
-    expect(find.text('TEST-SKU-2026'), findsOneWidget);
+    // Verify navigation bar destinations
+    expect(find.text('Home'), findsOneWidget);
     expect(find.text('Incidents'), findsOneWidget);
+    expect(find.text('Matches'), findsOneWidget);
     expect(find.text('Teams'), findsOneWidget);
-    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Settings'), findsNWidgets(2)); // One in Quick Actions, one in Bottom Navigation
+
+    // Verify Home Screen quick actions and primary action
+    expect(find.text('Change Log'), findsOneWidget);
+    expect(find.text('Share RoboRef'), findsOneWidget);
+    expect(find.text('Add a new event'), findsOneWidget);
+    expect(find.text('Recent Tournaments'), findsOneWidget);
+    expect(find.text('Welcome to RoboRef!'), findsOneWidget);
+
+    // Test navigating to Event Selection Screen
+    await tester.tap(find.text('Add a new event'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pick An Event'), findsOneWidget);
+    expect(find.text('Search by SKU (RE-...) or event name'), findsOneWidget);
+
+    // Test selecting a preloaded championship event
+    expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
+    await tester.tap(find.text('RE-V5RC-24-8909'));
+    await tester.pumpAndSettle();
+
+    // Verify returning to home and recent list displays the selected tournament
+    expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
+    expect(find.text('ACTIVE'), findsOneWidget);
 
     await testDb.close();
   });

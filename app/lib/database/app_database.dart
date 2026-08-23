@@ -63,4 +63,96 @@ class AppDatabase extends _$AppDatabase {
       }
     });
   }
+
+  // --- Events DAO Methods ---
+
+  // Stream of recent visible events
+  Stream<List<Event>> watchRecentEvents({int limit = 10}) {
+    return (select(events)
+          ..where((tbl) => tbl.isHidden.equals(false))
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+          ..limit(limit))
+        .watch();
+  }
+
+  // Get a single event by SKU
+  Future<Event?> getEventBySku(String sku) {
+    return (select(events)..where((tbl) => tbl.sku.equals(sku))).getSingleOrNull();
+  }
+
+  // Upsert an event record
+  Future<void> upsertEvent(EventsCompanion entry) {
+    return into(events).insertOnConflictUpdate(entry);
+  }
+
+  // Hide an event from recent history
+  Future<void> hideEvent(String sku) {
+    return (update(events)..where((tbl) => tbl.sku.equals(sku))).write(
+      const EventsCompanion(isHidden: Value(true)),
+    );
+  }
+
+  // Unhide an event in history
+  Future<void> unhideEvent(String sku) {
+    return (update(events)..where((tbl) => tbl.sku.equals(sku))).write(
+      const EventsCompanion(isHidden: Value(false)),
+    );
+  }
+
+  // Delete an event record
+  Future<void> deleteEvent(String sku) {
+    return (delete(events)..where((tbl) => tbl.sku.equals(sku))).go();
+  }
+
+  // --- Teams DAO Methods ---
+  Stream<List<Team>> watchTeamsForSku(String sku) {
+    return (select(teams)
+          ..where((tbl) => tbl.sku.equals(sku))
+          ..orderBy([(t) => OrderingTerm.asc(t.teamNumber)]))
+        .watch();
+  }
+
+  Future<void> upsertTeams(List<TeamsCompanion> entries) async {
+    await batch((batch) {
+      for (final entry in entries) {
+        batch.insert(
+          teams,
+          entry,
+          onConflict: DoUpdate(
+            (old) => entry,
+            target: [teams.teamNumber, teams.sku],
+          ),
+        );
+      }
+    });
+  }
+
+  // --- Matches DAO Methods ---
+  Stream<List<Matche>> watchMatchesForSku(String sku) {
+    return (select(matches)
+          ..where((tbl) => tbl.sku.equals(sku))
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .watch();
+  }
+
+  Future<void> upsertMatches(List<MatchesCompanion> entries) async {
+    await batch((batch) {
+      for (final entry in entries) {
+        batch.insert(
+          matches,
+          entry,
+          onConflict: DoUpdate(
+            (old) => entry,
+            target: [matches.matchId, matches.sku],
+          ),
+        );
+      }
+    });
+  }
+
+  // Clear all tournament data for a SKU
+  Future<void> clearTournamentData(String sku) async {
+    await (delete(matches)..where((tbl) => tbl.sku.equals(sku))).go();
+    await (delete(teams)..where((tbl) => tbl.sku.equals(sku))).go();
+  }
 }
