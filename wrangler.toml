@@ -14,10 +14,22 @@ run_worker_first = false
 ENVIRONMENT = "test"
 
 # Default (Test) Environment
+routes = [
+  { pattern = "test.roboref.app", custom_domain = true },
+  { pattern = "test.roboref.fyi", custom_domain = true }
+]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "roboref-test-db"
 database_id = "8bcc2138-47d7-4b1b-9f57-e668abe27b42"
+
+# Observability & Logging
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
 
 # ----------------------------------------------------------------------
 # Test Environment
@@ -26,8 +38,10 @@ database_id = "8bcc2138-47d7-4b1b-9f57-e668abe27b42"
 [env.test]
 name = "roboref-test"
 workers_dev = true
-# Optional custom domain for test (uncomment if configured):
-# routes = [{ pattern = "test.roboref.app", custom_domain = true }]
+routes = [
+  { pattern = "test.roboref.app", custom_domain = true },
+  { pattern = "test.roboref.fyi", custom_domain = true }
+]
 
 [env.test.vars]
 ENVIRONMENT = "test"
