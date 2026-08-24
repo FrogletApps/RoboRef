@@ -25,6 +25,7 @@ class DivisionModel {
 }
 
 class EventModel {
+  final int? id;
   final String sku;
   final String name;
   final String program;
@@ -37,6 +38,7 @@ class EventModel {
   final List<DivisionModel> divisions;
 
   const EventModel({
+    this.id,
     required this.sku,
     required this.name,
     required this.program,
@@ -58,6 +60,7 @@ class EventModel {
     var location = json['location'] as Map<String, dynamic>?;
 
     return EventModel(
+      id: json['id'] as int?,
       sku: json['sku'] as String? ?? '',
       name: json['name'] as String? ?? '',
       program: json['program'] is Map

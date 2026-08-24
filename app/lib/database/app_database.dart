@@ -112,6 +112,13 @@ class AppDatabase extends _$AppDatabase {
         .watch();
   }
 
+  Future<List<Team>> getTeamsForSku(String sku) {
+    return (select(teams)
+          ..where((tbl) => tbl.sku.equals(sku))
+          ..orderBy([(t) => OrderingTerm.asc(t.teamNumber)]))
+        .get();
+  }
+
   Future<void> upsertTeams(List<TeamsCompanion> entries) async {
     await batch((batch) {
       for (final entry in entries) {
@@ -133,6 +140,13 @@ class AppDatabase extends _$AppDatabase {
           ..where((tbl) => tbl.sku.equals(sku))
           ..orderBy([(t) => OrderingTerm.asc(t.name)]))
         .watch();
+  }
+
+  Future<List<Matche>> getMatchesForSku(String sku) {
+    return (select(matches)
+          ..where((tbl) => tbl.sku.equals(sku))
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .get();
   }
 
   Future<void> upsertMatches(List<MatchesCompanion> entries) async {

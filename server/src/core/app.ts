@@ -4,6 +4,12 @@ import { logger } from "hono/logger";
 import type { StorageAdapter, SyncPushPayload } from "./types.js";
 
 export interface AppEnv {
+  Bindings?: {
+    DB?: any;
+    ENVIRONMENT?: string;
+    ROBOTEVENTS_API_KEY?: string;
+    VEX_EVENTS_TOKEN?: string;
+  };
   Variables: {
     storage: StorageAdapter;
   };
@@ -11,6 +17,16 @@ export interface AppEnv {
 
 export function createSyncApp(storageProvider: StorageAdapter) {
   const app = new Hono<AppEnv>();
+
+  // In-memory cache for vexevents proxy
+  const cacheMap = new Map<string, { body: string; status: number; contentType: string; expires: number }>();
+
+  function cacheDurationSeconds(path: string): number {
+    if (/(^|\/)(matches|rankings|skills)(\/|$)/.test(path)) return 60; // 1 min
+    if (path.startsWith("events") || path.startsWith("seasons") || path.startsWith("programs")) return 3600 * 24; // 1 day
+    if (path.startsWith("teams")) return 600; // 10 mins
+    return 60;
+  }
 
   // Global middleware
   app.use("*", logger());
@@ -33,6 +49,67 @@ export function createSyncApp(storageProvider: StorageAdapter) {
       server: "RoboRef Universal Sync Server",
       timestamp: Date.now(),
     });
+  });
+
+  // Proxy endpoint for VEX Events / RobotEvents API v2
+  app.get("/api/vexevents/*", async (c) => {
+    const rawPath = c.req.path.replace(/^\/api\/vexevents\/?/, "");
+    const url = new URL(c.req.url);
+    const cacheKey = `${rawPath}${url.search}`;
+
+    const now = Date.now();
+    const cached = cacheMap.get(cacheKey);
+    if (cached && cached.expires > now) {
+      c.header("Content-Type", cached.contentType);
+      c.header("Cache-Control", `public, max-age=${Math.floor((cached.expires - now) / 1000)}`);
+      c.header("X-RoboRef-Cache", "HIT");
+      return c.body(cached.body, cached.status as any);
+    }
+
+    const envKey =
+      (c.env as any)?.ROBOTEVENTS_API_KEY ||
+      (c.env as any)?.VEX_EVENTS_TOKEN ||
+      (typeof process !== "undefined" ? process.env.ROBOTEVENTS_API_KEY || process.env.VEX_EVENTS_TOKEN : "");
+
+    const authHeader = c.req.header("Authorization") || (envKey ? `Bearer ${envKey}` : undefined);
+
+    const upstreamUrl = new URL(`https://events.vex.com/api/v2/${rawPath}`);
+    upstreamUrl.search = url.search;
+
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+    };
+    if (authHeader) {
+      headers["Authorization"] = authHeader;
+    }
+
+    try {
+      const response = await fetch(upstreamUrl.toString(), {
+        method: "GET",
+        headers,
+      });
+
+      const bodyText = await response.text();
+      const status = response.status;
+      const contentType = response.headers.get("content-type") || "application/json";
+
+      if (response.ok) {
+        const ttlSecs = cacheDurationSeconds(rawPath);
+        cacheMap.set(cacheKey, {
+          body: bodyText,
+          status,
+          contentType,
+          expires: now + ttlSecs * 1000,
+        });
+        c.header("Cache-Control", `public, max-age=${ttlSecs}`);
+      }
+
+      c.header("Content-Type", contentType);
+      c.header("X-RoboRef-Cache", "MISS");
+      return c.body(bodyText, status as any);
+    } catch (e: any) {
+      return c.json({ error: "Failed to proxy request to RobotEvents", details: e?.message }, 502);
+    }
   });
 
   // Fetch changes since a specific version

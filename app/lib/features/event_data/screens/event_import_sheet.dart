@@ -221,7 +221,11 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> with Single
     });
 
     final db = ref.read(databaseProvider);
-    final client = VexEventsClient();
+    final settings = ref.read(syncSettingsProvider);
+    final client = VexEventsClient(
+      apiKey: settings.vexApiKey,
+      serverUrl: settings.serverUrl,
+    );
 
     final result = await client.fetchTournamentData(sku: sku, db: db);
 

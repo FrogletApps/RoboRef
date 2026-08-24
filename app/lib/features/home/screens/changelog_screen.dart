@@ -97,7 +97,7 @@ class ChangeLogScreen extends StatefulWidget {
 }
 
 class _ChangeLogScreenState extends State<ChangeLogScreen> {
-  String _version = '2026.8.23+1';
+  String _version = '2026.8.24+1';
   late Future<List<ChangeLogRelease>> _changelogFuture;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();

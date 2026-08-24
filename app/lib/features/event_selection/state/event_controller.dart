@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import '../../../database/app_database.dart';
+import '../../event_data/services/vex_events_client.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../../core/utils/sku_utils.dart';
@@ -89,12 +90,21 @@ const List<EventModel> preloadedEvents = [
   ),
 ];
 
+final vexEventsClientProvider = Provider<VexEventsClient>((ref) {
+  final settings = ref.watch(syncSettingsProvider);
+  return VexEventsClient(
+    apiKey: settings.vexApiKey,
+    serverUrl: settings.serverUrl,
+  );
+});
+
 class EventController extends StateNotifier<AsyncValue<void>> {
   final Ref ref;
 
   EventController(this.ref) : super(const AsyncValue.data(null));
 
   AppDatabase get _db => ref.read(databaseProvider);
+  VexEventsClient get _client => ref.read(vexEventsClientProvider);
 
   /// Select an event, saving it to database and updating active SKU
   Future<void> selectEvent({
@@ -130,6 +140,39 @@ class EventController extends StateNotifier<AsyncValue<void>> {
 
     // 2. Set current SKU in sync settings
     ref.read(syncSettingsProvider.notifier).setSku(cleanSku);
+  }
+
+  /// Ingests full tournament data (teams & match schedule) from VEX Events API and activates it
+  Future<VexEventsFetchResult> importAndSelectEvent({
+    required EventModel event,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _client.fetchTournamentData(
+        sku: event.sku,
+        db: _db,
+        eventId: event.id,
+        defaultEventName: event.name,
+        defaultProgram: event.program,
+      );
+
+      if (result.success) {
+        ref.read(syncSettingsProvider.notifier).setSku(event.sku);
+        state = const AsyncValue.data(null);
+      } else {
+        state = AsyncValue.error(
+          result.errorMessage ?? 'Failed to load tournament data',
+          StackTrace.current,
+        );
+      }
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return VexEventsFetchResult(
+        success: false,
+        errorMessage: e.toString(),
+      );
+    }
   }
 
   /// Add a custom or manual event

@@ -1,16 +1,27 @@
-# roboref
+# RoboRef — Flutter Client Application
 
-A new Flutter project.
+This directory (`app/`) contains the Flutter client for **RoboRef**, targeting Android, iOS, and Web/PWA.
 
-## Getting Started
+For full project documentation, architecture details, build scripts, and server setup, see the main [Repository README.md](../README.md).
 
-This project is a starting point for a Flutter application.
+## Quick Start (Flutter Client)
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+# Install dependencies
+flutter pub get
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+# Run on Web (Chrome)
+flutter run -d chrome
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Run on Android device / emulator
+flutter run -d android
+
+# Run tests
+flutter test
+
+# Run analyzer
+flutter analyze
+
+# Re-generate Drift SQLite code
+dart run build_runner build --delete-conflicting-outputs
+```

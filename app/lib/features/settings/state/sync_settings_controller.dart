@@ -15,6 +15,7 @@ class SyncSettingsState {
   final String refereeName;
   final String deviceId;
   final String serverUrl;
+  final String vexApiKey;
   final bool isSyncing;
   final String? lastSyncTime;
   final String? lastError;
@@ -25,17 +26,21 @@ class SyncSettingsState {
     required this.refereeName,
     required this.deviceId,
     required this.serverUrl,
+    this.vexApiKey = '',
     this.isSyncing = false,
     this.lastSyncTime,
     this.lastError,
     this.connectionStatus = ServerConnectionStatus.unknown,
   });
 
+  bool get hasVexApiKey => vexApiKey.trim().isNotEmpty;
+
   SyncSettingsState copyWith({
     String? currentSku,
     String? refereeName,
     String? deviceId,
     String? serverUrl,
+    String? vexApiKey,
     bool? isSyncing,
     String? lastSyncTime,
     String? lastError,
@@ -46,6 +51,7 @@ class SyncSettingsState {
       refereeName: refereeName ?? this.refereeName,
       deviceId: deviceId ?? this.deviceId,
       serverUrl: serverUrl ?? this.serverUrl,
+      vexApiKey: vexApiKey ?? this.vexApiKey,
       isSyncing: isSyncing ?? this.isSyncing,
       lastSyncTime: lastSyncTime ?? this.lastSyncTime,
       lastError: lastError,
@@ -63,6 +69,9 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
           refereeName: prefs.getString('referee_name') ?? 'Head Referee',
           deviceId: prefs.getString('device_id') ?? const Uuid().v4(),
           serverUrl: prefs.getString('server_url') ?? 'http://roboref.local:8080',
+          vexApiKey: prefs.getString('vex_api_key') ??
+              const String.fromEnvironment('VEX_API_KEY',
+                  defaultValue: String.fromEnvironment('ROBOTEVENTS_API_KEY', defaultValue: '')),
         )) {
     if (!prefs.containsKey('device_id')) {
       prefs.setString('device_id', state.deviceId);
@@ -84,6 +93,38 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
     prefs.setString('server_url', url);
     state = state.copyWith(serverUrl: url);
     checkServerHealth();
+  }
+
+  void setVexApiKey(String key) {
+    var cleanKey = key.trim();
+    if (cleanKey.toLowerCase().startsWith('bearer ')) {
+      cleanKey = cleanKey.substring(7).trim();
+    }
+    prefs.setString('vex_api_key', cleanKey);
+    state = state.copyWith(vexApiKey: cleanKey);
+  }
+
+  Future<bool> testVexApiKey(String key) async {
+    var cleanKey = key.trim();
+    if (cleanKey.toLowerCase().startsWith('bearer ')) {
+      cleanKey = cleanKey.substring(7).trim();
+    }
+    if (cleanKey.isEmpty) return false;
+
+    try {
+      final uri = Uri.parse('https://www.robotevents.com/api/v2/events?per_page=1');
+      final res = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $cleanKey',
+          'Accept': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 5));
+
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
   }
 
   void setSyncing(bool syncing, {String? error}) {

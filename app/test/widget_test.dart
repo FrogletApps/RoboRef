@@ -4,8 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:roboref/main.dart';
 import 'package:roboref/database/app_database.dart';
+import 'package:roboref/features/event_data/services/vex_events_client.dart';
+import 'package:roboref/features/event_selection/state/event_controller.dart';
 import 'package:roboref/features/incidents/state/incident_controller.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
 
@@ -23,10 +27,20 @@ void main() {
       DatabaseConnection(NativeDatabase.memory()),
     );
 
+    final mockHttpClient = MockClient((request) async {
+      return http.Response('{"data":[]}', 200);
+    });
+
     final container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         databaseProvider.overrideWithValue(testDb),
+        vexEventsClientProvider.overrideWithValue(
+          VexEventsClient(
+            client: mockHttpClient,
+            apiKey: 'test-key',
+          ),
+        ),
       ],
     );
 
@@ -65,17 +79,20 @@ void main() {
     // 3. Test selecting a preloaded championship event
     expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
     await tester.tap(find.text('RE-V5RC-24-8909'));
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 100));
+    });
     await tester.pumpAndSettle();
 
     // Verify returning to home and recent list displays the selected tournament with header
     expect(find.text('Recent Tournaments'), findsOneWidget);
-    expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
+    expect(find.widgetWithText(Card, 'RE-V5RC-24-8909'), findsOneWidget);
     expect(find.text('ACTIVE'), findsOneWidget);
     expect(find.text('Welcome to RoboRef!'), findsNothing);
     expect(find.byType(NavigationBar), findsNothing); // Still on Home screen
 
     // 4. Tap the tournament card to enter the Event Workspace
-    await tester.tap(find.text('RE-V5RC-24-8909'));
+    await tester.tap(find.widgetWithText(Card, 'RE-V5RC-24-8909'));
     await tester.runAsync(() async {
       await Future.delayed(const Duration(milliseconds: 100));
     });

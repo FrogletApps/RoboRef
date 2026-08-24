@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026.8.24+1
+
+- **Live VEX Events API Integration**: Connected official VEX Events API (`events.vex.com/api/v2`) replacing placeholder dummy events with live event discovery and schedule ingestion.
+- **Server-Side RobotEvents Proxy**: Added `/api/vexevents/*` proxy endpoint to the universal sync server with in-memory TTL caching and server-side Bearer token injection.
+- **In-App API Key Configuration**: Added dedicated VEX Events API Key management in Settings with real-time test validation and persistent local storage.
+- **Multi-Division Tournament Ingestion**: Automated retrieval and persistence of all division match schedules and complete team rosters into local SQLite database upon event selection.
+- **Event Picker Live Search & Debounce**: Added live debounced search by SKU or tournament name with program filters (V5RC, VIQRC, VEX U, VEX AI) and offline cached fallback.
+
 ## 2026.8.23+1
 
 - **Clean-Slate Rebuild**: Complete ground-up rebuild using Flutter & Dart for cross-platform Android, iOS, and Web.

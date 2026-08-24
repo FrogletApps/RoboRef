@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:roboref/database/app_database.dart';
+import 'package:roboref/features/incidents/state/incident_controller.dart';
+import 'package:roboref/features/settings/state/sync_settings_controller.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:roboref/features/event_data/services/vex_events_client.dart';
 import 'package:roboref/features/event_selection/screens/event_selection_screen.dart';
 import 'package:roboref/features/event_selection/state/event_controller.dart';
 
@@ -75,13 +81,41 @@ void main() {
     });
 
     testWidgets('EventSelectionScreen renders correct program chips and filters properly', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'RE-V5RC-24-8909',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final testDb = AppDatabase.forTesting(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+
+      final mockHttpClient = MockClient((request) async {
+        return http.Response(
+          '{"data":[]}',
+          200,
+        );
+      });
+
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            vexEventsClientProvider.overrideWithValue(
+              VexEventsClient(
+                client: mockHttpClient,
+                apiKey: 'test-key',
+              ),
+            ),
+          ],
+          child: const MaterialApp(
             home: EventSelectionScreen(),
           ),
         ),
       );
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
       await tester.pumpAndSettle();
 
       // Check Program Filter Chips

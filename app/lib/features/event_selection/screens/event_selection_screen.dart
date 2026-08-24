@@ -1,6 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/sku_utils.dart';
+import '../../settings/screens/settings_screen.dart';
+import '../../settings/state/sync_settings_controller.dart';
+import '../models/event_model.dart';
 import '../state/event_controller.dart';
 
 class EventSelectionScreen extends ConsumerStatefulWidget {
@@ -14,22 +18,128 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedProgram = 'All';
+  Timer? _debounceTimer;
+
+  bool _isLoading = false;
+  String? _errorMessage;
+  List<EventModel> _apiEvents = [];
+  bool _isImporting = false;
+  String? _importingSku;
 
   final List<String> _programs = const ['All', 'V5RC', 'VIQRC', 'VEX U', 'VEX AI'];
 
   @override
+  void initState() {
+    super.initState();
+    _fetchEvents();
+  }
+
+  @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String val) {
+    setState(() => _searchQuery = val);
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+      _fetchEvents();
+    });
+  }
+
+  Future<void> _fetchEvents() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final client = ref.read(vexEventsClientProvider);
+
+    try {
+      final results = await client.searchEvents(
+        query: _searchQuery.trim().isNotEmpty ? _searchQuery.trim() : null,
+        program: _selectedProgram != 'All' ? _selectedProgram : null,
+        perPage: 30,
+      );
+
+      if (mounted) {
+        setState(() {
+          _apiEvents = results;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+      }
+    }
+  }
+
+  Future<void> _handleEventSelection(EventModel event) async {
+    setState(() {
+      _isImporting = true;
+      _importingSku = event.sku;
+    });
+
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    final result = await ref.read(eventControllerProvider.notifier).importAndSelectEvent(event: event);
+
+    if (mounted) {
+      setState(() {
+        _isImporting = false;
+        _importingSku = null;
+      });
+
+      if (result.success) {
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              'Selected "${result.eventName ?? event.sku}" (${result.teamsCount} teams, ${result.matchesCount} matches)',
+            ),
+            backgroundColor: Colors.green.shade800,
+          ),
+        );
+      } else {
+        // Even if deep schedule fetch failed (e.g. timeout), select event basic metadata
+        await ref.read(eventControllerProvider.notifier).selectEvent(
+              sku: event.sku,
+              name: event.name,
+              program: event.program,
+              season: event.season,
+              startDate: event.startDate,
+              endDate: event.endDate,
+              venue: event.venue,
+              city: event.city,
+              region: event.region,
+            );
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Switched to ${event.sku} (Schedule sync pending: ${result.errorMessage})'),
+            backgroundColor: Colors.orange.shade800,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final cleanQuery = _searchQuery.trim().toUpperCase();
     final isCustomSkuValid = isValidSku(cleanQuery);
+    final settings = ref.watch(syncSettingsProvider);
 
-    // Filter preloaded events
-    final filteredEvents = preloadedEvents.where((e) {
+    // Filter fallback list if API is unreachable or empty
+    final fallbackFiltered = preloadedEvents.where((e) {
       if (_selectedProgram != 'All') {
         final prog = _selectedProgram.toUpperCase();
         final eventProg = e.program.toUpperCase();
@@ -50,9 +160,18 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
       return skuMatch || nameMatch || venueMatch || cityMatch;
     }).toList();
 
+    final displayEvents = _apiEvents.isNotEmpty ? _apiEvents : fallbackFiltered;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pick An Event'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Reload Events',
+            onPressed: _fetchEvents,
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -83,7 +202,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                             icon: const Icon(Icons.clear),
                             onPressed: () {
                               _searchController.clear();
-                              setState(() => _searchQuery = '');
+                              _onSearchChanged('');
                             },
                           )
                         : null,
@@ -95,7 +214,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  onChanged: (val) => setState(() => _searchQuery = val),
+                  onChanged: _onSearchChanged,
                 ),
                 const SizedBox(height: 12),
 
@@ -114,6 +233,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                             setState(() {
                               _selectedProgram = selected ? program : 'All';
                             });
+                            _fetchEvents();
                           },
                           showCheckmark: false,
                           backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -137,176 +257,245 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
             ),
           ),
 
+          // API Key Notice Banner if not configured and not connected to server
+          if (!settings.hasVexApiKey &&
+              settings.connectionStatus != ServerConnectionStatus.connectedLocal &&
+              settings.connectionStatus != ServerConnectionStatus.connectedCloud &&
+              _errorMessage != null) ...[
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                border: Border.all(color: Colors.amber.shade300),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.amber.shade900, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Live event search uses the VEX Events API. Connect to your venue LAN server or add your API key in Settings.',
+                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF78350F)),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                      );
+                    },
+                    child: const Text('Settings'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           // Search Results / Tournament List
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                // Direct SKU Entry Card (if user typed a valid custom SKU)
-                if (isCustomSkuValid && !filteredEvents.any((e) => e.sku.toUpperCase() == cleanQuery)) ...[
-                  Card(
-                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-                      leading: CircleAvatar(
-                        backgroundColor: getSkuColor(cleanQuery),
-                        child: const Icon(Icons.add, color: Colors.white),
-                      ),
-                      title: Text(
-                        cleanQuery,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'monospace'),
-                      ),
-                      subtitle: Text('Add custom ${getSkuProgram(cleanQuery)} tournament'),
-                      trailing: ElevatedButton(
-                        onPressed: () async {
-                          final navigator = Navigator.of(context);
-                          final messenger = ScaffoldMessenger.of(context);
-                          await ref.read(eventControllerProvider.notifier).addManualEvent(
-                                sku: cleanQuery,
-                              );
-                          if (mounted) {
-                            navigator.pop();
-                            messenger.showSnackBar(
-                              SnackBar(content: Text('Selected tournament $cleanQuery')),
-                            );
-                          }
-                        },
-                        child: const Text('Add & Select'),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Section Title
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Text(
-                    _searchQuery.isEmpty ? 'Championship & Featured Events' : 'Matching Events',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
-                  ),
-                ),
-
-                // Event List Items
-                if (filteredEvents.isEmpty && !isCustomSkuValid)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 32.0),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          Icon(Icons.event_busy, size: 48, color: Colors.grey.shade400),
-                          const SizedBox(height: 12),
-                          const Text('No tournaments found matching your query.'),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'You can type any valid SKU (e.g. RE-V5RC-24-1234) to add it.',
-                            style: TextStyle(color: Colors.grey, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  ...filteredEvents.map((event) {
-                    final color = getSkuColor(event.sku);
-                    final dateRange = formatEventDateRange(event.startDate, event.endDate);
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: InkWell(
+            child: RefreshIndicator(
+              onRefresh: _fetchEvents,
+              child: ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  // Direct SKU Entry Card (if user typed a valid custom SKU)
+                  if (isCustomSkuValid && !displayEvents.any((e) => e.sku.toUpperCase() == cleanQuery)) ...[
+                    Card(
+                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        onTap: () async {
-                          final navigator = Navigator.of(context);
-                          final messenger = ScaffoldMessenger.of(context);
-                          await ref.read(eventControllerProvider.notifier).selectEvent(
-                                sku: event.sku,
-                                name: event.name,
-                                program: event.program,
-                                season: event.season,
-                                startDate: event.startDate,
-                                endDate: event.endDate,
-                                venue: event.venue,
-                                city: event.city,
-                                region: event.region,
-                              );
-                          if (mounted) {
-                            navigator.pop();
-                            messenger.showSnackBar(
-                              SnackBar(content: Text('Switched to ${event.sku}')),
-                            );
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(14.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Top Row: SKU Badge + Dates
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: color.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: color.withValues(alpha: 0.4)),
+                        side: BorderSide(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: CircleAvatar(
+                          backgroundColor: getSkuColor(cleanQuery),
+                          child: const Icon(Icons.add, color: Colors.white),
+                        ),
+                        title: Text(
+                          cleanQuery,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+                        ),
+                        subtitle: Text('Add & fetch custom ${getSkuProgram(cleanQuery)} tournament schedule'),
+                        trailing: ElevatedButton(
+                          onPressed: _isImporting
+                              ? null
+                              : () async {
+                                  await _handleEventSelection(
+                                    EventModel(
+                                      sku: cleanQuery,
+                                      name: '${getSkuProgram(cleanQuery)} Tournament ($cleanQuery)',
+                                      program: getSkuProgram(cleanQuery),
+                                      season: '2026-2027',
+                                      startDate: DateTime.now().toIso8601String(),
+                                      endDate: DateTime.now().toIso8601String(),
                                     ),
-                                    child: Text(
-                                      event.sku,
-                                      style: TextStyle(
-                                        color: color,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        fontFamily: 'monospace',
-                                      ),
-                                    ),
-                                  ),
-                                  if (dateRange.isNotEmpty)
-                                    Text(
-                                      dateRange,
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-
-                              // Event Name
-                              Text(
-                                event.name,
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                              ),
-
-                              // Venue / City
-                              if (event.venue != null || event.city != null) ...[
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        [event.venue, event.city, event.region]
-                                            .where((s) => s != null && s.isNotEmpty)
-                                            .join(', '),
-                                        style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
+                                  );
+                                },
+                          child: const Text('Add & Select'),
                         ),
                       ),
-                    );
-                  }),
-              ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Section Title & Result Count
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _searchQuery.isEmpty ? 'Live & Featured Tournaments' : 'Matching Events',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                      ),
+                      if (_isLoading)
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else
+                        Text(
+                          '${displayEvents.length} events',
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Loading shimmer or empty state
+                  if (_isLoading && displayEvents.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40.0),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text('Fetching live events from VEX Events API...', style: TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                    )
+                  else if (displayEvents.isEmpty && !isCustomSkuValid)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32.0),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.event_busy, size: 48, color: Colors.grey.shade400),
+                            const SizedBox(height: 12),
+                            Text(
+                              _errorMessage != null
+                                  ? 'Could not connect to VEX Events API.'
+                                  : 'No tournaments found matching your search.',
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'You can type any valid SKU (e.g. RE-V5RC-24-1234) to add it directly.',
+                              style: TextStyle(color: Colors.grey, fontSize: 13),
+                            ),
+                            if (_errorMessage != null) ...[
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: _fetchEvents,
+                                icon: const Icon(Icons.refresh, size: 16),
+                                label: const Text('Retry'),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    ...displayEvents.map((event) {
+                      final color = getSkuColor(event.sku);
+                      final dateRange = formatEventDateRange(event.startDate, event.endDate);
+                      final isCurrentImporting = _isImporting && _importingSku == event.sku;
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: _isImporting ? null : () => _handleEventSelection(event),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Top Row: SKU Badge + Dates
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: color.withValues(alpha: 0.4)),
+                                      ),
+                                      child: Text(
+                                        event.sku,
+                                        style: TextStyle(
+                                          color: color,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                          fontFamily: 'monospace',
+                                        ),
+                                      ),
+                                    ),
+                                    if (isCurrentImporting)
+                                      const Row(
+                                        children: [
+                                          SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                                          SizedBox(width: 6),
+                                          Text('Loading schedule...', style: TextStyle(fontSize: 12, color: Colors.blue)),
+                                        ],
+                                      )
+                                    else if (dateRange.isNotEmpty)
+                                      Text(
+                                        dateRange,
+                                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+
+                                // Event Name
+                                Text(
+                                  event.name,
+                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+
+                                // Venue / City
+                                if (event.venue != null || event.city != null) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          [event.venue, event.city, event.region]
+                                              .where((s) => s != null && s.isNotEmpty)
+                                              .join(', '),
+                                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                ],
+              ),
             ),
           ),
         ],
@@ -314,3 +503,4 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     );
   }
 }
+
