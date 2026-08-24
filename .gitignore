@@ -13,6 +13,8 @@ node_modules/
 *.sqlite*
 *.sqlite3
 *.sqlite-journal
+.wrangler/
+.mf/
 
 
 
