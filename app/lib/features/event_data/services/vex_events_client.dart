@@ -33,41 +33,29 @@ class VexEventsFetchResult {
 
 class VexEventsClient {
   final http.Client _client;
-  final String? _apiKey;
   final String? _serverUrl;
 
   VexEventsClient({
     http.Client? client,
-    String? apiKey,
     String? serverUrl,
   })  : _client = client ?? http.Client(),
-        _apiKey = apiKey,
         _serverUrl = serverUrl;
 
-  String? _resolveApiKey(String? overrideKey) {
-    final key = overrideKey ??
-        _apiKey ??
-        const String.fromEnvironment('VEX_API_KEY',
-            defaultValue: String.fromEnvironment('ROBOTEVENTS_API_KEY', defaultValue: ''));
-    final clean = key.trim();
-    if (clean.toLowerCase().startsWith('bearer ')) {
-      return clean.substring(7).trim();
+  String get _effectiveServerUrl {
+    final url = _serverUrl?.trim();
+    if (url != null && url.isNotEmpty) {
+      return url.replaceAll(RegExp(r'/+$'), '');
     }
-    return clean.isNotEmpty ? clean : null;
+    return 'http://roboref.local:8080';
   }
 
-  Map<String, String> _buildHeaders(String? apiKey) {
-    final headers = <String, String>{
-      'Accept': 'application/json',
-    };
-    final key = _resolveApiKey(apiKey);
-    if (key != null && key.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $key';
-    }
-    return headers;
-  }
+  String get _baseProxyUrl => '$_effectiveServerUrl/api/vexevents';
 
-  /// Map program names to RobotEvents program IDs
+  Map<String, String> get _headers => const {
+        'Accept': 'application/json',
+      };
+
+  /// Map program names to VEX Events program IDs
   List<int> _getProgramIds(String? program) {
     if (program == null || program.isEmpty || program == 'All') {
       return [];
@@ -91,27 +79,20 @@ class VexEventsClient {
     }
   }
 
-  /// Searches events from RobotEvents API
+  /// Searches events via the sync server VEX Events proxy
   Future<List<EventModel>> searchEvents({
     String? query,
     String? program,
     String? sku,
     int page = 1,
     int perPage = 25,
-    String? apiKey,
     String? serverUrl,
   }) async {
-    final effectiveKey = _resolveApiKey(apiKey);
-    final effectiveServer = serverUrl ?? _serverUrl;
+    final serverBase = serverUrl != null && serverUrl.trim().isNotEmpty
+        ? '${serverUrl.trim().replaceAll(RegExp(r"/+$"), "")}/api/vexevents'
+        : _baseProxyUrl;
 
-    Uri baseUri;
-    if (effectiveKey != null && effectiveKey.isNotEmpty) {
-      baseUri = Uri.parse('https://events.vex.com/api/v2/events');
-    } else if (effectiveServer != null && effectiveServer.isNotEmpty) {
-      baseUri = Uri.parse('$effectiveServer/api/vexevents/events');
-    } else {
-      baseUri = Uri.parse('https://events.vex.com/api/v2/events');
-    }
+    final baseUri = Uri.parse('$serverBase/events');
 
     final queryParams = <String, List<String>>{
       'page': [page.toString()],
@@ -137,20 +118,11 @@ class VexEventsClient {
     final uri = baseUri.replace(queryParameters: queryParams);
 
     try {
-      final response = await _client
-          .get(uri, headers: _buildHeaders(effectiveKey))
-          .timeout(const Duration(seconds: 12));
-
-      if (response.statusCode == 401) {
-        throw VexApiException(
-          'RobotEvents API key is missing or unauthorized. Please configure your API key in Settings.',
-          statusCode: 401,
-        );
-      }
+      final response = await _client.get(uri, headers: _headers).timeout(const Duration(seconds: 12));
 
       if (response.statusCode != 200) {
         throw VexApiException(
-          'Server returned error ${response.statusCode}: ${response.body}',
+          'Sync server returned error ${response.statusCode}: ${response.body}',
           statusCode: response.statusCode,
         );
       }
@@ -164,18 +136,17 @@ class VexEventsClient {
       return [];
     } catch (e) {
       if (e is VexApiException) rethrow;
-      throw VexApiException('Failed to search events: ${e.toString()}');
+      throw VexApiException('Failed to search events via sync server: ${e.toString()}');
     }
   }
 
-  /// Fetches tournament details, teams, and match schedule from RobotEvents / VEX public API
+  /// Fetches tournament details, teams, and match schedule from VEX Events via sync server
   Future<VexEventsFetchResult> fetchTournamentData({
     required String sku,
     required AppDatabase db,
     int? eventId,
     String? defaultEventName,
     String? defaultProgram,
-    String? apiKey,
     String? serverUrl,
   }) async {
     final cleanSku = sku.trim().toUpperCase();
@@ -183,18 +154,9 @@ class VexEventsClient {
       return VexEventsFetchResult(success: false, errorMessage: 'SKU cannot be empty');
     }
 
-    final effectiveKey = _resolveApiKey(apiKey);
-    final effectiveServer = serverUrl ?? _serverUrl;
-    final headers = _buildHeaders(effectiveKey);
-
-    String baseApiUrl;
-    if (effectiveKey != null && effectiveKey.isNotEmpty) {
-      baseApiUrl = 'https://events.vex.com/api/v2';
-    } else if (effectiveServer != null && effectiveServer.isNotEmpty) {
-      baseApiUrl = '$effectiveServer/api/vexevents';
-    } else {
-      baseApiUrl = 'https://events.vex.com/api/v2';
-    }
+    final serverBase = serverUrl != null && serverUrl.trim().isNotEmpty
+        ? '${serverUrl.trim().replaceAll(RegExp(r"/+$"), "")}/api/vexevents'
+        : _baseProxyUrl;
 
     try {
       int? resolvedId = eventId;
@@ -211,15 +173,8 @@ class VexEventsClient {
       List<int> divisionIds = [];
 
       // 1. Fetch Event Info if ID not given or to get fresh event details
-      final eventUri = Uri.parse('$baseApiUrl/events?sku[]=$cleanSku');
-      final eventResponse = await _client.get(eventUri, headers: headers).timeout(const Duration(seconds: 10));
-
-      if (eventResponse.statusCode == 401) {
-        return VexEventsFetchResult(
-          success: false,
-          errorMessage: 'API Key missing or invalid. Please check your RobotEvents API Key in Settings.',
-        );
-      }
+      final eventUri = Uri.parse('$serverBase/events?sku[]=$cleanSku');
+      final eventResponse = await _client.get(eventUri, headers: _headers).timeout(const Duration(seconds: 10));
 
       if (eventResponse.statusCode == 200) {
         final data = jsonDecode(eventResponse.body);
@@ -275,8 +230,8 @@ class VexEventsClient {
         final List<TeamsCompanion> allTeamCompanions = [];
 
         while (hasMorePages && page <= 5) {
-          final teamsUri = Uri.parse('$baseApiUrl/events/$resolvedId/teams?page=$page&per_page=250');
-          final teamsResponse = await _client.get(teamsUri, headers: headers).timeout(const Duration(seconds: 12));
+          final teamsUri = Uri.parse('$serverBase/events/$resolvedId/teams?page=$page&per_page=250');
+          final teamsResponse = await _client.get(teamsUri, headers: _headers).timeout(const Duration(seconds: 12));
 
           if (teamsResponse.statusCode == 200) {
             final teamsData = jsonDecode(teamsResponse.body);
@@ -331,9 +286,9 @@ class VexEventsClient {
 
           while (hasMoreMatches && matchPage <= 5) {
             final matchesUri =
-                Uri.parse('$baseApiUrl/events/$resolvedId/divisions/$divId/matches?page=$matchPage&per_page=250');
+                Uri.parse('$serverBase/events/$resolvedId/divisions/$divId/matches?page=$matchPage&per_page=250');
             final matchesResponse =
-                await _client.get(matchesUri, headers: headers).timeout(const Duration(seconds: 12));
+                await _client.get(matchesUri, headers: _headers).timeout(const Duration(seconds: 12));
 
             if (matchesResponse.statusCode == 200) {
               final matchesData = jsonDecode(matchesResponse.body);
@@ -413,7 +368,7 @@ class VexEventsClient {
     } catch (e) {
       return VexEventsFetchResult(
         success: false,
-        errorMessage: 'Failed to fetch tournament data: ${e.toString()}',
+        errorMessage: 'Failed to fetch tournament data from sync server: ${e.toString()}',
       );
     }
   }

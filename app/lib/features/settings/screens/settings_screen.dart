@@ -20,18 +20,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _skuController;
   late TextEditingController _nameController;
   late TextEditingController _serverController;
-  late TextEditingController _vexApiKeyController;
   bool _initialized = false;
-  bool _obscureApiKey = true;
-  bool _isTestingKey = false;
-  bool? _isKeyValid;
 
   @override
   void dispose() {
     _skuController.dispose();
     _nameController.dispose();
     _serverController.dispose();
-    _vexApiKeyController.dispose();
     super.dispose();
   }
 
@@ -45,7 +40,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _skuController = TextEditingController(text: settings.currentSku);
           _nameController = TextEditingController(text: settings.refereeName);
           _serverController = TextEditingController(text: settings.serverUrl);
-          _vexApiKeyController = TextEditingController(text: settings.vexApiKey);
           _initialized = true;
         }
 
@@ -103,122 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // VEX Events / RobotEvents API Key Section
-              const Text(
-                'VEX Events (RobotEvents) API Key',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Enter your RobotEvents API Bearer token to load real live tournaments and download match schedules.',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _vexApiKeyController,
-                obscureText: _obscureApiKey,
-                decoration: InputDecoration(
-                  labelText: 'RobotEvents Bearer Token',
-                  hintText: 'eyJhbGciOi...',
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(_obscureApiKey ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                        onPressed: () => setState(() => _obscureApiKey = !_obscureApiKey),
-                        tooltip: _obscureApiKey ? 'Show token' : 'Hide token',
-                      ),
-                      if (settings.hasVexApiKey)
-                        IconButton(
-                          icon: const Icon(Icons.clear, size: 18),
-                          onPressed: () {
-                            _vexApiKeyController.clear();
-                            ref.read(syncSettingsProvider.notifier).setVexApiKey('');
-                            setState(() => _isKeyValid = null);
-                          },
-                          tooltip: 'Clear token',
-                        ),
-                    ],
-                  ),
-                ),
-                onChanged: (val) {
-                  ref.read(syncSettingsProvider.notifier).setVexApiKey(val);
-                  setState(() => _isKeyValid = null);
-                },
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: _isTestingKey
-                        ? null
-                        : () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            setState(() {
-                              _isTestingKey = true;
-                              _isKeyValid = null;
-                            });
-                            final valid = await ref
-                                .read(syncSettingsProvider.notifier)
-                                .testVexApiKey(_vexApiKeyController.text);
-                            if (mounted) {
-                              setState(() {
-                                _isTestingKey = false;
-                                _isKeyValid = valid;
-                              });
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text(valid
-                                      ? 'API Key is valid and connected to RobotEvents!'
-                                      : 'Invalid API Key or connection failed.'),
-                                  backgroundColor: valid ? Colors.green.shade800 : Colors.red.shade800,
-                                ),
-                              );
-                            }
-                          },
-                    icon: _isTestingKey
-                        ? const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.vpn_key_outlined, size: 16),
-                    label: Text(_isTestingKey ? 'Testing...' : 'Test API Key'),
-                  ),
-                  const SizedBox(width: 12),
-                  if (_isKeyValid != null) ...[
-                    Icon(
-                      _isKeyValid! ? Icons.check_circle : Icons.cancel,
-                      size: 18,
-                      color: _isKeyValid! ? Colors.green : Colors.red,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _isKeyValid! ? 'Valid Key' : 'Invalid Key',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: _isKeyValid! ? Colors.green : Colors.red,
-                      ),
-                    ),
-                  ] else if (settings.hasVexApiKey) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text(
-                        'Key Saved',
-                        style: TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 24),
+
 
               // Sync Server Section
               const Text(

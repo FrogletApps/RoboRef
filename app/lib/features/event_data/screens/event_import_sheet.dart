@@ -73,7 +73,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> with Single
           TabBar(
             controller: _tabController,
             tabs: const [
-              Tab(icon: Icon(Icons.cloud_download), text: 'VEXEvents API'),
+              Tab(icon: Icon(Icons.cloud_download), text: 'VEX Events'),
               Tab(icon: Icon(Icons.table_chart), text: 'TM / CSV Import'),
             ],
           ),
@@ -112,13 +112,13 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> with Single
             child: TabBarView(
               controller: _tabController,
               children: [
-                // Tab 1: VEX Events / RobotEvents API
+                // Tab 1: VEX Events
                 SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Fetch teams & match schedule directly from VEXEvents / RobotEvents public endpoints.',
+                        'Fetch teams & match schedule via your venue sync server (VEX Events API proxy).',
                         style: TextStyle(color: Colors.grey, fontSize: 13),
                       ),
                       const SizedBox(height: 16),
@@ -223,7 +223,6 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> with Single
     final db = ref.read(databaseProvider);
     final settings = ref.read(syncSettingsProvider);
     final client = VexEventsClient(
-      apiKey: settings.vexApiKey,
       serverUrl: settings.serverUrl,
     );
 

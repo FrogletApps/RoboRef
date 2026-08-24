@@ -2,11 +2,11 @@
 
 ## 2026.8.24+1
 
-- **Live VEX Events API Integration**: Connected official VEX Events API (`events.vex.com/api/v2`) replacing placeholder dummy events with live event discovery and schedule ingestion.
-- **Server-Side RobotEvents Proxy**: Added `/api/vexevents/*` proxy endpoint to the universal sync server with in-memory TTL caching and server-side Bearer token injection.
-- **In-App API Key Configuration**: Added dedicated VEX Events API Key management in Settings with real-time test validation and persistent local storage.
+- **Server-Side VEX Events API Proxy**: Relocated all VEX Events API key management exclusively to the sync server (`VEX_EVENTS_TOKEN` / `VEX_API_KEY`), removing API key entry requirements from client devices.
+- **Streamlined Settings & Event Picker**: Removed the API key input, test validation button, and API key warnings from the app Settings and Event Selection screens.
+- **Official VEX Events API Integration**: Standardized all live event discovery, division schedules, and roster ingestion via the sync server proxy to `events.vex.com/api/v2`.
 - **Multi-Division Tournament Ingestion**: Automated retrieval and persistence of all division match schedules and complete team rosters into local SQLite database upon event selection.
-- **Event Picker Live Search & Debounce**: Added live debounced search by SKU or tournament name with program filters (V5RC, VIQRC, VEX U, VEX AI) and offline cached fallback.
+- **Event Picker Live Search & Debounce**: Added live debounced search by SKU or tournament name with program filters (V5RC, VIQRC, VEX U, VEX AI) and seamless offline preloaded fallback.
 
 ## 2026.8.23+1
 

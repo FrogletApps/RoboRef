@@ -93,7 +93,6 @@ const List<EventModel> preloadedEvents = [
 final vexEventsClientProvider = Provider<VexEventsClient>((ref) {
   final settings = ref.watch(syncSettingsProvider);
   return VexEventsClient(
-    apiKey: settings.vexApiKey,
     serverUrl: settings.serverUrl,
   );
 });

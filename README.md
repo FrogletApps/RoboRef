@@ -37,8 +37,8 @@ RoboRef enables field referees to quickly log rule infractions, inspect a team's
 - 📝 **Fast Incident Logging**: Rapidly record rule infractions with rule codes (e.g. `G1`, `G12`, `S1`, `SG6`, `R4`), severity classifications (*Minor*, *Major*, *Warning*, *DQ*), match linkage, and referee notes.
 - 🔍 **Prior Infraction History**: View cumulative incident histories for every team on the field prior to match start to spot repeat warnings or escalating patterns.
 - 🏆 **Tournament & Division Schedules**: Ingest complete tournament schedules, division assignments, alliance pairings, and match field allocations.
-- 🌐 **RobotEvents API & CSV Ingestion**:
-  - Direct live search and schedule ingestion via the official **VEX Events / RobotEvents API v2** (`events.vex.com`).
+- 🌐 **VEX Events API & CSV Ingestion**:
+  - Direct live search and schedule ingestion via the official **VEX Events API v2** (`events.vex.com`).
   - Offline Tournament Manager (TM) team and match schedule CSV import for venues without internet access.
 - 🔄 **Dual Sync Protocol**:
   - **Venue LAN Sync**: Connect to a local venue Raspberry Pi or laptop (`http://roboref.local:8080`) over local Wi-Fi / Ethernet without WAN access.
@@ -256,14 +256,14 @@ Create a `.env` file inside the `server/` folder or set environment variables on
 | :--- | :--- | :--- |
 | `PORT` | `8080` | Port for the local Node.js sync server |
 | `DB_PATH` | `roboref.sqlite` | Filepath for the local SQLite database |
-| `ROBOTEVENTS_API_KEY` | *(Optional)* | RobotEvents API v2 Bearer token for server-side proxy caching |
-| `VEX_EVENTS_TOKEN` | *(Optional)* | Alternative environment variable name for the API key |
+| `VEX_EVENTS_TOKEN` | *(Optional)* | VEX Events API v2 Bearer token for server-side proxy caching |
+| `VEX_API_KEY` | *(Optional)* | Alternative environment variable name for VEX Events API key |
 
 ### In-App Client Settings
 
 Inside the RoboRef app under **Settings**:
-- **Sync Server Address**: Configure the sync server host (defaults to `http://roboref.local:8080` for venue LAN).
-- **VEX Events API Key**: Add a custom API key for direct RobotEvents API requests and live tournament ingestion.
+- **Tournament SKU & Referee Name**: Configure active tournament SKU and referee display name.
+- **Sync Server Address**: Configure the sync server host (defaults to `http://roboref.local:8080` for venue LAN). All VEX Events queries proxy securely through the sync server.
 
 ---
 

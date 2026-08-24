@@ -7,8 +7,8 @@ export interface AppEnv {
   Bindings?: {
     DB?: any;
     ENVIRONMENT?: string;
-    ROBOTEVENTS_API_KEY?: string;
     VEX_EVENTS_TOKEN?: string;
+    VEX_API_KEY?: string;
   };
   Variables: {
     storage: StorageAdapter;
@@ -51,7 +51,7 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     });
   });
 
-  // Proxy endpoint for VEX Events / RobotEvents API v2
+  // Proxy endpoint for VEX Events API v2
   app.get("/api/vexevents/*", async (c) => {
     const rawPath = c.req.path.replace(/^\/api\/vexevents\/?/, "");
     const url = new URL(c.req.url);
@@ -67,9 +67,11 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     }
 
     const envKey =
-      (c.env as any)?.ROBOTEVENTS_API_KEY ||
       (c.env as any)?.VEX_EVENTS_TOKEN ||
-      (typeof process !== "undefined" ? process.env.ROBOTEVENTS_API_KEY || process.env.VEX_EVENTS_TOKEN : "");
+      (c.env as any)?.VEX_API_KEY ||
+      (typeof process !== "undefined"
+        ? process.env.VEX_EVENTS_TOKEN || process.env.VEX_API_KEY
+        : "");
 
     const authHeader = c.req.header("Authorization") || (envKey ? `Bearer ${envKey}` : undefined);
 
@@ -78,6 +80,7 @@ export function createSyncApp(storageProvider: StorageAdapter) {
 
     const headers: Record<string, string> = {
       Accept: "application/json",
+      "User-Agent": "RoboRef/1.0",
     };
     if (authHeader) {
       headers["Authorization"] = authHeader;
@@ -108,7 +111,7 @@ export function createSyncApp(storageProvider: StorageAdapter) {
       c.header("X-RoboRef-Cache", "MISS");
       return c.body(bodyText, status as any);
     } catch (e: any) {
-      return c.json({ error: "Failed to proxy request to RobotEvents", details: e?.message }, 502);
+      return c.json({ error: "Failed to proxy request to VEX Events API", details: e?.message }, 502);
     }
   });
 

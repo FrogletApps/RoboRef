@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/sku_utils.dart';
-import '../../settings/screens/settings_screen.dart';
-import '../../settings/state/sync_settings_controller.dart';
 import '../models/event_model.dart';
 import '../state/event_controller.dart';
 
@@ -136,7 +134,6 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   Widget build(BuildContext context) {
     final cleanQuery = _searchQuery.trim().toUpperCase();
     final isCustomSkuValid = isValidSku(cleanQuery);
-    final settings = ref.watch(syncSettingsProvider);
 
     // Filter fallback list if API is unreachable or empty
     final fallbackFiltered = preloadedEvents.where((e) {
@@ -257,41 +254,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
             ),
           ),
 
-          // API Key Notice Banner if not configured and not connected to server
-          if (!settings.hasVexApiKey &&
-              settings.connectionStatus != ServerConnectionStatus.connectedLocal &&
-              settings.connectionStatus != ServerConnectionStatus.connectedCloud &&
-              _errorMessage != null) ...[
-            Container(
-              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.amber.shade50,
-                border: Border.all(color: Colors.amber.shade300),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.amber.shade900, size: 22),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Live event search uses the VEX Events API. Connect to your venue LAN server or add your API key in Settings.',
-                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF78350F)),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                      );
-                    },
-                    child: const Text('Settings'),
-                  ),
-                ],
-              ),
-            ),
-          ],
+
 
           // Search Results / Tournament List
           Expanded(
@@ -388,7 +351,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                             const SizedBox(height: 12),
                             Text(
                               _errorMessage != null
-                                  ? 'Could not connect to VEX Events API.'
+                                  ? 'Could not connect to sync server.'
                                   : 'No tournaments found matching your search.',
                               textAlign: TextAlign.center,
                             ),

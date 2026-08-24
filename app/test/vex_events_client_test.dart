@@ -21,11 +21,9 @@ void main() {
       await db.close();
     });
 
-    test('searchEvents passes Bearer token and parses returned events', () async {
+    test('searchEvents proxies to sync server and parses returned events', () async {
       final mockClient = MockClient((request) async {
-        expect(request.headers['Authorization'], equals('Bearer test-token-123'));
-        expect(request.url.host, equals('events.vex.com'));
-        expect(request.url.path, equals('/api/v2/events'));
+        expect(request.url.path, equals('/api/vexevents/events'));
 
         final responseBody = {
           'data': [
@@ -50,7 +48,7 @@ void main() {
 
       final client = VexEventsClient(
         client: mockClient,
-        apiKey: 'Bearer test-token-123',
+        serverUrl: 'http://127.0.0.1:8080',
       );
 
       final events = await client.searchEvents(query: 'Torneo', program: 'V5RC');
@@ -61,9 +59,9 @@ void main() {
       expect(events.first.city, equals('Cancun'));
     });
 
-    test('fetchTournamentData fetches event, teams, and matches into AppDatabase', () async {
+    test('fetchTournamentData fetches event, teams, and matches via sync server into AppDatabase', () async {
       final mockClient = MockClient((request) async {
-        if (request.url.path == '/api/v2/events') {
+        if (request.url.path == '/api/vexevents/events') {
           return http.Response(
             jsonEncode({
               'data': [
@@ -135,7 +133,7 @@ void main() {
 
       final client = VexEventsClient(
         client: mockClient,
-        apiKey: 'test-token',
+        serverUrl: 'http://127.0.0.1:8080',
       );
 
       final result = await client.fetchTournamentData(
