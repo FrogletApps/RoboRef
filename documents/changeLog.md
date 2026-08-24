@@ -2,6 +2,9 @@
 
 ## 2026.8.24+1
 
+- **5-Tab Event Workspace**: Restored the classic 5-tab bottom navigation (Incidents, Matches, Teams, Rules, Manage) within the event workspace matching RoboRef-Deprecated.
+- **Official VEX Game Rules Directory**: Added dedicated interactive Rules browser with quick access to official game manuals, VEX Q&A lookups, category filters, and rule code search.
+- **Direct Event Workspace Navigation**: Selecting an event in the Pick an Event screen now immediately navigates directly into the Event Workspace details for that tournament.
 - **Server-Side VEX Events API Proxy**: Relocated all VEX Events API key management exclusively to the sync server (`VEX_EVENTS_TOKEN` / `VEX_API_KEY`), removing API key entry requirements from client devices.
 - **Streamlined Settings & Event Picker**: Removed the API key input, test validation button, and API key warnings from the app Settings and Event Selection screens.
 - **Official VEX Events API Integration**: Standardized all live event discovery, division schedules, and roster ingestion via the sync server proxy to `events.vex.com/api/v2`.

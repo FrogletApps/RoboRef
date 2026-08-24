@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../event_data/screens/event_import_sheet.dart';
+import '../../event_selection/state/event_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../matches/screens/match_schedule_screen.dart';
+import '../../rules/screens/rules_screen.dart';
 import '../../teams/screens/team_list_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
@@ -43,11 +45,15 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(syncSettingsProvider);
+    final activeEventAsync = ref.watch(activeEventProvider);
+    final event = activeEventAsync.valueOrNull;
+    final eventName = (event?.name.isNotEmpty ?? false) ? event!.name : settings.currentSku;
 
     final screens = const [
       IncidentLoggerScreen(showAppBar: false),
       MatchScheduleScreen(showAppBar: false),
       TeamListScreen(showAppBar: false),
+      RulesScreen(showAppBar: false),
       SettingsScreen(showAppBar: false),
     ];
 
@@ -55,7 +61,8 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
       'RoboRef',
       'Match Schedule',
       'Team Histories',
-      'Referee & Sync Settings',
+      'Game Rules',
+      'Manage & Sync',
     ];
 
     List<Widget> buildActions() {
@@ -111,11 +118,13 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
           children: [
             Text(
               titles[_currentIndex],
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
             ),
             Text(
-              settings.currentSku,
+              eventName,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -145,9 +154,14 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
             label: 'Teams',
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Rules',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.cloud_outlined),
+            selectedIcon: Icon(Icons.cloud),
+            label: 'Manage',
           ),
         ],
       ),

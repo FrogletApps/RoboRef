@@ -14,9 +14,13 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 
 // Stream of notes for the currently active tournament SKU
 final activeTournamentNotesProvider = StreamProvider.autoDispose<List<IncidentNote>>((ref) {
-  final db = ref.watch(databaseProvider);
-  final settings = ref.watch(syncSettingsProvider);
-  return db.watchNotesForSku(settings.currentSku);
+  try {
+    final db = ref.watch(databaseProvider);
+    final settings = ref.watch(syncSettingsProvider);
+    return db.watchNotesForSku(settings.currentSku).handleError((_) => <IncidentNote>[]);
+  } catch (_) {
+    return Stream.value(<IncidentNote>[]);
+  }
 });
 
 // Incident Action Notifier

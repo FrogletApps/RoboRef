@@ -9,15 +9,23 @@ import '../models/event_model.dart';
 
 /// Stream of recent events for the home screen
 final recentEventsStreamProvider = StreamProvider.autoDispose<List<Event>>((ref) {
-  final db = ref.watch(databaseProvider);
-  return db.watchRecentEvents(limit: 20);
+  try {
+    final db = ref.watch(databaseProvider);
+    return db.watchRecentEvents(limit: 20).handleError((_) => <Event>[]);
+  } catch (_) {
+    return Stream.value(<Event>[]);
+  }
 });
 
 /// Active event details provider
 final activeEventProvider = FutureProvider.autoDispose<Event?>((ref) async {
-  final db = ref.watch(databaseProvider);
-  final settings = ref.watch(syncSettingsProvider);
-  return db.getEventBySku(settings.currentSku);
+  try {
+    final db = ref.watch(databaseProvider);
+    final settings = ref.watch(syncSettingsProvider);
+    return await db.getEventBySku(settings.currentSku);
+  } catch (_) {
+    return null;
+  }
 });
 
 /// Curated/preloaded World & Signature events for easy discovery
@@ -120,25 +128,29 @@ class EventController extends StateNotifier<AsyncValue<void>> {
     final cleanSku = sku.trim().toUpperCase();
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    // 1. Upsert into database
-    await _db.upsertEvent(
-      EventsCompanion(
-        sku: Value(cleanSku),
-        name: Value(name),
-        program: Value(program),
-        season: Value(season),
-        startDate: Value(startDate),
-        endDate: Value(endDate),
-        venue: Value(venue),
-        city: Value(city),
-        region: Value(region),
-        isHidden: const Value(false),
-        updatedAt: Value(now),
-      ),
-    );
-
-    // 2. Set current SKU in sync settings
+    // 1. Immediately update active SKU in sync settings so state updates instantaneously
     ref.read(syncSettingsProvider.notifier).setSku(cleanSku);
+
+    // 2. Persist into SQLite database
+    try {
+      await _db.upsertEvent(
+        EventsCompanion(
+          sku: Value(cleanSku),
+          name: Value(name),
+          program: Value(program),
+          season: Value(season),
+          startDate: Value(startDate),
+          endDate: Value(endDate),
+          venue: Value(venue),
+          city: Value(city),
+          region: Value(region),
+          isHidden: const Value(false),
+          updatedAt: Value(now),
+        ),
+      );
+    } catch (_) {
+      // Database write error should not prevent in-memory active tournament selection
+    }
   }
 
   /// Ingests full tournament data (teams & match schedule) from VEX Events API and activates it

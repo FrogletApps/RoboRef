@@ -84,38 +84,27 @@ void main() {
     });
     await tester.pumpAndSettle();
 
-    // Verify returning to home and recent list displays the selected tournament with header
-    expect(find.text('Recent Tournaments'), findsOneWidget);
-    expect(find.widgetWithText(Card, 'RE-V5RC-24-8909'), findsOneWidget);
-    expect(find.text('ACTIVE'), findsOneWidget);
-    expect(find.text('Welcome to RoboRef!'), findsNothing);
-    expect(find.byType(NavigationBar), findsNothing); // Still on Home screen
-
-    // 4. Tap the tournament card to enter the Event Workspace
-    await tester.tap(find.widgetWithText(Card, 'RE-V5RC-24-8909'));
-    await tester.runAsync(() async {
-      await Future.delayed(const Duration(milliseconds: 100));
-    });
-    await tester.pumpAndSettle();
-
-    // Verify Event Workspace now displays the NavigationBar with all 4 event destinations
+    // Verify selecting an event immediately navigates to the Event Workspace displaying the 5 tabs
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.text('Incidents'), findsOneWidget);
     expect(find.text('Matches'), findsOneWidget);
     expect(find.text('Teams'), findsOneWidget);
-    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Rules'), findsOneWidget);
+    expect(find.text('Manage'), findsOneWidget);
 
-    // 5. Test navigating back to Home Hub
+    // 4. Test navigating back to Home Hub
     await tester.pageBack();
     await tester.runAsync(() async {
       await Future.delayed(const Duration(milliseconds: 100));
     });
     await tester.pumpAndSettle();
 
-    // Verify we are back on Home Screen without bottom navigation
-    expect(find.byType(NavigationBar), findsNothing);
+    // Verify returning to home and recent list displays the selected tournament with header
     expect(find.text('Recent Tournaments'), findsOneWidget);
-    expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
+    expect(find.widgetWithText(Card, 'RE-V5RC-24-8909'), findsOneWidget);
+    expect(find.text('ACTIVE'), findsOneWidget);
+    expect(find.text('Welcome to RoboRef!'), findsNothing);
+    expect(find.byType(NavigationBar), findsNothing); // Back on Home screen without bottom nav
 
     container.dispose();
     await tester.pump(const Duration(seconds: 1));

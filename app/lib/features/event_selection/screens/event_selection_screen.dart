@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/sku_utils.dart';
+import '../../event_workspace/screens/event_workspace_screen.dart';
 import '../models/event_model.dart';
 import '../state/event_controller.dart';
 
@@ -21,8 +22,6 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   List<EventModel> _apiEvents = [];
-  bool _isImporting = false;
-  String? _importingSku;
 
   final List<String> _programs = const ['All', 'V5RC', 'VIQRC', 'VEX U', 'VEX AI'];
 
@@ -39,8 +38,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     super.dispose();
   }
 
-  void _onSearchChanged(String val) {
-    setState(() => _searchQuery = val);
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
+
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 400), () {
       _fetchEvents();
@@ -80,54 +82,43 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   }
 
   Future<void> _handleEventSelection(EventModel event) async {
-    setState(() {
-      _isImporting = true;
-      _importingSku = event.sku;
-    });
-
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
-    final result = await ref.read(eventControllerProvider.notifier).importAndSelectEvent(event: event);
+    // 1. Instantly select event and store metadata in SQLite and Riverpod
+    try {
+      await ref.read(eventControllerProvider.notifier).selectEvent(
+            sku: event.sku,
+            name: event.name,
+            program: event.program,
+            season: event.season,
+            startDate: event.startDate,
+            endDate: event.endDate,
+            venue: event.venue,
+            city: event.city,
+            region: event.region,
+          );
+    } catch (_) {}
 
-    if (mounted) {
-      setState(() {
-        _isImporting = false;
-        _importingSku = null;
-      });
+    // 2. Navigate immediately to the Event Workspace screen showing details for this tournament
+    navigator.pushReplacement(
+      MaterialPageRoute(builder: (_) => const EventWorkspaceScreen()),
+    );
 
+    // 3. Ingest tournament schedule & rosters asynchronously from sync server
+    ref.read(eventControllerProvider.notifier).importAndSelectEvent(event: event).then((result) {
       if (result.success) {
-        navigator.pop();
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              'Selected "${result.eventName ?? event.sku}" (${result.teamsCount} teams, ${result.matchesCount} matches)',
+              'Loaded "${result.eventName ?? event.sku}" (${result.teamsCount} teams, ${result.matchesCount} matches)',
             ),
             backgroundColor: Colors.green.shade800,
-          ),
-        );
-      } else {
-        // Even if deep schedule fetch failed (e.g. timeout), select event basic metadata
-        await ref.read(eventControllerProvider.notifier).selectEvent(
-              sku: event.sku,
-              name: event.name,
-              program: event.program,
-              season: event.season,
-              startDate: event.startDate,
-              endDate: event.endDate,
-              venue: event.venue,
-              city: event.city,
-              region: event.region,
-            );
-        navigator.pop();
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Switched to ${event.sku} (Schedule sync pending: ${result.errorMessage})'),
-            backgroundColor: Colors.orange.shade800,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
-    }
+    }).catchError((_) {});
   }
 
   @override
@@ -283,20 +274,18 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                         ),
                         subtitle: Text('Add & fetch custom ${getSkuProgram(cleanQuery)} tournament schedule'),
                         trailing: ElevatedButton(
-                          onPressed: _isImporting
-                              ? null
-                              : () async {
-                                  await _handleEventSelection(
-                                    EventModel(
-                                      sku: cleanQuery,
-                                      name: '${getSkuProgram(cleanQuery)} Tournament ($cleanQuery)',
-                                      program: getSkuProgram(cleanQuery),
-                                      season: '2026-2027',
-                                      startDate: DateTime.now().toIso8601String(),
-                                      endDate: DateTime.now().toIso8601String(),
-                                    ),
-                                  );
-                                },
+                          onPressed: () async {
+                            await _handleEventSelection(
+                              EventModel(
+                                sku: cleanQuery,
+                                name: '${getSkuProgram(cleanQuery)} Tournament ($cleanQuery)',
+                                program: getSkuProgram(cleanQuery),
+                                season: '2026-2027',
+                                startDate: DateTime.now().toIso8601String(),
+                                endDate: DateTime.now().toIso8601String(),
+                              ),
+                            );
+                          },
                           child: const Text('Add & Select'),
                         ),
                       ),
@@ -376,13 +365,12 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                     ...displayEvents.map((event) {
                       final color = getSkuColor(event.sku);
                       final dateRange = formatEventDateRange(event.startDate, event.endDate);
-                      final isCurrentImporting = _isImporting && _importingSku == event.sku;
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          onTap: _isImporting ? null : () => _handleEventSelection(event),
+                          onTap: () => _handleEventSelection(event),
                           child: Padding(
                             padding: const EdgeInsets.all(14.0),
                             child: Column(
@@ -409,15 +397,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                         ),
                                       ),
                                     ),
-                                    if (isCurrentImporting)
-                                      const Row(
-                                        children: [
-                                          SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
-                                          SizedBox(width: 6),
-                                          Text('Loading schedule...', style: TextStyle(fontSize: 12, color: Colors.blue)),
-                                        ],
-                                      )
-                                    else if (dateRange.isNotEmpty)
+                                    if (dateRange.isNotEmpty)
                                       Text(
                                         dateRange,
                                         style: const TextStyle(fontSize: 12, color: Colors.grey),

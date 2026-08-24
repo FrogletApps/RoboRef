@@ -5,7 +5,11 @@ import '../../settings/state/sync_settings_controller.dart';
 
 // Stream of matches for the currently active tournament SKU
 final activeTournamentMatchesProvider = StreamProvider.autoDispose<List<Matche>>((ref) {
-  final db = ref.watch(databaseProvider);
-  final settings = ref.watch(syncSettingsProvider);
-  return db.watchMatchesForSku(settings.currentSku);
+  try {
+    final db = ref.watch(databaseProvider);
+    final settings = ref.watch(syncSettingsProvider);
+    return db.watchMatchesForSku(settings.currentSku).handleError((_) => <Matche>[]);
+  } catch (_) {
+    return Stream.value(<Matche>[]);
+  }
 });
