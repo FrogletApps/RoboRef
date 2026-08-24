@@ -6,8 +6,9 @@
   "description": "Universal sync server for RoboRef deployable to Cloudflare Workers and Raspberry Pi",
   "main": "src/index.node.ts",
   "scripts": {
-    "dev:cf": "wrangler dev src/index.cf.ts",
-    "deploy:cf": "wrangler deploy src/index.cf.ts",
+    "dev:cf": "wrangler dev -c ../wrangler.toml",
+    "deploy:cf:test": "wrangler deploy -c ../wrangler.toml --env test",
+    "deploy:cf:live": "wrangler deploy -c ../wrangler.toml --env live",
     "dev:node": "tsx watch src/index.node.ts",
     "start:node": "tsx src/index.node.ts",
     "build:node": "tsc",

@@ -1,0 +1,55 @@
+#:schema server/node_modules/wrangler/config-schema.json
+name = "roboref-test"
+main = "server/src/index.cf.ts"
+compatibility_date = "2026-08-24"
+compatibility_flags = ["nodejs_compat"]
+
+# Static Assets Configuration (serves Flutter Web PWA from app/build/web)
+[assets]
+directory = "app/build/web"
+not_found_handling = "single-page-application"
+run_worker_first = false
+
+[vars]
+ENVIRONMENT = "test"
+
+# Default (Test) Environment
+[[d1_databases]]
+binding = "DB"
+database_name = "roboref-test-db"
+database_id = "8bcc2138-47d7-4b1b-9f57-e668abe27b42"
+
+# ----------------------------------------------------------------------
+# Test Environment
+# Deploy via: npx wrangler deploy --env test
+# ----------------------------------------------------------------------
+[env.test]
+name = "roboref-test"
+workers_dev = true
+# Optional custom domain for test (uncomment if configured):
+# routes = [{ pattern = "test.roboref.fyi", custom_domain = true }]
+
+[env.test.vars]
+ENVIRONMENT = "test"
+
+[[env.test.d1_databases]]
+binding = "DB"
+database_name = "roboref-test-db"
+database_id = "8bcc2138-47d7-4b1b-9f57-e668abe27b42"
+
+# ----------------------------------------------------------------------
+# Live / Production Environment
+# Deploy via: npx wrangler deploy --env live
+# ----------------------------------------------------------------------
+[env.live]
+name = "roboref"
+workers_dev = false
+routes = [{ pattern = "roboref.fyi", custom_domain = true }]
+
+[env.live.vars]
+ENVIRONMENT = "live"
+
+[[env.live.d1_databases]]
+binding = "DB"
+database_name = "roboref-db"
+database_id = "REPLACE_WITH_LIVE_D1_DATABASE_ID"

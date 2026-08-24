@@ -1,0 +1,16 @@
+{
+  "name": "roboref",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RoboRef - Offline-first match anomaly log and referee assistant",
+  "scripts": {
+    "dev:cf": "wrangler dev",
+    "dev:cf:live": "wrangler dev --env live",
+    "deploy:test": "wrangler deploy --env test",
+    "deploy:live": "wrangler deploy --env live",
+    "deploy": "wrangler deploy --env test"
+  },
+  "devDependencies": {
+    "wrangler": "^4.125.0"
+  }
+}

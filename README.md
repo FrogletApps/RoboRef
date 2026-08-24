@@ -81,7 +81,10 @@ RoboRef/
 ├── scripts/              # Build and utility scripts
 │   ├── build.ps1         # Automated Windows / PowerShell build script (CalVer + commit count)
 │   ├── build.sh          # Automated Bash / Linux build script
+│   ├── deploy.ps1        # Automated build + deploy script for Cloudflare (test/live)
+│   ├── deploy.sh         # Automated Linux / Bash deploy script for Cloudflare
 │   └── generate-icons.mjs# Icon generation pipeline for Android, iOS, and Web assets
+├── wrangler.toml         # Root Cloudflare configuration (Workers + Static Web Assets, test/live)
 └── documents/            # Project documentation and changelog records
     └── changeLog.md      # User-facing change log & release notes
 ```
@@ -219,14 +222,47 @@ flutter build ipa --release
 
 ---
 
-### Deploying the Sync Server
+### Deploying to Cloudflare (Web App + Sync Server)
 
-#### Cloudflare Workers
-Ensure you are logged into Wrangler (`npx wrangler login`) and deploy:
-```bash
-cd server
-npm run deploy:cf
+RoboRef uses a unified Cloudflare Workers configuration with **Static Assets** (`wrangler.toml` at the repository root). This hosts the **Flutter Web PWA** on Cloudflare's global edge network while routing backend API requests (`/api/*`) directly to the Hono sync worker.
+
+Ensure you are logged into Wrangler (`npx wrangler login`) before deploying.
+
+#### 1. Automated Build & Deploy Scripts
+
+##### Windows (PowerShell)
+```powershell
+# Build Web and deploy to Test environment (test D1 database)
+.\scripts\deploy.ps1 test
+
+# Build Web and deploy to Live environment (roboref.fyi + live D1 database)
+.\scripts\deploy.ps1 live
+
+# Deploy existing build without rebuilding Flutter
+.\scripts\deploy.ps1 test -SkipBuild
 ```
+
+##### Linux / macOS (Bash)
+```bash
+# Build Web and deploy to Test
+./scripts/deploy.sh test
+
+# Build Web and deploy to Live
+./scripts/deploy.sh live
+```
+
+#### 2. Direct Wrangler CLI Commands
+```bash
+# Test environment
+npx wrangler deploy --env test
+
+# Live / Production environment
+npx wrangler deploy --env live
+```
+
+---
+
+### Deploying the Venue Server (Raspberry Pi / LAN)
 
 #### Raspberry Pi / Linux Venue Server (Native Node.js)
 ```bash
