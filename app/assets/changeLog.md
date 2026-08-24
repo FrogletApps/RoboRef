@@ -2,6 +2,11 @@
 
 ## 2026.8.24+1
 
+- **Removed Preloaded Dummy Events**: Removed hardcoded preloaded World Championship mock events in favor of dynamic live discovery from the VEX Events API.
+- **Live VEX Events Loading**: Direct querying of live tournaments taking place currently or over the next week via `events.vex.com` API proxy when clicking "Add a new event".
+- **Immediate Event Selection & Schedule/Roster Population**: Selecting any tournament populates its metadata, complete division match schedules, and team rosters into the database and UI, with real-time reactive streaming across tabs.
+- **Extended Upcoming Search**: Added date window expansion (+30 days) to easily discover further upcoming events.
+- **Team & Match Autocomplete for Incident Logging**: Added autocomplete suggestions powered by active tournament rosters when logging referee incident notes.
 - **5-Tab Event Workspace**: Restored the classic 5-tab bottom navigation (Incidents, Matches, Teams, Rules, Manage) within the event workspace matching RoboRef-Deprecated.
 - **Official VEX Game Rules Directory**: Added dedicated interactive Rules browser with quick access to official game manuals, VEX Q&A lookups, category filters, and rule code search.
 - **Direct Event Workspace Navigation**: Selecting an event in the Pick an Event screen now immediately navigates directly into the Event Workspace details for that tournament.

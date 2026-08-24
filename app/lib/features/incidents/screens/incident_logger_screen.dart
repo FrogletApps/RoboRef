@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../state/incident_controller.dart';
 import '../widgets/severity_badge.dart';
 import '../../settings/state/sync_settings_controller.dart';
+import '../../teams/state/team_controller.dart';
+import '../../matches/state/match_controller.dart';
 
 class IncidentLoggerScreen extends StatefulWidget {
   final bool showAppBar;
@@ -294,6 +296,12 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
+        final registeredTeams = ref.watch(activeTournamentTeamsProvider).valueOrNull ?? [];
+        final tournamentMatches = ref.watch(activeTournamentMatchesProvider).valueOrNull ?? [];
+
+        final teamNumbers = registeredTeams.map((t) => t.teamNumber).toList()..sort();
+        final matchNames = tournamentMatches.map((m) => m.name).toList();
+
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom + 16,
@@ -323,30 +331,67 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                 ),
                 const SizedBox(height: 16),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Team Autocomplete
                     Expanded(
-                      child: TextField(
-                        controller: _teamController,
-                        textCapitalization: TextCapitalization.characters,
-                        decoration: const InputDecoration(
-                          labelText: 'Team Number *',
-                          hintText: 'e.g. 1234A',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
+                      child: Autocomplete<String>(
+                        optionsBuilder: (TextEditingValue textEditingValue) {
+                          if (textEditingValue.text.isEmpty) {
+                            return teamNumbers.take(15);
+                          }
+                          return teamNumbers.where((String option) {
+                            return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                          });
+                        },
+                        onSelected: (String selection) {
+                          _teamController.text = selection;
+                        },
+                        fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                          return TextField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            textCapitalization: TextCapitalization.characters,
+                            decoration: const InputDecoration(
+                              labelText: 'Team Number *',
+                              hintText: 'e.g. 1234A',
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                            ),
+                            onChanged: (v) => _teamController.text = v,
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),
+                    // Match Autocomplete
                     Expanded(
-                      child: TextField(
-                        controller: _matchController,
-                        textCapitalization: TextCapitalization.characters,
-                        decoration: const InputDecoration(
-                          labelText: 'Match (Optional)',
-                          hintText: 'e.g. Q42',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
+                      child: Autocomplete<String>(
+                        optionsBuilder: (TextEditingValue textEditingValue) {
+                          if (textEditingValue.text.isEmpty) {
+                            return matchNames.take(15);
+                          }
+                          return matchNames.where((String option) {
+                            return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                          });
+                        },
+                        onSelected: (String selection) {
+                          _matchController.text = selection;
+                        },
+                        fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                          return TextField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            textCapitalization: TextCapitalization.characters,
+                            decoration: const InputDecoration(
+                              labelText: 'Match (Optional)',
+                              hintText: 'e.g. Q42',
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                            ),
+                            onChanged: (v) => _matchController.text = v,
+                          );
+                        },
                       ),
                     ),
                   ],

@@ -59,6 +59,73 @@ void main() {
       expect(events.first.city, equals('Cancun'));
     });
 
+    test('searchEvents passes start and end dates formatted as ISO strings', () async {
+      final start = DateTime.utc(2026, 8, 21);
+      final end = DateTime.utc(2026, 8, 31);
+
+      final mockClient = MockClient((request) async {
+        expect(request.url.queryParameters['start'], equals(start.toIso8601String()));
+        expect(request.url.queryParameters['end'], equals(end.toIso8601String()));
+
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 12345,
+                'sku': 'RE-V5RC-26-1234',
+                'name': 'Summer Regional Tournament',
+                'start': '2026-08-24T00:00:00Z',
+                'end': '2026-08-25T00:00:00Z',
+                'program': {'code': 'V5RC'},
+              }
+            ]
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+      final events = await client.searchEvents(start: start, end: end);
+      expect(events.length, equals(1));
+      expect(events.first.sku, equals('RE-V5RC-26-1234'));
+    });
+
+    test('searchEvents falls back to cloud proxy if primary serverUrl fails', () async {
+      int attempt = 0;
+      final mockClient = MockClient((request) async {
+        attempt++;
+        if (request.url.host == '192.168.1.99') {
+          return http.Response('Connection Refused', 500);
+        }
+        if (request.url.host == 'roboref.fyi') {
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 999,
+                  'sku': 'RE-VIQRC-26-9999',
+                  'name': 'Cloud Recovered Event',
+                  'program': {'code': 'VIQRC'},
+                }
+              ]
+            }),
+            200,
+          );
+        }
+        return http.Response('Not found', 404);
+      });
+
+      final client = VexEventsClient(
+        client: mockClient,
+        serverUrl: 'http://192.168.1.99:8080',
+      );
+
+      final events = await client.searchEvents();
+      expect(events.length, equals(1));
+      expect(events.first.sku, equals('RE-VIQRC-26-9999'));
+      expect(attempt, equals(2));
+    });
+
     test('fetchTournamentData fetches event, teams, and matches via sync server into AppDatabase', () async {
       final mockClient = MockClient((request) async {
         if (request.url.path == '/api/vexevents/events') {

@@ -20,14 +20,23 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   Timer? _debounceTimer;
 
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _errorMessage;
   List<EventModel> _apiEvents = [];
+
+  // Date range: currently active (past 3 days) or over the next week (7 days)
+  late DateTime _startDate;
+  late DateTime _endDate;
+  int _daysForward = 7;
 
   final List<String> _programs = const ['All', 'V5RC', 'VIQRC', 'VEX U', 'VEX AI'];
 
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    _startDate = now.subtract(const Duration(days: 3));
+    _endDate = now.add(Duration(days: _daysForward));
     _fetchEvents();
   }
 
@@ -44,41 +53,58 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     });
 
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
       _fetchEvents();
     });
   }
 
-  Future<void> _fetchEvents() async {
+  Future<void> _fetchEvents({bool isLoadMore = false}) async {
     if (!mounted) return;
     setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      if (isLoadMore) {
+        _isLoadingMore = true;
+      } else {
+        _isLoading = true;
+        _errorMessage = null;
+      }
     });
 
     final client = ref.read(vexEventsClientProvider);
+    final cleanQuery = _searchQuery.trim();
 
     try {
       final results = await client.searchEvents(
-        query: _searchQuery.trim().isNotEmpty ? _searchQuery.trim() : null,
+        query: cleanQuery.isNotEmpty ? cleanQuery : null,
         program: _selectedProgram != 'All' ? _selectedProgram : null,
-        perPage: 30,
+        start: cleanQuery.toUpperCase().startsWith('RE-') ? null : _startDate,
+        end: cleanQuery.toUpperCase().startsWith('RE-') ? null : _endDate,
+        perPage: 50,
       );
 
       if (mounted) {
         setState(() {
           _apiEvents = results;
           _isLoading = false;
+          _isLoadingMore = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _isLoadingMore = false;
           _errorMessage = e.toString();
         });
       }
     }
+  }
+
+  void _loadMoreEvents() {
+    setState(() {
+      _daysForward += 30;
+      _endDate = DateTime.now().add(Duration(days: _daysForward));
+    });
+    _fetchEvents(isLoadMore: true);
   }
 
   Future<void> _handleEventSelection(EventModel event) async {
@@ -100,21 +126,53 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
           );
     } catch (_) {}
 
-    // 2. Navigate immediately to the Event Workspace screen showing details for this tournament
+    // 2. Navigate immediately to the Event Workspace screen
     navigator.pushReplacement(
       MaterialPageRoute(builder: (_) => const EventWorkspaceScreen()),
     );
 
-    // 3. Ingest tournament schedule & rosters asynchronously from sync server
+    // 3. Show loading notification
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Loading teams and match schedule for ${event.sku}...',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+
+    // 4. Ingest tournament schedule & rosters asynchronously from VEX Events
     ref.read(eventControllerProvider.notifier).importAndSelectEvent(event: event).then((result) {
       if (result.success) {
+        messenger.hideCurrentSnackBar();
         messenger.showSnackBar(
           SnackBar(
             content: Text(
               'Loaded "${result.eventName ?? event.sku}" (${result.teamsCount} teams, ${result.matchesCount} matches)',
             ),
             backgroundColor: Colors.green.shade800,
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else if (result.errorMessage != null) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Note: ${result.errorMessage}'),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -126,29 +184,25 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     final cleanQuery = _searchQuery.trim().toUpperCase();
     final isCustomSkuValid = isValidSku(cleanQuery);
 
-    // Filter fallback list if API is unreachable or empty
-    final fallbackFiltered = preloadedEvents.where((e) {
-      if (_selectedProgram != 'All') {
-        final prog = _selectedProgram.toUpperCase();
-        final eventProg = e.program.toUpperCase();
-        final matches = (eventProg == prog) ||
-            (prog == 'VEX U' && eventProg == 'VURC') ||
-            (prog == 'VURC' && eventProg == 'VEX U') ||
-            (prog == 'VEX AI' && (eventProg == 'VAIRC' || eventProg == 'VAIC')) ||
-            (prog == 'VAIRC' && eventProg == 'VEX AI');
-        if (!matches) return false;
-      }
-      if (cleanQuery.isEmpty) return true;
+    // Client-side text filter over API results if query is typed
+    List<EventModel> filteredApiEvents = _apiEvents;
+    if (cleanQuery.isNotEmpty && !cleanQuery.startsWith('RE-')) {
+      filteredApiEvents = _apiEvents.where((e) {
+        final nameMatch = e.name.toUpperCase().contains(cleanQuery);
+        final skuMatch = e.sku.toUpperCase().contains(cleanQuery);
+        final venueMatch = e.venue?.toUpperCase().contains(cleanQuery) ?? false;
+        final cityMatch = e.city?.toUpperCase().contains(cleanQuery) ?? false;
+        final regionMatch = e.region?.toUpperCase().contains(cleanQuery) ?? false;
+        return nameMatch || skuMatch || venueMatch || cityMatch || regionMatch;
+      }).toList();
+    }
 
-      final skuMatch = e.sku.toUpperCase().contains(cleanQuery);
-      final nameMatch = e.name.toUpperCase().contains(cleanQuery);
-      final venueMatch = e.venue?.toUpperCase().contains(cleanQuery) ?? false;
-      final cityMatch = e.city?.toUpperCase().contains(cleanQuery) ?? false;
+    final displayEvents = filteredApiEvents;
 
-      return skuMatch || nameMatch || venueMatch || cityMatch;
-    }).toList();
-
-    final displayEvents = _apiEvents.isNotEmpty ? _apiEvents : fallbackFiltered;
+    final dateRangeLabel = formatEventDateRange(
+      _startDate.toIso8601String(),
+      _endDate.toIso8601String(),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -157,7 +211,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Reload Events',
-            onPressed: _fetchEvents,
+            onPressed: () => _fetchEvents(),
           ),
         ],
       ),
@@ -165,7 +219,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
         children: [
           // Search & Filters Header
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               boxShadow: [
@@ -177,6 +231,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
               ],
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Search Input Field
                 TextField(
@@ -204,7 +259,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                   ),
                   onChanged: _onSearchChanged,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
 
                 // Program Filter Chips
                 SingleChildScrollView(
@@ -245,12 +300,10 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
             ),
           ),
 
-
-
           // Search Results / Tournament List
           Expanded(
             child: RefreshIndicator(
-              onRefresh: _fetchEvents,
+              onRefresh: () => _fetchEvents(),
               child: ListView(
                 padding: const EdgeInsets.all(16.0),
                 children: [
@@ -293,18 +346,32 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  // Section Title & Result Count
+                  // Section Header: Timing context & Result count
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        _searchQuery.isEmpty ? 'Live & Featured Tournaments' : 'Matching Events',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _searchQuery.isEmpty
+                                  ? (_daysForward <= 7 ? 'Events This Week & Current' : 'Upcoming Events')
+                                  : 'Matching Events',
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                            if (dateRangeLabel.isNotEmpty && _searchQuery.isEmpty)
+                              Text(
+                                dateRangeLabel,
+                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                          ],
+                        ),
                       ),
                       if (_isLoading)
                         const SizedBox(
-                          width: 14,
-                          height: 14,
+                          width: 16,
+                          height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       else
@@ -325,7 +392,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                           children: [
                             CircularProgressIndicator(),
                             SizedBox(height: 16),
-                            Text('Fetching live events from VEX Events API...', style: TextStyle(color: Colors.grey)),
+                            Text('Loading live events from VEX Events...', style: TextStyle(color: Colors.grey)),
                           ],
                         ),
                       ),
@@ -340,23 +407,33 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                             const SizedBox(height: 12),
                             Text(
                               _errorMessage != null
-                                  ? 'Could not connect to sync server.'
-                                  : 'No tournaments found matching your search.',
+                                  ? 'Could not connect to VEX Events proxy.'
+                                  : 'No events found in this date window.',
                               textAlign: TextAlign.center,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 6),
                             const Text(
-                              'You can type any valid SKU (e.g. RE-V5RC-24-1234) to add it directly.',
+                              'Try loading a wider date range or entering a SKU directly.',
                               style: TextStyle(color: Colors.grey, fontSize: 13),
                             ),
-                            if (_errorMessage != null) ...[
-                              const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                onPressed: _fetchEvents,
-                                icon: const Icon(Icons.refresh, size: 16),
-                                label: const Text('Retry'),
-                              ),
-                            ],
+                            const SizedBox(height: 16),
+                            Wrap(
+                              spacing: 8,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: _loadMoreEvents,
+                                  icon: const Icon(Icons.date_range, size: 16),
+                                  label: const Text('Search Next 30 Days'),
+                                ),
+                                if (_errorMessage != null)
+                                  OutlinedButton.icon(
+                                    onPressed: () => _fetchEvents(),
+                                    icon: const Icon(Icons.refresh, size: 16),
+                                    label: const Text('Retry'),
+                                  ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -412,7 +489,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                                 ),
 
-                                // Venue / City
+                                // Venue / City Location
                                 if (event.venue != null || event.city != null) ...[
                                   const SizedBox(height: 4),
                                   Row(
@@ -437,6 +514,25 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                         ),
                       );
                     }),
+
+                  // Load More Button
+                  if (!_isLoading && displayEvents.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Center(
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoadingMore ? null : _loadMoreEvents,
+                        icon: _isLoadingMore
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.expand_more, size: 18),
+                        label: Text(_isLoadingMore ? 'Loading More...' : 'Load More Upcoming (+30 Days)'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 ],
               ),
             ),

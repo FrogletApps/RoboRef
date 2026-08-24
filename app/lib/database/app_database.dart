@@ -80,6 +80,11 @@ class AppDatabase extends _$AppDatabase {
     return (select(events)..where((tbl) => tbl.sku.equals(sku))).getSingleOrNull();
   }
 
+  // Stream a single event by SKU for reactive UI updates
+  Stream<Event?> watchEventBySku(String sku) {
+    return (select(events)..where((tbl) => tbl.sku.equals(sku))).watchSingleOrNull();
+  }
+
   // Upsert an event record
   Future<void> upsertEvent(EventsCompanion entry) {
     return into(events).insertOnConflictUpdate(entry);

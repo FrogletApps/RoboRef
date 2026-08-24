@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +29,22 @@ void main() {
     );
 
     final mockHttpClient = MockClient((request) async {
-      return http.Response('{"data":[]}', 200);
+      return http.Response(
+        jsonEncode({
+          'data': [
+            {
+              'id': 1,
+              'sku': 'RE-V5RC-26-4487',
+              'name': '2026 Regional Tournament',
+              'program': {'code': 'V5RC'},
+              'start': '2026-08-22T00:00:00Z',
+              'end': '2026-08-23T00:00:00Z',
+              'location': {'city': 'Beijing'},
+            }
+          ]
+        }),
+        200,
+      );
     });
 
     final container = ProviderContainer(
@@ -76,9 +92,9 @@ void main() {
     expect(find.text('Pick An Event'), findsOneWidget);
     expect(find.text('Search by SKU (RE-...) or event name'), findsOneWidget);
 
-    // 3. Test selecting a preloaded championship event
-    expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
-    await tester.tap(find.text('RE-V5RC-24-8909'));
+    // 3. Test selecting a live event
+    expect(find.text('RE-V5RC-26-4487'), findsOneWidget);
+    await tester.tap(find.text('RE-V5RC-26-4487'));
     await tester.runAsync(() async {
       await Future.delayed(const Duration(milliseconds: 100));
     });
@@ -101,7 +117,7 @@ void main() {
 
     // Verify returning to home and recent list displays the selected tournament with header
     expect(find.text('Recent Tournaments'), findsOneWidget);
-    expect(find.widgetWithText(Card, 'RE-V5RC-24-8909'), findsOneWidget);
+    expect(find.widgetWithText(Card, 'RE-V5RC-26-4487'), findsOneWidget);
     expect(find.text('ACTIVE'), findsOneWidget);
     expect(find.text('Welcome to RoboRef!'), findsNothing);
     expect(find.byType(NavigationBar), findsNothing); // Back on Home screen without bottom nav

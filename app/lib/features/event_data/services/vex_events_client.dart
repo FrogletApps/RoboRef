@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/utils/sku_utils.dart';
@@ -35,25 +36,77 @@ class VexEventsClient {
   final http.Client _client;
   final String? _serverUrl;
 
+  static const String defaultCloudBaseUrl = 'https://roboref.fyi/api/vexevents';
+
   VexEventsClient({
     http.Client? client,
     String? serverUrl,
   })  : _client = client ?? http.Client(),
         _serverUrl = serverUrl;
 
-  String get _effectiveServerUrl {
-    final url = _serverUrl?.trim();
-    if (url != null && url.isNotEmpty) {
-      return url.replaceAll(RegExp(r'/+$'), '');
-    }
-    return 'http://roboref.local:8080';
-  }
+  List<String> _getCandidateBaseUrls(String? customServerUrl) {
+    final candidates = <String>[];
+    final custom = customServerUrl?.trim() ?? _serverUrl?.trim();
 
-  String get _baseProxyUrl => '$_effectiveServerUrl/api/vexevents';
+    if (custom != null && custom.isNotEmpty) {
+      final clean = custom.replaceAll(RegExp(r'/+$'), '');
+      if (clean.endsWith('/api/vexevents')) {
+        candidates.add(clean);
+      } else {
+        candidates.add('$clean/api/vexevents');
+      }
+    }
+
+    if (!candidates.contains(defaultCloudBaseUrl)) {
+      candidates.add(defaultCloudBaseUrl);
+    }
+
+    return candidates;
+  }
 
   Map<String, String> get _headers => const {
         'Accept': 'application/json',
+        'User-Agent': 'RoboRef/1.0',
       };
+
+  /// Helper to perform GET with multi-candidate fallback
+  Future<http.Response> _getWithFallback(
+    String path, {
+    Map<String, List<String>>? queryParams,
+    Duration timeout = const Duration(seconds: 10),
+    String? serverUrl,
+  }) async {
+    final candidateBases = _getCandidateBaseUrls(serverUrl);
+    Exception? lastException;
+    http.Response? lastResponse;
+
+    for (final base in candidateBases) {
+      try {
+        final cleanPath = path.startsWith('/') ? path : '/$path';
+        final baseUri = Uri.parse('$base$cleanPath');
+        final uri = queryParams != null ? baseUri.replace(queryParameters: queryParams) : baseUri;
+
+        final response = await _client.get(uri, headers: _headers).timeout(timeout);
+        if (response.statusCode == 200) {
+          return response;
+        }
+        lastResponse = response;
+      } catch (e) {
+        lastException = e is Exception ? e : Exception(e.toString());
+      }
+    }
+
+    if (lastResponse != null) {
+      throw VexApiException(
+        'Server returned error ${lastResponse.statusCode}: ${lastResponse.body}',
+        statusCode: lastResponse.statusCode,
+      );
+    }
+
+    throw VexApiException(
+      'Failed to connect to VEX Events proxy: ${lastException?.toString() ?? "Unknown error"}',
+    );
+  }
 
   /// Map program names to VEX Events program IDs
   List<int> _getProgramIds(String? program) {
@@ -84,16 +137,12 @@ class VexEventsClient {
     String? query,
     String? program,
     String? sku,
+    DateTime? start,
+    DateTime? end,
     int page = 1,
-    int perPage = 25,
+    int perPage = 30,
     String? serverUrl,
   }) async {
-    final serverBase = serverUrl != null && serverUrl.trim().isNotEmpty
-        ? '${serverUrl.trim().replaceAll(RegExp(r"/+$"), "")}/api/vexevents'
-        : _baseProxyUrl;
-
-    final baseUri = Uri.parse('$serverBase/events');
-
     final queryParams = <String, List<String>>{
       'page': [page.toString()],
       'per_page': [perPage.toString()],
@@ -105,9 +154,14 @@ class VexEventsClient {
       final cleanQuery = query.trim();
       if (cleanQuery.toUpperCase().startsWith('RE-')) {
         queryParams['sku[]'] = [cleanQuery.toUpperCase()];
-      } else {
-        queryParams['name'] = [cleanQuery];
       }
+    }
+
+    if (start != null) {
+      queryParams['start'] = [start.toUtc().toIso8601String()];
+    }
+    if (end != null) {
+      queryParams['end'] = [end.toUtc().toIso8601String()];
     }
 
     final programIds = _getProgramIds(program);
@@ -115,17 +169,13 @@ class VexEventsClient {
       queryParams['program[]'] = programIds.map((id) => id.toString()).toList();
     }
 
-    final uri = baseUri.replace(queryParameters: queryParams);
-
     try {
-      final response = await _client.get(uri, headers: _headers).timeout(const Duration(seconds: 12));
-
-      if (response.statusCode != 200) {
-        throw VexApiException(
-          'Sync server returned error ${response.statusCode}: ${response.body}',
-          statusCode: response.statusCode,
-        );
-      }
+      final response = await _getWithFallback(
+        '/events',
+        queryParams: queryParams,
+        timeout: const Duration(seconds: 12),
+        serverUrl: serverUrl,
+      );
 
       final data = jsonDecode(response.body);
       if (data['data'] is List) {
@@ -154,10 +204,6 @@ class VexEventsClient {
       return VexEventsFetchResult(success: false, errorMessage: 'SKU cannot be empty');
     }
 
-    final serverBase = serverUrl != null && serverUrl.trim().isNotEmpty
-        ? '${serverUrl.trim().replaceAll(RegExp(r"/+$"), "")}/api/vexevents'
-        : _baseProxyUrl;
-
     try {
       int? resolvedId = eventId;
       String eventName = (defaultEventName != null && defaultEventName.trim().isNotEmpty)
@@ -173,17 +219,23 @@ class VexEventsClient {
       List<int> divisionIds = [];
 
       // 1. Fetch Event Info if ID not given or to get fresh event details
-      final eventUri = Uri.parse('$serverBase/events?sku[]=$cleanSku');
-      final eventResponse = await _client.get(eventUri, headers: _headers).timeout(const Duration(seconds: 10));
+      try {
+        final eventResponse = await _getWithFallback(
+          '/events',
+          queryParams: {
+            'sku[]': [cleanSku]
+          },
+          timeout: const Duration(seconds: 10),
+          serverUrl: serverUrl,
+        );
 
-      if (eventResponse.statusCode == 200) {
         final data = jsonDecode(eventResponse.body);
         if (data['data'] is List && (data['data'] as List).isNotEmpty) {
           final item = data['data'][0];
           resolvedId = item['id'] as int?;
           eventName = item['name'] ?? cleanSku;
           program = item['program'] is Map ? item['program']['code'] ?? 'V5RC' : item['program'] ?? 'V5RC';
-          season = item['season'] is Map ? item['season']['name'] ?? '2024-2025' : item['season'] ?? '2024-2025';
+          season = item['season'] is Map ? item['season']['name'] ?? '2026-2027' : item['season'] ?? '2026-2027';
           startDate = item['start'] ?? startDate;
           endDate = item['end'] ?? endDate;
 
@@ -201,6 +253,8 @@ class VexEventsClient {
             }
           }
         }
+      } catch (_) {
+        // Fall back to using default/existing metadata
       }
 
       // Upsert event record
@@ -230,10 +284,17 @@ class VexEventsClient {
         final List<TeamsCompanion> allTeamCompanions = [];
 
         while (hasMorePages && page <= 5) {
-          final teamsUri = Uri.parse('$serverBase/events/$resolvedId/teams?page=$page&per_page=250');
-          final teamsResponse = await _client.get(teamsUri, headers: _headers).timeout(const Duration(seconds: 12));
+          try {
+            final teamsResponse = await _getWithFallback(
+              '/events/$resolvedId/teams',
+              queryParams: {
+                'page': [page.toString()],
+                'per_page': ['250'],
+              },
+              timeout: const Duration(seconds: 12),
+              serverUrl: serverUrl,
+            );
 
-          if (teamsResponse.statusCode == 200) {
             final teamsData = jsonDecode(teamsResponse.body);
             if (teamsData['data'] is List) {
               final list = teamsData['data'] as List;
@@ -264,7 +325,7 @@ class VexEventsClient {
             } else {
               hasMorePages = false;
             }
-          } else {
+          } catch (_) {
             hasMorePages = false;
           }
         }
@@ -285,12 +346,17 @@ class VexEventsClient {
           bool hasMoreMatches = true;
 
           while (hasMoreMatches && matchPage <= 5) {
-            final matchesUri =
-                Uri.parse('$serverBase/events/$resolvedId/divisions/$divId/matches?page=$matchPage&per_page=250');
-            final matchesResponse =
-                await _client.get(matchesUri, headers: _headers).timeout(const Duration(seconds: 12));
+            try {
+              final matchesResponse = await _getWithFallback(
+                '/events/$resolvedId/divisions/$divId/matches',
+                queryParams: {
+                  'page': [matchPage.toString()],
+                  'per_page': ['250'],
+                },
+                timeout: const Duration(seconds: 12),
+                serverUrl: serverUrl,
+              );
 
-            if (matchesResponse.statusCode == 200) {
               final matchesData = jsonDecode(matchesResponse.body);
               if (matchesData['data'] is List) {
                 final list = matchesData['data'] as List;
@@ -347,7 +413,7 @@ class VexEventsClient {
               } else {
                 hasMoreMatches = false;
               }
-            } else {
+            } catch (_) {
               hasMoreMatches = false;
             }
           }

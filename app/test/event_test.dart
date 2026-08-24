@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,18 +69,7 @@ void main() {
     });
   });
 
-  group('Preloaded Events & Event Selection Screen Tests', () {
-    test('preloadedEvents only contains official VEX programs', () {
-      const officialPrograms = {'V5RC', 'VIQRC', 'VEX U', 'VEX AI'};
-      for (final event in preloadedEvents) {
-        expect(officialPrograms.contains(event.program), isTrue);
-      }
-      expect(preloadedEvents.any((e) => e.program == 'V5RC'), isTrue);
-      expect(preloadedEvents.any((e) => e.program == 'VIQRC'), isTrue);
-      expect(preloadedEvents.any((e) => e.program == 'VEX U'), isTrue);
-      expect(preloadedEvents.any((e) => e.program == 'VEX AI'), isTrue);
-    });
-
+  group('Live VEX Events & Event Selection Screen Tests', () {
     testWidgets('EventSelectionScreen renders correct program chips and filters properly', (WidgetTester tester) async {
       SharedPreferences.setMockInitialValues({
         'current_sku': 'RE-V5RC-24-8909',
@@ -90,8 +80,40 @@ void main() {
       );
 
       final mockHttpClient = MockClient((request) async {
+        final progList = request.url.queryParametersAll['program[]'] ?? [];
+        final List<Map<String, dynamic>> all = [
+          {
+            'id': 1,
+            'sku': 'RE-V5RC-24-8909',
+            'name': '2026 VEX Robotics World Championship - VRC High School',
+            'program': {'code': 'V5RC'},
+            'start': '2026-04-25T08:00:00Z',
+            'end': '2026-04-28T18:00:00Z',
+          },
+          {
+            'id': 2,
+            'sku': 'RE-VIQRC-24-8913',
+            'name': '2026 VEX Robotics World Championship - VIQRC Elementary School',
+            'program': {'code': 'VIQRC'},
+            'start': '2026-05-03T08:00:00Z',
+            'end': '2026-05-05T18:00:00Z',
+          },
+          {
+            'id': 3,
+            'sku': 'RE-VAIRC-24-8912',
+            'name': '2026 VEX Robotics World Championship - VEX AI',
+            'program': {'code': 'VEX AI'},
+            'start': '2026-04-25T08:00:00Z',
+            'end': '2026-04-28T18:00:00Z',
+          },
+        ];
+
+        final filtered = (progList.contains('57') || progList.contains('58'))
+            ? all.where((e) => (e['program'] as Map)['code'] == 'VEX AI').toList()
+            : all;
+
         return http.Response(
-          '{"data":[]}',
+          jsonEncode({'data': filtered}),
           200,
         );
       });
