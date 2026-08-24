@@ -10,6 +10,7 @@
 .env.*
 node_modules/
 *.sqlite
+*.sqlite*
 *.sqlite3
 *.sqlite-journal
 

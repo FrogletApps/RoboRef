@@ -1,12 +1,12 @@
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import type { StorageAdapter, EventRecord, IncidentNoteRecord } from "../core/types.js";
 
 export class LocalSqliteAdapter implements StorageAdapter {
-  private db: Database.Database;
+  private db: DatabaseSync;
 
   constructor(dbPath: string = "roboref.sqlite") {
-    this.db = new Database(dbPath);
-    this.db.pragma("journal_mode = WAL");
+    this.db = new DatabaseSync(dbPath);
+    this.db.exec("PRAGMA journal_mode = WAL;");
   }
 
   async init(): Promise<void> {
@@ -96,8 +96,9 @@ export class LocalSqliteAdapter implements StorageAdapter {
       WHERE excluded.updatedAt > notes.updatedAt
     `);
 
-    const transaction = this.db.transaction((records: IncidentNoteRecord[]) => {
-      for (const record of records) {
+    this.db.exec("BEGIN;");
+    try {
+      for (const record of changes) {
         currentMax += 1;
         upsertStmt.run(
           record.id,
@@ -115,9 +116,12 @@ export class LocalSqliteAdapter implements StorageAdapter {
           currentMax
         );
       }
-    });
+      this.db.exec("COMMIT;");
+    } catch (err) {
+      this.db.exec("ROLLBACK;");
+      throw err;
+    }
 
-    transaction(changes);
     return { latestVersion: currentMax };
   }
 }
