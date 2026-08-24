@@ -5,7 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 class ShareScreen extends StatelessWidget {
   const ShareScreen({super.key});
 
-  final String shareUrl = 'https://roboref.fyi';
+  final String shareUrl = 'https://roboref.app';
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +57,7 @@ class ShareScreen extends StatelessWidget {
                     children: const [
                       TextSpan(text: 'RoboRef'),
                       TextSpan(
-                        text: '.fyi',
+                        text: '.app',
                         style: TextStyle(color: Colors.grey),
                       ),
                     ],
@@ -80,7 +80,7 @@ class ShareScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: [
-                        // Functional QR code linking to https://roboref.fyi
+                        // Functional QR code linking to https://roboref.app
                         QrImageView(
                           data: shareUrl,
                           version: QrVersions.auto,
@@ -91,7 +91,7 @@ class ShareScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         const Text(
-                          'https://roboref.fyi',
+                          'https://roboref.app',
                           style: TextStyle(
                             color: Colors.black87,
                             fontWeight: FontWeight.bold,
@@ -121,7 +121,7 @@ class ShareScreen extends StatelessWidget {
                       children: [
                         const Expanded(
                           child: Text(
-                            'https://roboref.fyi',
+                            'https://roboref.app',
                             style: TextStyle(fontFamily: 'monospace', fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),

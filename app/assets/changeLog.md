@@ -2,6 +2,7 @@
 
 ## 2026.8.24+1
 
+- **Primary Domain Updated to roboref.app**: Updated official primary domain, web routing, cloud proxy endpoint, and in-app QR code share links to `https://roboref.app`.
 - **Removed Preloaded Dummy Events**: Removed hardcoded preloaded World Championship mock events in favor of dynamic live discovery from the VEX Events API.
 - **Live VEX Events Loading**: Direct querying of live tournaments taking place currently or over the next week via `events.vex.com` API proxy when clicking "Add a new event".
 - **Immediate Event Selection & Schedule/Roster Population**: Selecting any tournament populates its metadata, complete division match schedules, and team rosters into the database and UI, with real-time reactive streaming across tabs.

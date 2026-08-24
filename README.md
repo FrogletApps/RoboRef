@@ -5,7 +5,7 @@
 [![Database - SQLite / Drift](https://img.shields.io/badge/Database-SQLite%20%7C%20Drift-003B57?logo=sqlite)](https://drift.simonbinder.eu)
 [![UI - Material 3](https://img.shields.io/badge/UI-Material%20Design%203-7B1FA2)](https://m3.material.io)
 
-**RoboRef** ([roboref.fyi](https://roboref.fyi)) is an offline-first match anomaly log and referee assistant built specifically for Head Referees and field referees at VEX Robotics competitions (**V5RC**, **VIQRC**, **VEX U**, and **VEX AI**).
+**RoboRef** ([roboref.app](https://roboref.app)) is an offline-first match anomaly log and referee assistant built specifically for Head Referees and field referees at VEX Robotics competitions (**V5RC**, **VIQRC**, **VEX U**, and **VEX AI**).
 
 RoboRef enables field referees to quickly log rule infractions, inspect a team's prior incident history before match queuing, and synchronize notes seamlessly across peer devices in real-time—even in tournament venues with severe RF interference and zero internet connectivity.
 
@@ -235,7 +235,7 @@ Ensure you are logged into Wrangler (`npx wrangler login`) before deploying.
 # Build Web and deploy to Test environment (test D1 database)
 .\scripts\deploy.ps1 test
 
-# Build Web and deploy to Live environment (roboref.fyi + live D1 database)
+# Build Web and deploy to Live environment (roboref.app + live D1 database)
 .\scripts\deploy.ps1 live
 
 # Deploy existing build without rebuilding Flutter

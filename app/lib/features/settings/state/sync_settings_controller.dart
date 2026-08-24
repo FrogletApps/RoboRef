@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -57,12 +58,28 @@ class SyncSettingsState {
 class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
   final SharedPreferences prefs;
 
+  static String _getDefaultServerUrl(SharedPreferences prefs) {
+    final stored = prefs.getString('server_url');
+    if (stored != null && stored.trim().isNotEmpty) {
+      return stored.trim();
+    }
+    if (kIsWeb) {
+      try {
+        final origin = Uri.base.origin;
+        if (origin.isNotEmpty && origin.startsWith('http')) {
+          return origin;
+        }
+      } catch (_) {}
+    }
+    return 'http://roboref.local:8080';
+  }
+
   SyncSettingsNotifier(this.prefs)
       : super(SyncSettingsState(
           currentSku: prefs.getString('current_sku') ?? 'DEMO-EVENT-2026',
           refereeName: prefs.getString('referee_name') ?? 'Head Referee',
           deviceId: prefs.getString('device_id') ?? const Uuid().v4(),
-          serverUrl: prefs.getString('server_url') ?? 'http://roboref.local:8080',
+          serverUrl: _getDefaultServerUrl(prefs),
         )) {
     if (!prefs.containsKey('device_id')) {
       prefs.setString('device_id', state.deviceId);

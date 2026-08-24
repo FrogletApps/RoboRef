@@ -2,6 +2,7 @@
 
 ## 2026.8.24+1
 
+- **Primary Domain Updated to roboref.app**: Updated official primary domain, web routing, cloud proxy endpoint, and in-app QR code share links to `https://roboref.app`.
 - **Removed Preloaded Dummy Events**: Removed hardcoded preloaded World Championship mock events in favor of dynamic live discovery from the VEX Events API.
 - **Live VEX Events Loading**: Direct querying of live tournaments taking place currently or over the next week via `events.vex.com` API proxy when clicking "Add a new event".
 - **Immediate Event Selection & Schedule/Roster Population**: Selecting any tournament populates its metadata, complete division match schedules, and team rosters into the database and UI, with real-time reactive streaming across tabs.
@@ -25,7 +26,7 @@
 - **Venue LAN Sync Priority (`roboref.local`)**: Set `http://roboref.local:8080` as the preferred default connection with automatic LAN server status detection.
 - **Universal Sync Server**: TypeScript + Hono sync server for both local Raspberry Pi venue deployment and Cloudflare Workers cloud deployment.
 - **Brand Identity & Icon Assets**: Integrated the RoboRef logo across in-app UI, Web PWA icons/favicons, Android mipmaps, and iOS AppIcon set.
-- **Functional Share QR Code**: Replaced placeholder mock graphics with a fully scannable QR code linking to `https://roboref.fyi` on the Share RoboRef screen.
+- **Functional Share QR Code**: Replaced placeholder mock graphics with a fully scannable QR code linking to `https://roboref.app` on the Share RoboRef screen.
 - **Change Log Screen**: Dynamic in-app changelog viewer loading and rendering release notes directly from `documents/changeLog.md` with version copy and search filtering.
 - **Dynamic App Versioning & CalVer**: Connected Change Log version card to runtime platform package info (`package_info_plus`) with automated date-based versioning and Git commit count build numbers.
 - **Home Screen Cleanup**: Removed the 'Browse All' button, eliminated the loading spinner, and hid the 'Recent Tournaments' header when no events exist to prominently show the 'Welcome to RoboRef!' note.

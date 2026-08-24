@@ -114,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 controller: _serverController,
                 decoration: const InputDecoration(
                   labelText: 'Sync Server URL',
-                  hintText: 'http://roboref.local:8080 or https://sync.roboref.fyi',
+                  hintText: 'http://roboref.local:8080 or https://sync.roboref.app',
                   border: OutlineInputBorder(),
                   isDense: true,
                 ),

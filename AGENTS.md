@@ -6,7 +6,7 @@ Welcome! This file (`AGENTS.md`) contains primary guidelines and context for AI 
 
 ## 1. Project Overview
 
-**RoboRef** ([roboref.fyi](https://roboref.fyi)) is an offline-first match anomaly log and referee assistant for Head Referees at VEX Robotics competitions. It enables referees to quickly log incidents, view prior team incident histories before matches, and synchronize notes seamlessly across field referee devices in real-time.
+**RoboRef** ([roboref.app](https://roboref.app)) is an offline-first match anomaly log and referee assistant for Head Referees at VEX Robotics competitions. It enables referees to quickly log incidents, view prior team incident histories before matches, and synchronize notes seamlessly across field referee devices in real-time.
 
 ### Tech Stack & Architecture
 - **Frontend (`app/`)**: Flutter & Dart (Android first, iOS, and Web/PWA) using **Drift** (SQLite) for offline-first data persistence and **Riverpod** for state management.

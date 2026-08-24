@@ -97,7 +97,7 @@ void main() {
         if (request.url.host == '192.168.1.99') {
           return http.Response('Connection Refused', 500);
         }
-        if (request.url.host == 'roboref.fyi') {
+        if (request.url.host == 'roboref.app') {
           return http.Response(
             jsonEncode({
               'data': [

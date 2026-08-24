@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/utils/sku_utils.dart';
@@ -36,7 +37,7 @@ class VexEventsClient {
   final http.Client _client;
   final String? _serverUrl;
 
-  static const String defaultCloudBaseUrl = 'https://roboref.fyi/api/vexevents';
+  static const String defaultCloudBaseUrl = 'https://roboref.app/api/vexevents';
 
   VexEventsClient({
     http.Client? client,
@@ -55,6 +56,18 @@ class VexEventsClient {
       } else {
         candidates.add('$clean/api/vexevents');
       }
+    }
+
+    if (kIsWeb) {
+      try {
+        final origin = Uri.base.origin;
+        if (origin.isNotEmpty && origin.startsWith('http')) {
+          final webCandidate = '$origin/api/vexevents';
+          if (!candidates.contains(webCandidate)) {
+            candidates.add(webCandidate);
+          }
+        }
+      } catch (_) {}
     }
 
     if (!candidates.contains(defaultCloudBaseUrl)) {

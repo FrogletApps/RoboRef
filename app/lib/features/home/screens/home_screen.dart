@@ -292,7 +292,7 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   const TextSpan(text: 'RoboRef'),
                   TextSpan(
-                    text: '.fyi',
+                    text: '.app',
                     style: TextStyle(
                       color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF71717A),
                     ),
