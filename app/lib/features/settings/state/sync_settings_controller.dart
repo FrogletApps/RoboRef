@@ -11,6 +11,35 @@ enum ServerConnectionStatus {
   unreachable,
 }
 
+class ServerHealthResult {
+  final bool isSuccess;
+  final ServerConnectionStatus status;
+  final String message;
+  final int? statusCode;
+  final Duration? latency;
+
+  const ServerHealthResult({
+    required this.isSuccess,
+    required this.status,
+    required this.message,
+    this.statusCode,
+    this.latency,
+  });
+}
+
+Uri? buildHealthCheckUri(String rawUrl) {
+  var url = rawUrl.trim();
+  if (url.isEmpty) return null;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'http://$url';
+  }
+  url = url.replaceAll(RegExp(r'/+$'), '');
+  if (url.endsWith('/api/health')) {
+    return Uri.tryParse(url);
+  }
+  return Uri.tryParse('$url/api/health');
+}
+
 class SyncSettingsState {
   final String currentSku;
   final String refereeName;
@@ -20,6 +49,8 @@ class SyncSettingsState {
   final String? lastSyncTime;
   final String? lastError;
   final ServerConnectionStatus connectionStatus;
+  final String? lastConnectionMessage;
+  final bool? lastConnectionSuccess;
 
   SyncSettingsState({
     required this.currentSku,
@@ -30,6 +61,8 @@ class SyncSettingsState {
     this.lastSyncTime,
     this.lastError,
     this.connectionStatus = ServerConnectionStatus.unknown,
+    this.lastConnectionMessage,
+    this.lastConnectionSuccess,
   });
 
   SyncSettingsState copyWith({
@@ -41,6 +74,8 @@ class SyncSettingsState {
     String? lastSyncTime,
     String? lastError,
     ServerConnectionStatus? connectionStatus,
+    String? lastConnectionMessage,
+    bool? lastConnectionSuccess,
   }) {
     return SyncSettingsState(
       currentSku: currentSku ?? this.currentSku,
@@ -51,12 +86,15 @@ class SyncSettingsState {
       lastSyncTime: lastSyncTime ?? this.lastSyncTime,
       lastError: lastError,
       connectionStatus: connectionStatus ?? this.connectionStatus,
+      lastConnectionMessage: lastConnectionMessage ?? this.lastConnectionMessage,
+      lastConnectionSuccess: lastConnectionSuccess ?? this.lastConnectionSuccess,
     );
   }
 }
 
 class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
   final SharedPreferences prefs;
+  final http.Client? httpClient;
 
   static String _getDefaultServerUrl(SharedPreferences prefs) {
     final stored = prefs.getString('server_url');
@@ -74,7 +112,7 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
     return 'http://roboref.local:8080';
   }
 
-  SyncSettingsNotifier(this.prefs)
+  SyncSettingsNotifier(this.prefs, {this.httpClient})
       : super(SyncSettingsState(
           currentSku: prefs.getString('current_sku') ?? 'DEMO-EVENT-2026',
           refereeName: prefs.getString('referee_name') ?? 'Head Referee',
@@ -111,25 +149,116 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
     );
   }
 
-  Future<void> checkServerHealth() async {
+  Future<ServerHealthResult> checkServerHealth([String? testUrl]) async {
+    final targetUrl = testUrl != null ? testUrl.trim() : state.serverUrl.trim();
+
+    if (targetUrl.isEmpty) {
+      const result = ServerHealthResult(
+        isSuccess: false,
+        status: ServerConnectionStatus.unreachable,
+        message: 'Server URL is empty',
+      );
+      state = state.copyWith(
+        connectionStatus: ServerConnectionStatus.unreachable,
+        lastConnectionMessage: 'Server URL is empty',
+        lastConnectionSuccess: false,
+      );
+      return result;
+    }
+
+    final uri = buildHealthCheckUri(targetUrl);
+    if (uri == null) {
+      const result = ServerHealthResult(
+        isSuccess: false,
+        status: ServerConnectionStatus.unreachable,
+        message: 'Invalid server URL format',
+      );
+      state = state.copyWith(
+        connectionStatus: ServerConnectionStatus.unreachable,
+        lastConnectionMessage: 'Invalid server URL format',
+        lastConnectionSuccess: false,
+      );
+      return result;
+    }
+
+    final stopwatch = Stopwatch()..start();
     try {
-      final uri = Uri.parse('${state.serverUrl}/api/health');
-      final res = await http.get(uri).timeout(const Duration(seconds: 3));
+      final client = httpClient ?? http.Client();
+      final res = await client.get(uri).timeout(const Duration(seconds: 4));
+      stopwatch.stop();
+
       if (res.statusCode == 200) {
-        final isLocal = state.serverUrl.contains('roboref.local') ||
-            state.serverUrl.contains('127.0.0.1') ||
-            state.serverUrl.contains('192.168.') ||
-            state.serverUrl.contains('10.') ||
-            state.serverUrl.contains('localhost');
+        final hostLower = uri.host.toLowerCase();
+        final isLocal = hostLower.contains('roboref.local') ||
+            hostLower == '127.0.0.1' ||
+            hostLower == 'localhost' ||
+            hostLower.startsWith('192.168.') ||
+            hostLower.startsWith('10.') ||
+            hostLower.startsWith('172.');
+        final status = isLocal
+            ? ServerConnectionStatus.connectedLocal
+            : ServerConnectionStatus.connectedCloud;
+        final serverType = isLocal ? 'Venue LAN' : 'Cloud Server';
+        final latencyMs = stopwatch.elapsedMilliseconds;
+        final msg = 'Connected to $serverType ($latencyMs ms)';
+
         state = state.copyWith(
-          connectionStatus: isLocal
-              ? ServerConnectionStatus.connectedLocal
-              : ServerConnectionStatus.connectedCloud,
+          connectionStatus: status,
+          lastConnectionMessage: msg,
+          lastConnectionSuccess: true,
         );
-        return;
+
+        return ServerHealthResult(
+          isSuccess: true,
+          status: status,
+          message: msg,
+          statusCode: res.statusCode,
+          latency: stopwatch.elapsed,
+        );
+      } else {
+        final msg = 'Server reachable but returned HTTP ${res.statusCode}';
+        state = state.copyWith(
+          connectionStatus: ServerConnectionStatus.unreachable,
+          lastConnectionMessage: msg,
+          lastConnectionSuccess: false,
+        );
+        return ServerHealthResult(
+          isSuccess: false,
+          status: ServerConnectionStatus.unreachable,
+          message: msg,
+          statusCode: res.statusCode,
+          latency: stopwatch.elapsed,
+        );
       }
-    } catch (_) {}
-    state = state.copyWith(connectionStatus: ServerConnectionStatus.unreachable);
+    } catch (e) {
+      stopwatch.stop();
+      String errorMsg = 'Could not reach server';
+      final eStr = e.toString().toLowerCase();
+      if (eStr.contains('timeoutexception') || eStr.contains('timed out')) {
+        errorMsg = 'Connection timed out (server unreachable)';
+      } else if (eStr.contains('socketexception') ||
+          eStr.contains('failed host lookup') ||
+          eStr.contains('connection refused')) {
+        errorMsg = 'Connection refused / host unreachable';
+      } else if (eStr.contains('clientexception')) {
+        errorMsg = 'Network or CORS error connecting to server';
+      } else if (eStr.contains('formatexception')) {
+        errorMsg = 'Invalid server URL format';
+      }
+
+      state = state.copyWith(
+        connectionStatus: ServerConnectionStatus.unreachable,
+        lastConnectionMessage: errorMsg,
+        lastConnectionSuccess: false,
+      );
+
+      return ServerHealthResult(
+        isSuccess: false,
+        status: ServerConnectionStatus.unreachable,
+        message: errorMsg,
+        latency: stopwatch.elapsed,
+      );
+    }
   }
 }
 

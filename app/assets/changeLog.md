@@ -2,6 +2,8 @@
 
 ## 2026.8.25+1
 
+- **Sync Server Configuration Dropdown**: Added a server selection dropdown on the Manage screen with environment-aware presets (**Cloud Server** pointing to `https://test.roboref.app` on test environments or `https://roboref.app` on live production, and **Venue LAN** pointing to `http://roboref.local:8080`), with a **Custom** option that reveals the free-form server URL input field.
+- **Explicit Connection Testing & Diagnostic Feedback**: Enhanced the "Test Connection" button on the Manage screen with in-flight progress indicators, real-time round-trip latency measurements (e.g. `14 ms`), distinct green success and red failure notifications with specific error reasons, and live diagnostic reporting in the Server Status card.
 - **Environment-Specific PWA & Browser Tab Titles**: Dynamic detection and naming for PWA installation and browser tabs: **RoboRef Test** on test environments (`test.roboref.app`, `test.roboref.fyi`, `*.workers.dev`), **RoboRef Local** on local networks/development (`localhost`, `127.0.0.1`, `roboref.local`, LAN IPs), and **RoboRef** on live production (`roboref.app`).
 - **Header Bar Environment Badges**: Restored runtime detection of test environments on Web release builds so the top-right yellow `TEST` badge renders accurately on `test.roboref.app` alongside the red `LOCAL` badge on local venue servers.
 - **Cloudflare Worker D1 & VEX Events Proxy Fix**: Resolved an unhandled D1 initialization error on `test.roboref.app` that blocked the VEX Events API proxy from executing and returning tournament data. Improved token fallback to support `VEX_EVENTS_TOKEN`, `VEX_EVENTS_API_KEY`, `VEX_API_KEY`, and `VEX_TOKEN` with automatic Bearer prefix formatting.

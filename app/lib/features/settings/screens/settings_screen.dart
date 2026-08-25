@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
@@ -21,6 +22,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _nameController;
   late TextEditingController _serverController;
   bool _initialized = false;
+  String _selectedServerOption = 'lan';
+  bool _isTestingConnection = false;
 
   @override
   void dispose() {
@@ -30,16 +33,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
+  String _getOptionForUrl(String url, String cloudUrl, String venueLanUrl) {
+    final clean = url.trim().toLowerCase().replaceAll(RegExp(r'/+$'), '');
+    final cleanCloud = cloudUrl.trim().toLowerCase().replaceAll(RegExp(r'/+$'), '');
+    final cleanVenue = venueLanUrl.trim().toLowerCase().replaceAll(RegExp(r'/+$'), '');
+
+    if (clean == cleanCloud ||
+        clean == 'https://test.roboref.app' ||
+        clean == 'http://test.roboref.app' ||
+        clean == 'https://roboref.app' ||
+        clean == 'http://roboref.app') {
+      return 'cloud';
+    }
+    if (clean == cleanVenue ||
+        clean == 'http://roboref.local:8080' ||
+        clean == 'https://roboref.local:8080' ||
+        clean == 'roboref.local:8080' ||
+        clean == 'http://roboref.local' ||
+        clean == 'https://roboref.local') {
+      return 'lan';
+    }
+    return 'custom';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
         final settings = ref.watch(syncSettingsProvider);
+        final env = getAppEnvironment();
+        final cloudUrl = (env == AppEnvironment.test) ? 'https://test.roboref.app' : 'https://roboref.app';
+        const venueLanUrl = 'http://roboref.local:8080';
 
         if (!_initialized) {
           _skuController = TextEditingController(text: settings.currentSku);
           _nameController = TextEditingController(text: settings.refereeName);
           _serverController = TextEditingController(text: settings.serverUrl);
+          _selectedServerOption = _getOptionForUrl(settings.serverUrl, cloudUrl, venueLanUrl);
           _initialized = true;
         }
 
@@ -97,8 +127,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-
-
               // Sync Server Section
               const Text(
                 'Sync Server Configuration',
@@ -110,16 +138,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: _serverController,
+
+              // Sync Server Mode Dropdown
+              DropdownButtonFormField<String>(
+                initialValue: _selectedServerOption,
                 decoration: const InputDecoration(
-                  labelText: 'Sync Server URL',
-                  hintText: 'http://roboref.local:8080 or https://sync.roboref.app',
+                  labelText: 'Sync Server Mode',
                   border: OutlineInputBorder(),
                   isDense: true,
+                  prefixIcon: Icon(Icons.dns_outlined),
                 ),
-                onChanged: (val) => ref.read(syncSettingsProvider.notifier).setServerUrl(val.trim()),
+                items: [
+                  DropdownMenuItem(
+                    value: 'cloud',
+                    child: Text(
+                      'Cloud Server ($cloudUrl)',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'lan',
+                    child: Text(
+                      'Venue LAN (http://roboref.local:8080)',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const DropdownMenuItem(
+                    value: 'custom',
+                    child: Text('Custom Server URL'),
+                  ),
+                ],
+                onChanged: (newOption) {
+                  if (newOption == null) return;
+                  setState(() {
+                    _selectedServerOption = newOption;
+                    if (newOption == 'cloud') {
+                      _serverController.text = cloudUrl;
+                      ref.read(syncSettingsProvider.notifier).setServerUrl(cloudUrl);
+                    } else if (newOption == 'lan') {
+                      _serverController.text = venueLanUrl;
+                      ref.read(syncSettingsProvider.notifier).setServerUrl(venueLanUrl);
+                    }
+                  });
+                },
               ),
+
+              // Custom Server URL free-text input
+              if (_selectedServerOption == 'custom') ...[
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _serverController,
+                  decoration: const InputDecoration(
+                    labelText: 'Custom Server URL',
+                    hintText: 'e.g. http://192.168.1.50:8080 or https://sync.roboref.app',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    prefixIcon: Icon(Icons.link),
+                  ),
+                  onChanged: (val) => ref.read(syncSettingsProvider.notifier).setServerUrl(val.trim()),
+                ),
+              ],
+
               const SizedBox(height: 16),
               Card(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -135,6 +214,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           _buildConnectionBadge(settings.connectionStatus),
                         ],
                       ),
+                      if (settings.lastConnectionMessage != null) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(
+                              settings.lastConnectionSuccess == true
+                                  ? Icons.check_circle
+                                  : Icons.error_outline,
+                              size: 14,
+                              color: settings.lastConnectionSuccess == true
+                                  ? Colors.green
+                                  : Colors.redAccent,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                settings.lastConnectionMessage!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: settings.lastConnectionSuccess == true
+                                      ? Colors.green
+                                      : Colors.redAccent,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -171,7 +279,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: settings.isSyncing
+                      onPressed: (settings.isSyncing || _isTestingConnection)
                           ? null
                           : () {
                               ref.read(incidentControllerProvider.notifier).triggerSync();
@@ -185,14 +293,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(width: 12),
                   OutlinedButton.icon(
-                    onPressed: () {
-                      ref.read(syncSettingsProvider.notifier).checkServerHealth();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Testing server connection...')),
-                      );
-                    },
-                    icon: const Icon(Icons.wifi_find),
-                    label: const Text('Test Connection'),
+                    onPressed: _isTestingConnection
+                        ? null
+                        : () async {
+                            final targetUrl = _serverController.text.trim();
+                            ref.read(syncSettingsProvider.notifier).setServerUrl(targetUrl);
+
+                            setState(() => _isTestingConnection = true);
+
+                            final messenger = ScaffoldMessenger.of(context);
+                            messenger.hideCurrentSnackBar();
+                            messenger.showSnackBar(
+                              SnackBar(
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(seconds: 4),
+                                content: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Testing connection to ${targetUrl.isEmpty ? 'server' : targetUrl}...',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+
+                            final result = await ref
+                                .read(syncSettingsProvider.notifier)
+                                .checkServerHealth(targetUrl);
+
+                            if (!mounted) return;
+                            setState(() => _isTestingConnection = false);
+
+                            messenger.hideCurrentSnackBar();
+                            messenger.showSnackBar(
+                              SnackBar(
+                                backgroundColor: result.isSuccess ? Colors.green.shade800 : Colors.red.shade800,
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(seconds: 4),
+                                content: Row(
+                                  children: [
+                                    Icon(
+                                      result.isSuccess ? Icons.check_circle_outline : Icons.error_outline,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        result.isSuccess
+                                            ? 'Connection successful: ${result.message}'
+                                            : 'Connection failed: ${result.message}',
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                    icon: _isTestingConnection
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.wifi_find),
+                    label: Text(_isTestingConnection ? 'Testing...' : 'Test Connection'),
                   ),
                 ],
               ),
@@ -267,3 +441,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 }
+
