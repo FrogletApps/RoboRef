@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/sku_utils.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/settings/state/sync_settings_controller.dart';
 
@@ -25,7 +26,7 @@ class RoboRefApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'RoboRef',
+      title: getAppTitle(),
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

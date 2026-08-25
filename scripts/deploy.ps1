@@ -19,8 +19,8 @@ $ErrorActionPreference = "Stop"
 $rootDir = Join-Path $PSScriptRoot ".."
 
 if (-not $SkipBuild) {
-    Write-Host ">>> Step 1/2: Building Flutter Web PWA..." -ForegroundColor Cyan
-    & "$PSScriptRoot\build.ps1" web
+    Write-Host ">>> Step 1/2: Building Flutter Web PWA for $Environment..." -ForegroundColor Cyan
+    & "$PSScriptRoot\build.ps1" web "--dart-define=APP_ENV=$Environment"
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Flutter web build failed with exit code $LASTEXITCODE"
         exit $LASTEXITCODE

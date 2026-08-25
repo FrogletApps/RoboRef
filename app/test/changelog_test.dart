@@ -105,7 +105,7 @@ void main() {
 
       // 4. Check markdown content is present
       expect(find.textContaining('VEX Events', findRichText: true), findsWidgets);
-      expect(find.textContaining('Streamlined Settings', findRichText: true), findsWidgets);
+      expect(find.textContaining('Environment-Specific', findRichText: true), findsWidgets);
     });
 
     testWidgets('filters items when search query is entered', (tester) async {

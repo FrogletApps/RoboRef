@@ -1,0 +1,40 @@
+{
+    "name": "RoboRef Local",
+    "short_name": "RoboRef Local",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#18181b",
+    "theme_color": "#009669",
+    "description": "RoboRef Local - Anomaly log for Head Referees at VEX robotics competitions.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "roboref.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        }
+    ]
+}

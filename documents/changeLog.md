@@ -2,7 +2,8 @@
 
 ## 2026.8.25+1
 
-
+- **Environment-Specific PWA & Browser Tab Titles**: Dynamic detection and naming for PWA installation and browser tabs: **RoboRef Test** on test environments (`test.roboref.app`, `test.roboref.fyi`, `*.workers.dev`), **RoboRef Local** on local networks/development (`localhost`, `127.0.0.1`, `roboref.local`, LAN IPs), and **RoboRef** on live production (`roboref.app`).
+- **Header Bar Environment Badges**: Restored runtime detection of test environments on Web release builds so the top-right yellow `TEST` badge renders accurately on `test.roboref.app` alongside the red `LOCAL` badge on local venue servers.
 - **Cloudflare Worker D1 & VEX Events Proxy Fix**: Resolved an unhandled D1 initialization error on `test.roboref.app` that blocked the VEX Events API proxy from executing and returning tournament data. Improved token fallback to support `VEX_EVENTS_TOKEN`, `VEX_EVENTS_API_KEY`, `VEX_API_KEY`, and `VEX_TOKEN` with automatic Bearer prefix formatting.
 
 ## 2026.8.24+1

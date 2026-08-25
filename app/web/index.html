@@ -35,6 +35,47 @@
 
   <title>RoboRef</title>
   <link rel="manifest" href="manifest.json">
+
+  <script>
+    (function() {
+      var hostname = window.location.hostname;
+      var title = "RoboRef";
+      var manifestFile = "manifest.json";
+
+      var isLocal = hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "0.0.0.0" ||
+        hostname.endsWith(".local") ||
+        /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(hostname);
+
+      var isTest = !isLocal && (
+        hostname.startsWith("test.") ||
+        hostname.indexOf("test") !== -1 ||
+        hostname.indexOf("workers.dev") !== -1
+      );
+
+      if (isLocal) {
+        title = "RoboRef Local";
+        manifestFile = "manifest-local.json";
+      } else if (isTest) {
+        title = "RoboRef Test";
+        manifestFile = "manifest-test.json";
+      }
+
+      document.title = title;
+
+      var appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+      if (appleTitle) appleTitle.setAttribute("content", title);
+
+      var appName = document.querySelector('meta[name="application-name"]');
+      if (appName) appName.setAttribute("content", title);
+
+      var manifestLink = document.querySelector('link[rel="manifest"]');
+      if (manifestLink) {
+        manifestLink.setAttribute("href", manifestFile);
+      }
+    })();
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

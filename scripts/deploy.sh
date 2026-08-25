@@ -15,8 +15,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
 
 if [ "$SKIP_BUILD" = false ]; then
-  echo ">>> Step 1/2: Building Flutter Web PWA..."
-  "$SCRIPT_DIR/build.sh" web
+  echo ">>> Step 1/2: Building Flutter Web PWA for $ENV..."
+  "$SCRIPT_DIR/build.sh" web --dart-define=APP_ENV="$ENV"
 fi
 
 echo ">>> Step 2/2: Deploying to Cloudflare ($ENV environment)..."

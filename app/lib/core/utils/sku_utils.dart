@@ -116,12 +116,82 @@ enum AppEnvironment {
   production,
 }
 
-AppEnvironment getAppEnvironment() {
-  if (kDebugMode) {
+/// Pure helper for determining the active [AppEnvironment].
+/// Supports explicit compile-time environment flags, Web hostname detection, and platform modes.
+AppEnvironment resolveAppEnvironment({
+  String? compileEnv,
+  String? host,
+  bool isWeb = kIsWeb,
+  bool isDebug = kDebugMode,
+  bool isProfile = kProfileMode,
+}) {
+  // 1. Explicit compile-time environment flag (e.g. --dart-define=APP_ENV=test)
+  if (compileEnv != null && compileEnv.isNotEmpty) {
+    switch (compileEnv.trim().toLowerCase()) {
+      case 'local':
+      case 'dev':
+      case 'development':
+        return AppEnvironment.local;
+      case 'test':
+      case 'staging':
+        return AppEnvironment.test;
+      case 'live':
+      case 'prod':
+      case 'production':
+        return AppEnvironment.production;
+    }
+  }
+
+  // 2. Web runtime hostname detection
+  if (isWeb) {
+    final h = (host ?? '').trim().toLowerCase();
+    if (h == 'localhost' ||
+        h == '127.0.0.1' ||
+        h == '0.0.0.0' ||
+        h.endsWith('.local') ||
+        RegExp(r'^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)').hasMatch(h)) {
+      return AppEnvironment.local;
+    }
+    if (h.startsWith('test.') || h.contains('test') || h.contains('workers.dev')) {
+      return AppEnvironment.test;
+    }
+    return AppEnvironment.production;
+  }
+
+  // 3. Native platform modes
+  if (isDebug) {
     return AppEnvironment.local;
   }
-  if (kProfileMode) {
+  if (isProfile) {
     return AppEnvironment.test;
   }
   return AppEnvironment.production;
 }
+
+/// Retrieve the active [AppEnvironment]
+AppEnvironment getAppEnvironment() {
+  const compileEnv = String.fromEnvironment('APP_ENV');
+  final host = kIsWeb ? Uri.base.host : null;
+  return resolveAppEnvironment(
+    compileEnv: compileEnv,
+    host: host,
+    isWeb: kIsWeb,
+    isDebug: kDebugMode,
+    isProfile: kProfileMode,
+  );
+}
+
+/// Retrieve the user-facing application title for the active or given environment.
+/// Examples: 'RoboRef Local', 'RoboRef Test', 'RoboRef'
+String getAppTitle([AppEnvironment? env]) {
+  final environment = env ?? getAppEnvironment();
+  switch (environment) {
+    case AppEnvironment.local:
+      return 'RoboRef Local';
+    case AppEnvironment.test:
+      return 'RoboRef Test';
+    case AppEnvironment.production:
+      return 'RoboRef';
+  }
+}
+
