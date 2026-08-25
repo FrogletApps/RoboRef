@@ -3,41 +3,53 @@ import type { StorageAdapter, EventRecord, IncidentNoteRecord } from "../core/ty
 
 export class CloudflareD1Adapter implements StorageAdapter {
   private db: D1Database;
+  private initialized = false;
 
   constructor(d1: D1Database) {
     this.db = d1;
   }
 
   async init(): Promise<void> {
-    await this.db.exec(`
-      CREATE TABLE IF NOT EXISTS events (
-        sku TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        program TEXT NOT NULL,
-        season TEXT NOT NULL,
-        startDate TEXT NOT NULL,
-        endDate TEXT NOT NULL,
-        updatedAt INTEGER NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS notes (
-        id TEXT PRIMARY KEY,
-        sku TEXT NOT NULL,
-        teamNumber TEXT NOT NULL,
-        matchId TEXT,
-        ruleCodes TEXT NOT NULL,
-        severity TEXT NOT NULL,
-        notes TEXT NOT NULL,
-        refereeName TEXT NOT NULL,
-        deviceId TEXT NOT NULL,
-        createdAt INTEGER NOT NULL,
-        updatedAt INTEGER NOT NULL,
-        isDeleted INTEGER NOT NULL DEFAULT 0,
-        version INTEGER NOT NULL
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_notes_sku_ver ON notes (sku, version);
-    `);
+    if (this.initialized) return;
+    try {
+      await this.db.batch([
+        this.db.prepare(`
+          CREATE TABLE IF NOT EXISTS events (
+            sku TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            program TEXT NOT NULL,
+            season TEXT NOT NULL,
+            startDate TEXT NOT NULL,
+            endDate TEXT NOT NULL,
+            updatedAt INTEGER NOT NULL
+          )
+        `),
+        this.db.prepare(`
+          CREATE TABLE IF NOT EXISTS notes (
+            id TEXT PRIMARY KEY,
+            sku TEXT NOT NULL,
+            teamNumber TEXT NOT NULL,
+            matchId TEXT,
+            ruleCodes TEXT NOT NULL,
+            severity TEXT NOT NULL,
+            notes TEXT NOT NULL,
+            refereeName TEXT NOT NULL,
+            deviceId TEXT NOT NULL,
+            createdAt INTEGER NOT NULL,
+            updatedAt INTEGER NOT NULL,
+            isDeleted INTEGER NOT NULL DEFAULT 0,
+            version INTEGER NOT NULL
+          )
+        `),
+        this.db.prepare(`
+          CREATE INDEX IF NOT EXISTS idx_notes_sku_ver ON notes (sku, version)
+        `),
+      ]);
+      this.initialized = true;
+    } catch (e) {
+      console.error("CloudflareD1Adapter init error:", e);
+      throw e;
+    }
   }
 
   async getEvent(sku: string): Promise<EventRecord | null> {

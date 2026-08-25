@@ -66,14 +66,24 @@ export function createSyncApp(storageProvider: StorageAdapter) {
       return c.body(cached.body, cached.status as any);
     }
 
-    const envKey =
+    const rawEnvKey =
       (c.env as any)?.VEX_EVENTS_TOKEN ||
+      (c.env as any)?.VEX_EVENTS_API_KEY ||
       (c.env as any)?.VEX_API_KEY ||
+      (c.env as any)?.VEX_TOKEN ||
       (typeof process !== "undefined"
-        ? process.env.VEX_EVENTS_TOKEN || process.env.VEX_API_KEY
+        ? process.env?.VEX_EVENTS_TOKEN ||
+          process.env?.VEX_EVENTS_API_KEY ||
+          process.env?.VEX_API_KEY ||
+          process.env?.VEX_TOKEN
         : "");
 
-    const authHeader = c.req.header("Authorization") || (envKey ? `Bearer ${envKey}` : undefined);
+    const envKey = typeof rawEnvKey === "string" ? rawEnvKey.trim() : "";
+
+    let authHeader = c.req.header("Authorization");
+    if (!authHeader && envKey) {
+      authHeader = envKey.startsWith("Bearer ") ? envKey : `Bearer ${envKey}`;
+    }
 
     const upstreamUrl = new URL(`https://events.vex.com/api/v2/${rawPath}`);
     upstreamUrl.search = url.search;

@@ -9,13 +9,25 @@ export interface Env {
   VEX_API_KEY?: string;
 }
 
+let cachedApp: ReturnType<typeof createSyncApp> | null = null;
+let cachedStorage: CloudflareD1Adapter | null = null;
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const storage = new CloudflareD1Adapter(env.DB);
-    // Initialize DB schema lazily
-    await storage.init();
+    if (!cachedStorage || !cachedApp) {
+      cachedStorage = new CloudflareD1Adapter(env.DB);
+      cachedApp = createSyncApp(cachedStorage);
+    }
 
-    const app = createSyncApp(storage);
-    return app.fetch(request, env, ctx);
+    if (env.DB) {
+      try {
+        await cachedStorage.init();
+      } catch (e) {
+        console.error("Failed to initialize D1 storage schema:", e);
+      }
+    }
+
+    return cachedApp.fetch(request, env, ctx);
   },
 };
+

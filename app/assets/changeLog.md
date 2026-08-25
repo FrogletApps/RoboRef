@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026.8.25+1
+
+
+- **Cloudflare Worker D1 & VEX Events Proxy Fix**: Resolved an unhandled D1 initialization error on `test.roboref.app` that blocked the VEX Events API proxy from executing and returning tournament data. Improved token fallback to support `VEX_EVENTS_TOKEN`, `VEX_EVENTS_API_KEY`, `VEX_API_KEY`, and `VEX_TOKEN` with automatic Bearer prefix formatting.
+
 ## 2026.8.24+1
 
 - **Primary Domain Updated to roboref.app**: Updated official primary domain, web routing, cloud proxy endpoint, and in-app QR code share links to `https://roboref.app`.
