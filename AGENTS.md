@@ -36,6 +36,10 @@ When assisting with code modifications or feature implementations, AI agents **M
 ### E. Material Design 3 Principles
 - Follow **Material Design 3 (M3)** principles and component guidelines across all UI implementations, styling, and navigation patterns unless specifically guided not to.
 
+### F. Environment & Deployment Guardrails
+- **Test Environment Only**: AI agents may build, test, and deploy ONLY to the **Test** environment (e.g. `npm run deploy:cf:test` inside `server/`, `wrangler deploy -c ../wrangler.toml --env test`, `test.roboref.app`, or `test.roboref.fyi`).
+- **Live / Production Protection**: AI agents are strictly **PROHIBITED** from executing production deployment commands (e.g. `npm run deploy:cf:live`, `wrangler deploy --env live`) or modifying live production infrastructure directly. Production deployments must be executed or triggered manually by the maintainer.
+
 ---
 
 ## 3. Key Development Commands
@@ -51,7 +55,10 @@ flutter analyze
 
 # Sync Server (in server/)
 cd server
-npm run dev:node   # Run local Node server (for Raspberry Pi / LAN testing)
-npm run dev:cf     # Run Cloudflare Worker locally (wrangler)
+npm run dev:node        # Run local Node server (for Raspberry Pi / LAN testing)
+npm run dev:cf          # Run Cloudflare Worker locally (wrangler)
 npm run typecheck
+
+# Deployments (Test Only)
+npm run deploy:cf:test  # Deploy Cloudflare Worker & Web assets to test environment
 ```
