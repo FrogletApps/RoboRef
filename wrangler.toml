@@ -4,17 +4,17 @@ main = "server/src/index.cf.ts"
 compatibility_date = "2026-08-24"
 compatibility_flags = ["nodejs_compat"]
 
-# Static Assets Configuration (serves Flutter Web PWA from app/build/web)
-[assets]
-directory = "app/build/web"
-not_found_handling = "single-page-application"
-run_worker_first = false
-
 # Default (Test) Environment Routes
 routes = [
   { pattern = "test.roboref.app", custom_domain = true },
   { pattern = "test.roboref.fyi", custom_domain = true }
 ]
+
+# Static Assets Configuration (serves Flutter Web PWA from app/build/web)
+[assets]
+directory = "app/build/web"
+not_found_handling = "single-page-application"
+run_worker_first = false
 
 [vars]
 ENVIRONMENT = "test"
@@ -59,7 +59,10 @@ database_id = "8bcc2138-47d7-4b1b-9f57-e668abe27b42"
 [env.live]
 name = "roboref"
 workers_dev = false
-routes = [{ pattern = "roboref.app", custom_domain = true }]
+routes = [
+  { pattern = "roboref.app", custom_domain = true },
+  { pattern = "roboref.fyi", custom_domain = true },
+]
 
 [env.live.vars]
 ENVIRONMENT = "live"
@@ -67,4 +70,15 @@ ENVIRONMENT = "live"
 [[env.live.d1_databases]]
 binding = "DB"
 database_name = "roboref-db"
-database_id = "REPLACE_WITH_LIVE_D1_DATABASE_ID"
+database_id = "4cc2e2c6-eec4-4f55-bc95-481ca4d3c59e"
+
+# ----------------------------------------------------------------------
+# Durable Object Migrations (Cleanup legacy DO classes from previous stack)
+# ----------------------------------------------------------------------
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ShareInstance"]
+
+[[migrations]]
+tag = "v2"
+deleted_classes = ["ShareInstance"]
