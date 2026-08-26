@@ -2,15 +2,10 @@
 
 ## 2026.8.26+1
 
-- **Event Program Filters**: Fixed event program filters (V5RC, VIQRC, VEX U, VEX AI) on the Pick an Event screen with instant reactive filtering and season-aligned VEX API queries.
-- **LAN Sync, CORS & VEX Events Proxy**: Added `Access-Control-Allow-Private-Network` header support on the sync server for Chrome/Edge Private Network Access preflights, enabled Android cleartext traffic and internet permissions, and added automatic cloud proxy fallback for VEX Events lookups on local venue servers without local API keys.
-- **Light / Dark / Device Theme Switcher**: Added an Appearance selector in Settings supporting Device (system default), Light, and Dark modes.
-- **Light Mode Styling**: Refined Material Design 3 light theme styling with clean card surfaces, input borders, and high-contrast accents across all screens.
-- **RoboRef Brand Green Primary Theme (`#00731f`)**: Unified the primary application theme across Light and Dark modes using the official RoboRef forest brand green (`#00731f`).
-- **Brand Logo & Multi-Platform Icon Assets**: Regenerated all RoboRef logo assets (SVG, Web PWA icons, favicon, Android mipmaps, and iOS AppIcon set) with the updated `#00731f` brand green and matching `#004613` shadow accents.
-- **Vivid Call-To-Action Highlights**: Enhanced the prominent "+ Add a new event" button with high-energy vivid green (`#16A34A`), preserving the punchy, high-visibility visual hierarchy from the original design.
-- **Button, Icon, and Accent Alignment**: Updated all primary action buttons, floating action buttons, bottom action sheets, active icon highlights, quick action buttons, and informational badges to dynamically use the primary brand green theme.
-- **Material Design 3 Harmony & Accessibility**: Generated accessible Material 3 tonal palettes with WCAG-compliant contrast ratios (high-contrast white text on `#00731f` in light mode, and vibrant tone 80 emerald `#66E07A` in dark mode).
+- **Search Improvements**
+- **Fixed Event Filters**: Can search by event type or region.
+- **Fixes for testing locally**
+- **Theme Improvements**: A new colour scheme with light and dark modes.
 
 ## 2026.8.25+1
 
