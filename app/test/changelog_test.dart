@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:roboref/features/home/screens/changelog_screen.dart';
 
 String getPubspecVersion() {
@@ -20,6 +21,16 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final currentVersion = getPubspecVersion();
+
+  setUpAll(() {
+    PackageInfo.setMockInitialValues(
+      appName: 'RoboRef',
+      packageName: 'app.roboref',
+      version: currentVersion.split('+').first,
+      buildNumber: currentVersion.contains('+') ? currentVersion.split('+').last : '',
+      buildSignature: '',
+    );
+  });
 
   group('ChangeLog Parsing & Version Alignment', () {
     test('parses markdown into structured releases', () {
@@ -104,8 +115,8 @@ void main() {
       expect(find.text(currentVersion), findsOneWidget);
 
       // 4. Check markdown content is present
-      expect(find.textContaining('VEX Events', findRichText: true), findsWidgets);
-      expect(find.textContaining('Environment-Specific', findRichText: true), findsWidgets);
+      expect(find.textContaining('Brand Green', findRichText: true), findsWidgets);
+      expect(find.textContaining('Primary Theme', findRichText: true), findsWidgets);
     });
 
     testWidgets('filters items when search query is entered', (tester) async {
@@ -121,10 +132,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Search for specific keyword
-      await tester.enterText(find.byType(TextField), 'VEX Events');
+      await tester.enterText(find.byType(TextField), 'Brand Green');
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('VEX Events', findRichText: true), findsWidgets);
+      expect(find.textContaining('Brand Green', findRichText: true), findsWidgets);
 
       // Search for something non-existent
       await tester.enterText(find.byType(TextField), 'xyznonexistent123');
@@ -137,7 +148,7 @@ void main() {
       await tester.tap(find.text('Clear search'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('VEX Events', findRichText: true), findsWidgets);
+      expect(find.textContaining('Brand Green', findRichText: true), findsWidgets);
     });
 
     testWidgets('copies version to clipboard when copy button is tapped', (tester) async {

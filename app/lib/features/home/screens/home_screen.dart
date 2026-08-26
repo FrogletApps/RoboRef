@@ -443,8 +443,8 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildAddEventButton(BuildContext context) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF2563EB), // Blue-600
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 2,
@@ -480,7 +480,7 @@ class HomeScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.info_outline, color: Color(0xFF3B82F6), size: 22),
+              Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary, size: 22),
               const SizedBox(width: 8),
               Text(
                 'Welcome to RoboRef!',

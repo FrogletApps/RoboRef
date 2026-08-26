@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026.8.26+1
+
+- **RoboRef Brand Green Primary Theme (`#00731f`)**: Unified the primary application theme across Light and Dark modes using the official RoboRef forest brand green (`#00731f`).
+- **Brand Logo & Multi-Platform Icon Assets**: Regenerated all RoboRef logo assets (SVG, Web PWA icons, favicon, Android mipmaps, and iOS AppIcon set) with the updated `#00731f` brand green and matching `#004613` shadow accents.
+- **Button, Icon, and Accent Alignment**: Updated all primary action buttons (including "Add a new event", floating action buttons, and bottom action sheets), active icon highlights, quick action buttons, and informational badges to dynamically use the primary brand green theme.
+- **Material Design 3 Harmony & Accessibility**: Generated accessible Material 3 tonal palettes with WCAG-compliant contrast ratios (high-contrast white text on `#00731f` in light mode, and vibrant tone 80 emerald `#66E07A` in dark mode).
+
 ## 2026.8.25+1
 
 - **Sync Server Configuration Dropdown**: Added a server selection dropdown on the Manage screen with environment-aware presets (**Cloud Server** pointing to `https://test.roboref.app` on test environments or `https://roboref.app` on live production, and **Venue LAN** pointing to `http://roboref.local:8080`), with a **Custom** option that reveals the free-form server URL input field.

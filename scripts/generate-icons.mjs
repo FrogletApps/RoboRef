@@ -32,8 +32,8 @@ const P = (Math.PI * 2) / TEETH;
 const ALPHA = P * 0.3;
 const BETA = P * 0.07;
 
-const GEAR_FILL = "#009669";
-const KEYLINE_FILL = "#00563a";
+const GEAR_FILL = "#00731f";
+const KEYLINE_FILL = "#004613";
 const KEYLINE_WIDTH = 10;
 const GEAR_OPACITY = 1;
 

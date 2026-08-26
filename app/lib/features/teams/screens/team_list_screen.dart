@@ -128,7 +128,9 @@ class _TeamListScreenState extends State<TeamListScreen> {
                             leading: CircleAvatar(
                               backgroundColor: majorCount > 0
                                   ? Colors.red.shade100
-                                  : (warningCount > 0 ? Colors.amber.shade100 : Colors.blue.shade100),
+                                  : (warningCount > 0
+                                      ? Colors.amber.shade100
+                                      : Theme.of(context).colorScheme.primaryContainer),
                               child: Text(
                                 team.length > 3 ? team.substring(0, 3) : team,
                                 style: TextStyle(
@@ -136,7 +138,9 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                   fontWeight: FontWeight.bold,
                                   color: majorCount > 0
                                       ? Colors.red.shade900
-                                      : (warningCount > 0 ? Colors.amber.shade900 : Colors.blue.shade900),
+                                      : (warningCount > 0
+                                          ? Colors.amber.shade900
+                                          : Theme.of(context).colorScheme.onPrimaryContainer),
                                 ),
                               ),
                             ),
@@ -274,7 +278,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 'Rules: ${ruleCodes.join(", ")}',
-                                style: TextStyle(color: Colors.blue.shade800, fontSize: 12, fontWeight: FontWeight.w600),
+                                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 12, fontWeight: FontWeight.w600),
                               ),
                             ],
                             if (note.notes.isNotEmpty) ...[

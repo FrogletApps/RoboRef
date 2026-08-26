@@ -179,14 +179,14 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                                   return Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.shade50,
-                                      border: Border.all(color: Colors.blue.shade300),
+                                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                                      border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4)),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       rule.toString(),
                                       style: TextStyle(
-                                        color: Colors.blue.shade900,
+                                        color: Theme.of(context).colorScheme.primary,
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                       ),

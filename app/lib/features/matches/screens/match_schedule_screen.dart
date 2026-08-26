@@ -306,7 +306,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               ),
               const SizedBox(height: 16),
               ListTile(
-                leading: const Icon(Icons.add_alert, color: Colors.blue),
+                leading: Icon(Icons.add_alert, color: Theme.of(context).colorScheme.primary),
                 title: const Text('Log Incident Note for this Match'),
                 onTap: () {
                   Navigator.pop(ctx);

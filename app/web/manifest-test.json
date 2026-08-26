@@ -4,7 +4,7 @@
     "start_url": ".",
     "display": "standalone",
     "background_color": "#18181b",
-    "theme_color": "#009669",
+    "theme_color": "#00731f",
     "description": "RoboRef Test - Anomaly log for Head Referees at VEX robotics competitions.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
