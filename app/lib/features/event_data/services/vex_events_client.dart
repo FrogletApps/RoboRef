@@ -145,6 +145,30 @@ class VexEventsClient {
     }
   }
 
+  /// Map program names to VEX Events season IDs for server-side season filtering
+  List<int> _getProgramSeasonIds(String? program) {
+    if (program == null || program.isEmpty || program == 'All') {
+      return [204, 203, 205, 206, 197, 196, 198, 199, 190, 189, 191, 194];
+    }
+    switch (program.toUpperCase()) {
+      case 'V5RC':
+      case 'VRC':
+        return [204, 197, 190, 181, 173];
+      case 'VIQRC':
+      case 'VIQC':
+        return [203, 196, 189, 180, 174];
+      case 'VEX U':
+      case 'VURC':
+        return [205, 198, 191, 182, 175];
+      case 'VEX AI':
+      case 'VAIRC':
+      case 'VAIC':
+        return [206, 199, 194, 185, 171];
+      default:
+        return [];
+    }
+  }
+
   /// Searches events via the sync server VEX Events proxy
   Future<List<EventModel>> searchEvents({
     String? query,
@@ -161,6 +185,9 @@ class VexEventsClient {
       'per_page': [perPage.toString()],
     };
 
+    final isSkuSearch = (sku != null && sku.trim().isNotEmpty) ||
+        (query != null && query.trim().toUpperCase().startsWith('RE-'));
+
     if (sku != null && sku.trim().isNotEmpty) {
       queryParams['sku[]'] = [sku.trim().toUpperCase()];
     } else if (query != null && query.trim().isNotEmpty) {
@@ -175,6 +202,13 @@ class VexEventsClient {
     }
     if (end != null) {
       queryParams['end'] = [end.toUtc().toIso8601String()];
+    }
+
+    if (!isSkuSearch) {
+      final seasonIds = _getProgramSeasonIds(program);
+      if (seasonIds.isNotEmpty) {
+        queryParams['season[]'] = seasonIds.map((id) => id.toString()).toList();
+      }
     }
 
     final programIds = _getProgramIds(program);

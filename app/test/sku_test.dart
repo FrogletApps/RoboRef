@@ -43,5 +43,33 @@ void main() {
       final singleDay = formatEventDateRange('2026-05-01T08:00:00Z', '2026-05-01T17:00:00Z');
       expect(singleDay, equals('May 1, 2026'));
     });
+
+    test('isEventMatchingProgram accurately filters events by program', () {
+      // VIQRC event
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'All'), isTrue);
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'VIQRC'), isTrue);
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'V5RC'), isFalse);
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'VEX U'), isFalse);
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'VEX AI'), isFalse);
+
+      // V5RC event
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'All'), isTrue);
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'V5RC'), isTrue);
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'VIQRC'), isFalse);
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'VEX U'), isFalse);
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'VEX AI'), isFalse);
+
+      // VEX U (VURC) event
+      expect(isEventMatchingProgram(program: 'VURC', sku: 'RE-VURC-24-8911', selectedProgram: 'All'), isTrue);
+      expect(isEventMatchingProgram(program: 'VURC', sku: 'RE-VURC-24-8911', selectedProgram: 'VEX U'), isTrue);
+      expect(isEventMatchingProgram(program: 'VURC', sku: 'RE-VURC-24-8911', selectedProgram: 'V5RC'), isFalse);
+      expect(isEventMatchingProgram(program: 'VURC', sku: 'RE-VURC-24-8911', selectedProgram: 'VIQRC'), isFalse);
+
+      // VEX AI (VAIRC) event
+      expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'All'), isTrue);
+      expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'VEX AI'), isTrue);
+      expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'V5RC'), isFalse);
+      expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'VIQRC'), isFalse);
+    });
   });
 }

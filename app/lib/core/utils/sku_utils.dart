@@ -50,6 +50,57 @@ String getSkuProgram(String? sku) {
   return 'VEX';
 }
 
+/// Check if an event matches a selected program filter ('All', 'V5RC', 'VIQRC', 'VEX U', 'VEX AI')
+bool isEventMatchingProgram({
+  required String? program,
+  required String? sku,
+  required String selectedProgram,
+}) {
+  if (selectedProgram == 'All') return true;
+
+  final progUpper = (program ?? '').toUpperCase().trim();
+  final skuUpper = (sku ?? '').toUpperCase().trim();
+
+  switch (selectedProgram) {
+    case 'VIQRC':
+      return progUpper == 'VIQRC' ||
+          progUpper == 'VIQC' ||
+          isVIQRC(skuUpper) ||
+          getSkuProgram(skuUpper) == 'VIQRC';
+
+    case 'VEX U':
+      return progUpper == 'VURC' ||
+          progUpper == 'VEX U' ||
+          progUpper == 'VEXU' ||
+          skuUpper.contains('VEXU') ||
+          skuUpper.contains('VURC') ||
+          getSkuProgram(skuUpper) == 'VEX U';
+
+    case 'VEX AI':
+      return progUpper == 'VAIRC' ||
+          progUpper == 'VAIC' ||
+          progUpper == 'VEX AI' ||
+          isVAIRC(skuUpper) ||
+          getSkuProgram(skuUpper) == 'VEX AI';
+
+    case 'V5RC':
+      if (progUpper == 'VURC' ||
+          progUpper == 'VEX U' ||
+          progUpper == 'VEXU' ||
+          skuUpper.contains('VEXU') ||
+          skuUpper.contains('VURC')) {
+        return false;
+      }
+      return progUpper == 'V5RC' ||
+          progUpper == 'VRC' ||
+          getSkuProgram(skuUpper) == 'V5RC' ||
+          (!isVIQRC(skuUpper) && !isVAIRC(skuUpper) && isV5(skuUpper));
+
+    default:
+      return progUpper == selectedProgram.toUpperCase();
+  }
+}
+
 /// Get primary color theme for SKU
 Color getSkuColor(String? sku) {
   if (isVIQRC(sku)) {

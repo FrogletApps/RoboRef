@@ -186,8 +186,20 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
     // Client-side text filter over API results if query is typed
     List<EventModel> filteredApiEvents = _apiEvents;
-    if (cleanQuery.isNotEmpty && !cleanQuery.startsWith('RE-')) {
-      filteredApiEvents = _apiEvents.where((e) {
+
+    final isDirectSkuQuery = cleanQuery.startsWith('RE-');
+    if (_selectedProgram != 'All' && !isDirectSkuQuery) {
+      filteredApiEvents = filteredApiEvents
+          .where((e) => isEventMatchingProgram(
+                program: e.program,
+                sku: e.sku,
+                selectedProgram: _selectedProgram,
+              ))
+          .toList();
+    }
+
+    if (cleanQuery.isNotEmpty && !isDirectSkuQuery) {
+      filteredApiEvents = filteredApiEvents.where((e) {
         final nameMatch = e.name.toUpperCase().contains(cleanQuery);
         final skuMatch = e.sku.toUpperCase().contains(cleanQuery);
         final venueMatch = e.venue?.toUpperCase().contains(cleanQuery) ?? false;
@@ -274,7 +286,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                           selected: isSelected,
                           onSelected: (selected) {
                             setState(() {
-                              _selectedProgram = selected ? program : 'All';
+                              if (program == 'All') {
+                                _selectedProgram = 'All';
+                              } else {
+                                _selectedProgram = selected ? program : 'All';
+                              }
                             });
                             _fetchEvents();
                           },

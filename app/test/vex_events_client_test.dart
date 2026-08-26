@@ -59,6 +59,34 @@ void main() {
       expect(events.first.city, equals('Cancun'));
     });
 
+    test('searchEvents includes season[] params according to program filter', () async {
+      final mockClient = MockClient((request) async {
+        final seasons = request.url.queryParametersAll['season[]'];
+        expect(seasons, isNotNull);
+        expect(seasons, contains('203')); // 2026-2027 VIQRC
+        expect(seasons, contains('196')); // 2025-2026 VIQRC
+
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 987,
+                'sku': 'RE-VIQRC-26-4368',
+                'name': 'VIQRC Elite Qualifier',
+                'program': {'code': 'VIQRC'},
+              }
+            ]
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+      final events = await client.searchEvents(program: 'VIQRC');
+      expect(events.length, equals(1));
+      expect(events.first.sku, equals('RE-VIQRC-26-4368'));
+    });
+
     test('searchEvents passes start and end dates formatted as ISO strings', () async {
       final start = DateTime.utc(2026, 8, 21);
       final end = DateTime.utc(2026, 8, 31);

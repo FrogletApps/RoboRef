@@ -159,6 +159,24 @@ void main() {
       expect(find.text('RE-VAIRC-24-8912'), findsOneWidget);
       expect(find.text('RE-V5RC-24-8909'), findsNothing);
       expect(find.text('RE-VIQRC-24-8913'), findsNothing);
+
+      // Tap VIQRC filter chip
+      await tester.tap(find.widgetWithText(FilterChip, 'VIQRC'));
+      await tester.pumpAndSettle();
+
+      // Verify only VIQRC event is shown
+      expect(find.text('RE-VIQRC-24-8913'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-8909'), findsNothing);
+      expect(find.text('RE-VAIRC-24-8912'), findsNothing);
+
+      // Tap All filter chip
+      await tester.tap(find.widgetWithText(FilterChip, 'All'));
+      await tester.pumpAndSettle();
+
+      // Verify all events are shown again
+      expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
+      expect(find.text('RE-VIQRC-24-8913'), findsOneWidget);
+      expect(find.text('RE-VAIRC-24-8912'), findsOneWidget);
     });
   });
 }
