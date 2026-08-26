@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:roboref/core/utils/event_regions.dart';
 import 'package:roboref/core/utils/sku_utils.dart';
 
 void main() {
@@ -86,6 +87,44 @@ void main() {
       expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'VEX AI'), isTrue);
       expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'V5RC'), isFalse);
       expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'VIQRC'), isFalse);
+    });
+
+    test('isRegionMatchingQuery matches regions by direct name, alias, or child division (state/province)', () {
+      // Direct region name
+      expect(isRegionMatchingQuery('United States', 'United States'), isTrue);
+      expect(isRegionMatchingQuery('United States', 'unit'), isTrue);
+      expect(isRegionMatchingQuery('Canada', 'Can'), isTrue);
+
+      // State / Province names -> parent country
+      expect(isRegionMatchingQuery('United States', 'Texas'), isTrue);
+      expect(isRegionMatchingQuery('United States', 'tex'), isTrue);
+      expect(isRegionMatchingQuery('United States', 'California'), isTrue);
+      expect(isRegionMatchingQuery('Canada', 'Ontario'), isTrue);
+      expect(isRegionMatchingQuery('Canada', 'Alberta'), isTrue);
+
+      // State / Province abbreviations -> parent country
+      expect(isRegionMatchingQuery('United States', 'TX'), isTrue);
+      expect(isRegionMatchingQuery('United States', 'CA'), isTrue);
+      expect(isRegionMatchingQuery('Canada', 'ON'), isTrue);
+
+      // Non-matching state queries
+      expect(isRegionMatchingQuery('Australia', 'Texas'), isFalse);
+      expect(isRegionMatchingQuery('Japan', 'Ontario'), isFalse);
+
+      // Country aliases
+      expect(isRegionMatchingQuery('United States', 'USA'), isTrue);
+      expect(isRegionMatchingQuery('United Kingdom', 'UK'), isTrue);
+      expect(isRegionMatchingQuery('United Kingdom', 'England'), isTrue);
+      expect(isRegionMatchingQuery('United Kingdom', 'Scotland'), isTrue);
+      expect(isRegionMatchingQuery('Taiwan', 'Taipei'), isTrue);
+    });
+
+    test('getMatchingDivisionsForRegion extracts matching states/provinces', () {
+      expect(getMatchingDivisionsForRegion('United States', 'Texas'), equals(['Texas']));
+      expect(getMatchingDivisionsForRegion('United States', 'TX'), equals(['Texas']));
+      expect(getMatchingDivisionsForRegion('Canada', 'Ontario'), equals(['Ontario']));
+      expect(getMatchingDivisionsForRegion('Canada', 'ON'), equals(['Ontario']));
+      expect(getMatchingDivisionsForRegion('Australia', 'Texas'), isEmpty);
     });
   });
 }

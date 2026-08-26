@@ -166,6 +166,11 @@ const Map<String, String> regionAliases = {
   'US': 'United States',
   'UK': 'United Kingdom',
   'GB': 'United Kingdom',
+  'GREAT BRITAIN': 'United Kingdom',
+  'ENGLAND': 'United Kingdom',
+  'SCOTLAND': 'United Kingdom',
+  'WALES': 'United Kingdom',
+  'NORTHERN IRELAND': 'United Kingdom',
   'AU': 'Australia',
   'AUS': 'Australia',
   'CA': 'Canada',
@@ -257,4 +262,66 @@ const Map<String, String> divisionAliases = {
   'QC': 'Quebec',
   'SK': 'Saskatchewan',
 };
+
+/// Checks whether a region matches a query string by direct name, alias, or child division (e.g. state or province).
+bool isRegionMatchingQuery(String region, String query) {
+  final cleanQuery = query.trim().toUpperCase();
+  if (cleanQuery.isEmpty) return true;
+
+  final regionUpper = region.toUpperCase();
+  // 1. Direct region name match (e.g. "United", "Can", "Japan")
+  if (regionUpper.contains(cleanQuery)) return true;
+
+  // 2. Region alias match (e.g. "USA" -> "United States", "England" -> "United Kingdom")
+  final aliasTarget = regionAliases[cleanQuery]?.toUpperCase();
+  if (aliasTarget != null && (regionUpper == aliasTarget || regionUpper.contains(aliasTarget))) {
+    return true;
+  }
+
+  // 3. Child division match (state / province)
+  final divConfig = vexRegionDivisions[region];
+  if (divConfig != null) {
+    // Check if any state/province contains the query (e.g. "Texas", "California", "Ontario")
+    final hasDirectDivisionMatch = divConfig.divisions.any(
+      (d) => d.toUpperCase().contains(cleanQuery),
+    );
+    if (hasDirectDivisionMatch) return true;
+
+    // Check if query is a division abbreviation (e.g. "TX" -> "Texas", "ON" -> "Ontario")
+    final aliasedDivision = divisionAliases[cleanQuery]?.toUpperCase();
+    if (aliasedDivision != null) {
+      final hasAliasedDivisionMatch = divConfig.divisions.any(
+        (d) => d.toUpperCase() == aliasedDivision || d.toUpperCase().contains(aliasedDivision),
+      );
+      if (hasAliasedDivisionMatch) return true;
+    }
+  }
+
+  return false;
+}
+
+/// Returns list of matching division names (e.g. states/provinces) for a region and query.
+List<String> getMatchingDivisionsForRegion(String region, String query) {
+  final cleanQuery = query.trim().toUpperCase();
+  if (cleanQuery.isEmpty) return const [];
+
+  final divConfig = vexRegionDivisions[region];
+  if (divConfig == null) return const [];
+
+  final matches = <String>[];
+  for (final div in divConfig.divisions) {
+    if (div.toUpperCase().contains(cleanQuery)) {
+      matches.add(div);
+    }
+  }
+
+  final aliasedDivision = divisionAliases[cleanQuery];
+  if (aliasedDivision != null && divConfig.divisions.contains(aliasedDivision)) {
+    if (!matches.contains(aliasedDivision)) {
+      matches.add(aliasedDivision);
+    }
+  }
+
+  return matches;
+}
 

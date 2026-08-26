@@ -864,15 +864,7 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
     final query = _filterText.trim().toUpperCase();
 
     List<String> visibleRegions = _allRegions.where((region) {
-      if (query.isEmpty) return true;
-      final upper = region.toUpperCase();
-      if (upper.contains(query)) return true;
-
-      final aliasTarget = regionAliases[query]?.toUpperCase();
-      if (aliasTarget != null && (upper == aliasTarget || upper.contains(aliasTarget))) {
-        return true;
-      }
-      return false;
+      return isRegionMatchingQuery(region, _filterText);
     }).toList();
 
     return DraggableScrollableSheet(
@@ -1005,6 +997,12 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                               color: isSelected ? theme.colorScheme.primary : null,
                             ),
                           ),
+                          subtitle: (matchingDivisions.isNotEmpty && !region.toUpperCase().contains(query))
+                              ? Text(
+                                  'Includes: ${matchingDivisions.take(3).join(', ')}${matchingDivisions.length > 3 ? '...' : ''}',
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                )
+                              : null,
                           trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
                           onTap: () => widget.onRegionSelected(region),
                         );
