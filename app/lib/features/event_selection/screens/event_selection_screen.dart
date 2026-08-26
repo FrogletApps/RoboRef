@@ -983,6 +983,7 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                         final regionIndex = query.isEmpty ? index - 1 : index;
                         final region = visibleRegions[regionIndex];
                         final isSelected = widget.selectedRegion == region;
+                        final matchingDivisions = getMatchingDivisionsForRegion(region, _filterText);
 
                         return ListTile(
                           leading: Icon(
