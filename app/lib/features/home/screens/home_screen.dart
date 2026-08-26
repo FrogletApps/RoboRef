@@ -69,7 +69,11 @@ class HomeScreen extends ConsumerWidget {
                       ...events.map((event) {
                       final isActive = event.sku.toUpperCase() == settings.currentSku.toUpperCase();
                       final color = getSkuColor(event.sku);
-                      final dateRange = formatEventDateRange(event.startDate, event.endDate);
+                      final dateRange = formatEventDateRange(
+                        event.startDate,
+                        event.endDate,
+                        Localizations.maybeLocaleOf(context)?.toString(),
+                      );
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),

@@ -174,6 +174,8 @@ class VexEventsClient {
     String? query,
     String? program,
     String? sku,
+    String? country,
+    String? region,
     DateTime? start,
     DateTime? end,
     int page = 1,
@@ -202,6 +204,18 @@ class VexEventsClient {
     }
     if (end != null) {
       queryParams['end'] = [end.toUtc().toIso8601String()];
+    }
+
+    final targetReg = region ?? country;
+    if (targetReg != null && targetReg.trim().isNotEmpty && targetReg.trim() != 'All') {
+      final clean = targetReg.trim();
+      // Only United States (and Canada when no province is specified) are omitted from the upstream
+      // API 'region' parameter because RobotEvents API v2 requires state/province names for US and returns 0 for 'region=United States'.
+      // For all other countries (such as United Kingdom, Australia, Taiwan, Japan, etc.), RobotEvents API accepts 'region=<country>' properly.
+      final isCountryWithStateOnlyApi = clean == 'United States' || clean == 'Canada';
+      if (!isCountryWithStateOnlyApi) {
+        queryParams['region'] = [clean];
+      }
     }
 
     if (!isSkuSearch) {

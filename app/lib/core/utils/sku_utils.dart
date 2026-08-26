@@ -122,43 +122,111 @@ Color getSkuBadgeBackground(String? sku, BuildContext context) {
   return color.withValues(alpha: isDark ? 0.2 : 0.12);
 }
 
-/// Format start and end date strings (ISO or parseable) into a clean user-friendly range
-String formatEventDateRange(String? startStr, String? endStr) {
+/// Retrieve the user's active locale tag (e.g. 'en_GB', 'en_US', 'fr_FR')
+String getUserLocale([BuildContext? context]) {
+  if (context != null) {
+    final loc = Localizations.maybeLocaleOf(context);
+    if (loc != null) {
+      if (loc.countryCode != null && loc.countryCode!.isNotEmpty) {
+        return '${loc.languageCode}_${loc.countryCode}';
+      }
+      return loc.languageCode;
+    }
+  }
+
+  try {
+    final platformLocale = WidgetsBinding.instance.platformDispatcher.locale;
+    if (platformLocale.countryCode != null && platformLocale.countryCode!.isNotEmpty) {
+      return '${platformLocale.languageCode}_${platformLocale.countryCode}';
+    }
+    return platformLocale.languageCode;
+  } catch (_) {
+    return Intl.getCurrentLocale();
+  }
+}
+
+String _formatYMMMd(DateTime date, [String? locale]) {
+  final targetLocale = (locale != null && locale.isNotEmpty && locale != 'en')
+      ? locale
+      : getUserLocale();
+
+  try {
+    return DateFormat.yMMMd(targetLocale).format(date);
+  } catch (_) {
+    try {
+      return DateFormat.yMMMd().format(date);
+    } catch (_) {
+      return '${date.day} ${_monthName(date.month)} ${date.year}';
+    }
+  }
+}
+
+String _formatMMMd(DateTime date, [String? locale]) {
+  final targetLocale = (locale != null && locale.isNotEmpty && locale != 'en')
+      ? locale
+      : getUserLocale();
+
+  try {
+    return DateFormat.MMMd(targetLocale).format(date);
+  } catch (_) {
+    try {
+      return DateFormat.MMMd().format(date);
+    } catch (_) {
+      return '${date.day} ${_monthName(date.month)}';
+    }
+  }
+}
+
+String _monthName(int month) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  if (month >= 1 && month <= 12) return months[month - 1];
+  return '';
+}
+
+/// Format start and end date strings (ISO or parseable) into a clean user-friendly range in the user's locale
+String formatEventDateRange(String? startStr, String? endStr, [String? locale]) {
+  final targetLocale = (locale != null && locale.isNotEmpty && locale != 'en')
+      ? locale
+      : getUserLocale();
+
   if (startStr == null || startStr.isEmpty) {
     if (endStr == null || endStr.isEmpty) return '';
     final end = DateTime.tryParse(endStr);
-    return end != null ? DateFormat('MMM d, yyyy').format(end) : endStr;
+    return end != null ? _formatYMMMd(end, targetLocale) : endStr;
   }
 
   final start = DateTime.tryParse(startStr);
   if (start == null) return startStr;
 
   if (endStr == null || endStr.isEmpty) {
-    return DateFormat('MMM d, yyyy').format(start);
+    return _formatYMMMd(start, targetLocale);
   }
 
   final end = DateTime.tryParse(endStr);
   if (end == null) {
-    return DateFormat('MMM d, yyyy').format(start);
+    return _formatYMMMd(start, targetLocale);
   }
 
   // Same day
   if (start.year == end.year && start.month == end.month && start.day == end.day) {
-    return DateFormat('MMM d, yyyy').format(start);
+    return _formatYMMMd(start, targetLocale);
   }
 
-  // Same month and year
-  if (start.year == end.year && start.month == end.month) {
-    return '${DateFormat('MMM d').format(start)} – ${DateFormat('d, yyyy').format(end)}';
-  }
-
-  // Same year, different months
+  // Same year
   if (start.year == end.year) {
-    return '${DateFormat('MMM d').format(start)} – ${DateFormat('MMM d, yyyy').format(end)}';
+    return '${_formatMMMd(start, targetLocale)} – ${_formatYMMMd(end, targetLocale)}';
   }
 
   // Different years
-  return '${DateFormat('MMM d, yyyy').format(start)} – ${DateFormat('MMM d, yyyy').format(end)}';
+  return '${_formatYMMMd(start, targetLocale)} – ${_formatYMMMd(end, targetLocale)}';
+}
+
+/// Format a single date string (ISO or parseable) into a user-friendly date in the user's locale
+String formatEventDate(String? dateStr, [String? locale]) {
+  if (dateStr == null || dateStr.isEmpty) return '';
+  final date = DateTime.tryParse(dateStr);
+  if (date == null) return dateStr;
+  return _formatYMMMd(date, locale);
 }
 
 enum AppEnvironment {

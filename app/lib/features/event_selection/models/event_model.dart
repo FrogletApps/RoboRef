@@ -35,6 +35,7 @@ class EventModel {
   final String? venue;
   final String? city;
   final String? region;
+  final String? country;
   final List<DivisionModel> divisions;
 
   const EventModel({
@@ -48,6 +49,7 @@ class EventModel {
     this.venue,
     this.city,
     this.region,
+    this.country,
     this.divisions = const [],
   });
 
@@ -74,6 +76,7 @@ class EventModel {
       venue: location != null ? location['venue'] as String? : json['venue'] as String?,
       city: location != null ? location['city'] as String? : json['city'] as String?,
       region: location != null ? location['region'] as String? : json['region'] as String?,
+      country: location != null ? location['country'] as String? : json['country'] as String?,
       divisions: divs,
     );
   }
