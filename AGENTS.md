@@ -19,7 +19,7 @@ Welcome! This file (`AGENTS.md`) contains primary guidelines and context for AI 
 When assisting with code modifications or feature implementations, AI agents **MUST** follow these core guidelines:
 
 ### A. User-Facing Changes & Change Log
-- **Changelog Requirement**: Whenever making a change that affects the end user (UI modifications, new features, bug fixes impacting user interaction, UX improvements), you **MUST** add an entry to `documents/changeLog.md` under a heading with the current date (formatted as `## DD Month YYYY`, e.g. `## 23 August 2026`).
+- **Changelog Requirement**: Whenever making a change that affects the end user (UI modifications, new features, bug fixes impacting user interaction, UX improvements), you **MUST** add an entry to `documents/changeLog.md` under a heading with the current date (formatted as `## DD Month YYYY`, e.g. `## 23 August 2026`).  This should be as brief as possible.
 
 ### B. Clean Slate & Zero Legacy Code Reuse
 - Do not reuse or copy code from the legacy referee.fyi implementation. All models, widgets, and sync protocols must be written clean from scratch.
