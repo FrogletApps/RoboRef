@@ -399,142 +399,157 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                 const SizedBox(height: 10),
 
                 // Program Filter Chips
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: _programs.map((program) {
-                      final isSelected = selectedProgram == program;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: FilterChip(
-                          label: Text(program),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            ref.read(eventFiltersProvider.notifier).setProgram(
-                                  program == 'All' ? 'All' : (selected ? program : 'All'),
-                                );
-                            _fetchEvents();
-                          },
-                          showCheckmark: false,
-                          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                          selectedColor: program == 'VIQRC'
-                              ? const Color(0xFF1E88E5)
-                              : program == 'V5RC' || program == 'VEX U'
-                                  ? const Color(0xFFD32F2F)
-                                  : program == 'VEX AI'
-                                      ? const Color(0xFF8E24AA)
-                                      : Theme.of(context).colorScheme.primary,
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : null,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                Center(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: _programs.map((program) {
+                        final isSelected = selectedProgram == program;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: FilterChip(
+                            label: Text(program),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              ref.read(eventFiltersProvider.notifier).setProgram(
+                                    program == 'All' ? 'All' : (selected ? program : 'All'),
+                                  );
+                              _fetchEvents();
+                            },
+                            showCheckmark: false,
+                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                            selectedColor: program == 'VIQRC'
+                                ? const Color(0xFF1E88E5)
+                                : program == 'V5RC' || program == 'VEX U'
+                                    ? const Color(0xFFD32F2F)
+                                    : program == 'VEX AI'
+                                        ? const Color(0xFF8E24AA)
+                                        : Theme.of(context).colorScheme.primary,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : null,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
 
                 // Region & CountryDivision Filter Chips
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                SizedBox(
+                  width: double.infinity,
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      // Region Chip
-                      FilterChip(
-                        avatar: Icon(
-                          selectedRegion == 'All' ? Icons.public_outlined : Icons.public,
-                          size: 16,
-                          color: selectedRegion != 'All'
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : Theme.of(context).colorScheme.primary,
-                        ),
-                        label: Text(
-                          selectedRegion == 'All' ? 'All Regions' : 'Region: $selectedRegion',
-                        ),
-                        selected: selectedRegion != 'All',
-                        showCheckmark: false,
-                        onSelected: (_) => _showRegionPickerModal(context, selectedRegion),
-                        deleteIcon: selectedRegion != 'All'
-                            ? Icon(
-                                Icons.close,
-                                size: 16,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              )
-                            : const Icon(Icons.arrow_drop_down, size: 18),
-                        onDeleted: selectedRegion != 'All'
-                            ? () {
-                                ref.read(eventFiltersProvider.notifier).setRegion('All');
-                                _fetchEvents();
-                              }
-                            : () => _showRegionPickerModal(context, selectedRegion),
-                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                        selectedColor: Theme.of(context).colorScheme.primary,
-                        labelStyle: TextStyle(
-                          color: selectedRegion != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
-                          fontWeight: selectedRegion != 'All' ? FontWeight.bold : FontWeight.normal,
+                      Center(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Region Chip
+                              FilterChip(
+                                avatar: Icon(
+                                  selectedRegion == 'All' ? Icons.public_outlined : Icons.public,
+                                  size: 16,
+                                  color: selectedRegion != 'All'
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : Theme.of(context).colorScheme.primary,
+                                ),
+                                label: Text(
+                                  selectedRegion == 'All' ? 'All Regions' : 'Region: $selectedRegion',
+                                ),
+                                selected: selectedRegion != 'All',
+                                showCheckmark: false,
+                                onSelected: (_) => _showRegionPickerModal(context, selectedRegion),
+                                deleteIcon: selectedRegion != 'All'
+                                    ? Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: Theme.of(context).colorScheme.onPrimary,
+                                      )
+                                    : const Icon(Icons.arrow_drop_down, size: 18),
+                                onDeleted: selectedRegion != 'All'
+                                    ? () {
+                                        ref.read(eventFiltersProvider.notifier).setRegion('All');
+                                        _fetchEvents();
+                                      }
+                                    : () => _showRegionPickerModal(context, selectedRegion),
+                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                selectedColor: Theme.of(context).colorScheme.primary,
+                                labelStyle: TextStyle(
+                                  color: selectedRegion != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
+                                  fontWeight: selectedRegion != 'All' ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+
+                              // Division Chip (e.g. State, Province) if configured for region
+                              if (divisionConfig != null) ...[
+                                const SizedBox(width: 8),
+                                FilterChip(
+                                  avatar: Icon(
+                                    selectedDivision == 'All' ? Icons.place_outlined : Icons.place,
+                                    size: 16,
+                                    color: selectedDivision != 'All'
+                                        ? Theme.of(context).colorScheme.onPrimary
+                                        : Theme.of(context).colorScheme.primary,
+                                  ),
+                                  label: Text(
+                                    selectedDivision == 'All'
+                                        ? 'All ${divisionConfig.pluralLabel}'
+                                        : '${divisionConfig.singularLabel}: $selectedDivision',
+                                  ),
+                                  selected: selectedDivision != 'All',
+                                  showCheckmark: false,
+                                  onSelected: (_) => _showDivisionPickerModal(context, divisionConfig, selectedDivision),
+                                  deleteIcon: selectedDivision != 'All'
+                                      ? Icon(
+                                          Icons.close,
+                                          size: 16,
+                                          color: Theme.of(context).colorScheme.onPrimary,
+                                        )
+                                      : const Icon(Icons.arrow_drop_down, size: 18),
+                                  onDeleted: selectedDivision != 'All'
+                                      ? () {
+                                          ref.read(eventFiltersProvider.notifier).setDivision('All');
+                                          _fetchEvents();
+                                        }
+                                      : () => _showDivisionPickerModal(context, divisionConfig, selectedDivision),
+                                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                  selectedColor: Theme.of(context).colorScheme.primary,
+                                  labelStyle: TextStyle(
+                                    color: selectedDivision != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
+                                    fontWeight: selectedDivision != 'All' ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       ),
 
-                      // Division Chip (e.g. State, Province) if configured for region
-                      if (divisionConfig != null) ...[
-                        const SizedBox(width: 8),
-                        FilterChip(
-                          avatar: Icon(
-                            selectedDivision == 'All' ? Icons.place_outlined : Icons.place,
-                            size: 16,
-                            color: selectedDivision != 'All'
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).colorScheme.primary,
+                      // Right-aligned Reset Filters Button
+                      if (hasActiveFilters)
+                        Positioned(
+                          right: 0,
+                          child: TextButton.icon(
+                            onPressed: () {
+                              ref.read(eventFiltersProvider.notifier).resetFilters();
+                              _fetchEvents();
+                            },
+                            icon: const Icon(Icons.clear_all, size: 16),
+                            label: const Text('Reset Filters', style: TextStyle(fontSize: 12)),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
                           ),
-                          label: Text(
-                            selectedDivision == 'All'
-                                ? 'All ${divisionConfig.pluralLabel}'
-                                : '${divisionConfig.singularLabel}: $selectedDivision',
-                          ),
-                          selected: selectedDivision != 'All',
-                          showCheckmark: false,
-                          onSelected: (_) => _showDivisionPickerModal(context, divisionConfig, selectedDivision),
-                          deleteIcon: selectedDivision != 'All'
-                            ? Icon(
-                                Icons.close,
-                                size: 16,
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              )
-                            : const Icon(Icons.arrow_drop_down, size: 18),
-                        onDeleted: selectedDivision != 'All'
-                            ? () {
-                                ref.read(eventFiltersProvider.notifier).setDivision('All');
-                                _fetchEvents();
-                              }
-                            : () => _showDivisionPickerModal(context, divisionConfig, selectedDivision),
-                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                        selectedColor: Theme.of(context).colorScheme.primary,
-                        labelStyle: TextStyle(
-                          color: selectedDivision != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
-                          fontWeight: selectedDivision != 'All' ? FontWeight.bold : FontWeight.normal,
                         ),
-                      ),
                     ],
-
-                    // Reset Filters Button
-                    if (hasActiveFilters) ...[
-                      const SizedBox(width: 8),
-                      TextButton.icon(
-                        onPressed: () {
-                          ref.read(eventFiltersProvider.notifier).resetFilters();
-                          _fetchEvents();
-                        },
-                        icon: const Icon(Icons.clear_all, size: 16),
-                        label: const Text('Reset', style: TextStyle(fontSize: 12)),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                      ),
-                    ],
-                  ],
                   ),
                 ),
               ],
@@ -617,8 +632,8 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Loading shimmer or empty state
-                  if (_isLoading && displayEvents.isEmpty)
+                  // Loading indicator or empty state
+                  if (_isLoading)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40.0),
                       child: Center(

@@ -396,9 +396,9 @@ void main() {
       expect(find.text('All States'), findsNothing);
       expect(find.text('All Provinces'), findsNothing);
 
-      // 10. Tap Reset -> resets all filters back to All Regions
-      expect(find.text('Reset'), findsOneWidget);
-      await tester.tap(find.text('Reset'));
+      // 10. Tap Reset Filters -> resets all filters back to All Regions
+      expect(find.text('Reset Filters'), findsOneWidget);
+      await tester.tap(find.text('Reset Filters'));
       await tester.runAsync(() async {
         await Future.delayed(const Duration(milliseconds: 50));
       });
