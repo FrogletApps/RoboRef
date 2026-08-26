@@ -30,6 +30,10 @@ export function createSyncApp(storageProvider: StorageAdapter) {
 
   // Global middleware
   app.use("*", logger());
+  app.use("*", async (c, next) => {
+    await next();
+    c.res.headers.set("Access-Control-Allow-Private-Network", "true");
+  });
   app.use("*", cors({
     origin: "*",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -85,7 +89,10 @@ export function createSyncApp(storageProvider: StorageAdapter) {
       authHeader = envKey.startsWith("Bearer ") ? envKey : `Bearer ${envKey}`;
     }
 
-    const upstreamUrl = new URL(`https://events.vex.com/api/v2/${rawPath}`);
+    const isDirectVex = Boolean(authHeader);
+    const upstreamUrl = isDirectVex
+      ? new URL(`https://events.vex.com/api/v2/${rawPath}`)
+      : new URL(`https://roboref.app/api/vexevents/${rawPath}`);
     upstreamUrl.search = url.search;
 
     const headers: Record<string, string> = {
@@ -97,10 +104,19 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     }
 
     try {
-      const response = await fetch(upstreamUrl.toString(), {
+      let response = await fetch(upstreamUrl.toString(), {
         method: "GET",
         headers,
       });
+
+      if (!response.ok && !isDirectVex) {
+        const testFallbackUrl = new URL(`https://test.roboref.app/api/vexevents/${rawPath}`);
+        testFallbackUrl.search = url.search;
+        const testResp = await fetch(testFallbackUrl.toString(), { method: "GET", headers });
+        if (testResp.ok) {
+          response = testResp;
+        }
+      }
 
       const bodyText = await response.text();
       const status = response.status;

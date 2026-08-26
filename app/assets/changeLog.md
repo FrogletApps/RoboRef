@@ -2,6 +2,7 @@
 
 ## 2026.8.26+1
 
+- **LAN Sync, CORS & VEX Events Proxy**: Added `Access-Control-Allow-Private-Network` header support on the sync server for Chrome/Edge Private Network Access preflights, enabled Android cleartext traffic and internet permissions, and added automatic cloud proxy fallback for VEX Events lookups on local venue servers without local API keys.
 - **Light / Dark / Device Theme Switcher**: Added an Appearance selector in Settings supporting Device (system default), Light, and Dark modes.
 - **Light Mode Styling**: Refined Material Design 3 light theme styling with clean card surfaces, input borders, and high-contrast accents across all screens.
 - **RoboRef Brand Green Primary Theme (`#00731f`)**: Unified the primary application theme across Light and Dark modes using the official RoboRef forest brand green (`#00731f`).
