@@ -1,0 +1,72 @@
+version: 2
+updates:
+  # Flutter / Dart packages
+  - package-ecosystem: "pub"
+    directory: "/app"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-flutter)"
+    labels:
+      - "dependencies"
+      - "flutter"
+
+  # Sync server npm packages (Hono, Cloudflare Workers, WebSocket, etc.)
+  - package-ecosystem: "npm"
+    directory: "/server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-server)"
+    labels:
+      - "dependencies"
+      - "server"
+
+  # Root workspace npm packages (Wrangler / tooling)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-root)"
+    labels:
+      - "dependencies"
+
+  # Docker container base images (Raspberry Pi / server Dockerfile)
+  - package-ecosystem: "docker"
+    directory: "/server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps-docker)"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # Android Gradle dependencies & plugins
+  - package-ecosystem: "gradle"
+    directory: "/app/android"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps-gradle)"
+    labels:
+      - "dependencies"
+      - "android"
+
+  # GitHub Actions CI/CD workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-actions)"
+    labels:
+      - "dependencies"
+      - "github-actions"
