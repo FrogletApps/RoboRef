@@ -6,6 +6,7 @@ import '../../../core/utils/sku_utils.dart';
 import '../../event_workspace/screens/event_workspace_screen.dart';
 import '../models/event_model.dart';
 import '../state/event_controller.dart';
+import '../state/event_filter_controller.dart';
 
 class EventSelectionScreen extends ConsumerStatefulWidget {
   const EventSelectionScreen({super.key});
@@ -17,9 +18,6 @@ class EventSelectionScreen extends ConsumerStatefulWidget {
 class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _selectedProgram = 'All';
-  String _selectedRegion = 'All';
-  String _selectedDivision = 'All';
   Timer? _debounceTimer;
 
   bool _isLoading = false;
@@ -73,13 +71,16 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     });
 
     final client = ref.read(vexEventsClientProvider);
+    final filters = ref.read(eventFiltersProvider);
     final cleanQuery = _searchQuery.trim();
 
     try {
       final results = await client.searchEvents(
         query: cleanQuery.isNotEmpty ? cleanQuery : null,
-        program: _selectedProgram != 'All' ? _selectedProgram : null,
-        region: _selectedDivision != 'All' ? _selectedDivision : (_selectedRegion != 'All' ? _selectedRegion : null),
+        program: filters.program != 'All' ? filters.program : null,
+        region: filters.division != 'All'
+            ? filters.division
+            : (filters.region != 'All' ? filters.region : null),
         start: cleanQuery.toUpperCase().startsWith('RE-') ? null : _startDate,
         end: cleanQuery.toUpperCase().startsWith('RE-') ? null : _endDate,
         perPage: 50,
@@ -185,6 +186,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final filters = ref.watch(eventFiltersProvider);
+    final selectedProgram = filters.program;
+    final selectedRegion = filters.region;
+    final selectedDivision = filters.division;
+
     final cleanQuery = _searchQuery.trim().toUpperCase();
     final isCustomSkuValid = isValidSku(cleanQuery);
 
@@ -192,18 +198,18 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     List<EventModel> filteredApiEvents = _apiEvents;
 
     final isDirectSkuQuery = cleanQuery.startsWith('RE-');
-    if (_selectedProgram != 'All' && !isDirectSkuQuery) {
+    if (selectedProgram != 'All' && !isDirectSkuQuery) {
       filteredApiEvents = filteredApiEvents
           .where((e) => isEventMatchingProgram(
                 program: e.program,
                 sku: e.sku,
-                selectedProgram: _selectedProgram,
+                selectedProgram: selectedProgram,
               ))
           .toList();
     }
 
-    if (_selectedRegion != 'All' && !isDirectSkuQuery) {
-      final targetRegion = _selectedRegion.toUpperCase().trim();
+    if (selectedRegion != 'All' && !isDirectSkuQuery) {
+      final targetRegion = selectedRegion.toUpperCase().trim();
       final isTaiwan = targetRegion == 'TAIWAN' || targetRegion == 'CHINESE TAIPEI';
       final isUS = targetRegion == 'UNITED STATES' || targetRegion == 'USA' || targetRegion == 'US';
       final isCanada = targetRegion == 'CANADA' || targetRegion == 'CA';
@@ -275,8 +281,8 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
       }).toList();
     }
 
-    if (_selectedDivision != 'All' && !isDirectSkuQuery) {
-      final targetDivision = _selectedDivision.toUpperCase().trim();
+    if (selectedDivision != 'All' && !isDirectSkuQuery) {
+      final targetDivision = selectedDivision.toUpperCase().trim();
       filteredApiEvents = filteredApiEvents.where((e) {
         final region = e.region?.toUpperCase() ?? '';
         final city = e.city?.toUpperCase() ?? '';
@@ -330,10 +336,10 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     final zDateStr = formatEventDate(lastDate.toIso8601String(), locale);
     final searchSummary = 'Found ${displayEvents.length} events between $yDateStr and $zDateStr';
 
-    final divisionConfig = getRegionDivisionConfig(_selectedRegion);
-    final hasActiveFilters = _selectedProgram != 'All' ||
-        _selectedRegion != 'All' ||
-        _selectedDivision != 'All';
+    final divisionConfig = getRegionDivisionConfig(selectedRegion);
+    final hasActiveFilters = selectedProgram != 'All' ||
+        selectedRegion != 'All' ||
+        selectedDivision != 'All';
 
     return Scaffold(
       appBar: AppBar(
@@ -397,20 +403,16 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: _programs.map((program) {
-                      final isSelected = _selectedProgram == program;
+                      final isSelected = selectedProgram == program;
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: FilterChip(
                           label: Text(program),
                           selected: isSelected,
                           onSelected: (selected) {
-                            setState(() {
-                              if (program == 'All') {
-                                _selectedProgram = 'All';
-                              } else {
-                                _selectedProgram = selected ? program : 'All';
-                              }
-                            });
+                            ref.read(eventFiltersProvider.notifier).setProgram(
+                                  program == 'All' ? 'All' : (selected ? program : 'All'),
+                                );
                             _fetchEvents();
                           },
                           showCheckmark: false,
@@ -441,39 +443,36 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                       // Region Chip
                       FilterChip(
                         avatar: Icon(
-                          _selectedRegion == 'All' ? Icons.public_outlined : Icons.public,
+                          selectedRegion == 'All' ? Icons.public_outlined : Icons.public,
                           size: 16,
-                          color: _selectedRegion != 'All'
+                          color: selectedRegion != 'All'
                               ? Theme.of(context).colorScheme.onPrimary
                               : Theme.of(context).colorScheme.primary,
                         ),
                         label: Text(
-                          _selectedRegion == 'All' ? 'All Regions' : 'Region: $_selectedRegion',
+                          selectedRegion == 'All' ? 'All Regions' : 'Region: $selectedRegion',
                         ),
-                        selected: _selectedRegion != 'All',
+                        selected: selectedRegion != 'All',
                         showCheckmark: false,
-                        onSelected: (_) => _showRegionPickerModal(context),
-                        deleteIcon: _selectedRegion != 'All'
+                        onSelected: (_) => _showRegionPickerModal(context, selectedRegion),
+                        deleteIcon: selectedRegion != 'All'
                             ? Icon(
                                 Icons.close,
                                 size: 16,
                                 color: Theme.of(context).colorScheme.onPrimary,
                               )
                             : const Icon(Icons.arrow_drop_down, size: 18),
-                        onDeleted: _selectedRegion != 'All'
+                        onDeleted: selectedRegion != 'All'
                             ? () {
-                                setState(() {
-                                  _selectedRegion = 'All';
-                                  _selectedDivision = 'All';
-                                });
+                                ref.read(eventFiltersProvider.notifier).setRegion('All');
                                 _fetchEvents();
                               }
-                            : () => _showRegionPickerModal(context),
+                            : () => _showRegionPickerModal(context, selectedRegion),
                         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                         selectedColor: Theme.of(context).colorScheme.primary,
                         labelStyle: TextStyle(
-                          color: _selectedRegion != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
-                          fontWeight: _selectedRegion != 'All' ? FontWeight.bold : FontWeight.normal,
+                          color: selectedRegion != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
+                          fontWeight: selectedRegion != 'All' ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
 
@@ -482,66 +481,60 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                         const SizedBox(width: 8),
                         FilterChip(
                           avatar: Icon(
-                            _selectedDivision == 'All' ? Icons.place_outlined : Icons.place,
+                            selectedDivision == 'All' ? Icons.place_outlined : Icons.place,
                             size: 16,
-                            color: _selectedDivision != 'All'
+                            color: selectedDivision != 'All'
                                 ? Theme.of(context).colorScheme.onPrimary
                                 : Theme.of(context).colorScheme.primary,
                           ),
                           label: Text(
-                            _selectedDivision == 'All'
+                            selectedDivision == 'All'
                                 ? 'All ${divisionConfig.pluralLabel}'
-                                : '${divisionConfig.singularLabel}: $_selectedDivision',
+                                : '${divisionConfig.singularLabel}: $selectedDivision',
                           ),
-                          selected: _selectedDivision != 'All',
+                          selected: selectedDivision != 'All',
                           showCheckmark: false,
-                          onSelected: (_) => _showDivisionPickerModal(context, divisionConfig),
-                          deleteIcon: _selectedDivision != 'All'
-                              ? Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                )
-                              : const Icon(Icons.arrow_drop_down, size: 18),
-                          onDeleted: _selectedDivision != 'All'
-                              ? () {
-                                  setState(() {
-                                    _selectedDivision = 'All';
-                                  });
-                                  _fetchEvents();
-                                }
-                              : () => _showDivisionPickerModal(context, divisionConfig),
-                          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                          selectedColor: Theme.of(context).colorScheme.primary,
-                          labelStyle: TextStyle(
-                            color: _selectedDivision != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
-                            fontWeight: _selectedDivision != 'All' ? FontWeight.bold : FontWeight.normal,
-                          ),
+                          onSelected: (_) => _showDivisionPickerModal(context, divisionConfig, selectedDivision),
+                          deleteIcon: selectedDivision != 'All'
+                            ? Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              )
+                            : const Icon(Icons.arrow_drop_down, size: 18),
+                        onDeleted: selectedDivision != 'All'
+                            ? () {
+                                ref.read(eventFiltersProvider.notifier).setDivision('All');
+                                _fetchEvents();
+                              }
+                            : () => _showDivisionPickerModal(context, divisionConfig, selectedDivision),
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                        selectedColor: Theme.of(context).colorScheme.primary,
+                        labelStyle: TextStyle(
+                          color: selectedDivision != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
+                          fontWeight: selectedDivision != 'All' ? FontWeight.bold : FontWeight.normal,
                         ),
-                      ],
-
-                      // Reset Filters Button
-                      if (hasActiveFilters) ...[
-                        const SizedBox(width: 8),
-                        TextButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _selectedProgram = 'All';
-                              _selectedRegion = 'All';
-                              _selectedDivision = 'All';
-                            });
-                            _fetchEvents();
-                          },
-                          icon: const Icon(Icons.clear_all, size: 16),
-                          label: const Text('Reset', style: TextStyle(fontSize: 12)),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
-                      ],
+                      ),
                     ],
+
+                    // Reset Filters Button
+                    if (hasActiveFilters) ...[
+                      const SizedBox(width: 8),
+                      TextButton.icon(
+                        onPressed: () {
+                          ref.read(eventFiltersProvider.notifier).resetFilters();
+                          _fetchEvents();
+                        },
+                        icon: const Icon(Icons.clear_all, size: 16),
+                        label: const Text('Reset', style: TextStyle(fontSize: 12)),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ],
+                  ],
                   ),
                 ),
               ],
@@ -783,7 +776,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     );
   }
 
-  void _showRegionPickerModal(BuildContext context) {
+  void _showRegionPickerModal(BuildContext context, String currentRegion) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -793,13 +786,10 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
       ),
       builder: (ctx) {
         return _RegionPickerSheet(
-          selectedRegion: _selectedRegion,
+          selectedRegion: currentRegion,
           onRegionSelected: (region) {
             Navigator.of(ctx).pop();
-            setState(() {
-              _selectedRegion = region;
-              _selectedDivision = 'All';
-            });
+            ref.read(eventFiltersProvider.notifier).setRegion(region);
             _fetchEvents();
           },
         );
@@ -807,7 +797,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     );
   }
 
-  void _showDivisionPickerModal(BuildContext context, RegionDivisionConfig config) {
+  void _showDivisionPickerModal(BuildContext context, RegionDivisionConfig config, String currentDivision) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -818,12 +808,10 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
       builder: (ctx) {
         return _DivisionPickerSheet(
           config: config,
-          selectedDivision: _selectedDivision,
+          selectedDivision: currentDivision,
           onDivisionSelected: (division) {
             Navigator.of(ctx).pop();
-            setState(() {
-              _selectedDivision = division;
-            });
+            ref.read(eventFiltersProvider.notifier).setDivision(division);
             _fetchEvents();
           },
         );
@@ -915,7 +903,7 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                 controller: _filterController,
                 autofocus: false,
                 decoration: InputDecoration(
-                  hintText: 'Search region (e.g. United States, Taiwan, UK)...',
+                  hintText: 'Search region (e.g. United States, UK, Australia)...',
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: _filterText.isNotEmpty
                       ? IconButton(

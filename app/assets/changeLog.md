@@ -3,7 +3,7 @@
 ## 2026.8.26+1
 
 - **Search Improvements**
-- **Fixed Event Filters**: Can search by event type or region.
+- **Fixed Event Filters**: Can search by event type or region, with selected filters remembered across app sessions.
 - **Fixes for testing locally**
 - **Theme Improvements**: A new colour scheme with light and dark modes.
 

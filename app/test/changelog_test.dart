@@ -115,8 +115,8 @@ void main() {
       expect(find.text(currentVersion), findsOneWidget);
 
       // 4. Check markdown content is present
-      expect(find.textContaining('Brand Green', findRichText: true), findsWidgets);
-      expect(find.textContaining('Primary Theme', findRichText: true), findsWidgets);
+      expect(find.textContaining('Theme Improvements', findRichText: true), findsWidgets);
+      expect(find.textContaining('Event Filters', findRichText: true), findsWidgets);
     });
 
     testWidgets('filters items when search query is entered', (tester) async {
@@ -132,10 +132,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Search for specific keyword
-      await tester.enterText(find.byType(TextField), 'Brand Green');
+      await tester.enterText(find.byType(TextField), 'Theme Improvements');
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Brand Green', findRichText: true), findsWidgets);
+      expect(find.textContaining('Theme Improvements', findRichText: true), findsWidgets);
 
       // Search for something non-existent
       await tester.enterText(find.byType(TextField), 'xyznonexistent123');
@@ -148,7 +148,7 @@ void main() {
       await tester.tap(find.text('Clear search'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Brand Green', findRichText: true), findsWidgets);
+      expect(find.textContaining('Theme Improvements', findRichText: true), findsWidgets);
     });
 
     testWidgets('copies version to clipboard when copy button is tapped', (tester) async {

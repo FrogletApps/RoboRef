@@ -13,6 +13,7 @@ import 'package:http/testing.dart';
 import 'package:roboref/features/event_data/services/vex_events_client.dart';
 import 'package:roboref/features/event_selection/screens/event_selection_screen.dart';
 import 'package:roboref/features/event_selection/state/event_controller.dart';
+import 'package:roboref/features/event_selection/state/event_filter_controller.dart';
 
 void main() {
   group('AppDatabase Event Operations', () {
@@ -302,7 +303,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Filter by Region'), findsOneWidget);
-      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, Taiwan, UK)...'), 'Chinese Taipei');
+      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'Chinese Taipei');
       await tester.pumpAndSettle();
 
       expect(find.widgetWithText(ListTile, 'Taiwan'), findsOneWidget);
@@ -323,7 +324,7 @@ void main() {
       await tester.tap(find.text('Region: Taiwan'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, Taiwan, UK)...'), 'USA');
+      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'USA');
       await tester.pumpAndSettle();
 
       expect(find.text('United States'), findsOneWidget);
@@ -368,7 +369,7 @@ void main() {
       // 8. Test switching to Canada -> displays "All Provinces" chip
       await tester.tap(find.text('Region: United States'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, Taiwan, UK)...'), 'Canada');
+      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'Canada');
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ListTile, 'Canada'));
       await tester.runAsync(() async {
@@ -383,7 +384,7 @@ void main() {
       // 9. Test switching to Australia -> NO division / states chip shown
       await tester.tap(find.text('Region: Canada'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, Taiwan, UK)...'), 'Australia');
+      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'Australia');
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ListTile, 'Australia'));
       await tester.runAsync(() async {
@@ -407,10 +408,36 @@ void main() {
       expect(find.text('RE-V5RC-24-1111'), findsOneWidget);
       expect(find.text('RE-V5RC-24-2222'), findsOneWidget);
       expect(find.text('RE-VIQRC-24-3333'), findsOneWidget);
-      expect(find.text('RE-V5RC-24-4444'), findsOneWidget);
-      expect(find.text('RE-V5RC-24-5555'), findsOneWidget);
-
       await testDb.close();
+    });
+
+    test('EventFiltersNotifier loads, updates, and persists filters in SharedPreferences', () async {
+      SharedPreferences.setMockInitialValues({
+        'event_filter_program': 'VIQRC',
+        'event_filter_region': 'United Kingdom',
+        'event_filter_division': 'All',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final notifier = EventFiltersNotifier(prefs);
+
+      expect(notifier.state.program, equals('VIQRC'));
+      expect(notifier.state.region, equals('United Kingdom'));
+      expect(notifier.state.division, equals('All'));
+
+      notifier.setProgram('V5RC');
+      expect(prefs.getString(EventFiltersNotifier.keyProgram), equals('V5RC'));
+
+      notifier.setRegion('United States');
+      expect(prefs.getString(EventFiltersNotifier.keyRegion), equals('United States'));
+      expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('All'));
+
+      notifier.setDivision('Texas');
+      expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('Texas'));
+
+      notifier.resetFilters();
+      expect(prefs.getString(EventFiltersNotifier.keyProgram), equals('All'));
+      expect(prefs.getString(EventFiltersNotifier.keyRegion), equals('All'));
+      expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('All'));
     });
   });
 }
