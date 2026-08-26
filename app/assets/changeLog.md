@@ -4,7 +4,8 @@
 
 - **RoboRef Brand Green Primary Theme (`#00731f`)**: Unified the primary application theme across Light and Dark modes using the official RoboRef forest brand green (`#00731f`).
 - **Brand Logo & Multi-Platform Icon Assets**: Regenerated all RoboRef logo assets (SVG, Web PWA icons, favicon, Android mipmaps, and iOS AppIcon set) with the updated `#00731f` brand green and matching `#004613` shadow accents.
-- **Button, Icon, and Accent Alignment**: Updated all primary action buttons (including "Add a new event", floating action buttons, and bottom action sheets), active icon highlights, quick action buttons, and informational badges to dynamically use the primary brand green theme.
+- **Vivid Call-To-Action Highlights**: Enhanced the prominent "+ Add a new event" button with high-energy vivid green (`#16A34A`), preserving the punchy, high-visibility visual hierarchy from the original design.
+- **Button, Icon, and Accent Alignment**: Updated all primary action buttons, floating action buttons, bottom action sheets, active icon highlights, quick action buttons, and informational badges to dynamically use the primary brand green theme.
 - **Material Design 3 Harmony & Accessibility**: Generated accessible Material 3 tonal palettes with WCAG-compliant contrast ratios (high-contrast white text on `#00731f` in light mode, and vibrant tone 80 emerald `#66E07A` in dark mode).
 
 ## 2026.8.25+1

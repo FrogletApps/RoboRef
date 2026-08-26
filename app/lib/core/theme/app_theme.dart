@@ -10,6 +10,9 @@ class AppTheme {
   /// Vibrant emerald green for Dark Theme Material 3 high-contrast accessibility (#66E07A)
   static const Color brandGreenLight = Color(0xFF66E07A);
 
+  /// Vivid energetic green for prominent primary call-to-action buttons (#16A34A)
+  static const Color vividGreen = Color.fromARGB(255, 10, 143, 43);
+
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../../event_selection/screens/event_selection_screen.dart';
 import '../../event_selection/state/event_controller.dart';
@@ -443,8 +444,8 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildAddEventButton(BuildContext context) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        backgroundColor: AppTheme.vividGreen, // Vivid Green (#16A34A)
+        foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 2,
