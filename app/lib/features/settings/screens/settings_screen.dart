@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/theme_controller.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
 import '../../incidents/state/incident_controller.dart';
@@ -61,6 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Consumer(
       builder: (context, ref, child) {
         final settings = ref.watch(syncSettingsProvider);
+        final themeMode = ref.watch(themeModeProvider);
         final env = getAppEnvironment();
         final cloudUrl = (env == AppEnvironment.test) ? 'https://test.roboref.app' : 'https://roboref.app';
         const venueLanUrl = 'http://roboref.local:8080';
@@ -82,6 +84,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
+              // Appearance Section
+              const Text(
+                'Appearance',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Select theme mode. Device mode automatically follows your operating system light or dark setting.',
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<ThemeMode>(
+                  segments: const [
+                    ButtonSegment<ThemeMode>(
+                      value: ThemeMode.system,
+                      label: Text('Device'),
+                      icon: Icon(Icons.brightness_auto),
+                    ),
+                    ButtonSegment<ThemeMode>(
+                      value: ThemeMode.light,
+                      label: Text('Light'),
+                      icon: Icon(Icons.light_mode_outlined),
+                    ),
+                    ButtonSegment<ThemeMode>(
+                      value: ThemeMode.dark,
+                      label: Text('Dark'),
+                      icon: Icon(Icons.dark_mode_outlined),
+                    ),
+                  ],
+                  selected: {themeMode},
+                  onSelectionChanged: (Set<ThemeMode> newSelection) {
+                    ref.read(themeModeProvider.notifier).setThemeMode(newSelection.first);
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+
               // Tournament Setup Section
               const Text(
                 'Tournament & Referee Setup',

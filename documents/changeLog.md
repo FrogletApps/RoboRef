@@ -2,6 +2,8 @@
 
 ## 2026.8.26+1
 
+- **Light / Dark / Device Theme Switcher**: Added an Appearance selector in Settings supporting Device (system default), Light, and Dark modes.
+- **Light Mode Styling**: Refined Material Design 3 light theme styling with clean card surfaces, input borders, and high-contrast accents across all screens.
 - **RoboRef Brand Green Primary Theme (`#00731f`)**: Unified the primary application theme across Light and Dark modes using the official RoboRef forest brand green (`#00731f`).
 - **Brand Logo & Multi-Platform Icon Assets**: Regenerated all RoboRef logo assets (SVG, Web PWA icons, favicon, Android mipmaps, and iOS AppIcon set) with the updated `#00731f` brand green and matching `#004613` shadow accents.
 - **Vivid Call-To-Action Highlights**: Enhanced the prominent "+ Add a new event" button with high-energy vivid green (`#16A34A`), preserving the punchy, high-visibility visual hierarchy from the original design.
