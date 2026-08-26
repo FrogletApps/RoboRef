@@ -78,7 +78,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Scaffold(
           appBar: widget.showAppBar
               ? AppBar(
-                  title: const Text('Referee & Sync Settings'),
+                  title: const Text('Settings'),
                 )
               : null,
           body: ListView(
