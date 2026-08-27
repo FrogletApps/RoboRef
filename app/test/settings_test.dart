@@ -268,5 +268,38 @@ void main() {
       // Verify failure SnackBar is displayed
       expect(find.textContaining('Connection failed'), findsOneWidget);
     });
+
+    testWidgets('renders Referee Setup section without Tournament SKU field', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify Referee Setup is present
+      expect(find.text('Referee Setup'), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Referee Display Name'), findsOneWidget);
+
+      // Verify Tournament SKU field is NOT present
+      expect(find.widgetWithText(TextField, 'Tournament SKU'), findsNothing);
+      expect(find.text('Tournament & Referee Setup'), findsNothing);
+    });
   });
 }

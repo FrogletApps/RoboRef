@@ -4,6 +4,7 @@
 
 - **Fix Team Sorting**: Smaller team numbers show first (eg 99X before 101F)
 - **Note Reporting Improvements**
+- **Misc UI Improvements**
 
 ## 2026.8.26+1
 

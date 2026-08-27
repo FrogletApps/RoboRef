@@ -296,7 +296,7 @@ Create a `.env` file inside the `server/` folder or set environment variables on
 ### In-App Client Settings
 
 Inside the RoboRef app under **Settings**:
-- **Tournament SKU & Referee Name**: Configure active tournament SKU and referee display name.
+- **Referee Display Name**: Configure referee display name. Active tournaments are selected from the Event List on the Home screen.
 - **Sync Server Address**: Configure the sync server host (defaults to `http://roboref.local:8080` for venue LAN). All VEX Events queries proxy securely through the sync server.
 
 ---

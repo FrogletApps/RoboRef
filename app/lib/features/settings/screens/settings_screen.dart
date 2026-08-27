@@ -19,7 +19,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late TextEditingController _skuController;
   late TextEditingController _nameController;
   late TextEditingController _serverController;
   bool _initialized = false;
@@ -28,7 +27,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void dispose() {
-    _skuController.dispose();
     _nameController.dispose();
     _serverController.dispose();
     super.dispose();
@@ -68,7 +66,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const venueLanUrl = 'http://roboref.local:8080';
 
         if (!_initialized) {
-          _skuController = TextEditingController(text: settings.currentSku);
           _nameController = TextEditingController(text: settings.refereeName);
           _serverController = TextEditingController(text: settings.serverUrl);
           _selectedServerOption = _getOptionForUrl(settings.serverUrl, cloudUrl, venueLanUrl);
@@ -123,22 +120,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Tournament Setup Section
+              // Referee Setup Section
               const Text(
-                'Tournament & Referee Setup',
+                'Referee Setup',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _skuController,
-                textCapitalization: TextCapitalization.characters,
-                decoration: const InputDecoration(
-                  labelText: 'Tournament SKU',
-                  hintText: 'e.g. RE-V5RC-24-1234',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                onChanged: (val) => ref.read(syncSettingsProvider.notifier).setSku(val.trim().toUpperCase()),
               ),
               const SizedBox(height: 12),
               TextField(
