@@ -50,24 +50,40 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
     final eventName = (event?.name.isNotEmpty ?? false) ? event!.name : settings.currentSku;
 
     final screens = const [
-      IncidentLoggerScreen(showAppBar: false),
       MatchScheduleScreen(showAppBar: false),
       TeamListScreen(showAppBar: false),
+      IncidentLoggerScreen(showAppBar: false),
       RulesScreen(showAppBar: false),
       SettingsScreen(showAppBar: false),
     ];
 
     final titles = [
-      'RoboRef',
       'Match Schedule',
       'Team Histories',
+      'RoboRef',
       'Game Rules',
       'Manage & Sync',
     ];
 
     List<Widget> buildActions() {
       switch (_currentIndex) {
-        case 0: // Incidents
+        case 0: // Matches
+          return [
+            IconButton(
+              icon: const Icon(Icons.download),
+              tooltip: 'Load / Import Schedule',
+              onPressed: () => _showImportSheet(context),
+            ),
+          ];
+        case 1: // Teams
+          return [
+            IconButton(
+              icon: const Icon(Icons.download),
+              tooltip: 'Load / Import Teams',
+              onPressed: () => _showImportSheet(context),
+            ),
+          ];
+        case 2: // Incidents
           return [
             IconButton(
               icon: settings.isSyncing
@@ -89,22 +105,6 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                         ),
                       );
                     },
-            ),
-          ];
-        case 1: // Matches
-          return [
-            IconButton(
-              icon: const Icon(Icons.download),
-              tooltip: 'Load / Import Schedule',
-              onPressed: () => _showImportSheet(context),
-            ),
-          ];
-        case 2: // Teams
-          return [
-            IconButton(
-              icon: const Icon(Icons.download),
-              tooltip: 'Load / Import Teams',
-              onPressed: () => _showImportSheet(context),
             ),
           ];
         default:
@@ -139,11 +139,6 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
         onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.rate_review_outlined),
-            selectedIcon: Icon(Icons.rate_review),
-            label: 'Incidents',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
             label: 'Matches',
@@ -152,6 +147,11 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
             icon: Icon(Icons.shield_outlined),
             selectedIcon: Icon(Icons.shield),
             label: 'Teams',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.rate_review_outlined),
+            selectedIcon: Icon(Icons.rate_review),
+            label: 'Incidents',
           ),
           NavigationDestination(
             icon: Icon(Icons.menu_book_outlined),
