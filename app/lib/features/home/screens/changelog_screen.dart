@@ -16,7 +16,7 @@ class ChangeLogRelease {
   });
 }
 
-/// Parses raw markdown text from `documents/changeLog.md` into structured [ChangeLogRelease] sections.
+/// Parses raw markdown text from `assets/changeLog.md` into structured [ChangeLogRelease] sections.
 List<ChangeLogRelease> parseChangeLogReleases(String markdown) {
   final lines = markdown.split('\n');
   final releases = <ChangeLogRelease>[];

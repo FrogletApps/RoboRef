@@ -84,9 +84,7 @@ RoboRef/
 │   ├── deploy.ps1        # Automated build + deploy script for Cloudflare (test/live)
 │   ├── deploy.sh         # Automated Linux / Bash deploy script for Cloudflare
 │   └── generate-icons.mjs# Icon generation pipeline for Android, iOS, and Web assets
-├── wrangler.toml         # Root Cloudflare configuration (Workers + Static Web Assets, test/live)
-└── documents/            # Project documentation and changelog records
-    └── changeLog.md      # User-facing change log & release notes
+└── wrangler.toml         # Root Cloudflare configuration (Workers + Static Web Assets, test/live)
 ```
 
 ---
@@ -322,8 +320,8 @@ npm run typecheck
 
 ## 📅 Versioning & Changelog
 
-- **CalVer Scheme**: Releases follow `YYYY.M.D+<commit_count>` (e.g. `2026.8.24+1`).
-- **In-App Changelog**: RoboRef dynamically renders release notes from [documents/changeLog.md](documents/changeLog.md) inside the application.
+- **CalVer Scheme**: Releases follow `YYYY.M.D+<commit_count>` (e.g. `2026.8.27+1`).
+- **In-App Changelog**: RoboRef dynamically renders release notes directly from [app/assets/changeLog.md](app/assets/changeLog.md) inside the application.
 
 ---
 
@@ -333,7 +331,7 @@ When modifying or extending RoboRef:
 
 1. **Clean-Slate Architecture**: All code is built fresh with Flutter/Dart and TypeScript/Hono. Do not use legacy referee.fyi code.
 2. **Offline-First Constraint**: All user interactions must function completely offline and sync gracefully when connectivity is re-established.
-3. **Changelog Requirement**: Any user-facing change (UI adjustments, features, bug fixes) must be documented in [documents/changeLog.md](documents/changeLog.md) under the current date.
+3. **Changelog Requirement**: Any user-facing change (UI adjustments, features, bug fixes) must be documented in [app/assets/changeLog.md](app/assets/changeLog.md) under the current release/date.
 4. **AI Guidelines**: Review [AGENTS.md](AGENTS.md) for full context and instructions when using AI coding assistants.
 
 ---
