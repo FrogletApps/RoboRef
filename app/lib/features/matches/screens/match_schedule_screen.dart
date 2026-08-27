@@ -307,7 +307,8 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               const SizedBox(height: 16),
               ListTile(
                 leading: Icon(Icons.add_alert, color: Theme.of(context).colorScheme.primary),
-                title: const Text('Log Incident Note for this Match'),
+                title: Text('Log Incident Note for $matchName'),
+                subtitle: const Text('Pre-fills match number into note'),
                 onTap: () {
                   Navigator.pop(ctx);
                   showModalBottomSheet(
@@ -316,10 +317,76 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                     ),
-                    builder: (c) => const AddIncidentSheet(),
+                    builder: (c) => AddIncidentSheet(initialMatch: matchName),
                   );
                 },
               ),
+              if (redTeams.isNotEmpty || blueTeams.isNotEmpty) ...[
+                const Divider(height: 24),
+                const Text(
+                  'Log Incident for Specific Team:',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ...redTeams.map((team) => ActionChip(
+                          avatar: CircleAvatar(
+                            backgroundColor: Colors.red.shade700,
+                            radius: 6,
+                          ),
+                          label: Text(
+                            team.toString(),
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade900),
+                          ),
+                          backgroundColor: Colors.red.shade50,
+                          side: BorderSide(color: Colors.red.shade200),
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                              ),
+                              builder: (c) => AddIncidentSheet(
+                                initialMatch: matchName,
+                                initialTeam: team.toString(),
+                              ),
+                            );
+                          },
+                        )),
+                    ...blueTeams.map((team) => ActionChip(
+                          avatar: CircleAvatar(
+                            backgroundColor: Colors.blue.shade700,
+                            radius: 6,
+                          ),
+                          label: Text(
+                            team.toString(),
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900),
+                          ),
+                          backgroundColor: Colors.blue.shade50,
+                          side: BorderSide(color: Colors.blue.shade200),
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                              ),
+                              builder: (c) => AddIncidentSheet(
+                                initialMatch: matchName,
+                                initialTeam: team.toString(),
+                              ),
+                            );
+                          },
+                        )),
+                  ],
+                ),
+              ],
             ],
           ),
         );

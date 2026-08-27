@@ -269,15 +269,22 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
 }
 
 class AddIncidentSheet extends StatefulWidget {
-  const AddIncidentSheet({super.key});
+  final String? initialMatch;
+  final String? initialTeam;
+
+  const AddIncidentSheet({
+    super.key,
+    this.initialMatch,
+    this.initialTeam,
+  });
 
   @override
   State<AddIncidentSheet> createState() => _AddIncidentSheetState();
 }
 
 class _AddIncidentSheetState extends State<AddIncidentSheet> {
-  final _teamController = TextEditingController();
-  final _matchController = TextEditingController();
+  late final TextEditingController _teamController;
+  late final TextEditingController _matchController;
   final _notesController = TextEditingController();
 
   String _severity = 'warning';
@@ -293,6 +300,21 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _teamController = TextEditingController(text: widget.initialTeam ?? '');
+    _matchController = TextEditingController(text: widget.initialMatch ?? '');
+  }
+
+  @override
+  void dispose() {
+    _teamController.dispose();
+    _matchController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
@@ -301,6 +323,23 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
 
         final teamNumbers = registeredTeams.map((t) => t.teamNumber).toList()..sort();
         final matchNames = tournamentMatches.map((m) => m.name).toList();
+
+        // Extract teams involved in the selected match if any
+        final currentMatchQuery = _matchController.text.trim().toLowerCase();
+        List<String> matchTeams = [];
+        if (currentMatchQuery.isNotEmpty) {
+          final matchedMatch = tournamentMatches.cast<dynamic>().firstWhere(
+            (m) => m.name.toString().toLowerCase() == currentMatchQuery,
+            orElse: () => null,
+          );
+          if (matchedMatch != null) {
+            try {
+              final red = (jsonDecode(matchedMatch.redTeamsJson) as List).map((e) => e.toString());
+              final blue = (jsonDecode(matchedMatch.blueTeamsJson) as List).map((e) => e.toString());
+              matchTeams = [...red, ...blue];
+            } catch (_) {}
+          }
+        }
 
         return Padding(
           padding: EdgeInsets.only(
@@ -336,16 +375,33 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                     // Team Autocomplete
                     Expanded(
                       child: Autocomplete<String>(
+                        key: ValueKey('team_autocomplete_${_teamController.text}'),
+                        initialValue: TextEditingValue(text: _teamController.text),
                         optionsBuilder: (TextEditingValue textEditingValue) {
                           if (textEditingValue.text.isEmpty) {
+                            if (matchTeams.isNotEmpty) {
+                              return matchTeams;
+                            }
                             return teamNumbers.take(15);
                           }
-                          return teamNumbers.where((String option) {
-                            return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
-                          });
+                          final query = textEditingValue.text.toLowerCase();
+                          final filtered = teamNumbers.where((String option) {
+                            return option.toLowerCase().contains(query);
+                          }).toList();
+                          if (matchTeams.isNotEmpty) {
+                            filtered.sort((a, b) {
+                              final aInMatch = matchTeams.contains(a);
+                              final bInMatch = matchTeams.contains(b);
+                              if (aInMatch && !bInMatch) return -1;
+                              if (!aInMatch && bInMatch) return 1;
+                              return a.compareTo(b);
+                            });
+                          }
+                          return filtered;
                         },
                         onSelected: (String selection) {
                           _teamController.text = selection;
+                          setState(() {});
                         },
                         fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
                           return TextField(
@@ -367,6 +423,8 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                     // Match Autocomplete
                     Expanded(
                       child: Autocomplete<String>(
+                        key: ValueKey('match_autocomplete_${_matchController.text}'),
+                        initialValue: TextEditingValue(text: _matchController.text),
                         optionsBuilder: (TextEditingValue textEditingValue) {
                           if (textEditingValue.text.isEmpty) {
                             return matchNames.take(15);
@@ -377,6 +435,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                         },
                         onSelected: (String selection) {
                           _matchController.text = selection;
+                          setState(() {});
                         },
                         fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
                           return TextField(
@@ -389,13 +448,42 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                               border: OutlineInputBorder(),
                               isDense: true,
                             ),
-                            onChanged: (v) => _matchController.text = v,
+                            onChanged: (v) {
+                              _matchController.text = v;
+                            },
                           );
                         },
                       ),
                     ),
                   ],
                 ),
+                if (matchTeams.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'Teams in match:',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                      ),
+                      ...matchTeams.map((team) {
+                        final isSelected = _teamController.text.trim().toUpperCase() == team.toUpperCase();
+                        return ChoiceChip(
+                          visualDensity: VisualDensity.compact,
+                          label: Text(team, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              _teamController.text = selected ? team : '';
+                            });
+                          },
+                        );
+                      }),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 16),
                 const Text('Severity Level', style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
