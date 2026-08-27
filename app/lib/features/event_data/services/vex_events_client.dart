@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/utils/sku_utils.dart';
+import '../../../core/utils/match_utils.dart';
 import '../../../database/app_database.dart';
 import '../../event_selection/models/event_model.dart';
 
@@ -423,7 +424,11 @@ class VexEventsClient {
                 final list = matchesData['data'] as List;
                 for (final m in list) {
                   final matchId = m['id']?.toString() ?? m['name']?.toString() ?? '';
-                  final name = m['name']?.toString() ?? 'Match';
+                  final rawName = m['name']?.toString();
+                  final round = m['round'] as int?;
+                  final instance = m['instance'] as int?;
+                  final matchnum = m['matchnum'] as int?;
+                  final name = normalizeMatchName(rawName, round: round, instance: instance, matchnum: matchnum);
                   final field = m['field']?.toString();
                   final scheduledTime = m['scheduled']?.toString();
 

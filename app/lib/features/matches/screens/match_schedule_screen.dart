@@ -7,6 +7,7 @@ import '../../event_data/screens/event_import_sheet.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
 import '../../../core/utils/team_utils.dart';
+import '../../../core/utils/match_utils.dart';
 
 class MatchScheduleScreen extends StatefulWidget {
   final bool showAppBar;
@@ -89,7 +90,13 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
 
                     final filtered = matches.where((m) {
                       if (_searchQuery.isEmpty) return true;
-                      final nameMatch = m.name.toUpperCase().contains(_searchQuery);
+                      final nameUpper = m.name.toUpperCase();
+                      final shortCode = getMatchShortCode(m.name).toUpperCase();
+                      final cleanQuery = _searchQuery.replaceAll(' ', '');
+                      final nameMatch = nameUpper.contains(_searchQuery) ||
+                          shortCode.contains(_searchQuery) ||
+                          nameUpper.replaceAll(' ', '').contains(cleanQuery) ||
+                          shortCode.replaceAll(' ', '').contains(cleanQuery);
                       final redMatch = m.redTeamsJson.toUpperCase().contains(_searchQuery);
                       final blueMatch = m.blueTeamsJson.toUpperCase().contains(_searchQuery);
                       return nameMatch || redMatch || blueMatch;
@@ -146,7 +153,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        match.name,
+                                        formatMatchShortName(match.name),
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                       ),
                                       Row(
@@ -176,66 +183,98 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                   ),
                                   const SizedBox(height: 10),
 
-                                  // Red Alliance
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 44,
-                                        padding: const EdgeInsets.symmetric(vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.red.shade700,
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: const Center(
-                                          child: Text(
-                                            'RED',
-                                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                  if (blueTeams.isEmpty) ...[
+                                    // Single Alliance (e.g. VEX IQ Teamwork Challenge)
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 50,
+                                          padding: const EdgeInsets.symmetric(vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.primary,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Center(
+                                            child: Text(
+                                              'TEAMS',
+                                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Wrap(
-                                          spacing: 8,
-                                          children: redTeams.map((team) {
-                                            final hasWarning = teamsWithWarnings.contains(team.toString());
-                                            return _buildTeamPill(team.toString(), Colors.red.shade900, hasWarning);
-                                          }).toList(),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Wrap(
+                                            spacing: 8,
+                                            children: redTeams.map((team) {
+                                              final hasWarning = teamsWithWarnings.contains(team.toString());
+                                              return _buildTeamPill(team.toString(), Theme.of(context).colorScheme.primary, hasWarning);
+                                            }).toList(),
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
+                                      ],
+                                    ),
+                                  ] else ...[
+                                    // Red Alliance
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 44,
+                                          padding: const EdgeInsets.symmetric(vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.shade700,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Center(
+                                            child: Text(
+                                              'RED',
+                                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Wrap(
+                                            spacing: 8,
+                                            children: redTeams.map((team) {
+                                              final hasWarning = teamsWithWarnings.contains(team.toString());
+                                              return _buildTeamPill(team.toString(), Colors.red.shade900, hasWarning);
+                                            }).toList(),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
 
-                                  // Blue Alliance
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 44,
-                                        padding: const EdgeInsets.symmetric(vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue.shade700,
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: const Center(
-                                          child: Text(
-                                            'BLUE',
-                                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                    // Blue Alliance
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 44,
+                                          padding: const EdgeInsets.symmetric(vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.shade700,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Center(
+                                            child: Text(
+                                              'BLUE',
+                                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Wrap(
-                                          spacing: 8,
-                                          children: blueTeams.map((team) {
-                                            final hasWarning = teamsWithWarnings.contains(team.toString());
-                                            return _buildTeamPill(team.toString(), Colors.blue.shade900, hasWarning);
-                                          }).toList(),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Wrap(
+                                            spacing: 8,
+                                            children: blueTeams.map((team) {
+                                              final hasWarning = teamsWithWarnings.contains(team.toString());
+                                              return _buildTeamPill(team.toString(), Colors.blue.shade900, hasWarning);
+                                            }).toList(),
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -289,6 +328,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
   }
 
   void _showMatchActions(BuildContext context, String matchName, List<dynamic> redTeams, List<dynamic> blueTeams) {
+    final displayMatchName = formatMatchShortName(matchName);
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -302,13 +342,13 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Actions for $matchName',
+                'Actions for $displayMatchName',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               ListTile(
                 leading: Icon(Icons.add_alert, color: Theme.of(context).colorScheme.primary),
-                title: Text('Log Incident Note for $matchName'),
+                title: Text('Log Incident Note for $displayMatchName'),
                 subtitle: const Text('Pre-fills match number into note'),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -318,7 +358,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                     ),
-                    builder: (c) => AddIncidentSheet(initialMatch: matchName),
+                    builder: (c) => AddIncidentSheet(initialMatch: displayMatchName),
                   );
                 },
               ),
@@ -353,7 +393,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                               ),
                               builder: (c) => AddIncidentSheet(
-                                initialMatch: matchName,
+                                initialMatch: displayMatchName,
                                 initialTeam: team.toString(),
                               ),
                             );
@@ -379,7 +419,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                               ),
                               builder: (c) => AddIncidentSheet(
-                                initialMatch: matchName,
+                                initialMatch: displayMatchName,
                                 initialTeam: team.toString(),
                               ),
                             );

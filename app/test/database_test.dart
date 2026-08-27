@@ -127,7 +127,7 @@ Q2,Field 2,09:10 AM,5555E,6666F,7777G,8888H
 
     final matches = await db.watchMatchesForSku(sku).first;
     expect(matches.length, 2);
-    expect(matches[0].name, 'Q1');
+    expect(matches[0].name, 'Qualification 1');
     expect(matches[0].field, 'Field 1');
     expect(matches[0].scheduledTime, '09:00 AM');
     expect(jsonDecode(matches[0].redTeamsJson), ['1111A', '2222B']);
@@ -157,28 +157,63 @@ R16 1-1,Field 1,01:00 PM,1111A,2222B,3333C,4444D
 
     final streamMatches = await db.watchMatchesForSku(sku).first;
     expect(streamMatches.map((m) => m.name).toList(), [
-      'PRACTICE 1',
-      'PRACTICE 2',
-      'Q1',
-      'Q2',
-      'Q10',
+      'Practice 1',
+      'Practice 2',
+      'Qualification 1',
+      'Qualification 2',
+      'Qualification 10',
       'R16 1-1',
       'QF 1-1',
       'SF 1-1',
-      'FINALS 1-1',
+      'Finals 1-1',
     ]);
 
     final getMatches = await db.getMatchesForSku(sku);
     expect(getMatches.map((m) => m.name).toList(), [
-      'PRACTICE 1',
-      'PRACTICE 2',
-      'Q1',
-      'Q2',
-      'Q10',
+      'Practice 1',
+      'Practice 2',
+      'Qualification 1',
+      'Qualification 2',
+      'Qualification 10',
       'R16 1-1',
       'QF 1-1',
       'SF 1-1',
-      'FINALS 1-1',
+      'Finals 1-1',
     ]);
+  });
+
+  test('can import VEX IQ match schedule CSV with Team 1 & Team 2 and orders chronologically (Q1..Q10 then Finals 1-1 onwards)', () async {
+    const sku = 'RE-VIQRC-24-IQ-SORT';
+    const matchesCsv = '''
+Match,Field,Time,Team 1,Team 2
+Finals 1-5,Field 1,03:20 PM,1001A,1002B
+Q10,Field 1,11:00 AM,1003C,1004D
+Finals 1-1,Field 1,03:00 PM,1005E,1006F
+Q1,Field 1,09:00 AM,1001A,1003C
+Finals 1-2,Field 1,03:05 PM,1007G,1008H
+Q2,Field 1,09:10 AM,1002B,1004D
+''';
+
+    final result = await CsvImportService.importMatchesCsv(
+      csvContent: matchesCsv,
+      sku: sku,
+      db: db,
+    );
+
+    expect(result.success, true);
+    expect(result.matchesImported, 6);
+
+    final matches = await db.getMatchesForSku(sku);
+    expect(matches.map((m) => m.name).toList(), [
+      'Qualification 1',
+      'Qualification 2',
+      'Qualification 10',
+      'Finals 1-1',
+      'Finals 1-2',
+      'Finals 1-5',
+    ]);
+
+    expect(jsonDecode(matches.first.redTeamsJson), ['1001A', '1003C']);
+    expect(jsonDecode(matches.first.blueTeamsJson), isEmpty);
   });
 }

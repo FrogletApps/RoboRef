@@ -2,6 +2,8 @@
 
 ## 2026.8.27+1
 
+- **Consistent Match Naming**: Standardized VEX IQ and V5 match labels to Qualification and Finals across schedules and imports.
+- **Fix Match Sorting**: Matches display in chronological order
 - **Fix Team Sorting**: Smaller team numbers show first (eg 99X before 101F)
 - **Note Reporting Improvements**
 - **Misc UI Improvements**

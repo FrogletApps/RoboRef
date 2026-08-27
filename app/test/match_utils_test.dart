@@ -58,12 +58,20 @@ void main() {
     test('identifies Finals matches', () {
       expect(getMatchRoundOrder('Final 1-1'), 6);
       expect(getMatchRoundOrder('Finals 1-1'), 6);
+      expect(getMatchRoundOrder('Finals 1-2'), 6);
+      expect(getMatchRoundOrder('Finals 1-10'), 6);
       expect(getMatchRoundOrder('Finals 1'), 6);
       expect(getMatchRoundOrder('F 1-1'), 6);
       expect(getMatchRoundOrder('F1-1'), 6);
       expect(getMatchRoundOrder('F1'), 6);
       expect(getMatchRoundOrder('F 1'), 6);
       expect(getMatchRoundOrder('F#1'), 6);
+      expect(getMatchRoundOrder('1-1'), 6);
+      expect(getMatchRoundOrder('1-2'), 6);
+      expect(getMatchRoundOrder('1-10'), 6);
+      expect(getMatchRoundOrder('#1-1'), 6);
+      expect(getMatchRoundOrder('Match 1-1'), 6);
+      expect(getMatchRoundOrder('M 1-1'), 6);
     });
 
     test('identifies Round Robin and Top N matches', () {
@@ -197,6 +205,80 @@ void main() {
         'Finals 1-2',
       ]);
     });
+
+    test('sorts VEX IQ matches in chronological order: qualification matches first, then finals matches (1-1 onwards)', () {
+      final vexiqMatches = [
+        'Finals 1-5',
+        'Q10',
+        'Finals 1-1',
+        'Q1',
+        'Finals 1-10',
+        'Q2',
+        'Finals 1-2',
+        'Q20',
+        'Finals 1-9',
+        'Q9',
+        'Q100',
+        'Finals 1-3',
+        'Finals 1-4',
+      ];
+      vexiqMatches.sort(compareMatchNames);
+      expect(vexiqMatches, [
+        'Q1',
+        'Q2',
+        'Q9',
+        'Q10',
+        'Q20',
+        'Q100',
+        'Finals 1-1',
+        'Finals 1-2',
+        'Finals 1-3',
+        'Finals 1-4',
+        'Finals 1-5',
+        'Finals 1-9',
+        'Finals 1-10',
+      ]);
+    });
+
+    test('sorts VEX IQ finals matches in natural numeric sequence (1-1 before 1-2 before 1-10)', () {
+      final finals = [
+        'Finals 1-10',
+        'Finals 1-2',
+        'Finals 1-1',
+        'Finals 1-11',
+        'Finals 1-3',
+        'Finals 1-9',
+      ];
+      finals.sort(compareMatchNames);
+      expect(finals, [
+        'Finals 1-1',
+        'Finals 1-2',
+        'Finals 1-3',
+        'Finals 1-9',
+        'Finals 1-10',
+        'Finals 1-11',
+      ]);
+    });
+
+    test('sorts standalone match notation (1-1 onwards) after qualification matches', () {
+      final matches = [
+        '1-2',
+        'Q10',
+        '1-1',
+        'Q1',
+        '1-10',
+        'Q2',
+      ];
+      matches.sort(compareMatchNames);
+      expect(matches, [
+        'Q1',
+        'Q2',
+        'Q10',
+        '1-1',
+        '1-2',
+        '1-10',
+      ]);
+    });
   });
 
   group('compareMatches', () {
@@ -254,6 +336,69 @@ void main() {
         '1:Finals 1-1',
         '2:Q1',
       ]);
+    });
+  });
+
+  group('normalizeMatchName', () {
+    test('normalizes VEX IQ Teamwork match names into Qualification and Finals', () {
+      expect(normalizeMatchName('Teamwork 1'), 'Qualification 1');
+      expect(normalizeMatchName('Teamwork 12'), 'Qualification 12');
+      expect(normalizeMatchName('Teamwork #5'), 'Qualification 5');
+      expect(normalizeMatchName('Teamwork Match 3'), 'Qualification 3');
+      expect(normalizeMatchName('Teamwork Finals 1-1'), 'Finals 1-1');
+      expect(normalizeMatchName('Teamwork Finals #1-5'), 'Finals 1-5');
+      expect(normalizeMatchName('Teamwork Final 1-1'), 'Finals 1-1');
+    });
+
+    test('normalizes generic Match names into Qualification and Finals', () {
+      expect(normalizeMatchName('Match 1'), 'Qualification 1');
+      expect(normalizeMatchName('Match 42'), 'Qualification 42');
+      expect(normalizeMatchName('Match 1-1'), 'Finals 1-1');
+      expect(normalizeMatchName('Match 1-5'), 'Finals 1-5');
+    });
+
+    test('normalizes V5RC Qual and Finals match names consistently', () {
+      expect(normalizeMatchName('Qual #1'), 'Qualification 1');
+      expect(normalizeMatchName('Qual 1'), 'Qualification 1');
+      expect(normalizeMatchName('Quals 1'), 'Qualification 1');
+      expect(normalizeMatchName('Q 1'), 'Qualification 1');
+      expect(normalizeMatchName('Q1'), 'Qualification 1');
+      expect(normalizeMatchName('Qualification 1'), 'Qualification 1');
+      expect(normalizeMatchName('Finals #1-1'), 'Finals 1-1');
+      expect(normalizeMatchName('Final 1-1'), 'Finals 1-1');
+      expect(normalizeMatchName('F 1-1'), 'Finals 1-1');
+      expect(normalizeMatchName('F1-1'), 'Finals 1-1');
+      expect(normalizeMatchName('1-1'), 'Finals 1-1');
+      expect(normalizeMatchName('1-5'), 'Finals 1-5');
+    });
+
+    test('normalizes Elimination and Practice match names', () {
+      expect(normalizeMatchName('Practice 1'), 'Practice 1');
+      expect(normalizeMatchName('Prac 1'), 'Practice 1');
+      expect(normalizeMatchName('P 1'), 'Practice 1');
+      expect(normalizeMatchName('QF 1-1'), 'QF 1-1');
+      expect(normalizeMatchName('SF 1-1'), 'SF 1-1');
+      expect(normalizeMatchName('R16 1-1'), 'R16 1-1');
+    });
+
+    test('normalizes with explicit round and match metadata from RobotEvents API', () {
+      expect(normalizeMatchName('Teamwork 1', round: 2, matchnum: 1), 'Qualification 1');
+      expect(normalizeMatchName('Teamwork Finals 1-3', round: 5, instance: 1, matchnum: 3), 'Finals 1-3');
+      expect(normalizeMatchName('Practice 2', round: 1, matchnum: 2), 'Practice 2');
+      expect(normalizeMatchName('QF 1-1', round: 3, instance: 1, matchnum: 1), 'QF 1-1');
+      expect(normalizeMatchName('SF 2-1', round: 4, instance: 2, matchnum: 1), 'SF 2-1');
+    });
+  });
+
+  group('getMatchShortCode', () {
+    test('produces compact short codes for match labels', () {
+      expect(getMatchShortCode('Qualification 1'), 'Q1');
+      expect(getMatchShortCode('Qualification 42'), 'Q42');
+      expect(getMatchShortCode('Finals 1-1'), 'F1-1');
+      expect(getMatchShortCode('Practice 1'), 'P1');
+      expect(getMatchShortCode('QF 1-1'), 'QF 1-1');
+      expect(getMatchShortCode('SF 1-1'), 'SF 1-1');
+      expect(getMatchShortCode('R16 1-1'), 'R16 1-1');
     });
   });
 }

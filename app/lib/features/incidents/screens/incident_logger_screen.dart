@@ -8,6 +8,7 @@ import '../../settings/state/sync_settings_controller.dart';
 import '../../teams/state/team_controller.dart';
 import '../../matches/state/match_controller.dart';
 import '../../../core/utils/team_utils.dart';
+import '../../../core/utils/match_utils.dart';
 
 class IncidentLoggerScreen extends StatefulWidget {
   final bool showAppBar;
@@ -329,8 +330,16 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
         final currentMatchQuery = _matchController.text.trim().toLowerCase();
         List<String> matchTeams = [];
         if (currentMatchQuery.isNotEmpty) {
+          final cleanCurrent = currentMatchQuery.replaceAll(' ', '');
           final matchedMatch = tournamentMatches.cast<dynamic>().firstWhere(
-            (m) => m.name.toString().toLowerCase() == currentMatchQuery,
+            (m) {
+              final mName = m.name.toString().toLowerCase();
+              final short = getMatchShortCode(m.name.toString()).toLowerCase();
+              return mName == currentMatchQuery ||
+                  short == currentMatchQuery ||
+                  mName.replaceAll(' ', '') == cleanCurrent ||
+                  short.replaceAll(' ', '') == cleanCurrent;
+            },
             orElse: () => null,
           );
           if (matchedMatch != null) {
@@ -432,8 +441,15 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                           if (textEditingValue.text.isEmpty) {
                             return matchNames.take(15);
                           }
+                          final query = textEditingValue.text.trim().toLowerCase();
+                          final cleanQuery = query.replaceAll(' ', '');
                           return matchNames.where((String option) {
-                            return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                            final optLower = option.toLowerCase();
+                            final optShort = getMatchShortCode(option).toLowerCase();
+                            return optLower.contains(query) ||
+                                optShort.contains(query) ||
+                                optLower.replaceAll(' ', '').contains(cleanQuery) ||
+                                optShort.replaceAll(' ', '').contains(cleanQuery);
                           });
                         },
                         onSelected: (String selection) {
