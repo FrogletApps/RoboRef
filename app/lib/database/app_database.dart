@@ -5,6 +5,7 @@ import 'tables/matches_table.dart';
 import 'tables/incident_notes_table.dart';
 import 'connection/connection.dart' as impl;
 import '../core/utils/team_utils.dart';
+import '../core/utils/match_utils.dart';
 
 part 'app_database.g.dart';
 
@@ -143,16 +144,16 @@ class AppDatabase extends _$AppDatabase {
   // --- Matches DAO Methods ---
   Stream<List<Matche>> watchMatchesForSku(String sku) {
     return (select(matches)
-          ..where((tbl) => tbl.sku.equals(sku))
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
-        .watch();
+          ..where((tbl) => tbl.sku.equals(sku)))
+        .watch()
+        .map((list) => List<Matche>.from(list)..sort(compareMatches));
   }
 
-  Future<List<Matche>> getMatchesForSku(String sku) {
-    return (select(matches)
-          ..where((tbl) => tbl.sku.equals(sku))
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+  Future<List<Matche>> getMatchesForSku(String sku) async {
+    final list = await (select(matches)
+          ..where((tbl) => tbl.sku.equals(sku)))
         .get();
+    return List<Matche>.from(list)..sort(compareMatches);
   }
 
   Future<void> upsertMatches(List<MatchesCompanion> entries) async {
