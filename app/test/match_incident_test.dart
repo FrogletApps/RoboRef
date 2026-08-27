@@ -65,16 +65,12 @@ void main() {
   });
 
   testWidgets('AddIncidentSheet pre-fills initialMatch and displays match teams', (WidgetTester tester) async {
-    final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        databaseProvider.overrideWithValue(testDb),
-      ],
-    );
-
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(testDb),
+        ],
         child: const MaterialApp(
           home: Scaffold(
             body: AddIncidentSheet(
@@ -107,7 +103,10 @@ void main() {
     expect(teamField, findsOneWidget);
 
     // Enter note and submit
-    await tester.enterText(find.widgetWithText(TextField, 'Describe details, warnings given, or match conditions...'), 'Entanglement warning');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Describe details, warnings given, or match conditions...'),
+      'Entanglement warning',
+    );
     await tester.pumpAndSettle();
 
     final saveButton = find.text('Save & Sync Incident');
@@ -115,6 +114,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(saveButton);
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
     await tester.pumpAndSettle();
 
     // Verify saved note in database
@@ -124,20 +126,17 @@ void main() {
     expect(notes.first.teamNumber, equals('1114A'));
     expect(notes.first.notes, equals('Entanglement warning'));
 
-    container.dispose();
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 
   testWidgets('MatchScheduleScreen opens AddIncidentSheet with pre-filled match and team', (WidgetTester tester) async {
-    final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        databaseProvider.overrideWithValue(testDb),
-      ],
-    );
-
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(testDb),
+        ],
         child: const MaterialApp(
           home: MatchScheduleScreen(),
         ),
@@ -176,6 +175,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(saveButton);
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
     await tester.pumpAndSettle();
 
     final notes = await (testDb.select(testDb.incidentNotes)).get();
@@ -183,6 +185,7 @@ void main() {
     expect(notes.first.matchId, equals('Q12'));
     expect(notes.first.teamNumber, equals('2056A'));
 
-    container.dispose();
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
   });
 }

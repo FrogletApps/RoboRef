@@ -4,6 +4,7 @@ import 'tables/teams_table.dart';
 import 'tables/matches_table.dart';
 import 'tables/incident_notes_table.dart';
 import 'connection/connection.dart' as impl;
+import '../core/utils/team_utils.dart';
 
 part 'app_database.g.dart';
 
@@ -112,16 +113,16 @@ class AppDatabase extends _$AppDatabase {
   // --- Teams DAO Methods ---
   Stream<List<Team>> watchTeamsForSku(String sku) {
     return (select(teams)
-          ..where((tbl) => tbl.sku.equals(sku))
-          ..orderBy([(t) => OrderingTerm.asc(t.teamNumber)]))
-        .watch();
+          ..where((tbl) => tbl.sku.equals(sku)))
+        .watch()
+        .map((list) => List<Team>.from(list)..sort(compareTeams));
   }
 
-  Future<List<Team>> getTeamsForSku(String sku) {
-    return (select(teams)
-          ..where((tbl) => tbl.sku.equals(sku))
-          ..orderBy([(t) => OrderingTerm.asc(t.teamNumber)]))
+  Future<List<Team>> getTeamsForSku(String sku) async {
+    final list = await (select(teams)
+          ..where((tbl) => tbl.sku.equals(sku)))
         .get();
+    return List<Team>.from(list)..sort(compareTeams);
   }
 
   Future<void> upsertTeams(List<TeamsCompanion> entries) async {

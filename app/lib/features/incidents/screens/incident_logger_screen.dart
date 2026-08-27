@@ -7,6 +7,7 @@ import '../widgets/severity_badge.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../teams/state/team_controller.dart';
 import '../../matches/state/match_controller.dart';
+import '../../../core/utils/team_utils.dart';
 
 class IncidentLoggerScreen extends StatefulWidget {
   final bool showAppBar;
@@ -321,7 +322,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
         final registeredTeams = ref.watch(activeTournamentTeamsProvider).valueOrNull ?? [];
         final tournamentMatches = ref.watch(activeTournamentMatchesProvider).valueOrNull ?? [];
 
-        final teamNumbers = registeredTeams.map((t) => t.teamNumber).toList()..sort();
+        final teamNumbers = registeredTeams.map((t) => t.teamNumber).toList()..sort(compareTeamNumbers);
         final matchNames = tournamentMatches.map((m) => m.name).toList();
 
         // Extract teams involved in the selected match if any
@@ -334,8 +335,8 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
           );
           if (matchedMatch != null) {
             try {
-              final red = (jsonDecode(matchedMatch.redTeamsJson) as List).map((e) => e.toString());
-              final blue = (jsonDecode(matchedMatch.blueTeamsJson) as List).map((e) => e.toString());
+              final red = (jsonDecode(matchedMatch.redTeamsJson) as List).map((e) => e.toString()).toList()..sort(compareTeamNumbers);
+              final blue = (jsonDecode(matchedMatch.blueTeamsJson) as List).map((e) => e.toString()).toList()..sort(compareTeamNumbers);
               matchTeams = [...red, ...blue];
             } catch (_) {}
           }
@@ -394,8 +395,10 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                               final bInMatch = matchTeams.contains(b);
                               if (aInMatch && !bInMatch) return -1;
                               if (!aInMatch && bInMatch) return 1;
-                              return a.compareTo(b);
+                              return compareTeamNumbers(a, b);
                             });
+                          } else {
+                            filtered.sort(compareTeamNumbers);
                           }
                           return filtered;
                         },

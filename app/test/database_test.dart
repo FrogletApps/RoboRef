@@ -85,6 +85,29 @@ Number,Name,City,State,Country
     expect(teams[2].teamNumber, '3333C');
   });
 
+  test('watchTeamsForSku and getTeamsForSku order smaller team numbers first (e.g. 96F before 1016X)', () async {
+    const sku = 'RE-V5RC-24-SORT';
+    const teamsCsv = '''
+Number,Name,City,State,Country
+1016X,Ten Sixteen,Toronto,ON,Canada
+96F,Ninety Six,Austin,TX,USA
+224A,Two Twenty Four,London,,UK
+1B,One B,San Jose,CA,USA
+''';
+
+    await CsvImportService.importTeamsCsv(
+      csvContent: teamsCsv,
+      sku: sku,
+      db: db,
+    );
+
+    final streamTeams = await db.watchTeamsForSku(sku).first;
+    expect(streamTeams.map((t) => t.teamNumber).toList(), ['1B', '96F', '224A', '1016X']);
+
+    final getTeams = await db.getTeamsForSku(sku);
+    expect(getTeams.map((t) => t.teamNumber).toList(), ['1B', '96F', '224A', '1016X']);
+  });
+
   test('can import Tournament Manager match schedule CSV and query matches', () async {
     const sku = 'RE-V5RC-24-9999';
     const matchesCsv = '''

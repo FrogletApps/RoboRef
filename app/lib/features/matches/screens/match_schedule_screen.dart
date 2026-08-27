@@ -6,6 +6,7 @@ import '../../incidents/state/incident_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
+import '../../../core/utils/team_utils.dart';
 
 class MatchScheduleScreen extends StatefulWidget {
   final bool showAppBar;
@@ -128,8 +129,8 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                         List<dynamic> blueTeams = [];
 
                         try {
-                          redTeams = jsonDecode(match.redTeamsJson);
-                          blueTeams = jsonDecode(match.blueTeamsJson);
+                          redTeams = (jsonDecode(match.redTeamsJson) as List).map((e) => e.toString()).toList()..sort(compareTeamNumbers);
+                          blueTeams = (jsonDecode(match.blueTeamsJson) as List).map((e) => e.toString()).toList()..sort(compareTeamNumbers);
                         } catch (_) {}
 
                         return Card(
@@ -332,7 +333,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    ...redTeams.map((team) => ActionChip(
+                    ...(List<dynamic>.from(redTeams)..sort((a, b) => compareTeamNumbers(a.toString(), b.toString()))).map((team) => ActionChip(
                           avatar: CircleAvatar(
                             backgroundColor: Colors.red.shade700,
                             radius: 6,
@@ -358,7 +359,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                             );
                           },
                         )),
-                    ...blueTeams.map((team) => ActionChip(
+                    ...(List<dynamic>.from(blueTeams)..sort((a, b) => compareTeamNumbers(a.toString(), b.toString()))).map((team) => ActionChip(
                           avatar: CircleAvatar(
                             backgroundColor: Colors.blue.shade700,
                             radius: 6,

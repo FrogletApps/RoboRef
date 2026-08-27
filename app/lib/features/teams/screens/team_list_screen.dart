@@ -6,6 +6,7 @@ import '../../incidents/screens/incident_logger_screen.dart';
 import '../../incidents/widgets/severity_badge.dart';
 import '../state/team_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
+import '../../../core/utils/team_utils.dart';
 
 class TeamListScreen extends StatefulWidget {
   final bool showAppBar;
@@ -89,7 +90,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                     final teams = allTeamNumbers
                         .where((t) => _search.isEmpty || t.contains(_search))
                         .toList()
-                      ..sort();
+                      ..sort(compareTeamNumbers);
 
                     final Map<String, String> teamNames = {
                       for (final t in registeredTeams) t.teamNumber: t.teamName,
