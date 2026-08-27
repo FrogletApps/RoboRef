@@ -160,8 +160,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     builder: (ctx) => const EventImportSheet(),
                   );
                 },
-                icon: const Icon(Icons.cloud_download_outlined),
-                label: const Text('Import Event Data (VEXEvents & TM CSV)'),
+                icon: const Icon(Icons.file_upload_outlined),
+                label: const Text('Import Event Data (TM CSV)'),
               ),
               const SizedBox(height: 24),
 
@@ -216,6 +216,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     } else if (newOption == 'lan') {
                       _serverController.text = venueLanUrl;
                       ref.read(syncSettingsProvider.notifier).setServerUrl(venueLanUrl);
+                    } else if (newOption == 'custom') {
+                      final current = _serverController.text.trim();
+                      if (current.isEmpty || current == cloudUrl || current == venueLanUrl) {
+                        const defaultCustom = 'http://localhost:8080';
+                        _serverController.text = defaultCustom;
+                        ref.read(syncSettingsProvider.notifier).setServerUrl(defaultCustom);
+                      }
                     }
                   });
                 },
@@ -228,7 +235,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   controller: _serverController,
                   decoration: const InputDecoration(
                     labelText: 'Custom Server URL',
-                    hintText: 'e.g. http://192.168.1.50:8080 or https://sync.roboref.app',
+                    hintText: 'e.g. http://localhost:8080 or https://sync.roboref.app',
                     border: OutlineInputBorder(),
                     isDense: true,
                     prefixIcon: Icon(Icons.link),
@@ -249,7 +256,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Server Status:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          _buildConnectionBadge(settings.connectionStatus),
+                          _buildConnectionBadge(settings.connectionStatus, settings.serverUrl),
                         ],
                       ),
                       if (settings.lastConnectionMessage != null) ...[
@@ -415,9 +422,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildConnectionBadge(ServerConnectionStatus status) {
+  Widget _buildConnectionBadge(ServerConnectionStatus status, [String? serverUrl]) {
     switch (status) {
       case ServerConnectionStatus.connectedLocal:
+        final urlLower = (serverUrl ?? '').toLowerCase();
+        final isLocalhost = urlLower.contains('localhost') || urlLower.contains('127.0.0.1');
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
@@ -430,7 +439,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Icon(Icons.wifi, size: 14, color: Colors.green.shade900),
               const SizedBox(width: 4),
               Text(
-                'Venue LAN (roboref.local)',
+                isLocalhost ? 'Local Server (localhost)' : 'Venue LAN (roboref.local)',
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green.shade900),
               ),
             ],

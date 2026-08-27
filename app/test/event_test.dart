@@ -14,6 +14,7 @@ import 'package:roboref/features/event_data/services/vex_events_client.dart';
 import 'package:roboref/features/event_selection/screens/event_selection_screen.dart';
 import 'package:roboref/features/event_selection/state/event_controller.dart';
 import 'package:roboref/features/event_selection/state/event_filter_controller.dart';
+import 'package:roboref/features/event_data/screens/event_import_sheet.dart';
 
 void main() {
   group('AppDatabase Event Operations', () {
@@ -438,6 +439,43 @@ void main() {
       expect(prefs.getString(EventFiltersNotifier.keyProgram), equals('All'));
       expect(prefs.getString(EventFiltersNotifier.keyRegion), equals('All'));
       expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('All'));
+    });
+  });
+
+  group('EventImportSheet Widget Tests', () {
+    testWidgets('renders Load Tournament Data with TM CSV import and without VEX Events tab', (tester) async {
+      SharedPreferences.setMockInitialValues({'current_sku': 'RE-V5RC-24-1111'});
+      final prefs = await SharedPreferences.getInstance();
+      final testDb = AppDatabase.forTesting(DatabaseConnection(NativeDatabase.memory()));
+
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(testDb),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(prefs)),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: EventImportSheet(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Load Tournament Data'), findsOneWidget);
+      expect(find.text('Paste Tournament Manager (TM) export data below.'), findsOneWidget);
+      expect(find.text('Teams CSV'), findsOneWidget);
+      expect(find.text('Match Schedule CSV'), findsOneWidget);
+      expect(find.text('VEX Events'), findsNothing);
+      expect(find.text('Fetch Tournament Data'), findsNothing);
+
+      await testDb.close();
     });
   });
 }
