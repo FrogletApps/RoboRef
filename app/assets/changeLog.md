@@ -2,7 +2,6 @@
 
 ## 2026.8.27+1
 
-- **Event Tab Order**: Matches is now the default first tab on the left, followed by Teams, Incidents, Rules, and Manage.
 - **Fix Team Sorting**: Smaller team numbers show first (eg 99X before 101F)
 - **Note Reporting Improvements**
 - **Misc UI Improvements**
