@@ -300,6 +300,16 @@ void main() {
       // Verify Tournament SKU field is NOT present
       expect(find.widgetWithText(TextField, 'Tournament SKU'), findsNothing);
       expect(find.text('Tournament & Referee Setup'), findsNothing);
+
+      // Verify Import Event Data section
+      expect(find.text('Import Event Data'), findsOneWidget);
+      expect(find.text('This feature is experimental and may not work as intended'), findsOneWidget);
+      expect(find.widgetWithText(OutlinedButton, 'Import Event Data (VEXEvents & TM CSV)'), findsOneWidget);
+
+      // Verify Sync Server Configuration section
+      expect(find.text('Sync Server Configuration'), findsOneWidget);
+      expect(find.text('Connect to the cloud server or a server on your local network'), findsOneWidget);
+      expect(find.text('Local Server (http://roboref.local:8080)'), findsOneWidget);
     });
   });
 }

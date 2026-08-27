@@ -136,6 +136,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 onChanged: (val) => ref.read(syncSettingsProvider.notifier).setRefereeName(val.trim()),
               ),
+              const SizedBox(height: 24),
+
+              // Import Event Data Section
+              const Text(
+                'Import Event Data',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'This feature is experimental and may not work as intended',
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () {
@@ -149,7 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
                 icon: const Icon(Icons.cloud_download_outlined),
-                label: const Text('Load Event Data (VEXEvents & TM CSV)'),
+                label: const Text('Import Event Data (VEXEvents & TM CSV)'),
               ),
               const SizedBox(height: 24),
 
@@ -160,7 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Preferred setup: Connect to the venue LAN server (Raspberry Pi on Wi-Fi at http://roboref.local:8080) or Cloudflare Worker.',
+                'Connect to the cloud server or a server on your local network',
                 style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 12),
@@ -185,7 +197,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const DropdownMenuItem(
                     value: 'lan',
                     child: Text(
-                      'Venue LAN (http://roboref.local:8080)',
+                      'Local Server (http://roboref.local:8080)',
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
