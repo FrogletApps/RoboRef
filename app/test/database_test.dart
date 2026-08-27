@@ -133,4 +133,52 @@ Q2,Field 2,09:10 AM,5555E,6666F,7777G,8888H
     expect(jsonDecode(matches[0].redTeamsJson), ['1111A', '2222B']);
     expect(jsonDecode(matches[0].blueTeamsJson), ['3333C', '4444D']);
   });
+
+  test('watchMatchesForSku and getMatchesForSku order matches chronologically (Practice, Q1-Q9, Q10-Q99, Finals)', () async {
+    const sku = 'RE-V5RC-24-MATCH-SORT';
+    const matchesCsv = '''
+Match,Field,Time,Red 1,Red 2,Blue 1,Blue 2
+Finals 1-1,Field 1,03:00 PM,1111A,2222B,3333C,4444D
+Q10,Field 2,10:30 AM,1111A,2222B,3333C,4444D
+Practice 1,Field 1,08:30 AM,1111A,2222B,3333C,4444D
+QF 1-1,Field 1,01:30 PM,1111A,2222B,3333C,4444D
+Q1,Field 1,09:00 AM,1111A,2222B,3333C,4444D
+SF 1-1,Field 1,02:15 PM,1111A,2222B,3333C,4444D
+Q2,Field 2,09:10 AM,1111A,2222B,3333C,4444D
+Practice 2,Field 2,08:40 AM,1111A,2222B,3333C,4444D
+R16 1-1,Field 1,01:00 PM,1111A,2222B,3333C,4444D
+''';
+
+    await CsvImportService.importMatchesCsv(
+      csvContent: matchesCsv,
+      sku: sku,
+      db: db,
+    );
+
+    final streamMatches = await db.watchMatchesForSku(sku).first;
+    expect(streamMatches.map((m) => m.name).toList(), [
+      'PRACTICE 1',
+      'PRACTICE 2',
+      'Q1',
+      'Q2',
+      'Q10',
+      'R16 1-1',
+      'QF 1-1',
+      'SF 1-1',
+      'FINALS 1-1',
+    ]);
+
+    final getMatches = await db.getMatchesForSku(sku);
+    expect(getMatches.map((m) => m.name).toList(), [
+      'PRACTICE 1',
+      'PRACTICE 2',
+      'Q1',
+      'Q2',
+      'Q10',
+      'R16 1-1',
+      'QF 1-1',
+      'SF 1-1',
+      'FINALS 1-1',
+    ]);
+  });
 }
