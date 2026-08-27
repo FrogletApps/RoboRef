@@ -390,6 +390,40 @@ void main() {
     });
   });
 
+  group('formatMatchShortName', () {
+    test('formats qualification matches as Q 1, Q 42', () {
+      expect(formatMatchShortName('Qualification 1'), 'Q 1');
+      expect(formatMatchShortName('Qualification 42'), 'Q 42');
+      expect(formatMatchShortName('Qual 1'), 'Q 1');
+      expect(formatMatchShortName('Q1'), 'Q 1');
+      expect(formatMatchShortName('Q 1'), 'Q 1');
+      expect(formatMatchShortName('Teamwork 1'), 'Q 1');
+      expect(formatMatchShortName('Match 1'), 'Q 1');
+    });
+
+    test('formats finals matches as F 1-1, F 1-2, F 1', () {
+      expect(formatMatchShortName('Finals 1-1'), 'F 1-1');
+      expect(formatMatchShortName('Finals 1-2'), 'F 1-2');
+      expect(formatMatchShortName('Finals 1-10'), 'F 1-10');
+      expect(formatMatchShortName('Final 1-1'), 'F 1-1');
+      expect(formatMatchShortName('F 1-1'), 'F 1-1');
+      expect(formatMatchShortName('F1-1'), 'F 1-1');
+      expect(formatMatchShortName('1-1'), 'F 1-1');
+      expect(formatMatchShortName('Teamwork Finals 1-1'), 'F 1-1');
+      expect(formatMatchShortName('Finals 1'), 'F 1');
+    });
+
+    test('formats practice, elimination, and round robin matches', () {
+      expect(formatMatchShortName('Practice 1'), 'P 1');
+      expect(formatMatchShortName('Prac 1'), 'P 1');
+      expect(formatMatchShortName('P 1'), 'P 1');
+      expect(formatMatchShortName('P1'), 'P 1');
+      expect(formatMatchShortName('R16 1-1'), 'R16 1-1');
+      expect(formatMatchShortName('QF 1-1'), 'QF 1-1');
+      expect(formatMatchShortName('SF 1-1'), 'SF 1-1');
+    });
+  });
+
   group('getMatchShortCode', () {
     test('produces compact short codes for match labels', () {
       expect(getMatchShortCode('Qualification 1'), 'Q1');

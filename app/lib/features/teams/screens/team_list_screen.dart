@@ -7,6 +7,7 @@ import '../../incidents/widgets/severity_badge.dart';
 import '../state/team_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 import '../../../core/utils/team_utils.dart';
+import '../../../core/utils/match_utils.dart';
 
 class TeamListScreen extends StatefulWidget {
   final bool showAppBar;
@@ -290,7 +291,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  note.matchId ?? 'General Note',
+                                  note.matchId != null ? formatMatchShortName(note.matchId!) : 'General Note',
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 SeverityBadge(severity: note.severity),

@@ -163,7 +163,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                                     if (note.matchId != null && note.matchId!.isNotEmpty) ...[
                                       const SizedBox(width: 8),
                                       Text(
-                                        note.matchId!,
+                                        formatMatchShortName(note.matchId!),
                                         style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey),
                                       ),
                                     ],
@@ -324,7 +324,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
         final tournamentMatches = ref.watch(activeTournamentMatchesProvider).valueOrNull ?? [];
 
         final teamNumbers = registeredTeams.map((t) => t.teamNumber).toList()..sort(compareTeamNumbers);
-        final matchNames = tournamentMatches.map((m) => m.name).toList();
+        final matchNames = tournamentMatches.map((m) => formatMatchShortName(m.name)).toList();
 
         // Extract teams involved in the selected match if any
         final currentMatchQuery = _matchController.text.trim().toLowerCase();

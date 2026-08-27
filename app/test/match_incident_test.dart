@@ -145,17 +145,17 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // Match card for Q12 should be visible
-    expect(find.text('Q12'), findsOneWidget);
+    // Match card for Q 12 should be visible
+    expect(find.text('Q 12'), findsOneWidget);
     expect(find.text('Field 1'), findsOneWidget);
 
-    // Tap on match Q12
-    await tester.tap(find.text('Q12'));
+    // Tap on match Q 12
+    await tester.tap(find.text('Q 12'));
     await tester.pumpAndSettle();
 
     // Match actions modal should be shown
-    expect(find.text('Actions for Q12'), findsOneWidget);
-    expect(find.text('Log Incident Note for Q12'), findsOneWidget);
+    expect(find.text('Actions for Q 12'), findsOneWidget);
+    expect(find.text('Log Incident Note for Q 12'), findsOneWidget);
     expect(find.text('Pre-fills match number into note'), findsOneWidget);
 
     // Tap on action chip for team 2056A
@@ -164,9 +164,9 @@ void main() {
     await tester.tap(chip2056);
     await tester.pumpAndSettle();
 
-    // AddIncidentSheet should open with both Q12 and 2056A pre-filled
+    // AddIncidentSheet should open with both Q 12 and 2056A pre-filled
     expect(find.text('Log Match Incident / Rule Note'), findsOneWidget);
-    expect(find.widgetWithText(TextField, 'Q12'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Q 12'), findsOneWidget);
     expect(find.widgetWithText(TextField, '2056A'), findsOneWidget);
 
     // Save incident
@@ -182,7 +182,7 @@ void main() {
 
     final notes = await (testDb.select(testDb.incidentNotes)).get();
     expect(notes.length, equals(1));
-    expect(notes.first.matchId, equals('Q12'));
+    expect(notes.first.matchId, equals('Q 12'));
     expect(notes.first.teamNumber, equals('2056A'));
 
     await tester.pumpWidget(const SizedBox());
