@@ -12,7 +12,8 @@
     "dev:node": "tsx watch src/index.node.ts",
     "start:node": "tsx src/index.node.ts",
     "build:node": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/**/*.test.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
