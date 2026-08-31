@@ -2,7 +2,7 @@
 
 ## 2026.8.31+80
 
-- **Test Environment Join Links**: Join links generated in test environment now correctly link to test.roboref.app and automatically navigate to the event.
+- **Bugfix**: Join links generated in test environment now correctly link to test.roboref.app.
 
 ## 2026.8.31+1
 
@@ -12,6 +12,7 @@
 - **Rules UI Cleanup**: Removed duplicate subheaders from rule items on the Rules page.
 - **Match Schedule Updates**: Swapped alliance label and team pill styles with outlined alliance badges and solid alliance team badges.
 - **Improved note taking**: All rules can be selected and added to a note.
+- **Update dependencies**
 
 ## 2026.8.27+1
 
