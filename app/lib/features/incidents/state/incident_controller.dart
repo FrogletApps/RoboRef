@@ -85,6 +85,13 @@ class IncidentController extends StateNotifier<AsyncValue<void>> {
     final settings = ref.read(syncSettingsProvider);
     final notifier = ref.read(syncSettingsProvider.notifier);
 
+    // Only sync if the current event is shared online
+    final isShared = await _db.isEventShared(settings.currentSku);
+    if (!isShared) {
+      notifier.setSyncing(false);
+      return;
+    }
+
     notifier.setSyncing(true);
 
     final client = SyncClient(

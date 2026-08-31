@@ -9,6 +9,7 @@ import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import 'changelog_screen.dart';
 import 'share_screen.dart';
+import '../../sharing/widgets/event_share_sheet.dart';
 
 class HomeScreen extends ConsumerWidget {
   final VoidCallback? onNavigateToIncidents;
@@ -174,7 +175,16 @@ class HomeScreen extends ConsumerWidget {
                                       padding: EdgeInsets.zero,
                                       constraints: const BoxConstraints(),
                                       onSelected: (action) {
-                                        if (action == 'hide') {
+                                        if (action == 'share') {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                            ),
+                                            builder: (ctx) => EventShareSheet(sku: event.sku),
+                                          );
+                                        } else if (action == 'hide') {
                                           ref.read(eventControllerProvider.notifier).hideEvent(event.sku);
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(content: Text('Removed ${event.sku} from recent list')),
@@ -182,6 +192,16 @@ class HomeScreen extends ConsumerWidget {
                                         }
                                       },
                                       itemBuilder: (context) => [
+                                        const PopupMenuItem(
+                                          value: 'share',
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.share_outlined, size: 16),
+                                              SizedBox(width: 8),
+                                              Text('Share Event Online'),
+                                            ],
+                                          ),
+                                        ),
                                         const PopupMenuItem(
                                           value: 'hide',
                                           child: Row(

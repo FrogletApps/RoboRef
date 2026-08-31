@@ -10,6 +10,10 @@ import '../../teams/screens/team_list_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
 
+import '../../sharing/widgets/event_share_sheet.dart';
+import '../../sharing/state/share_controller.dart';
+import '../../sharing/models/share_models.dart';
+
 class EventWorkspaceScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
 
@@ -42,9 +46,21 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
     );
   }
 
+  void _showShareSheet(BuildContext context, String sku) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => EventShareSheet(sku: sku),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(syncSettingsProvider);
+    final shareState = ref.watch(shareControllerProvider);
     final activeEventAsync = ref.watch(activeEventProvider);
     final event = activeEventAsync.valueOrNull;
     final eventName = (event?.name.isNotEmpty ?? false) ? event!.name : settings.currentSku;
@@ -66,25 +82,29 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
     ];
 
     List<Widget> buildActions() {
+      final List<Widget> list = [];
+
       switch (_currentIndex) {
         case 0: // Matches
-          return [
+          list.add(
             IconButton(
               icon: const Icon(Icons.download),
               tooltip: 'Load / Import Schedule',
               onPressed: () => _showImportSheet(context),
             ),
-          ];
+          );
+          break;
         case 1: // Teams
-          return [
+          list.add(
             IconButton(
               icon: const Icon(Icons.download),
               tooltip: 'Load / Import Teams',
               onPressed: () => _showImportSheet(context),
             ),
-          ];
+          );
+          break;
         case 2: // Incidents
-          return [
+          list.add(
             IconButton(
               icon: settings.isSyncing
                   ? const SizedBox(
@@ -100,16 +120,35 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                       ref.read(incidentControllerProvider.notifier).triggerSync();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Syncing with referee network...'),
+                          content: Text('Syncing notes...'),
                           duration: Duration(seconds: 1),
                         ),
                       );
                     },
             ),
-          ];
+          );
+          break;
         default:
-          return [];
+          break;
       }
+
+      // Share Event button available in header
+      list.add(
+        IconButton(
+          icon: Icon(
+            shareState.isShared
+                ? (shareState.role == ShareRole.admin ? Icons.admin_panel_settings : Icons.cloud_done)
+                : Icons.share_outlined,
+            color: shareState.isShared ? Colors.lightGreenAccent : null,
+          ),
+          tooltip: shareState.isShared
+              ? 'Shared Online (${shareState.participants.length} connected)'
+              : 'Share Event Online',
+          onPressed: () => _showShareSheet(context, settings.currentSku),
+        ),
+      );
+
+      return list;
     }
 
     return Scaffold(

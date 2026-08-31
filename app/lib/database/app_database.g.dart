@@ -66,6 +66,40 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_hidden" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _isSharedMeta =
+      const VerificationMeta('isShared');
+  @override
+  late final GeneratedColumn<bool> isShared = GeneratedColumn<bool>(
+      'is_shared', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_shared" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _shareIdMeta =
+      const VerificationMeta('shareId');
+  @override
+  late final GeneratedColumn<String> shareId = GeneratedColumn<String>(
+      'share_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _shareRoleMeta =
+      const VerificationMeta('shareRole');
+  @override
+  late final GeneratedColumn<String> shareRole = GeneratedColumn<String>(
+      'share_role', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _adminRefereeNameMeta =
+      const VerificationMeta('adminRefereeName');
+  @override
+  late final GeneratedColumn<String> adminRefereeName = GeneratedColumn<String>(
+      'admin_referee_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _adminDeviceIdMeta =
+      const VerificationMeta('adminDeviceId');
+  @override
+  late final GeneratedColumn<String> adminDeviceId = GeneratedColumn<String>(
+      'admin_device_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -84,6 +118,11 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
         city,
         region,
         isHidden,
+        isShared,
+        shareId,
+        shareRole,
+        adminRefereeName,
+        adminDeviceId,
         updatedAt
       ];
   @override
@@ -148,6 +187,30 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
       context.handle(_isHiddenMeta,
           isHidden.isAcceptableOrUnknown(data['is_hidden']!, _isHiddenMeta));
     }
+    if (data.containsKey('is_shared')) {
+      context.handle(_isSharedMeta,
+          isShared.isAcceptableOrUnknown(data['is_shared']!, _isSharedMeta));
+    }
+    if (data.containsKey('share_id')) {
+      context.handle(_shareIdMeta,
+          shareId.isAcceptableOrUnknown(data['share_id']!, _shareIdMeta));
+    }
+    if (data.containsKey('share_role')) {
+      context.handle(_shareRoleMeta,
+          shareRole.isAcceptableOrUnknown(data['share_role']!, _shareRoleMeta));
+    }
+    if (data.containsKey('admin_referee_name')) {
+      context.handle(
+          _adminRefereeNameMeta,
+          adminRefereeName.isAcceptableOrUnknown(
+              data['admin_referee_name']!, _adminRefereeNameMeta));
+    }
+    if (data.containsKey('admin_device_id')) {
+      context.handle(
+          _adminDeviceIdMeta,
+          adminDeviceId.isAcceptableOrUnknown(
+              data['admin_device_id']!, _adminDeviceIdMeta));
+    }
     if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
@@ -183,6 +246,16 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
           .read(DriftSqlType.string, data['${effectivePrefix}region']),
       isHidden: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_hidden'])!,
+      isShared: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_shared'])!,
+      shareId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}share_id']),
+      shareRole: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}share_role']),
+      adminRefereeName: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}admin_referee_name']),
+      adminDeviceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}admin_device_id']),
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
     );
@@ -205,6 +278,11 @@ class Event extends DataClass implements Insertable<Event> {
   final String? city;
   final String? region;
   final bool isHidden;
+  final bool isShared;
+  final String? shareId;
+  final String? shareRole;
+  final String? adminRefereeName;
+  final String? adminDeviceId;
   final int updatedAt;
   const Event(
       {required this.sku,
@@ -217,6 +295,11 @@ class Event extends DataClass implements Insertable<Event> {
       this.city,
       this.region,
       required this.isHidden,
+      required this.isShared,
+      this.shareId,
+      this.shareRole,
+      this.adminRefereeName,
+      this.adminDeviceId,
       required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -237,6 +320,19 @@ class Event extends DataClass implements Insertable<Event> {
       map['region'] = Variable<String>(region);
     }
     map['is_hidden'] = Variable<bool>(isHidden);
+    map['is_shared'] = Variable<bool>(isShared);
+    if (!nullToAbsent || shareId != null) {
+      map['share_id'] = Variable<String>(shareId);
+    }
+    if (!nullToAbsent || shareRole != null) {
+      map['share_role'] = Variable<String>(shareRole);
+    }
+    if (!nullToAbsent || adminRefereeName != null) {
+      map['admin_referee_name'] = Variable<String>(adminRefereeName);
+    }
+    if (!nullToAbsent || adminDeviceId != null) {
+      map['admin_device_id'] = Variable<String>(adminDeviceId);
+    }
     map['updated_at'] = Variable<int>(updatedAt);
     return map;
   }
@@ -255,6 +351,19 @@ class Event extends DataClass implements Insertable<Event> {
       region:
           region == null && nullToAbsent ? const Value.absent() : Value(region),
       isHidden: Value(isHidden),
+      isShared: Value(isShared),
+      shareId: shareId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(shareId),
+      shareRole: shareRole == null && nullToAbsent
+          ? const Value.absent()
+          : Value(shareRole),
+      adminRefereeName: adminRefereeName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(adminRefereeName),
+      adminDeviceId: adminDeviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(adminDeviceId),
       updatedAt: Value(updatedAt),
     );
   }
@@ -273,6 +382,11 @@ class Event extends DataClass implements Insertable<Event> {
       city: serializer.fromJson<String?>(json['city']),
       region: serializer.fromJson<String?>(json['region']),
       isHidden: serializer.fromJson<bool>(json['isHidden']),
+      isShared: serializer.fromJson<bool>(json['isShared']),
+      shareId: serializer.fromJson<String?>(json['shareId']),
+      shareRole: serializer.fromJson<String?>(json['shareRole']),
+      adminRefereeName: serializer.fromJson<String?>(json['adminRefereeName']),
+      adminDeviceId: serializer.fromJson<String?>(json['adminDeviceId']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
   }
@@ -290,6 +404,11 @@ class Event extends DataClass implements Insertable<Event> {
       'city': serializer.toJson<String?>(city),
       'region': serializer.toJson<String?>(region),
       'isHidden': serializer.toJson<bool>(isHidden),
+      'isShared': serializer.toJson<bool>(isShared),
+      'shareId': serializer.toJson<String?>(shareId),
+      'shareRole': serializer.toJson<String?>(shareRole),
+      'adminRefereeName': serializer.toJson<String?>(adminRefereeName),
+      'adminDeviceId': serializer.toJson<String?>(adminDeviceId),
       'updatedAt': serializer.toJson<int>(updatedAt),
     };
   }
@@ -305,6 +424,11 @@ class Event extends DataClass implements Insertable<Event> {
           Value<String?> city = const Value.absent(),
           Value<String?> region = const Value.absent(),
           bool? isHidden,
+          bool? isShared,
+          Value<String?> shareId = const Value.absent(),
+          Value<String?> shareRole = const Value.absent(),
+          Value<String?> adminRefereeName = const Value.absent(),
+          Value<String?> adminDeviceId = const Value.absent(),
           int? updatedAt}) =>
       Event(
         sku: sku ?? this.sku,
@@ -317,6 +441,14 @@ class Event extends DataClass implements Insertable<Event> {
         city: city.present ? city.value : this.city,
         region: region.present ? region.value : this.region,
         isHidden: isHidden ?? this.isHidden,
+        isShared: isShared ?? this.isShared,
+        shareId: shareId.present ? shareId.value : this.shareId,
+        shareRole: shareRole.present ? shareRole.value : this.shareRole,
+        adminRefereeName: adminRefereeName.present
+            ? adminRefereeName.value
+            : this.adminRefereeName,
+        adminDeviceId:
+            adminDeviceId.present ? adminDeviceId.value : this.adminDeviceId,
         updatedAt: updatedAt ?? this.updatedAt,
       );
   Event copyWithCompanion(EventsCompanion data) {
@@ -331,6 +463,15 @@ class Event extends DataClass implements Insertable<Event> {
       city: data.city.present ? data.city.value : this.city,
       region: data.region.present ? data.region.value : this.region,
       isHidden: data.isHidden.present ? data.isHidden.value : this.isHidden,
+      isShared: data.isShared.present ? data.isShared.value : this.isShared,
+      shareId: data.shareId.present ? data.shareId.value : this.shareId,
+      shareRole: data.shareRole.present ? data.shareRole.value : this.shareRole,
+      adminRefereeName: data.adminRefereeName.present
+          ? data.adminRefereeName.value
+          : this.adminRefereeName,
+      adminDeviceId: data.adminDeviceId.present
+          ? data.adminDeviceId.value
+          : this.adminDeviceId,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -348,14 +489,34 @@ class Event extends DataClass implements Insertable<Event> {
           ..write('city: $city, ')
           ..write('region: $region, ')
           ..write('isHidden: $isHidden, ')
+          ..write('isShared: $isShared, ')
+          ..write('shareId: $shareId, ')
+          ..write('shareRole: $shareRole, ')
+          ..write('adminRefereeName: $adminRefereeName, ')
+          ..write('adminDeviceId: $adminDeviceId, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(sku, name, program, season, startDate,
-      endDate, venue, city, region, isHidden, updatedAt);
+  int get hashCode => Object.hash(
+      sku,
+      name,
+      program,
+      season,
+      startDate,
+      endDate,
+      venue,
+      city,
+      region,
+      isHidden,
+      isShared,
+      shareId,
+      shareRole,
+      adminRefereeName,
+      adminDeviceId,
+      updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -370,6 +531,11 @@ class Event extends DataClass implements Insertable<Event> {
           other.city == this.city &&
           other.region == this.region &&
           other.isHidden == this.isHidden &&
+          other.isShared == this.isShared &&
+          other.shareId == this.shareId &&
+          other.shareRole == this.shareRole &&
+          other.adminRefereeName == this.adminRefereeName &&
+          other.adminDeviceId == this.adminDeviceId &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -384,6 +550,11 @@ class EventsCompanion extends UpdateCompanion<Event> {
   final Value<String?> city;
   final Value<String?> region;
   final Value<bool> isHidden;
+  final Value<bool> isShared;
+  final Value<String?> shareId;
+  final Value<String?> shareRole;
+  final Value<String?> adminRefereeName;
+  final Value<String?> adminDeviceId;
   final Value<int> updatedAt;
   final Value<int> rowid;
   const EventsCompanion({
@@ -397,6 +568,11 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.city = const Value.absent(),
     this.region = const Value.absent(),
     this.isHidden = const Value.absent(),
+    this.isShared = const Value.absent(),
+    this.shareId = const Value.absent(),
+    this.shareRole = const Value.absent(),
+    this.adminRefereeName = const Value.absent(),
+    this.adminDeviceId = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -411,6 +587,11 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.city = const Value.absent(),
     this.region = const Value.absent(),
     this.isHidden = const Value.absent(),
+    this.isShared = const Value.absent(),
+    this.shareId = const Value.absent(),
+    this.shareRole = const Value.absent(),
+    this.adminRefereeName = const Value.absent(),
+    this.adminDeviceId = const Value.absent(),
     required int updatedAt,
     this.rowid = const Value.absent(),
   })  : sku = Value(sku),
@@ -431,6 +612,11 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Expression<String>? city,
     Expression<String>? region,
     Expression<bool>? isHidden,
+    Expression<bool>? isShared,
+    Expression<String>? shareId,
+    Expression<String>? shareRole,
+    Expression<String>? adminRefereeName,
+    Expression<String>? adminDeviceId,
     Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -445,6 +631,11 @@ class EventsCompanion extends UpdateCompanion<Event> {
       if (city != null) 'city': city,
       if (region != null) 'region': region,
       if (isHidden != null) 'is_hidden': isHidden,
+      if (isShared != null) 'is_shared': isShared,
+      if (shareId != null) 'share_id': shareId,
+      if (shareRole != null) 'share_role': shareRole,
+      if (adminRefereeName != null) 'admin_referee_name': adminRefereeName,
+      if (adminDeviceId != null) 'admin_device_id': adminDeviceId,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -461,6 +652,11 @@ class EventsCompanion extends UpdateCompanion<Event> {
       Value<String?>? city,
       Value<String?>? region,
       Value<bool>? isHidden,
+      Value<bool>? isShared,
+      Value<String?>? shareId,
+      Value<String?>? shareRole,
+      Value<String?>? adminRefereeName,
+      Value<String?>? adminDeviceId,
       Value<int>? updatedAt,
       Value<int>? rowid}) {
     return EventsCompanion(
@@ -474,6 +670,11 @@ class EventsCompanion extends UpdateCompanion<Event> {
       city: city ?? this.city,
       region: region ?? this.region,
       isHidden: isHidden ?? this.isHidden,
+      isShared: isShared ?? this.isShared,
+      shareId: shareId ?? this.shareId,
+      shareRole: shareRole ?? this.shareRole,
+      adminRefereeName: adminRefereeName ?? this.adminRefereeName,
+      adminDeviceId: adminDeviceId ?? this.adminDeviceId,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -512,6 +713,21 @@ class EventsCompanion extends UpdateCompanion<Event> {
     if (isHidden.present) {
       map['is_hidden'] = Variable<bool>(isHidden.value);
     }
+    if (isShared.present) {
+      map['is_shared'] = Variable<bool>(isShared.value);
+    }
+    if (shareId.present) {
+      map['share_id'] = Variable<String>(shareId.value);
+    }
+    if (shareRole.present) {
+      map['share_role'] = Variable<String>(shareRole.value);
+    }
+    if (adminRefereeName.present) {
+      map['admin_referee_name'] = Variable<String>(adminRefereeName.value);
+    }
+    if (adminDeviceId.present) {
+      map['admin_device_id'] = Variable<String>(adminDeviceId.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<int>(updatedAt.value);
     }
@@ -534,6 +750,11 @@ class EventsCompanion extends UpdateCompanion<Event> {
           ..write('city: $city, ')
           ..write('region: $region, ')
           ..write('isHidden: $isHidden, ')
+          ..write('isShared: $isShared, ')
+          ..write('shareId: $shareId, ')
+          ..write('shareRole: $shareRole, ')
+          ..write('adminRefereeName: $adminRefereeName, ')
+          ..write('adminDeviceId: $adminDeviceId, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2160,6 +2381,11 @@ typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<String?> city,
   Value<String?> region,
   Value<bool> isHidden,
+  Value<bool> isShared,
+  Value<String?> shareId,
+  Value<String?> shareRole,
+  Value<String?> adminRefereeName,
+  Value<String?> adminDeviceId,
   required int updatedAt,
   Value<int> rowid,
 });
@@ -2174,6 +2400,11 @@ typedef $$EventsTableUpdateCompanionBuilder = EventsCompanion Function({
   Value<String?> city,
   Value<String?> region,
   Value<bool> isHidden,
+  Value<bool> isShared,
+  Value<String?> shareId,
+  Value<String?> shareRole,
+  Value<String?> adminRefereeName,
+  Value<String?> adminDeviceId,
   Value<int> updatedAt,
   Value<int> rowid,
 });
@@ -2216,6 +2447,22 @@ class $$EventsTableFilterComposer
 
   ColumnFilters<bool> get isHidden => $composableBuilder(
       column: $table.isHidden, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isShared => $composableBuilder(
+      column: $table.isShared, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get shareId => $composableBuilder(
+      column: $table.shareId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get shareRole => $composableBuilder(
+      column: $table.shareRole, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get adminRefereeName => $composableBuilder(
+      column: $table.adminRefereeName,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get adminDeviceId => $composableBuilder(
+      column: $table.adminDeviceId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
@@ -2260,6 +2507,23 @@ class $$EventsTableOrderingComposer
   ColumnOrderings<bool> get isHidden => $composableBuilder(
       column: $table.isHidden, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get isShared => $composableBuilder(
+      column: $table.isShared, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get shareId => $composableBuilder(
+      column: $table.shareId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get shareRole => $composableBuilder(
+      column: $table.shareRole, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get adminRefereeName => $composableBuilder(
+      column: $table.adminRefereeName,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get adminDeviceId => $composableBuilder(
+      column: $table.adminDeviceId,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
@@ -2303,6 +2567,21 @@ class $$EventsTableAnnotationComposer
   GeneratedColumn<bool> get isHidden =>
       $composableBuilder(column: $table.isHidden, builder: (column) => column);
 
+  GeneratedColumn<bool> get isShared =>
+      $composableBuilder(column: $table.isShared, builder: (column) => column);
+
+  GeneratedColumn<String> get shareId =>
+      $composableBuilder(column: $table.shareId, builder: (column) => column);
+
+  GeneratedColumn<String> get shareRole =>
+      $composableBuilder(column: $table.shareRole, builder: (column) => column);
+
+  GeneratedColumn<String> get adminRefereeName => $composableBuilder(
+      column: $table.adminRefereeName, builder: (column) => column);
+
+  GeneratedColumn<String> get adminDeviceId => $composableBuilder(
+      column: $table.adminDeviceId, builder: (column) => column);
+
   GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
@@ -2340,6 +2619,11 @@ class $$EventsTableTableManager extends RootTableManager<
             Value<String?> city = const Value.absent(),
             Value<String?> region = const Value.absent(),
             Value<bool> isHidden = const Value.absent(),
+            Value<bool> isShared = const Value.absent(),
+            Value<String?> shareId = const Value.absent(),
+            Value<String?> shareRole = const Value.absent(),
+            Value<String?> adminRefereeName = const Value.absent(),
+            Value<String?> adminDeviceId = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2354,6 +2638,11 @@ class $$EventsTableTableManager extends RootTableManager<
             city: city,
             region: region,
             isHidden: isHidden,
+            isShared: isShared,
+            shareId: shareId,
+            shareRole: shareRole,
+            adminRefereeName: adminRefereeName,
+            adminDeviceId: adminDeviceId,
             updatedAt: updatedAt,
             rowid: rowid,
           ),
@@ -2368,6 +2657,11 @@ class $$EventsTableTableManager extends RootTableManager<
             Value<String?> city = const Value.absent(),
             Value<String?> region = const Value.absent(),
             Value<bool> isHidden = const Value.absent(),
+            Value<bool> isShared = const Value.absent(),
+            Value<String?> shareId = const Value.absent(),
+            Value<String?> shareRole = const Value.absent(),
+            Value<String?> adminRefereeName = const Value.absent(),
+            Value<String?> adminDeviceId = const Value.absent(),
             required int updatedAt,
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2382,6 +2676,11 @@ class $$EventsTableTableManager extends RootTableManager<
             city: city,
             region: region,
             isHidden: isHidden,
+            isShared: isShared,
+            shareId: shareId,
+            shareRole: shareRole,
+            adminRefereeName: adminRefereeName,
+            adminDeviceId: adminDeviceId,
             updatedAt: updatedAt,
             rowid: rowid,
           ),

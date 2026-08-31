@@ -99,6 +99,33 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  // Update event share state (isShared, shareId, role, etc.)
+  Future<void> updateEventShareState(
+    String sku, {
+    required bool isShared,
+    String? shareId,
+    String? shareRole,
+    String? adminRefereeName,
+    String? adminDeviceId,
+  }) async {
+    await (update(events)..where((tbl) => tbl.sku.equals(sku))).write(
+      EventsCompanion(
+        isShared: Value(isShared),
+        shareId: Value(shareId),
+        shareRole: Value(shareRole),
+        adminRefereeName: Value(adminRefereeName),
+        adminDeviceId: Value(adminDeviceId),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  // Check if an event is currently marked as shared
+  Future<bool> isEventShared(String sku) async {
+    final event = await getEventBySku(sku);
+    return event?.isShared ?? false;
+  }
+
   // Unhide an event in history
   Future<void> unhideEvent(String sku) {
     return (update(events)..where((tbl) => tbl.sku.equals(sku))).write(

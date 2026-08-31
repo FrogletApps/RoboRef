@@ -33,7 +33,46 @@ class MockStorageAdapter implements StorageAdapter {
     }
     return { latestVersion: maxVer };
   }
+
+  public shareSessions: any[] = [];
+  async createShareSession(session: any): Promise<any> {
+    this.shareSessions.push(session);
+    return session;
+  }
+  async getShareSession(id: string): Promise<any> {
+    return this.shareSessions.find((s) => s.id === id) || null;
+  }
+  async getActiveSharesForSku(sku: string): Promise<any[]> {
+    return this.shareSessions.filter((s) => s.sku === sku);
+  }
+  async addParticipant(shareId: string, participant: any): Promise<any> {
+    const s = await this.getShareSession(shareId);
+    if (!s) return null;
+    s.participants.push(participant);
+    return s;
+  }
+  async removeParticipant(shareId: string, deviceId: string): Promise<any> {
+    const s = await this.getShareSession(shareId);
+    if (!s) return { session: null, deleted: false };
+    if (s.adminDeviceId === deviceId && s.participants.length > 1) {
+      throw new Error("ADMIN_CANNOT_LEAVE_WITH_ACTIVE_PARTICIPANTS");
+    }
+    s.participants = s.participants.filter((p: any) => p.deviceId !== deviceId);
+    if (s.participants.length === 0) {
+      this.shareSessions = this.shareSessions.filter((sess) => sess.id !== shareId);
+      this.notes = this.notes.filter((n) => n.sku !== s.sku);
+      return { session: null, deleted: true };
+    }
+    return { session: s, deleted: false };
+  }
+  async deleteShareSession(shareId: string): Promise<void> {
+    this.shareSessions = this.shareSessions.filter((s) => s.id !== shareId);
+  }
+  async purgeSkuNotes(sku: string): Promise<void> {
+    this.notes = this.notes.filter((n) => n.sku !== sku);
+  }
 }
+
 
 describe("Sync Server Endpoints", () => {
   describe("GET /api/sync/pull", () => {
