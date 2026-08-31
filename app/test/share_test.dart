@@ -31,6 +31,71 @@ void main() {
       expect(getServerTypeDisplayName('http://192.168.1.50:8080'), equals('Other Server'));
     });
 
+    test('buildJoinUrl constructs correct URLs for test, prod, and custom servers', () {
+      // 1. Test server URL -> targets test.roboref.app
+      expect(
+        buildJoinUrl(
+          shareId: 'ABC123',
+          sku: 'RE-VRC-24-1234',
+          serverUrl: 'https://test.roboref.app',
+        ),
+        equals('https://test.roboref.app?joinShare=ABC123&sku=RE-VRC-24-1234'),
+      );
+
+      // 2. Test environment with cloud server -> targets test.roboref.app
+      expect(
+        buildJoinUrl(
+          shareId: 'XYZ789',
+          sku: 'RE-VRC-24-9999',
+          serverUrl: 'https://roboref.app',
+          environment: AppEnvironment.test,
+        ),
+        equals('https://test.roboref.app?joinShare=XYZ789&sku=RE-VRC-24-9999'),
+      );
+
+      // 3. Web origin with test domain -> targets test.roboref.app
+      expect(
+        buildJoinUrl(
+          shareId: 'TEST01',
+          sku: 'RE-VRC-24-5555',
+          serverUrl: 'https://roboref.app',
+          webOrigin: 'https://test.roboref.app',
+          isWeb: true,
+        ),
+        equals('https://test.roboref.app?joinShare=TEST01&sku=RE-VRC-24-5555'),
+      );
+
+      // 4. Production cloud server -> targets roboref.app
+      expect(
+        buildJoinUrl(
+          shareId: 'ABC123',
+          sku: 'RE-VRC-24-1234',
+          serverUrl: 'https://roboref.app',
+          environment: AppEnvironment.production,
+        ),
+        equals('https://roboref.app?joinShare=ABC123&sku=RE-VRC-24-1234'),
+      );
+
+      // 5. Local LAN server -> preserves LAN address without trailing slash
+      expect(
+        buildJoinUrl(
+          shareId: 'LAN123',
+          sku: 'RE-VRC-24-1234',
+          serverUrl: 'http://192.168.1.100:8080/',
+        ),
+        equals('http://192.168.1.100:8080?joinShare=LAN123&sku=RE-VRC-24-1234'),
+      );
+
+      expect(
+        buildJoinUrl(
+          shareId: 'LAN456',
+          sku: 'RE-VRC-24-1234',
+          serverUrl: 'http://roboref.local:8080',
+        ),
+        equals('http://roboref.local:8080?joinShare=LAN456&sku=RE-VRC-24-1234'),
+      );
+    });
+
     test('checkActiveShares parses response list correctly', () async {
       final mockClient = MockClient((request) async {
         if (request.url.path == '/api/share/check' && request.url.queryParameters['sku'] == 'RE-VRC-24-1234') {

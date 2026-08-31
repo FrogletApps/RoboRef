@@ -41,13 +41,6 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
     super.dispose();
   }
 
-  String _buildJoinUrl(String shareId, String sku, String serverUrl) {
-    final cleanUrl = serverUrl.contains('roboref.app')
-        ? 'https://roboref.app'
-        : serverUrl.replaceAll(RegExp(r'/+$'), '');
-    return '$cleanUrl?joinShare=$shareId&sku=$sku';
-  }
-
   @override
   Widget build(BuildContext context) {
     final shareState = ref.watch(shareControllerProvider);
@@ -428,7 +421,11 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
     final isAdmin = shareState.role == ShareRole.admin;
     final serverType = getServerTypeDisplayName(settings.serverUrl);
     final shareId = shareState.shareId ?? '';
-    final joinUrl = _buildJoinUrl(shareId, widget.sku, settings.serverUrl);
+    final joinUrl = buildJoinUrl(
+      shareId: shareId,
+      sku: widget.sku,
+      serverUrl: settings.serverUrl,
+    );
     final participantCount = shareState.participants.length;
 
     return Column(

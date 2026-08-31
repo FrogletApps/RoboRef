@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.8.31+80
+
+- **Test Environment Join Links**: Join links generated in test environment now correctly link to test.roboref.app and automatically navigate to the event.
+
 ## 2026.8.31+1
 
 - **Sharing Status Display**: Replaced the Active tournament badge with explicit Sharing status indicators showing "RoboRef Cloud Server" or "Other Server".

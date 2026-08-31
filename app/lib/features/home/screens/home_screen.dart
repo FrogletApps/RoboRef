@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
@@ -5,13 +6,15 @@ import '../../../core/utils/sku_utils.dart';
 import '../../event_selection/screens/event_selection_screen.dart';
 import '../../event_selection/state/event_controller.dart';
 import '../../event_workspace/screens/event_workspace_screen.dart';
+import '../../incidents/state/incident_controller.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
+import '../../sharing/state/share_controller.dart';
 import 'changelog_screen.dart';
 import 'share_screen.dart';
 import '../../sharing/widgets/event_share_sheet.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToIncidents;
 
   const HomeScreen({
@@ -19,8 +22,73 @@ class HomeScreen extends ConsumerWidget {
     this.onNavigateToIncidents,
   });
 
+  @visibleForTesting
+  static void resetDeepLinkCheckForTesting() {
+    _HomeScreenState._initialDeepLinkChecked = false;
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  static bool _initialDeepLinkChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInitialDeepLink();
+    });
+  }
+
+  Future<void> _checkInitialDeepLink() async {
+    if (_initialDeepLinkChecked) return;
+    _initialDeepLinkChecked = true;
+
+    if (!kIsWeb) return;
+
+    try {
+      final params = Uri.base.queryParameters;
+      final skuParam = params['sku'] ?? params['SKU'];
+      final joinShareParam = params['joinShare'] ?? params['join'] ?? params['shareId'];
+
+      if (skuParam != null && skuParam.trim().isNotEmpty) {
+        final cleanSku = skuParam.trim().toUpperCase();
+        final db = ref.read(databaseProvider);
+        final existingEvent = await db.getEventBySku(cleanSku);
+
+        if (existingEvent == null) {
+          await ref.read(eventControllerProvider.notifier).addManualEvent(sku: cleanSku);
+        } else {
+          ref.read(syncSettingsProvider.notifier).setSku(cleanSku);
+        }
+
+        if (joinShareParam != null && joinShareParam.trim().isNotEmpty) {
+          final cleanShareId = joinShareParam.trim().toUpperCase();
+          await ref.read(shareControllerProvider.notifier).joinShare(
+            shareId: cleanShareId,
+            sku: cleanSku,
+          );
+        }
+
+        if (mounted) {
+          if (widget.onNavigateToIncidents != null) {
+            widget.onNavigateToIncidents!();
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const EventWorkspaceScreen(),
+              ),
+            );
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final recentEventsAsync = ref.watch(recentEventsStreamProvider);
     final settings = ref.watch(syncSettingsProvider);
     final env = getAppEnvironment();
@@ -91,8 +159,8 @@ class HomeScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
                             ref.read(syncSettingsProvider.notifier).setSku(event.sku);
-                            if (onNavigateToIncidents != null) {
-                              onNavigateToIncidents!();
+                            if (widget.onNavigateToIncidents != null) {
+                              widget.onNavigateToIncidents!();
                             } else {
                               Navigator.of(context).push(
                                 MaterialPageRoute(

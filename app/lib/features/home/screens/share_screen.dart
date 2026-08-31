@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../core/utils/sku_utils.dart';
 
 class ShareScreen extends StatelessWidget {
   const ShareScreen({super.key});
 
-  final String shareUrl = 'https://roboref.app';
+  String get shareUrl {
+    final env = getAppEnvironment();
+    if (env == AppEnvironment.test) {
+      return 'https://test.roboref.app';
+    }
+    return 'https://roboref.app';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final url = shareUrl;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Share RoboRef'),
@@ -80,9 +89,9 @@ class ShareScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: [
-                        // Functional QR code linking to https://roboref.app
+                        // Functional QR code linking to app URL
                         QrImageView(
-                          data: shareUrl,
+                          data: url,
                           version: QrVersions.auto,
                           size: 200,
                           backgroundColor: Colors.white,
@@ -90,9 +99,9 @@ class ShareScreen extends StatelessWidget {
                           errorCorrectionLevel: QrErrorCorrectLevel.M,
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          'https://roboref.app',
-                          style: TextStyle(
+                        Text(
+                          url,
+                          style: const TextStyle(
                             color: Colors.black87,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'monospace',
@@ -119,16 +128,16 @@ class ShareScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'https://roboref.app',
-                            style: TextStyle(fontFamily: 'monospace', fontSize: 14),
+                            url,
+                            style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         ElevatedButton.icon(
                           onPressed: () {
-                            Clipboard.setData(ClipboardData(text: shareUrl));
+                            Clipboard.setData(ClipboardData(text: url));
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('RoboRef link copied to clipboard!'),
