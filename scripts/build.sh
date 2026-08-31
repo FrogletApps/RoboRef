@@ -18,6 +18,41 @@ echo " Full Version: $VERSION_NAME+$BUILD_NUMBER"
 echo "========================================"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR/../app"
+SERVER_DIR="$SCRIPT_DIR/../server"
+APP_DIR="$SCRIPT_DIR/../app"
 
-flutter build "$TARGET" --build-name="$VERSION_NAME" --build-number="$BUILD_NUMBER" "$@"
+build_server() {
+  echo -e "\n>>> Building & Typechecking Server..."
+  cd "$SERVER_DIR"
+  if [ ! -d "node_modules" ]; then
+    echo "Installing server dependencies (npm install)..."
+    npm install
+  fi
+  echo "Running server typecheck..."
+  npm run typecheck
+  echo "Compiling server (tsc)..."
+  npm run build:node
+  echo ">>> Server build completed successfully."
+}
+
+build_flutter() {
+  local flutter_target="$1"
+  shift || true
+  echo -e "\n>>> Building Flutter Client ($flutter_target)..."
+  cd "$APP_DIR"
+  flutter build "$flutter_target" --build-name="$VERSION_NAME" --build-number="$BUILD_NUMBER" "$@"
+  echo ">>> Flutter client ($flutter_target) build completed successfully."
+}
+
+case "$TARGET" in
+  server)
+    build_server
+    ;;
+  all)
+    build_server
+    build_flutter apk "$@"
+    ;;
+  *)
+    build_flutter "$TARGET" "$@"
+    ;;
+esac

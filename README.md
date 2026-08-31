@@ -177,22 +177,30 @@ RoboRef uses Calendar Versioning (**CalVer**, formatted as `YYYY.M.D`) paired wi
 # Build Android APK (default target: apk)
 .\scripts\build.ps1 apk
 
-# Build Android App Bundle (.aab)
+# Build / Typecheck Sync Server & Cloudflare Worker
+.\scripts\build.ps1 server
+
+# Build both Android APK and Server
+.\scripts\build.ps1 all
+
+# Build other Flutter targets
 .\scripts\build.ps1 appbundle
-
-# Build Web PWA bundle
 .\scripts\build.ps1 web
-
-# Build Windows Desktop executable
 .\scripts\build.ps1 windows
 ```
 
 #### Linux / macOS (Bash)
 ```bash
-# Build Android APK
+# Build Android APK (default target: apk)
 ./scripts/build.sh apk
 
-# Build Web PWA bundle
+# Build / Typecheck Sync Server & Cloudflare Worker
+./scripts/build.sh server
+
+# Build both Android APK and Server
+./scripts/build.sh all
+
+# Build other Flutter targets
 ./scripts/build.sh web
 ```
 
@@ -230,23 +238,34 @@ Ensure you are logged into Wrangler (`npx wrangler login`) before deploying.
 
 ##### Windows (PowerShell)
 ```powershell
-# Build Web and deploy to Test environment (test D1 database)
+# Build Server & Web, then deploy to Test environment (test D1 database)
 .\scripts\deploy.ps1 test
 
-# Build Web and deploy to Live environment (roboref.app + live D1 database)
+# Build Server & Web, then deploy to Live environment (roboref.app + live D1 database)
 .\scripts\deploy.ps1 live
 
-# Deploy existing build without rebuilding Flutter
+# Deploy existing build without rebuilding
 .\scripts\deploy.ps1 test -SkipBuild
+
+# Deploy without rebuilding Flutter Web (e.g. server-only updates)
+.\scripts\deploy.ps1 test -SkipWebBuild
+
+# Deploy without rebuilding Server (e.g. web-only updates)
+.\scripts\deploy.ps1 test -SkipServerBuild
 ```
 
 ##### Linux / macOS (Bash)
 ```bash
-# Build Web and deploy to Test
+# Build Server & Web, then deploy to Test
 ./scripts/deploy.sh test
 
-# Build Web and deploy to Live
+# Build Server & Web, then deploy to Live
 ./scripts/deploy.sh live
+
+# Deploy with skip options
+./scripts/deploy.sh test --skip-build
+./scripts/deploy.sh test --skip-web
+./scripts/deploy.sh test --skip-server
 ```
 
 #### 2. Direct Wrangler CLI Commands
