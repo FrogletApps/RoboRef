@@ -59,6 +59,12 @@ void main() {
       expect(find.text('V5RC Manual'), findsOneWidget);
       expect(find.text('Official Q&A'), findsOneWidget);
 
+      // Check Disclaimer banner at the bottom
+      expect(
+        find.text('DISCLAIMER:  These are a summary of the official rules and are only for reference - check the game manual before you make a ruling.'),
+        findsOneWidget,
+      );
+
       // Check Category Chips
       expect(find.widgetWithText(FilterChip, 'All'), findsOneWidget);
       expect(find.widgetWithText(FilterChip, 'General Rules'), findsOneWidget);
@@ -82,7 +88,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('<GG2>'), findsOneWidget);
-      expect(find.text("A Team's Robot should attend every Match"), findsWidgets);
+      expect(find.text("A Team's Robot should attend every Match"), findsOneWidget);
       expect(find.text('<G1>'), findsNothing);
 
       // Tap rule card to open bottom sheet detail view

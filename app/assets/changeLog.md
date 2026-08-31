@@ -2,6 +2,8 @@
 
 ## 2026.8.31+1
 
+- **Rules Disclaimer**: Added official game manual disclaimer banner at the bottom of the Rules screen.
+- **Rules UI Cleanup**: Removed duplicate subheaders from rule items on the Rules page.
 - **Match Schedule Updates**: Swapped alliance label and team pill styles with outlined alliance badges and solid alliance team badges.
 - **Improved note taking**: All rules can be selected and added to a note.
 
