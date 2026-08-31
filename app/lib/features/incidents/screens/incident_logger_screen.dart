@@ -4,11 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../state/incident_controller.dart';
 import '../widgets/severity_badge.dart';
+import '../widgets/rule_selection_sheet.dart';
 import '../../settings/state/sync_settings_controller.dart';
+import '../../event_selection/state/event_controller.dart';
+import '../../rules/data/default_rules.dart';
+import '../../rules/models/rule_model.dart';
 import '../../teams/state/team_controller.dart';
 import '../../matches/state/match_controller.dart';
 import '../../../core/utils/team_utils.dart';
 import '../../../core/utils/match_utils.dart';
+import '../../../core/utils/sku_utils.dart';
 
 class IncidentLoggerScreen extends StatefulWidget {
   final bool showAppBar;
@@ -31,6 +36,10 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
       builder: (context, ref, child) {
         final notesAsync = ref.watch(activeTournamentNotesProvider);
         final settings = ref.watch(syncSettingsProvider);
+        final activeEventAsync = ref.watch(activeEventProvider);
+        final program = activeEventAsync.value?.program ?? getSkuProgram(settings.currentSku);
+        final season = activeEventAsync.value?.season ?? '2026-2027';
+        final ruleset = getGameRuleset(program, season);
 
         return Scaffold(
           appBar: widget.showAppBar
@@ -178,19 +187,26 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                                 spacing: 6,
                                 runSpacing: 4,
                                 children: ruleCodes.map((rule) {
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
-                                      border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4)),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      rule.toString(),
-                                      style: TextStyle(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
+                                  final ruleStr = rule.toString();
+                                  final matchedRule = ruleset.findRule(ruleStr);
+                                  final summary = matchedRule?.summary;
+                                  final displayText = summary != null ? '${matchedRule!.code} $summary' : ruleStr;
+                                  return Tooltip(
+                                    message: summary != null ? '${matchedRule!.code}: $summary' : ruleStr,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                                        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4)),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        displayText,
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.primary,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   );
@@ -292,15 +308,6 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
   String _severity = 'warning';
   final Set<String> _selectedRules = {};
 
-  final List<String> _quickRules = [
-    'G1 (Pinning)',
-    'G12 (Entanglement)',
-    'S1 (Safety)',
-    'SG6 (Autonomous)',
-    'R1 (Robot Inspection)',
-    'T1 (Field Reset)',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -322,9 +329,92 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
       builder: (context, ref, child) {
         final registeredTeams = ref.watch(activeTournamentTeamsProvider).valueOrNull ?? [];
         final tournamentMatches = ref.watch(activeTournamentMatchesProvider).valueOrNull ?? [];
+        final tournamentNotes = ref.watch(activeTournamentNotesProvider).valueOrNull ?? [];
+        final settings = ref.watch(syncSettingsProvider);
+        final activeEventAsync = ref.watch(activeEventProvider);
+
+        final program = activeEventAsync.value?.program ?? getSkuProgram(settings.currentSku);
+        final season = activeEventAsync.value?.season ?? '2026-2027';
+        final ruleset = getGameRuleset(program, season);
 
         final teamNumbers = registeredTeams.map((t) => t.teamNumber).toList()..sort(compareTeamNumbers);
         final matchNames = tournamentMatches.map((m) => formatMatchShortName(m.name)).toList();
+
+        // Calculate most commonly selected rules from the event so far
+        final Map<String, int> ruleCounts = {};
+        for (final note in tournamentNotes) {
+          try {
+            final codes = jsonDecode(note.ruleCodesJson);
+            if (codes is List) {
+              for (final c in codes) {
+                final clean = c.toString().replaceAll(RegExp(r'[<>]'), '').trim().toUpperCase();
+                if (clean.isNotEmpty) {
+                  ruleCounts[clean] = (ruleCounts[clean] ?? 0) + 1;
+                }
+              }
+            }
+          } catch (_) {}
+        }
+
+        // Calculate all candidate rules ranked by event frequency first, then default candidate rules, then full ruleset
+        final List<RuleModel> allRankedRules = [];
+        if (ruleCounts.isNotEmpty) {
+          final sortedCodes = ruleCounts.entries.toList()
+            ..sort((a, b) => b.value.compareTo(a.value));
+          for (final entry in sortedCodes) {
+            final r = ruleset.findRule(entry.key);
+            if (r != null && !allRankedRules.contains(r)) {
+              allRankedRules.add(r);
+            }
+          }
+        }
+
+        const defaultCandidateCodes = ['SG1', 'SG2', 'GG2', 'GG14', 'G1', 'S1', 'R1', 'T1'];
+        for (final code in defaultCandidateCodes) {
+          final r = ruleset.findRule(code);
+          if (r != null && !allRankedRules.contains(r)) {
+            allRankedRules.add(r);
+          }
+        }
+
+        for (final r in ruleset.rules) {
+          if (!allRankedRules.contains(r)) {
+            allRankedRules.add(r);
+          }
+        }
+
+        // Build list of all selected rule models (no limit)
+        final List<RuleModel> selectedRuleModels = [];
+        for (final code in _selectedRules) {
+          final r = ruleset.findRule(code);
+          if (r != null) {
+            if (!selectedRuleModels.contains(r)) {
+              selectedRuleModels.add(r);
+            }
+          } else {
+            selectedRuleModels.add(RuleModel(
+              code: code.startsWith('<') ? code : '<$code>',
+              title: '',
+              description: '',
+              group: 'Custom',
+            ));
+          }
+        }
+
+        // Unselected chips to show: maximum of 6 unselected chips, decreasing as selected chips increase
+        final int unselectedCount = (6 - selectedRuleModels.length).clamp(0, 6);
+        final List<RuleModel> unselectedRuleModels = allRankedRules
+            .where((r) => !_selectedRules.contains(r.code) &&
+                          !_selectedRules.contains(r.cleanCode) &&
+                          !_selectedRules.contains(r.formattedCode))
+            .take(unselectedCount)
+            .toList();
+
+        // Combined visible chips (selected ones first with no limit, followed by unselected ones)
+        final visibleRuleChips = [
+          ...selectedRuleModels.map((r) => (rule: r, isSelected: true)),
+          ...unselectedRuleModels.map((r) => (rule: r, isSelected: false)),
+        ];
 
         // Extract teams involved in the selected match if any
         final currentMatchQuery = _matchController.text.trim().toLowerCase();
@@ -517,27 +607,66 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   onSelectionChanged: (val) => setState(() => _severity = val.first),
                 ),
                 const SizedBox(height: 16),
-                const Text('Rule Infractions', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text('Rule Violations', style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: _quickRules.map((rule) {
-                    final isSelected = _selectedRules.contains(rule);
-                    return FilterChip(
-                      label: Text(rule),
-                      selected: isSelected,
-                      onSelected: (selected) {
+
+                // Consistent Rule Chips (all selected rules with no limit + up to (6 - selected.length) unselected candidate rules)
+                if (visibleRuleChips.isNotEmpty) ...[
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: visibleRuleChips.map((item) {
+                      final rule = item.rule;
+                      final isSelected = item.isSelected;
+                      final label = rule.title.isNotEmpty ? '${rule.code} ${rule.title}' : rule.code;
+
+                      return FilterChip(
+                        label: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              _selectedRules.add(rule.code);
+                            } else {
+                              _selectedRules.remove(rule.code);
+                              _selectedRules.remove(rule.cleanCode);
+                              _selectedRules.remove(rule.formattedCode);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+
+                // "Show More Rules" button positioned below the most commonly selected rules
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Show More Rules'),
+                    onPressed: () async {
+                      final updated = await RuleSelectionSheet.show(
+                        context,
+                        ruleset: ruleset,
+                        initialSelectedRules: _selectedRules,
+                      );
+                      if (updated != null) {
                         setState(() {
-                          if (selected) {
-                            _selectedRules.add(rule);
-                          } else {
-                            _selectedRules.remove(rule);
-                          }
+                          _selectedRules
+                            ..clear()
+                            ..addAll(updated);
                         });
-                      },
-                    );
-                  }).toList(),
+                      }
+                    },
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(

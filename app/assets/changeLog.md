@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.8.31+1
+
+- **Improved note taking**: All rules can be selected and added to a note.
+
 ## 2026.8.27+1
 
 - **Consistent Match Naming**: Standardized VEX IQ and V5 match labels to Qualification and Finals across schedules and imports.
