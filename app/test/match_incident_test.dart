@@ -435,4 +435,36 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets('MatchScheduleScreen renders alliance labels and team pills', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(testDb),
+        ],
+        child: const MaterialApp(
+          home: MatchScheduleScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify RED and BLUE labels are rendered
+    expect(find.text('RED'), findsOneWidget);
+    expect(find.text('BLUE'), findsOneWidget);
+
+    // Verify team pills
+    expect(find.text('1114A'), findsOneWidget);
+    expect(find.text('2056A'), findsOneWidget);
+    expect(find.text('217A'), findsOneWidget);
+    expect(find.text('148A'), findsOneWidget);
+
+    // Verify no edit note icon in match schedule
+    expect(find.byIcon(Icons.edit_note), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
 }

@@ -2,6 +2,7 @@
 
 ## 2026.8.31+1
 
+- **Match Schedule Updates**: Swapped alliance label and team pill styles with outlined alliance badges and solid alliance team badges.
 - **Improved note taking**: All rules can be selected and added to a note.
 
 ## 2026.8.27+1

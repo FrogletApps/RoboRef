@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/match_controller.dart';
-import '../../incidents/state/incident_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
@@ -29,7 +28,6 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
     return Consumer(
       builder: (context, ref, child) {
         final matchesAsync = ref.watch(activeTournamentMatchesProvider);
-        final notesAsync = ref.watch(activeTournamentNotesProvider);
         final settings = ref.watch(syncSettingsProvider);
 
         return Scaffold(
@@ -80,14 +78,6 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (err, _) => Center(child: Text('Error loading matches: $err')),
                   data: (matches) {
-                    final notes = notesAsync.valueOrNull ?? [];
-                    final Set<String> teamsWithWarnings = {};
-                    for (final n in notes) {
-                      if (n.severity == 'warning' || n.severity == 'major' || n.severity == 'd_q') {
-                        teamsWithWarnings.add(n.teamNumber);
-                      }
-                    }
-
                     final filtered = matches.where((m) {
                       if (_searchQuery.isEmpty) return true;
                       final nameUpper = m.name.toUpperCase();
@@ -187,27 +177,13 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                     // Single Alliance (e.g. VEX IQ Teamwork Challenge)
                                     Row(
                                       children: [
-                                        Container(
-                                          width: 50,
-                                          padding: const EdgeInsets.symmetric(vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.primary,
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: const Center(
-                                            child: Text(
-                                              'TEAMS',
-                                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
+                                        _buildAllianceLabel('TEAMS', Theme.of(context).colorScheme.primary, width: 50),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Wrap(
                                             spacing: 8,
                                             children: redTeams.map((team) {
-                                              final hasWarning = teamsWithWarnings.contains(team.toString());
-                                              return _buildTeamPill(team.toString(), Theme.of(context).colorScheme.primary, hasWarning);
+                                              return _buildTeamPill(team.toString(), Theme.of(context).colorScheme.primary);
                                             }).toList(),
                                           ),
                                         ),
@@ -217,27 +193,13 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                     // Red Alliance
                                     Row(
                                       children: [
-                                        Container(
-                                          width: 44,
-                                          padding: const EdgeInsets.symmetric(vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red.shade700,
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: const Center(
-                                            child: Text(
-                                              'RED',
-                                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
+                                        _buildAllianceLabel('RED', Colors.red.shade700),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Wrap(
                                             spacing: 8,
                                             children: redTeams.map((team) {
-                                              final hasWarning = teamsWithWarnings.contains(team.toString());
-                                              return _buildTeamPill(team.toString(), Colors.red.shade900, hasWarning);
+                                              return _buildTeamPill(team.toString(), Colors.red.shade700);
                                             }).toList(),
                                           ),
                                         ),
@@ -248,27 +210,13 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                     // Blue Alliance
                                     Row(
                                       children: [
-                                        Container(
-                                          width: 44,
-                                          padding: const EdgeInsets.symmetric(vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue.shade700,
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: const Center(
-                                            child: Text(
-                                              'BLUE',
-                                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
+                                        _buildAllianceLabel('BLUE', Colors.blue.shade700),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Wrap(
                                             spacing: 8,
                                             children: blueTeams.map((team) {
-                                              final hasWarning = teamsWithWarnings.contains(team.toString());
-                                              return _buildTeamPill(team.toString(), Colors.blue.shade900, hasWarning);
+                                              return _buildTeamPill(team.toString(), Colors.blue.shade700);
                                             }).toList(),
                                           ),
                                         ),
@@ -292,26 +240,38 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
     );
   }
 
-  Widget _buildTeamPill(String teamNumber, Color color, bool hasWarning) {
+  Widget _buildAllianceLabel(String text, Color color, {double width = 44}) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Center(
+        child: Text(
+          text,
+          style: TextStyle(
+            color: color,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTeamPill(String teamNumber, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        border: Border.all(color: hasWarning ? Colors.amber.shade700 : color.withValues(alpha: 0.3)),
+        color: color,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            teamNumber,
-            style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 13),
-          ),
-          if (hasWarning) ...[
-            const SizedBox(width: 4),
-            Icon(Icons.warning_amber_rounded, size: 14, color: Colors.amber.shade800),
-          ],
-        ],
+      child: Text(
+        teamNumber,
+        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
       ),
     );
   }
