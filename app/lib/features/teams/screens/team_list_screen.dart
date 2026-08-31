@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../incidents/state/incident_controller.dart';
+import '../../incidents/screens/incident_logger_screen.dart';
 import '../../incidents/widgets/severity_badge.dart';
 import '../state/team_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
+import '../../../core/utils/team_utils.dart';
+import '../../../core/utils/match_utils.dart';
 
 class TeamListScreen extends StatefulWidget {
   final bool showAppBar;
@@ -88,7 +91,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                     final teams = allTeamNumbers
                         .where((t) => _search.isEmpty || t.contains(_search))
                         .toList()
-                      ..sort();
+                      ..sort(compareTeamNumbers);
 
                     final Map<String, String> teamNames = {
                       for (final t in registeredTeams) t.teamNumber: t.teamName,
@@ -236,9 +239,29 @@ class _TeamListScreenState extends State<TeamListScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                'Team $teamNumber History',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Team $teamNumber History',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        ),
+                        builder: (c) => AddIncidentSheet(initialTeam: teamNumber),
+                      );
+                    },
+                    icon: const Icon(Icons.add_alert, size: 18),
+                    label: const Text('Log Incident'),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               if (notes.isEmpty)
@@ -268,7 +291,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  note.matchId ?? 'General Note',
+                                  note.matchId != null ? formatMatchShortName(note.matchId!) : 'General Note',
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 SeverityBadge(severity: note.severity),

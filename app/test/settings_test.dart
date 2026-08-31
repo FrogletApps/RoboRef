@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:roboref/core/utils/sku_utils.dart';
 import 'package:roboref/features/settings/screens/settings_screen.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
 
@@ -16,6 +17,10 @@ void main() {
       expect(
         buildHealthCheckUri('http://roboref.local:8080')?.toString(),
         equals('http://roboref.local:8080/api/health'),
+      );
+      expect(
+        buildHealthCheckUri('http://localhost:8080')?.toString(),
+        equals('http://localhost:8080/api/health'),
       );
       expect(
         buildHealthCheckUri('http://roboref.local:8080/')?.toString(),
@@ -35,6 +40,36 @@ void main() {
       );
       expect(buildHealthCheckUri(''), isNull);
       expect(buildHealthCheckUri('   '), isNull);
+    });
+
+    test('resolveDefaultServerUrl returns http://localhost:8080 for local environment', () {
+      expect(
+        resolveDefaultServerUrl(environment: AppEnvironment.local, isWeb: false),
+        equals('http://localhost:8080'),
+      );
+    });
+
+    test('resolveDefaultServerUrl returns https://test.roboref.app for test environment', () {
+      expect(
+        resolveDefaultServerUrl(environment: AppEnvironment.test, isWeb: false),
+        equals('https://test.roboref.app'),
+      );
+    });
+
+    test('resolveDefaultServerUrl returns http://roboref.local:8080 for production environment', () {
+      expect(
+        resolveDefaultServerUrl(environment: AppEnvironment.production, isWeb: false),
+        equals('http://roboref.local:8080'),
+      );
+    });
+
+    test('resolveDefaultServerUrl honors stored preferences over environment defaults', () async {
+      SharedPreferences.setMockInitialValues({'server_url': 'http://192.168.1.99:8080'});
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        resolveDefaultServerUrl(prefs: prefs, environment: AppEnvironment.local),
+        equals('http://192.168.1.99:8080'),
+      );
     });
   });
 
@@ -67,6 +102,25 @@ void main() {
       expect(notifier.state.connectionStatus, equals(ServerConnectionStatus.connectedLocal));
       expect(notifier.state.lastConnectionSuccess, isTrue);
       expect(notifier.state.lastConnectionMessage, contains('Venue LAN'));
+    });
+
+    test('successfully detects Localhost Server connection (HTTP 200)', () async {
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/health') {
+          return http.Response('{"status":"ok"}', 200);
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final notifier = SyncSettingsNotifier(prefs, httpClient: mockClient);
+      final result = await notifier.checkServerHealth('http://localhost:8080');
+
+      expect(result.isSuccess, isTrue);
+      expect(result.status, equals(ServerConnectionStatus.connectedLocal));
+      expect(result.message, contains('Local Server'));
+      expect(notifier.state.connectionStatus, equals(ServerConnectionStatus.connectedLocal));
+      expect(notifier.state.lastConnectionSuccess, isTrue);
+      expect(notifier.state.lastConnectionMessage, contains('Local Server'));
     });
 
     test('successfully detects Cloud Server connection (HTTP 200)', () async {
@@ -267,6 +321,103 @@ void main() {
 
       // Verify failure SnackBar is displayed
       expect(find.textContaining('Connection failed'), findsOneWidget);
+    });
+
+    testWidgets('renders Referee Setup section without Tournament SKU field', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify Referee Setup is present
+      expect(find.text('Referee Setup'), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Referee Display Name'), findsOneWidget);
+
+      // Verify Tournament SKU field is NOT present
+      expect(find.widgetWithText(TextField, 'Tournament SKU'), findsNothing);
+      expect(find.text('Tournament & Referee Setup'), findsNothing);
+
+      // Verify Import Event Data section
+      expect(find.text('Import Event Data'), findsOneWidget);
+      expect(find.text('This feature is experimental and may not work as intended'), findsOneWidget);
+      expect(find.widgetWithText(OutlinedButton, 'Import Event Data (TM CSV)'), findsOneWidget);
+
+      // Verify Sync Server Configuration section
+      expect(find.text('Sync Server Configuration'), findsOneWidget);
+      expect(find.text('Connect to the cloud server or a server on your local network'), findsOneWidget);
+      expect(find.text('Local Server (http://roboref.local:8080)'), findsOneWidget);
+    });
+
+    testWidgets('defaults to Custom Server URL with http://localhost:8080 when running on local system without saved preference', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'RE-V5RC-24-1234',
+        'referee_name': 'Test Referee',
+        // No server_url stored
+      });
+      final freshPrefs = await SharedPreferences.getInstance();
+
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/health') {
+          return http.Response('{"status":"ok"}', 200);
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(freshPrefs),
+          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(
+            freshPrefs,
+            httpClient: mockClient,
+            environment: AppEnvironment.local,
+          )),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify Dropdown defaults to Custom Server URL
+      expect(find.text('Custom Server URL'), findsWidgets);
+
+      // Custom URL text field should be visible with default value http://localhost:8080
+      final customFieldFinder = find.widgetWithText(TextField, 'Custom Server URL');
+      expect(customFieldFinder, findsOneWidget);
+
+      final textField = tester.widget<TextField>(customFieldFinder);
+      expect(textField.controller?.text, equals('http://localhost:8080'));
     });
   });
 }

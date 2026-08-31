@@ -119,20 +119,22 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                 rule.title,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Theme.of(ctx).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Theme.of(ctx).colorScheme.outlineVariant.withValues(alpha: 0.3)),
+              if (rule.description.isNotEmpty && rule.description != rule.title) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(ctx).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Theme.of(ctx).colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    rule.description,
+                    style: const TextStyle(fontSize: 14, height: 1.45),
+                  ),
                 ),
-                child: Text(
-                  rule.description,
-                  style: const TextStyle(fontSize: 14, height: 1.45),
-                ),
-              ),
+              ],
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -384,17 +386,6 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                                   rule.title,
                                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  rule.description,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    height: 1.35,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
                               ],
                             ),
                           ),
@@ -402,6 +393,28 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                       );
                     },
                   ),
+          ),
+
+          // Bottom Disclaimer Banner
+          Container(
+            width: double.infinity,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF991B1B)
+                : const Color(0xFFDC2626),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: const SafeArea(
+              top: false,
+              child: Text(
+                'DISCLAIMER:  These are a summary of the official rules and are only for reference - check the game manual before you make a ruling.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  height: 1.3,
+                ),
+              ),
+            ),
           ),
         ],
       ),

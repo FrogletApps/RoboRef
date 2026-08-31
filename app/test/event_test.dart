@@ -13,6 +13,8 @@ import 'package:http/testing.dart';
 import 'package:roboref/features/event_data/services/vex_events_client.dart';
 import 'package:roboref/features/event_selection/screens/event_selection_screen.dart';
 import 'package:roboref/features/event_selection/state/event_controller.dart';
+import 'package:roboref/features/event_selection/state/event_filter_controller.dart';
+import 'package:roboref/features/event_data/screens/event_import_sheet.dart';
 
 void main() {
   group('AppDatabase Event Operations', () {
@@ -147,6 +149,10 @@ void main() {
       expect(find.widgetWithText(FilterChip, 'VEX U'), findsOneWidget);
       expect(find.widgetWithText(FilterChip, 'VEX AI'), findsOneWidget);
 
+      // Verify Events title and search summary label
+      expect(find.text('Events'), findsOneWidget);
+      expect(find.text('Found 3 events between Apr 25, 2026 and May 5, 2026'), findsOneWidget);
+
       // Verify preloaded list contains V5RC and VIQRC events
       expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
       expect(find.text('RE-VIQRC-24-8913'), findsOneWidget);
@@ -159,6 +165,317 @@ void main() {
       expect(find.text('RE-VAIRC-24-8912'), findsOneWidget);
       expect(find.text('RE-V5RC-24-8909'), findsNothing);
       expect(find.text('RE-VIQRC-24-8913'), findsNothing);
+
+      // Tap VIQRC filter chip
+      await tester.tap(find.widgetWithText(FilterChip, 'VIQRC'));
+      await tester.pumpAndSettle();
+
+      // Verify only VIQRC event is shown
+      expect(find.text('RE-VIQRC-24-8913'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-8909'), findsNothing);
+      expect(find.text('RE-VAIRC-24-8912'), findsNothing);
+
+      // Tap All filter chip
+      await tester.tap(find.widgetWithText(FilterChip, 'All'));
+      await tester.pumpAndSettle();
+
+      // Verify all events are shown again
+      expect(find.text('RE-V5RC-24-8909'), findsOneWidget);
+      expect(find.text('RE-VIQRC-24-8913'), findsOneWidget);
+      expect(find.text('RE-VAIRC-24-8912'), findsOneWidget);
+
+      await testDb.close();
+    });
+
+    testWidgets('EventSelectionScreen supports Region and dynamic CountryDivision filtering with Taiwan', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1000, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final testDb = AppDatabase.forTesting(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+
+      final mockHttpClient = MockClient((request) async {
+        final regionParam = request.url.queryParameters['region'];
+        final List<Map<String, dynamic>> all = [
+          {
+            'id': 1,
+            'sku': 'RE-V5RC-24-1111',
+            'name': 'Texas Championship Qualifier',
+            'program': {'code': 'V5RC'},
+            'start': '2026-04-25T08:00:00Z',
+            'end': '2026-04-28T18:00:00Z',
+            'location': {'city': 'Dallas', 'region': 'Texas', 'country': 'United States'},
+          },
+          {
+            'id': 2,
+            'sku': 'RE-V5RC-24-2222',
+            'name': 'California Open Tournament',
+            'program': {'code': 'V5RC'},
+            'start': '2026-05-03T08:00:00Z',
+            'end': '2026-05-05T18:00:00Z',
+            'location': {'city': 'San Jose', 'region': 'California', 'country': 'United States'},
+          },
+          {
+            'id': 3,
+            'sku': 'RE-VIQRC-24-3333',
+            'name': 'UK National Championship',
+            'program': {'code': 'VIQRC'},
+            'start': '2026-04-25T08:00:00Z',
+            'end': '2026-04-28T18:00:00Z',
+            'location': {'city': 'Telford', 'region': 'England', 'country': 'United Kingdom'},
+          },
+          {
+            'id': 4,
+            'sku': 'RE-V5RC-24-4444',
+            'name': 'Ontario Provincial Championship',
+            'program': {'code': 'V5RC'},
+            'start': '2026-04-25T08:00:00Z',
+            'end': '2026-04-28T18:00:00Z',
+            'location': {'city': 'Toronto', 'region': 'Ontario', 'country': 'Canada'},
+          },
+          {
+            'id': 5,
+            'sku': 'RE-V5RC-24-5555',
+            'name': 'Formosa VEX Open',
+            'program': {'code': 'V5RC'},
+            'start': '2026-04-25T08:00:00Z',
+            'end': '2026-04-28T18:00:00Z',
+            'location': {'city': 'Taipei', 'region': 'Taiwan', 'country': 'Chinese Taipei'},
+          },
+        ];
+
+        final filtered = regionParam != null && regionParam.isNotEmpty
+            ? all.where((e) {
+                final loc = e['location'] as Map<String, dynamic>;
+                if (regionParam == 'Taiwan' || regionParam == 'Chinese Taipei') {
+                  return loc['country'] == 'Taiwan' || loc['country'] == 'Chinese Taipei' || loc['region'] == 'Taiwan';
+                }
+                return loc['region'] == regionParam || loc['country'] == regionParam;
+              }).toList()
+            : all;
+
+        return http.Response(
+          jsonEncode({'data': filtered}),
+          200,
+        );
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            vexEventsClientProvider.overrideWithValue(
+              VexEventsClient(
+                client: mockHttpClient,
+                serverUrl: 'http://127.0.0.1:8080',
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: EventSelectionScreen(),
+          ),
+        ),
+      );
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+
+      // 1. Initial State: "All Regions" chip is visible, no division chip shown, all 5 events present
+      expect(find.text('All Regions'), findsOneWidget);
+      expect(find.text('All States'), findsNothing);
+      expect(find.text('All Provinces'), findsNothing);
+      expect(find.text('RE-V5RC-24-1111'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-2222'), findsOneWidget);
+      expect(find.text('RE-VIQRC-24-3333'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-4444'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-5555'), findsOneWidget);
+
+      // 2. Open Region Picker and search "Chinese Taipei" shorthand -> displays "Taiwan"
+      await tester.tap(find.text('All Regions'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filter by Region'), findsOneWidget);
+      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'Chinese Taipei');
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(ListTile, 'Taiwan'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Chinese Taipei'), findsNothing);
+
+      // 3. Select Taiwan -> filters to Taiwan event (matching Chinese Taipei country in API)
+      await tester.tap(find.widgetWithText(ListTile, 'Taiwan'));
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('Region: Taiwan'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-5555'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-1111'), findsNothing);
+
+      // 4. Open Region Picker and search USA shorthand
+      await tester.tap(find.text('Region: Taiwan'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'USA');
+      await tester.pumpAndSettle();
+
+      expect(find.text('United States'), findsOneWidget);
+      expect(find.text('Canada'), findsNothing);
+
+      // 5. Select United States -> reveals "All States" division chip
+      await tester.tap(find.widgetWithText(ListTile, 'United States'));
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('Region: United States'), findsOneWidget);
+      expect(find.text('All States'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-1111'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-2222'), findsOneWidget);
+      expect(find.text('RE-VIQRC-24-3333'), findsNothing);
+      expect(find.text('RE-V5RC-24-4444'), findsNothing);
+
+      // 6. Tap "All States" to open Division Picker
+      await tester.tap(find.text('All States'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filter by State'), findsOneWidget);
+      await tester.enterText(find.widgetWithText(TextField, 'Search states (e.g. Texas, TX)...'), 'TX');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Texas'), findsOneWidget);
+      expect(find.text('California'), findsNothing);
+
+      // 7. Select Texas -> displays only Texas event
+      await tester.tap(find.widgetWithText(ListTile, 'Texas'));
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('State: Texas'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-1111'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-2222'), findsNothing);
+
+      // 8. Test switching to Canada -> displays "All Provinces" chip
+      await tester.tap(find.text('Region: United States'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'Canada');
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Canada'));
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('Region: Canada'), findsOneWidget);
+      expect(find.text('All Provinces'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-4444'), findsOneWidget);
+
+      // 9. Test switching to Australia -> NO division / states chip shown
+      await tester.tap(find.text('Region: Canada'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'Australia');
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Australia'));
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('Region: Australia'), findsOneWidget);
+      expect(find.text('All States'), findsNothing);
+      expect(find.text('All Provinces'), findsNothing);
+
+      // 10. Tap Reset Filters -> resets all filters back to All Regions
+      expect(find.text('Reset Filters'), findsOneWidget);
+      await tester.tap(find.text('Reset Filters'));
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('All Regions'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-1111'), findsOneWidget);
+      expect(find.text('RE-V5RC-24-2222'), findsOneWidget);
+      expect(find.text('RE-VIQRC-24-3333'), findsOneWidget);
+      await testDb.close();
+    });
+
+    test('EventFiltersNotifier loads, updates, and persists filters in SharedPreferences', () async {
+      SharedPreferences.setMockInitialValues({
+        'event_filter_program': 'VIQRC',
+        'event_filter_region': 'United Kingdom',
+        'event_filter_division': 'All',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final notifier = EventFiltersNotifier(prefs);
+
+      expect(notifier.state.program, equals('VIQRC'));
+      expect(notifier.state.region, equals('United Kingdom'));
+      expect(notifier.state.division, equals('All'));
+
+      notifier.setProgram('V5RC');
+      expect(prefs.getString(EventFiltersNotifier.keyProgram), equals('V5RC'));
+
+      notifier.setRegion('United States');
+      expect(prefs.getString(EventFiltersNotifier.keyRegion), equals('United States'));
+      expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('All'));
+
+      notifier.setDivision('Texas');
+      expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('Texas'));
+
+      notifier.resetFilters();
+      expect(prefs.getString(EventFiltersNotifier.keyProgram), equals('All'));
+      expect(prefs.getString(EventFiltersNotifier.keyRegion), equals('All'));
+      expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('All'));
+    });
+  });
+
+  group('EventImportSheet Widget Tests', () {
+    testWidgets('renders Load Tournament Data with TM CSV import and without VEX Events tab', (tester) async {
+      SharedPreferences.setMockInitialValues({'current_sku': 'RE-V5RC-24-1111'});
+      final prefs = await SharedPreferences.getInstance();
+      final testDb = AppDatabase.forTesting(DatabaseConnection(NativeDatabase.memory()));
+
+      final container = ProviderContainer(
+        overrides: [
+          databaseProvider.overrideWithValue(testDb),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(prefs)),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: EventImportSheet(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Load Tournament Data'), findsOneWidget);
+      expect(find.text('Paste Tournament Manager (TM) export data below.'), findsOneWidget);
+      expect(find.text('Teams CSV'), findsOneWidget);
+      expect(find.text('Match Schedule CSV'), findsOneWidget);
+      expect(find.text('VEX Events'), findsNothing);
+      expect(find.text('Fetch Tournament Data'), findsNothing);
+
+      await testDb.close();
     });
   });
 }

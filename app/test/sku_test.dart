@@ -1,7 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:roboref/core/utils/event_regions.dart';
 import 'package:roboref/core/utils/sku_utils.dart';
 
 void main() {
+  setUpAll(() async {
+    await initializeDateFormatting('en_US');
+    await initializeDateFormatting('en_GB');
+  });
+
   group('SKU Utils Tests', () {
     test('Validates official VEX SKUs correctly', () {
       expect(isValidSku('RE-V5RC-24-8909'), isTrue);
@@ -35,13 +42,89 @@ void main() {
       expect(getSkuProgram('RE-VAIRC-24-8912'), equals('VEX AI'));
     });
 
-    test('Formats date ranges accurately', () {
-      final formatted = formatEventDateRange('2026-04-25T08:00:00Z', '2026-04-28T18:00:00Z');
-      expect(formatted, contains('Apr 25'));
-      expect(formatted, contains('28, 2026'));
+    test('Formats date ranges accurately in user locale', () {
+      final usFormatted = formatEventDateRange('2026-04-25T08:00:00Z', '2026-04-28T18:00:00Z', 'en_US');
+      expect(usFormatted, contains('Apr 25'));
+      expect(usFormatted, contains('Apr 28, 2026'));
 
-      final singleDay = formatEventDateRange('2026-05-01T08:00:00Z', '2026-05-01T17:00:00Z');
+      final gbFormatted = formatEventDateRange('2026-04-25T08:00:00Z', '2026-04-28T18:00:00Z', 'en_GB');
+      expect(gbFormatted, contains('25 Apr'));
+      expect(gbFormatted, contains('28 Apr 2026'));
+
+      final singleDay = formatEventDateRange('2026-05-01T08:00:00Z', '2026-05-01T17:00:00Z', 'en_US');
       expect(singleDay, equals('May 1, 2026'));
+
+      final singleDayGb = formatEventDateRange('2026-05-01T08:00:00Z', '2026-05-01T17:00:00Z', 'en_GB');
+      expect(singleDayGb, equals('1 May 2026'));
+
+      final dateGb = formatEventDate('2026-04-25T08:00:00Z', 'en_GB');
+      expect(dateGb, equals('25 Apr 2026'));
+    });
+
+    test('isEventMatchingProgram accurately filters events by program', () {
+      // VIQRC event
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'All'), isTrue);
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'VIQRC'), isTrue);
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'V5RC'), isFalse);
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'VEX U'), isFalse);
+      expect(isEventMatchingProgram(program: 'VIQRC', sku: 'RE-VIQRC-24-8913', selectedProgram: 'VEX AI'), isFalse);
+
+      // V5RC event
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'All'), isTrue);
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'V5RC'), isTrue);
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'VIQRC'), isFalse);
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'VEX U'), isFalse);
+      expect(isEventMatchingProgram(program: 'V5RC', sku: 'RE-V5RC-24-8909', selectedProgram: 'VEX AI'), isFalse);
+
+      // VEX U (VURC) event
+      expect(isEventMatchingProgram(program: 'VURC', sku: 'RE-VURC-24-8911', selectedProgram: 'All'), isTrue);
+      expect(isEventMatchingProgram(program: 'VURC', sku: 'RE-VURC-24-8911', selectedProgram: 'VEX U'), isTrue);
+      expect(isEventMatchingProgram(program: 'VURC', sku: 'RE-VURC-24-8911', selectedProgram: 'V5RC'), isFalse);
+      expect(isEventMatchingProgram(program: 'VURC', sku: 'RE-VURC-24-8911', selectedProgram: 'VIQRC'), isFalse);
+
+      // VEX AI (VAIRC) event
+      expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'All'), isTrue);
+      expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'VEX AI'), isTrue);
+      expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'V5RC'), isFalse);
+      expect(isEventMatchingProgram(program: 'VAIRC', sku: 'RE-VAIRC-24-8912', selectedProgram: 'VIQRC'), isFalse);
+    });
+
+    test('isRegionMatchingQuery matches regions by direct name, alias, or child division (state/province)', () {
+      // Direct region name
+      expect(isRegionMatchingQuery('United States', 'United States'), isTrue);
+      expect(isRegionMatchingQuery('United States', 'unit'), isTrue);
+      expect(isRegionMatchingQuery('Canada', 'Can'), isTrue);
+
+      // State / Province names -> parent country
+      expect(isRegionMatchingQuery('United States', 'Texas'), isTrue);
+      expect(isRegionMatchingQuery('United States', 'tex'), isTrue);
+      expect(isRegionMatchingQuery('United States', 'California'), isTrue);
+      expect(isRegionMatchingQuery('Canada', 'Ontario'), isTrue);
+      expect(isRegionMatchingQuery('Canada', 'Alberta'), isTrue);
+
+      // State / Province abbreviations -> parent country
+      expect(isRegionMatchingQuery('United States', 'TX'), isTrue);
+      expect(isRegionMatchingQuery('United States', 'CA'), isTrue);
+      expect(isRegionMatchingQuery('Canada', 'ON'), isTrue);
+
+      // Non-matching state queries
+      expect(isRegionMatchingQuery('Australia', 'Texas'), isFalse);
+      expect(isRegionMatchingQuery('Japan', 'Ontario'), isFalse);
+
+      // Country aliases
+      expect(isRegionMatchingQuery('United States', 'USA'), isTrue);
+      expect(isRegionMatchingQuery('United Kingdom', 'UK'), isTrue);
+      expect(isRegionMatchingQuery('United Kingdom', 'England'), isTrue);
+      expect(isRegionMatchingQuery('United Kingdom', 'Scotland'), isTrue);
+      expect(isRegionMatchingQuery('Taiwan', 'Taipei'), isTrue);
+    });
+
+    test('getMatchingDivisionsForRegion extracts matching states/provinces', () {
+      expect(getMatchingDivisionsForRegion('United States', 'Texas'), equals(['Texas']));
+      expect(getMatchingDivisionsForRegion('United States', 'TX'), equals(['Texas']));
+      expect(getMatchingDivisionsForRegion('Canada', 'Ontario'), equals(['Ontario']));
+      expect(getMatchingDivisionsForRegion('Canada', 'ON'), equals(['Ontario']));
+      expect(getMatchingDivisionsForRegion('Australia', 'Texas'), isEmpty);
     });
   });
 }

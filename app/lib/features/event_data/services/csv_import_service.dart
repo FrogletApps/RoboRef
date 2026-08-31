@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import '../../../database/app_database.dart';
+import '../../../core/utils/match_utils.dart';
 
 class CsvImportResult {
   final bool success;
@@ -128,6 +129,14 @@ class CsvImportService {
       int b1Idx = headers.indexWhere((h) => h.contains('blue 1') || h.contains('blue1'));
       int b2Idx = headers.indexWhere((h) => h.contains('blue 2') || h.contains('blue2'));
 
+      // Fallback for VEX IQ (Team 1, Team 2 / Alliance 1, Alliance 2)
+      if (r1Idx == -1) {
+        r1Idx = headers.indexWhere((h) => h.contains('team 1') || h.contains('team1') || h.contains('team_1') || (h.contains('team') && !h.contains('name') && !h.contains('2')));
+      }
+      if (r2Idx == -1) {
+        r2Idx = headers.indexWhere((h) => h.contains('team 2') || h.contains('team2') || h.contains('team_2'));
+      }
+
       if (matchIdx == -1) {
         matchIdx = 0;
       }
@@ -140,9 +149,9 @@ class CsvImportService {
 
         final cols = _parseCsvRow(line, delimiter);
         if (cols.length <= matchIdx) continue;
-
-        final matchName = cols[matchIdx].trim().toUpperCase();
-        if (matchName.isEmpty) continue;
+        final rawMatchName = cols[matchIdx].trim();
+        if (rawMatchName.isEmpty) continue;
+        final matchName = normalizeMatchName(rawMatchName);
 
         final field = (fieldIdx != -1 && cols.length > fieldIdx) ? cols[fieldIdx].trim() : null;
         final time = (timeIdx != -1 && cols.length > timeIdx) ? cols[timeIdx].trim() : null;

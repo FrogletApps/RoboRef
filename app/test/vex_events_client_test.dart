@@ -59,6 +59,72 @@ void main() {
       expect(events.first.city, equals('Cancun'));
     });
 
+    test('searchEvents passes region and country parameters correctly', () async {
+      final mockClient = MockClient((request) async {
+        final reg = request.url.queryParameters['region'];
+        // States/divisions like Texas, as well as countries like United Kingdom and Australia, are passed as region query param
+        if (request.url.queryParameters.containsKey('region')) {
+          expect(reg == 'Texas' || reg == 'United Kingdom', isTrue);
+        }
+
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 1001,
+                'sku': 'RE-V5RC-26-5555',
+                'name': 'Texas Region Championship',
+                'program': {'code': 'V5RC'},
+                'location': {'city': 'Dallas', 'region': 'Texas', 'country': 'United States'},
+              }
+            ]
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+      final events = await client.searchEvents(region: 'Texas');
+      expect(events.length, equals(1));
+      expect(events.first.sku, equals('RE-V5RC-26-5555'));
+      expect(events.first.region, equals('Texas'));
+      expect(events.first.country, equals('United States'));
+
+      final ukEvents = await client.searchEvents(region: 'United Kingdom');
+      expect(ukEvents.length, equals(1));
+
+      final usEvents = await client.searchEvents(country: 'United States');
+      expect(usEvents.length, equals(1));
+    });
+
+    test('searchEvents includes season[] params according to program filter', () async {
+      final mockClient = MockClient((request) async {
+        final seasons = request.url.queryParametersAll['season[]'];
+        expect(seasons, isNotNull);
+        expect(seasons, contains('203')); // 2026-2027 VIQRC
+        expect(seasons, contains('196')); // 2025-2026 VIQRC
+
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 987,
+                'sku': 'RE-VIQRC-26-4368',
+                'name': 'VIQRC Elite Qualifier',
+                'program': {'code': 'VIQRC'},
+              }
+            ]
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+      final events = await client.searchEvents(program: 'VIQRC');
+      expect(events.length, equals(1));
+      expect(events.first.sku, equals('RE-VIQRC-26-4368'));
+    });
+
     test('searchEvents passes start and end dates formatted as ISO strings', () async {
       final start = DateTime.utc(2026, 8, 21);
       final end = DateTime.utc(2026, 8, 31);
@@ -223,7 +289,7 @@ void main() {
 
       final matches = await db.getMatchesForSku('RE-VRC-18-6495');
       expect(matches.length, equals(1));
-      expect(matches.first.name, equals('Q1'));
+      expect(matches.first.name, equals('Qualification 1'));
       expect(matches.first.redScore, equals(50));
       expect(matches.first.blueScore, equals(45));
     });

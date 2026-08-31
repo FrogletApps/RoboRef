@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/utils/sku_utils.dart';
+import '../../../core/utils/match_utils.dart';
 import '../../../database/app_database.dart';
 import '../../event_selection/models/event_model.dart';
 
@@ -145,11 +146,37 @@ class VexEventsClient {
     }
   }
 
+  /// Map program names to VEX Events season IDs for server-side season filtering
+  List<int> _getProgramSeasonIds(String? program) {
+    if (program == null || program.isEmpty || program == 'All') {
+      return [204, 203, 205, 206, 197, 196, 198, 199, 190, 189, 191, 194];
+    }
+    switch (program.toUpperCase()) {
+      case 'V5RC':
+      case 'VRC':
+        return [204, 197, 190, 181, 173];
+      case 'VIQRC':
+      case 'VIQC':
+        return [203, 196, 189, 180, 174];
+      case 'VEX U':
+      case 'VURC':
+        return [205, 198, 191, 182, 175];
+      case 'VEX AI':
+      case 'VAIRC':
+      case 'VAIC':
+        return [206, 199, 194, 185, 171];
+      default:
+        return [];
+    }
+  }
+
   /// Searches events via the sync server VEX Events proxy
   Future<List<EventModel>> searchEvents({
     String? query,
     String? program,
     String? sku,
+    String? country,
+    String? region,
     DateTime? start,
     DateTime? end,
     int page = 1,
@@ -160,6 +187,9 @@ class VexEventsClient {
       'page': [page.toString()],
       'per_page': [perPage.toString()],
     };
+
+    final isSkuSearch = (sku != null && sku.trim().isNotEmpty) ||
+        (query != null && query.trim().toUpperCase().startsWith('RE-'));
 
     if (sku != null && sku.trim().isNotEmpty) {
       queryParams['sku[]'] = [sku.trim().toUpperCase()];
@@ -175,6 +205,25 @@ class VexEventsClient {
     }
     if (end != null) {
       queryParams['end'] = [end.toUtc().toIso8601String()];
+    }
+
+    final targetReg = region ?? country;
+    if (targetReg != null && targetReg.trim().isNotEmpty && targetReg.trim() != 'All') {
+      final clean = targetReg.trim();
+      // Only United States (and Canada when no province is specified) are omitted from the upstream
+      // API 'region' parameter because RobotEvents API v2 requires state/province names for US and returns 0 for 'region=United States'.
+      // For all other countries (such as United Kingdom, Australia, Taiwan, Japan, etc.), RobotEvents API accepts 'region=<country>' properly.
+      final isCountryWithStateOnlyApi = clean == 'United States' || clean == 'Canada';
+      if (!isCountryWithStateOnlyApi) {
+        queryParams['region'] = [clean];
+      }
+    }
+
+    if (!isSkuSearch) {
+      final seasonIds = _getProgramSeasonIds(program);
+      if (seasonIds.isNotEmpty) {
+        queryParams['season[]'] = seasonIds.map((id) => id.toString()).toList();
+      }
     }
 
     final programIds = _getProgramIds(program);
@@ -375,7 +424,11 @@ class VexEventsClient {
                 final list = matchesData['data'] as List;
                 for (final m in list) {
                   final matchId = m['id']?.toString() ?? m['name']?.toString() ?? '';
-                  final name = m['name']?.toString() ?? 'Match';
+                  final rawName = m['name']?.toString();
+                  final round = m['round'] as int?;
+                  final instance = m['instance'] as int?;
+                  final matchnum = m['matchnum'] as int?;
+                  final name = normalizeMatchName(rawName, round: round, instance: instance, matchnum: matchnum);
                   final field = m['field']?.toString();
                   final scheduledTime = m['scheduled']?.toString();
 
