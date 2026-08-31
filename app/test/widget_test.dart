@@ -128,7 +128,7 @@ void main() {
     // Verify returning to home and recent list displays the selected tournament with header
     expect(find.text('Recent Tournaments'), findsOneWidget);
     expect(find.widgetWithText(Card, 'RE-V5RC-26-4487'), findsOneWidget);
-    expect(find.text('ACTIVE'), findsOneWidget);
+    expect(find.text('ACTIVE'), findsNothing);
     expect(find.text('Welcome to RoboRef!'), findsNothing);
     expect(find.byType(NavigationBar), findsNothing); // Back on Home screen without bottom nav
 

@@ -2,6 +2,7 @@
 
 ## 2026.8.31+1
 
+- **Sharing Status Display**: Replaced the Active tournament badge with explicit Sharing status indicators showing "RoboRef Cloud Server" or "Other Server".
 - **Secure Event Sharing**: Default to local-only notes, share events online with Admin controls, participant management, invite QR/codes, conflict warnings, and automatic cloud data purge on close.
 - **Rules Disclaimer**: Added official game manual disclaimer banner at the bottom of the Rules screen.
 - **Rules UI Cleanup**: Removed duplicate subheaders from rule items on the Rules page.

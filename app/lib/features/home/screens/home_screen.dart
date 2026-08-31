@@ -68,7 +68,8 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       ...events.map((event) {
-                      final isActive = event.sku.toUpperCase() == settings.currentSku.toUpperCase();
+                      final isShared = event.isShared;
+                      final serverType = getServerTypeDisplayName(settings.serverUrl);
                       final color = getSkuColor(event.sku);
                       final dateRange = formatEventDateRange(
                         event.startDate,
@@ -78,27 +79,18 @@ class HomeScreen extends ConsumerWidget {
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        elevation: isActive ? 3 : 1,
+                        elevation: 1,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
-                            color: isActive
-                                ? color.withValues(alpha: 0.8)
-                                : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                            width: isActive ? 1.5 : 1.0,
+                            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                            width: 1.0,
                           ),
                         ),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            // Set as active tournament SKU
                             ref.read(syncSettingsProvider.notifier).setSku(event.sku);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Active tournament: ${event.sku}'),
-                                duration: const Duration(seconds: 1),
-                              ),
-                            );
                             if (onNavigateToIncidents != null) {
                               onNavigateToIncidents!();
                             } else {
@@ -114,7 +106,7 @@ class HomeScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Top Row: SKU Badge + Dates + Active indicator
+                                // Top Row: SKU Badge + Dates + Sharing indicator
                                 Row(
                                   children: [
                                     Container(
@@ -147,21 +139,21 @@ class HomeScreen extends ConsumerWidget {
                                       ),
                                     ] else
                                       const Spacer(),
-                                    if (isActive)
+                                    if (isShared)
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: Colors.green.withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(4),
                                         ),
-                                        child: const Row(
+                                        child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(Icons.check_circle, size: 12, color: Colors.green),
-                                            SizedBox(width: 4),
+                                            const Icon(Icons.share, size: 12, color: Colors.green),
+                                            const SizedBox(width: 4),
                                             Text(
-                                              'ACTIVE',
-                                              style: TextStyle(
+                                              'Sharing: $serverType',
+                                              style: const TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
                                                 color: Colors.green,
@@ -170,6 +162,7 @@ class HomeScreen extends ConsumerWidget {
                                           ],
                                         ),
                                       ),
+
                                     PopupMenuButton<String>(
                                       icon: const Icon(Icons.more_vert, size: 18, color: Colors.grey),
                                       padding: EdgeInsets.zero,

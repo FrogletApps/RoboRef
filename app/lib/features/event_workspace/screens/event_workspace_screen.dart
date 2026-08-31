@@ -33,6 +33,12 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialTabIndex;
+    Future.microtask(() {
+      if (mounted) {
+        final currentSku = ref.read(syncSettingsProvider).currentSku;
+        ref.read(shareControllerProvider.notifier).loadEventShareState(currentSku);
+      }
+    });
   }
 
   void _showImportSheet(BuildContext context) {
@@ -133,16 +139,20 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
       }
 
       // Share Event button available in header
+      // Check both reactive event record and shareState
+      final isEventShared = event?.isShared ?? shareState.isShared;
+      final role = (event?.shareRole != null ? ShareRole.fromString(event!.shareRole) : null) ?? shareState.role;
+
       list.add(
         IconButton(
           icon: Icon(
-            shareState.isShared
-                ? (shareState.role == ShareRole.admin ? Icons.admin_panel_settings : Icons.cloud_done)
+            isEventShared
+                ? (role == ShareRole.admin ? Icons.admin_panel_settings : Icons.cloud_done)
                 : Icons.share_outlined,
-            color: shareState.isShared ? Colors.lightGreenAccent : null,
+            color: isEventShared ? Colors.lightGreenAccent : null,
           ),
-          tooltip: shareState.isShared
-              ? 'Shared Online (${shareState.participants.length} connected)'
+          tooltip: isEventShared
+              ? 'Shared Online (${shareState.participants.isNotEmpty ? shareState.participants.length : 1} connected)'
               : 'Share Event Online',
           onPressed: () => _showShareSheet(context, settings.currentSku),
         ),
@@ -150,6 +160,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
 
       return list;
     }
+
 
     return Scaffold(
       appBar: AppBar(

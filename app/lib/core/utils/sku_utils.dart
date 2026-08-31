@@ -314,3 +314,12 @@ String getAppTitle([AppEnvironment? env]) {
   }
 }
 
+/// Categorize sync server URL as 'RoboRef Cloud Server' or 'Other Server'
+String getServerTypeDisplayName(String serverUrl) {
+  final clean = serverUrl.trim().toLowerCase();
+  if (clean.contains('roboref.app') || clean.contains('roboref.fyi') || clean.contains('workers.dev')) {
+    return 'RoboRef Cloud Server';
+  }
+  return 'Other Server';
+}
+

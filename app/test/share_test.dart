@@ -6,12 +6,15 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:drift/native.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:roboref/database/app_database.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
 import 'package:roboref/features/incidents/state/incident_controller.dart';
+import 'package:roboref/core/utils/sku_utils.dart';
 import 'package:roboref/features/event_selection/state/event_controller.dart';
+import 'package:roboref/features/event_workspace/screens/event_workspace_screen.dart';
 import 'package:roboref/features/sharing/services/share_client.dart';
 import 'package:roboref/features/sharing/widgets/event_share_sheet.dart';
 
@@ -19,6 +22,15 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ShareClient Network Tests', () {
+    test('getServerTypeDisplayName categorizes cloud and other servers properly', () {
+      expect(getServerTypeDisplayName('https://roboref.app'), equals('RoboRef Cloud Server'));
+      expect(getServerTypeDisplayName('https://test.roboref.app'), equals('RoboRef Cloud Server'));
+      expect(getServerTypeDisplayName('https://my-worker.workers.dev'), equals('RoboRef Cloud Server'));
+      expect(getServerTypeDisplayName('http://localhost:8080'), equals('Other Server'));
+      expect(getServerTypeDisplayName('http://roboref.local:8080'), equals('Other Server'));
+      expect(getServerTypeDisplayName('http://192.168.1.50:8080'), equals('Other Server'));
+    });
+
     test('checkActiveShares parses response list correctly', () async {
       final mockClient = MockClient((request) async {
         if (request.url.path == '/api/share/check' && request.url.queryParameters['sku'] == 'RE-VRC-24-1234') {
@@ -254,7 +266,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Shared Online (Host / Admin)'), findsOneWidget);
+      expect(find.text('Sharing: Other Server (Host / Admin)'), findsOneWidget);
       expect(find.byType(QrImageView), findsOneWidget);
       expect(find.text('CODE88'), findsOneWidget);
       expect(find.text('Copy Join Link'), findsOneWidget);
@@ -265,6 +277,7 @@ void main() {
       container.dispose();
       await tester.pump(Duration.zero);
     });
+
 
 
     testWidgets('Incident notes stay strictly local when event is not shared', (tester) async {
@@ -299,6 +312,77 @@ void main() {
 
       container.dispose();
     });
+
+    testWidgets('EventWorkspaceScreen updates share icon reactively when switching between shared and unshared events', (tester) async {
+      // Event 1 is unshared
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'EVENT-LOCAL',
+          name: 'Local Tournament',
+          program: 'VRC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          isShared: const Value(false),
+          updatedAt: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+
+      // Event 2 is shared with admin role
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'EVENT-SHARED',
+          name: 'Shared Tournament',
+          program: 'VRC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          isShared: const Value(true),
+          shareId: const Value('SHAR12'),
+          shareRole: const Value('admin'),
+          adminRefereeName: const Value('Head Referee'),
+          updatedAt: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(db),
+        ],
+      );
+
+      // Set to EVENT-LOCAL
+      container.read(syncSettingsProvider.notifier).setSku('EVENT-LOCAL');
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: EventWorkspaceScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Expect share_outlined icon for local event
+      expect(find.byIcon(Icons.share_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.admin_panel_settings), findsNothing);
+
+      // Switch to EVENT-SHARED
+      container.read(syncSettingsProvider.notifier).setSku('EVENT-SHARED');
+      await tester.pumpAndSettle();
+
+      // Expect admin shield icon (Icons.admin_panel_settings) immediately without tapping
+      expect(find.byIcon(Icons.admin_panel_settings), findsOneWidget);
+      expect(find.byIcon(Icons.share_outlined), findsNothing);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      container.dispose();
+      await tester.pump(Duration.zero);
+    });
   });
 }
+
 

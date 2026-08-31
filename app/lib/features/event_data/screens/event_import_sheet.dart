@@ -146,7 +146,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
     if (sku.isEmpty) {
       setState(() {
         _isError = true;
-        _statusMessage = 'No active tournament SKU selected.';
+        _statusMessage = 'No tournament SKU selected.';
       });
       return;
     }

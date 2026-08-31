@@ -426,6 +426,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
     bool isDark,
   ) {
     final isAdmin = shareState.role == ShareRole.admin;
+    final serverType = getServerTypeDisplayName(settings.serverUrl);
     final shareId = shareState.shareId ?? '';
     final joinUrl = _buildJoinUrl(shareId, widget.sku, settings.serverUrl);
     final participantCount = shareState.participants.length;
@@ -460,7 +461,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isAdmin ? 'Shared Online (Host / Admin)' : 'Shared Online (Member)',
+                      isAdmin ? 'Sharing: $serverType (Host / Admin)' : 'Sharing: $serverType (Member)',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -469,8 +470,8 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                     ),
                     Text(
                       isAdmin
-                          ? 'You are the admin. You can invite referees and manage participants.'
-                          : 'Hosted by ${shareState.adminRefereeName ?? "Head Referee"}. Notes synchronize automatically.',
+                          ? 'You are the admin on $serverType. You can invite referees and manage participants.'
+                          : 'Hosted by ${shareState.adminRefereeName ?? "Head Referee"} on $serverType. Notes synchronize automatically.',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],

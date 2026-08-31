@@ -72,6 +72,11 @@ class ShareController extends StateNotifier<EventShareState> {
       : super(EventShareState(
           sku: ref.read(syncSettingsProvider).currentSku,
         )) {
+    ref.listen<SyncSettingsState>(syncSettingsProvider, (previous, next) {
+      if (previous?.currentSku != next.currentSku) {
+        loadEventShareState(next.currentSku);
+      }
+    });
     loadEventShareState(state.sku);
   }
 
