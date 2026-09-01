@@ -8,6 +8,7 @@ class Teams extends Table {
   TextColumn get city => text().nullable()();
   TextColumn get region => text().nullable()();
   TextColumn get country => text().nullable()();
+  IntColumn get rank => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {teamNumber, sku};

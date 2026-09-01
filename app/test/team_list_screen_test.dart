@@ -96,4 +96,38 @@ void main() {
     // 12B < 96F < 1016X
     expect(titleTexts, equals(['12B', '96F', '1016X']));
   });
+
+  testWidgets('TeamListScreen displays team event ranking in the leading icon avatar', (tester) async {
+    const teamsWithRanks = [
+      Team(sku: 'RE-V5RC-26-4487', teamNumber: '1A', teamName: 'One A', rank: 1),
+      Team(sku: 'RE-V5RC-26-4487', teamNumber: '96F', teamName: 'Ninety Six', rank: 14),
+      Team(sku: 'RE-V5RC-26-4487', teamNumber: '224A', teamName: 'Two Twenty Four', rank: 105),
+      Team(sku: 'RE-V5RC-26-4487', teamNumber: '1016X', teamName: 'Ten Sixteen', rank: null),
+    ];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeTournamentTeamsProvider.overrideWith((ref) => Stream.value(teamsWithRanks)),
+          activeTournamentNotesProvider.overrideWith((ref) => Stream.value([])),
+        ],
+        child: const MaterialApp(
+          home: TeamListScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final avatars = tester.widgetList<CircleAvatar>(find.byType(CircleAvatar)).toList();
+    expect(avatars.length, 4);
+
+    final avatarTexts = avatars.map((avatar) {
+      final text = avatar.child as Text;
+      return text.data;
+    }).toList();
+
+    // 1A (Rank 1), 96F (Rank 14), 224A (Rank 105), 1016X (Unranked '-')
+    expect(avatarTexts, equals(['1', '14', '105', '-']));
+  });
 }

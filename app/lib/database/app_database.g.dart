@@ -806,9 +806,14 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
   late final GeneratedColumn<String> country = GeneratedColumn<String>(
       'country', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _rankMeta = const VerificationMeta('rank');
+  @override
+  late final GeneratedColumn<int> rank = GeneratedColumn<int>(
+      'rank', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [teamNumber, teamName, sku, organization, city, region, country];
+      [teamNumber, teamName, sku, organization, city, region, country, rank];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -857,6 +862,10 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
       context.handle(_countryMeta,
           country.isAcceptableOrUnknown(data['country']!, _countryMeta));
     }
+    if (data.containsKey('rank')) {
+      context.handle(
+          _rankMeta, rank.isAcceptableOrUnknown(data['rank']!, _rankMeta));
+    }
     return context;
   }
 
@@ -880,6 +889,8 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
           .read(DriftSqlType.string, data['${effectivePrefix}region']),
       country: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}country']),
+      rank: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}rank']),
     );
   }
 
@@ -897,6 +908,7 @@ class Team extends DataClass implements Insertable<Team> {
   final String? city;
   final String? region;
   final String? country;
+  final int? rank;
   const Team(
       {required this.teamNumber,
       required this.teamName,
@@ -904,7 +916,8 @@ class Team extends DataClass implements Insertable<Team> {
       this.organization,
       this.city,
       this.region,
-      this.country});
+      this.country,
+      this.rank});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -923,6 +936,9 @@ class Team extends DataClass implements Insertable<Team> {
     if (!nullToAbsent || country != null) {
       map['country'] = Variable<String>(country);
     }
+    if (!nullToAbsent || rank != null) {
+      map['rank'] = Variable<int>(rank);
+    }
     return map;
   }
 
@@ -940,6 +956,7 @@ class Team extends DataClass implements Insertable<Team> {
       country: country == null && nullToAbsent
           ? const Value.absent()
           : Value(country),
+      rank: rank == null && nullToAbsent ? const Value.absent() : Value(rank),
     );
   }
 
@@ -954,6 +971,7 @@ class Team extends DataClass implements Insertable<Team> {
       city: serializer.fromJson<String?>(json['city']),
       region: serializer.fromJson<String?>(json['region']),
       country: serializer.fromJson<String?>(json['country']),
+      rank: serializer.fromJson<int?>(json['rank']),
     );
   }
   @override
@@ -967,6 +985,7 @@ class Team extends DataClass implements Insertable<Team> {
       'city': serializer.toJson<String?>(city),
       'region': serializer.toJson<String?>(region),
       'country': serializer.toJson<String?>(country),
+      'rank': serializer.toJson<int?>(rank),
     };
   }
 
@@ -977,7 +996,8 @@ class Team extends DataClass implements Insertable<Team> {
           Value<String?> organization = const Value.absent(),
           Value<String?> city = const Value.absent(),
           Value<String?> region = const Value.absent(),
-          Value<String?> country = const Value.absent()}) =>
+          Value<String?> country = const Value.absent(),
+          Value<int?> rank = const Value.absent()}) =>
       Team(
         teamNumber: teamNumber ?? this.teamNumber,
         teamName: teamName ?? this.teamName,
@@ -987,6 +1007,7 @@ class Team extends DataClass implements Insertable<Team> {
         city: city.present ? city.value : this.city,
         region: region.present ? region.value : this.region,
         country: country.present ? country.value : this.country,
+        rank: rank.present ? rank.value : this.rank,
       );
   Team copyWithCompanion(TeamsCompanion data) {
     return Team(
@@ -1000,6 +1021,7 @@ class Team extends DataClass implements Insertable<Team> {
       city: data.city.present ? data.city.value : this.city,
       region: data.region.present ? data.region.value : this.region,
       country: data.country.present ? data.country.value : this.country,
+      rank: data.rank.present ? data.rank.value : this.rank,
     );
   }
 
@@ -1012,14 +1034,15 @@ class Team extends DataClass implements Insertable<Team> {
           ..write('organization: $organization, ')
           ..write('city: $city, ')
           ..write('region: $region, ')
-          ..write('country: $country')
+          ..write('country: $country, ')
+          ..write('rank: $rank')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(
-      teamNumber, teamName, sku, organization, city, region, country);
+      teamNumber, teamName, sku, organization, city, region, country, rank);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1030,7 +1053,8 @@ class Team extends DataClass implements Insertable<Team> {
           other.organization == this.organization &&
           other.city == this.city &&
           other.region == this.region &&
-          other.country == this.country);
+          other.country == this.country &&
+          other.rank == this.rank);
 }
 
 class TeamsCompanion extends UpdateCompanion<Team> {
@@ -1041,6 +1065,7 @@ class TeamsCompanion extends UpdateCompanion<Team> {
   final Value<String?> city;
   final Value<String?> region;
   final Value<String?> country;
+  final Value<int?> rank;
   final Value<int> rowid;
   const TeamsCompanion({
     this.teamNumber = const Value.absent(),
@@ -1050,6 +1075,7 @@ class TeamsCompanion extends UpdateCompanion<Team> {
     this.city = const Value.absent(),
     this.region = const Value.absent(),
     this.country = const Value.absent(),
+    this.rank = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TeamsCompanion.insert({
@@ -1060,6 +1086,7 @@ class TeamsCompanion extends UpdateCompanion<Team> {
     this.city = const Value.absent(),
     this.region = const Value.absent(),
     this.country = const Value.absent(),
+    this.rank = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : teamNumber = Value(teamNumber),
         teamName = Value(teamName),
@@ -1072,6 +1099,7 @@ class TeamsCompanion extends UpdateCompanion<Team> {
     Expression<String>? city,
     Expression<String>? region,
     Expression<String>? country,
+    Expression<int>? rank,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1082,6 +1110,7 @@ class TeamsCompanion extends UpdateCompanion<Team> {
       if (city != null) 'city': city,
       if (region != null) 'region': region,
       if (country != null) 'country': country,
+      if (rank != null) 'rank': rank,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1094,6 +1123,7 @@ class TeamsCompanion extends UpdateCompanion<Team> {
       Value<String?>? city,
       Value<String?>? region,
       Value<String?>? country,
+      Value<int?>? rank,
       Value<int>? rowid}) {
     return TeamsCompanion(
       teamNumber: teamNumber ?? this.teamNumber,
@@ -1103,6 +1133,7 @@ class TeamsCompanion extends UpdateCompanion<Team> {
       city: city ?? this.city,
       region: region ?? this.region,
       country: country ?? this.country,
+      rank: rank ?? this.rank,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1131,6 +1162,9 @@ class TeamsCompanion extends UpdateCompanion<Team> {
     if (country.present) {
       map['country'] = Variable<String>(country.value);
     }
+    if (rank.present) {
+      map['rank'] = Variable<int>(rank.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1147,6 +1181,7 @@ class TeamsCompanion extends UpdateCompanion<Team> {
           ..write('city: $city, ')
           ..write('region: $region, ')
           ..write('country: $country, ')
+          ..write('rank: $rank, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2711,6 +2746,7 @@ typedef $$TeamsTableCreateCompanionBuilder = TeamsCompanion Function({
   Value<String?> city,
   Value<String?> region,
   Value<String?> country,
+  Value<int?> rank,
   Value<int> rowid,
 });
 typedef $$TeamsTableUpdateCompanionBuilder = TeamsCompanion Function({
@@ -2721,6 +2757,7 @@ typedef $$TeamsTableUpdateCompanionBuilder = TeamsCompanion Function({
   Value<String?> city,
   Value<String?> region,
   Value<String?> country,
+  Value<int?> rank,
   Value<int> rowid,
 });
 
@@ -2752,6 +2789,9 @@ class $$TeamsTableFilterComposer extends Composer<_$AppDatabase, $TeamsTable> {
 
   ColumnFilters<String> get country => $composableBuilder(
       column: $table.country, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get rank => $composableBuilder(
+      column: $table.rank, builder: (column) => ColumnFilters(column));
 }
 
 class $$TeamsTableOrderingComposer
@@ -2784,6 +2824,9 @@ class $$TeamsTableOrderingComposer
 
   ColumnOrderings<String> get country => $composableBuilder(
       column: $table.country, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get rank => $composableBuilder(
+      column: $table.rank, builder: (column) => ColumnOrderings(column));
 }
 
 class $$TeamsTableAnnotationComposer
@@ -2815,6 +2858,9 @@ class $$TeamsTableAnnotationComposer
 
   GeneratedColumn<String> get country =>
       $composableBuilder(column: $table.country, builder: (column) => column);
+
+  GeneratedColumn<int> get rank =>
+      $composableBuilder(column: $table.rank, builder: (column) => column);
 }
 
 class $$TeamsTableTableManager extends RootTableManager<
@@ -2847,6 +2893,7 @@ class $$TeamsTableTableManager extends RootTableManager<
             Value<String?> city = const Value.absent(),
             Value<String?> region = const Value.absent(),
             Value<String?> country = const Value.absent(),
+            Value<int?> rank = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               TeamsCompanion(
@@ -2857,6 +2904,7 @@ class $$TeamsTableTableManager extends RootTableManager<
             city: city,
             region: region,
             country: country,
+            rank: rank,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -2867,6 +2915,7 @@ class $$TeamsTableTableManager extends RootTableManager<
             Value<String?> city = const Value.absent(),
             Value<String?> region = const Value.absent(),
             Value<String?> country = const Value.absent(),
+            Value<int?> rank = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               TeamsCompanion.insert(
@@ -2877,6 +2926,7 @@ class $$TeamsTableTableManager extends RootTableManager<
             city: city,
             region: region,
             country: country,
+            rank: rank,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

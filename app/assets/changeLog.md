@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.9.1+1
+
+- **Team Rankings**: Display tournament rankings in the icon avatar on the teams page.
+
 ## 2026.8.31+80
 
 - **Bugfix**: Join links generated in test environment now correctly link to test.roboref.app.

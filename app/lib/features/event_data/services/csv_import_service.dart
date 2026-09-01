@@ -42,6 +42,7 @@ class CsvImportService {
 
       int numberIdx = headers.indexWhere((h) => h.contains('number') || h == 'team');
       int nameIdx = headers.indexWhere((h) => h.contains('name') || h == 'team name');
+      int rankIdx = headers.indexWhere((h) => h == 'rank' || h == 'ranking' || h == 'pos' || h == 'position' || h == '#' || h == 'place');
       int orgIdx = headers.indexWhere((h) => h.contains('org') || h.contains('affiliation') || h.contains('school'));
       int cityIdx = headers.indexWhere((h) => h.contains('city'));
       int regionIdx = headers.indexWhere((h) => h.contains('state') || h.contains('region') || h.contains('prov'));
@@ -66,6 +67,7 @@ class CsvImportService {
         if (teamNumber.isEmpty) continue;
 
         final teamName = (nameIdx != -1 && cols.length > nameIdx) ? cols[nameIdx].trim() : 'Team $teamNumber';
+        final rank = (rankIdx != -1 && cols.length > rankIdx) ? int.tryParse(cols[rankIdx].trim()) : null;
         final org = (orgIdx != -1 && cols.length > orgIdx) ? cols[orgIdx].trim() : null;
         final city = (cityIdx != -1 && cols.length > cityIdx) ? cols[cityIdx].trim() : null;
         final region = (regionIdx != -1 && cols.length > regionIdx) ? cols[regionIdx].trim() : null;
@@ -80,6 +82,7 @@ class CsvImportService {
             city: Value(city),
             region: Value(region),
             country: Value(country),
+            rank: Value(rank),
           ),
         );
       }

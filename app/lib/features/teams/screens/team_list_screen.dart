@@ -96,6 +96,9 @@ class _TeamListScreenState extends State<TeamListScreen> {
                     final Map<String, String> teamNames = {
                       for (final t in registeredTeams) t.teamNumber: t.teamName,
                     };
+                    final Map<String, int?> teamRanks = {
+                      for (final t in registeredTeams) t.teamNumber: t.rank,
+                    };
 
                     if (teams.isEmpty) {
                       return Center(
@@ -122,6 +125,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                         final team = teams[index];
                         final list = teamNotes[team] ?? [];
                         final teamName = teamNames[team];
+                        final teamRank = teamRanks[team];
 
                         final warningCount = list.where((n) => n.severity == 'warning').length;
                         final majorCount = list.where((n) => n.severity == 'major' || n.severity == 'd_q').length;
@@ -135,9 +139,9 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                       ? Colors.amber.shade100
                                       : Theme.of(context).colorScheme.primaryContainer),
                               child: Text(
-                                team.length > 3 ? team.substring(0, 3) : team,
+                                teamRank != null ? '$teamRank' : '-',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: teamRank != null && teamRank > 99 ? 11 : 12,
                                   fontWeight: FontWeight.bold,
                                   color: majorCount > 0
                                       ? Colors.red.shade900
