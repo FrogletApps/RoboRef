@@ -2,6 +2,7 @@
 
 ## 2026.9.1+1
 
+- **Background Sync Polling**: Automatically checks for remote note updates every 60 seconds and on app resume.
 - **Team Rankings**: Display tournament rankings in the icon avatar on the teams page.
 
 ## 2026.8.31+80

@@ -78,6 +78,16 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  // Get latest version number for notes of a tournament SKU
+  Future<int> getLatestNoteVersion(String sku) async {
+    final maxVer = incidentNotes.version.max();
+    final query = selectOnly(incidentNotes)
+      ..addColumns([maxVer])
+      ..where(incidentNotes.sku.equals(sku));
+    final row = await query.getSingleOrNull();
+    return row?.read(maxVer) ?? 0;
+  }
+
   // --- Events DAO Methods ---
 
   // Stream of recent visible events

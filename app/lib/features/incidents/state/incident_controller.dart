@@ -80,8 +80,10 @@ class IncidentController extends StateNotifier<AsyncValue<void>> {
     triggerSync();
   }
 
+  bool _isSyncing = false;
+
   // Sync with remote server (push local changes, pull remote changes)
-  Future<void> triggerSync() async {
+  Future<void> triggerSync({bool quiet = false}) async {
     final settings = ref.read(syncSettingsProvider);
     final notifier = ref.read(syncSettingsProvider.notifier);
 
@@ -92,6 +94,8 @@ class IncidentController extends StateNotifier<AsyncValue<void>> {
       return;
     }
 
+    if (_isSyncing) return;
+    _isSyncing = true;
     notifier.setSyncing(true);
 
     final client = SyncClient(
@@ -113,10 +117,11 @@ class IncidentController extends StateNotifier<AsyncValue<void>> {
         }
       }
 
-      // 2. Pull remote records
+      // 2. Pull remote records since local latest version
+      final latestLocalVersion = await _db.getLatestNoteVersion(settings.currentSku);
       final remoteNotes = await client.pullChanges(
         sku: settings.currentSku,
-        sinceVersion: 0,
+        sinceVersion: latestLocalVersion,
       );
 
       if (remoteNotes.isNotEmpty) {
@@ -145,6 +150,8 @@ class IncidentController extends StateNotifier<AsyncValue<void>> {
       notifier.setSyncing(false);
     } catch (e) {
       notifier.setSyncing(false, error: e.toString());
+    } finally {
+      _isSyncing = false;
     }
   }
 }

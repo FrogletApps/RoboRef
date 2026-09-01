@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../event_data/screens/event_import_sheet.dart';
@@ -28,6 +29,8 @@ class EventWorkspaceScreen extends ConsumerStatefulWidget {
 
 class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
   late int _currentIndex;
+  Timer? _pollingTimer;
+  AppLifecycleListener? _lifecycleListener;
 
   @override
   void initState() {
@@ -39,6 +42,38 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
         ref.read(shareControllerProvider.notifier).loadEventShareState(currentSku);
       }
     });
+
+    _startPollingTimer();
+
+    _lifecycleListener = AppLifecycleListener(
+      onResume: () {
+        _checkSyncIfShared(quiet: true);
+      },
+    );
+  }
+
+  void _startPollingTimer() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      if (mounted) {
+        _checkSyncIfShared(quiet: true);
+      }
+    });
+  }
+
+  void _checkSyncIfShared({bool quiet = true}) {
+    if (!mounted) return;
+    final shareState = ref.read(shareControllerProvider);
+    if (shareState.isShared) {
+      ref.read(incidentControllerProvider.notifier).triggerSync(quiet: quiet);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    _lifecycleListener?.dispose();
+    super.dispose();
   }
 
   void _showImportSheet(BuildContext context) {
@@ -186,7 +221,12 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
+        onDestinationSelected: (idx) {
+          setState(() => _currentIndex = idx);
+          if (idx == 1 || idx == 2 || idx == 4) {
+            _checkSyncIfShared(quiet: true);
+          }
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined),
