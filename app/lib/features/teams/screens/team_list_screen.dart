@@ -130,6 +130,12 @@ class _TeamListScreenState extends State<TeamListScreen> {
                         final warningCount = list.where((n) => n.severity == 'warning').length;
                         final majorCount = list.where((n) => n.severity == 'major' || n.severity == 'd_q').length;
 
+                        final textColor = majorCount > 0
+                            ? Colors.red.shade900
+                            : (warningCount > 0
+                                ? Colors.amber.shade900
+                                : Theme.of(context).colorScheme.onPrimaryContainer);
+
                         return Card(
                           child: ListTile(
                             leading: CircleAvatar(
@@ -138,18 +144,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                   : (warningCount > 0
                                       ? Colors.amber.shade100
                                       : Theme.of(context).colorScheme.primaryContainer),
-                              child: Text(
-                                teamRank != null ? '$teamRank' : '-',
-                                style: TextStyle(
-                                  fontSize: teamRank != null && teamRank > 99 ? 11 : 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: majorCount > 0
-                                      ? Colors.red.shade900
-                                      : (warningCount > 0
-                                          ? Colors.amber.shade900
-                                          : Theme.of(context).colorScheme.onPrimaryContainer),
-                                ),
-                              ),
+                              child: _buildRankAvatar(teamRank, textColor),
                             ),
                             title: Row(
                               children: [
@@ -215,6 +210,58 @@ class _TeamListScreenState extends State<TeamListScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildRankAvatar(int? teamRank, Color textColor) {
+    if (teamRank == null) {
+      return Text(
+        '-',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+      );
+    }
+
+    final suffix = getOrdinalSuffix(teamRank);
+    final numFontSize = teamRank > 99 ? 13.0 : (teamRank > 9 ? 15.5 : 17.5);
+    final suffixFontSize = teamRank > 99 ? 8.0 : (teamRank > 9 ? 9.5 : 10.5);
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$teamRank',
+              style: TextStyle(
+                fontSize: numFontSize,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+                height: 1.0,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 0.5),
+              child: Text(
+                suffix,
+                style: TextStyle(
+                  fontSize: suffixFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

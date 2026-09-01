@@ -64,4 +64,35 @@ void main() {
       expect(compareTeams(team1016, team96), greaterThan(0));
     });
   });
+
+  group('Ordinal Suffix Tests', () {
+    test('returns correct suffixes for single digits', () {
+      expect(getOrdinalSuffix(1), equals('st'));
+      expect(getOrdinalSuffix(2), equals('nd'));
+      expect(getOrdinalSuffix(3), equals('rd'));
+      expect(getOrdinalSuffix(4), equals('th'));
+      expect(getOrdinalSuffix(9), equals('th'));
+      expect(getOrdinalSuffix(10), equals('th'));
+    });
+
+    test('returns th for 11, 12, 13', () {
+      expect(getOrdinalSuffix(11), equals('th'));
+      expect(getOrdinalSuffix(12), equals('th'));
+      expect(getOrdinalSuffix(13), equals('th'));
+      expect(getOrdinalSuffix(111), equals('th'));
+      expect(getOrdinalSuffix(112), equals('th'));
+      expect(getOrdinalSuffix(113), equals('th'));
+    });
+
+    test('returns correct suffixes for higher numbers', () {
+      expect(getOrdinalSuffix(21), equals('st'));
+      expect(getOrdinalSuffix(22), equals('nd'));
+      expect(getOrdinalSuffix(23), equals('rd'));
+      expect(getOrdinalSuffix(24), equals('th'));
+      expect(getOrdinalSuffix(101), equals('st'));
+      expect(getOrdinalSuffix(102), equals('nd'));
+      expect(getOrdinalSuffix(103), equals('rd'));
+      expect(getOrdinalSuffix(104), equals('th'));
+    });
+  });
 }

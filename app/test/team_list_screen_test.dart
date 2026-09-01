@@ -122,12 +122,12 @@ void main() {
     final avatars = tester.widgetList<CircleAvatar>(find.byType(CircleAvatar)).toList();
     expect(avatars.length, 4);
 
-    final avatarTexts = avatars.map((avatar) {
-      final text = avatar.child as Text;
-      return text.data;
-    }).toList();
-
-    // 1A (Rank 1), 96F (Rank 14), 224A (Rank 105), 1016X (Unranked '-')
-    expect(avatarTexts, equals(['1', '14', '105', '-']));
+    // 1A (Rank 1st), 96F (Rank 14th), 224A (Rank 105th), 1016X (Unranked '-')
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('st'), findsOneWidget);
+    expect(find.text('14'), findsOneWidget);
+    expect(find.text('105'), findsOneWidget);
+    expect(find.text('th'), findsNWidgets(2)); // 14th and 105th
+    expect(find.text('-'), findsOneWidget);
   });
 }

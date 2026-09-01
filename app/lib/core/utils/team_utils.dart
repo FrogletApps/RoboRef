@@ -1,5 +1,24 @@
 import '../../database/app_database.dart';
 
+/// Returns the English ordinal suffix ('st', 'nd', 'rd', 'th') for a given integer rank.
+String getOrdinalSuffix(int number) {
+  final abs = number.abs();
+  final mod100 = abs % 100;
+  if (mod100 >= 11 && mod100 <= 13) {
+    return 'th';
+  }
+  switch (abs % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+}
+
 /// Compares two team numbers using natural ordering:
 /// - Numeric team numbers are ordered by their integer value first (e.g. '96F' < '1016X').
 /// - Letter suffixes are compared alphabetically (e.g. '96A' < '96B').
