@@ -103,46 +103,55 @@ export class CloudflareD1Adapter implements StorageAdapter {
     const maxVerRow = await this.db.prepare("SELECT MAX(version) as maxVer FROM notes WHERE sku = ?").bind(sku).first<{ maxVer: number | null }>();
     let currentMax = maxVerRow?.maxVer ?? 0;
 
-    const statements = [];
-    for (const record of changes) {
-      currentMax += 1;
-      statements.push(
-        this.db.prepare(`
-          INSERT INTO notes (id, sku, teamNumber, matchId, ruleCodes, severity, notes, refereeName, deviceId, createdAt, updatedAt, isDeleted, version)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ON CONFLICT(id) DO UPDATE SET
-            sku=excluded.sku,
-            teamNumber=excluded.teamNumber,
-            matchId=excluded.matchId,
-            ruleCodes=excluded.ruleCodes,
-            severity=excluded.severity,
-            notes=excluded.notes,
-            refereeName=excluded.refereeName,
-            deviceId=excluded.deviceId,
-            createdAt=excluded.createdAt,
-            updatedAt=excluded.updatedAt,
-            isDeleted=excluded.isDeleted,
-            version=excluded.version
-          WHERE excluded.updatedAt > notes.updatedAt
-        `).bind(
-          record.id,
-          record.sku,
-          record.teamNumber,
-          record.matchId ?? null,
-          JSON.stringify(record.ruleCodes || []),
-          record.severity,
-          record.notes,
-          record.refereeName,
-          record.deviceId,
-          record.createdAt,
-          record.updatedAt,
-          record.isDeleted ? 1 : 0,
-          currentMax
-        )
-      );
+    if (!changes || changes.length === 0) {
+      return { latestVersion: currentMax };
     }
 
-    if (statements.length > 0) {
+    const D1_BATCH_LIMIT = 100;
+    const insertSql = `
+      INSERT INTO notes (id, sku, teamNumber, matchId, ruleCodes, severity, notes, refereeName, deviceId, createdAt, updatedAt, isDeleted, version)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        sku=excluded.sku,
+        teamNumber=excluded.teamNumber,
+        matchId=excluded.matchId,
+        ruleCodes=excluded.ruleCodes,
+        severity=excluded.severity,
+        notes=excluded.notes,
+        refereeName=excluded.refereeName,
+        deviceId=excluded.deviceId,
+        createdAt=excluded.createdAt,
+        updatedAt=excluded.updatedAt,
+        isDeleted=excluded.isDeleted,
+        version=excluded.version
+      WHERE excluded.updatedAt > notes.updatedAt
+    `;
+
+    for (let i = 0; i < changes.length; i += D1_BATCH_LIMIT) {
+      const chunk = changes.slice(i, i + D1_BATCH_LIMIT);
+      const statements = [];
+
+      for (const record of chunk) {
+        currentMax += 1;
+        statements.push(
+          this.db.prepare(insertSql).bind(
+            record.id,
+            record.sku,
+            record.teamNumber,
+            record.matchId ?? null,
+            JSON.stringify(record.ruleCodes || []),
+            record.severity,
+            record.notes,
+            record.refereeName,
+            record.deviceId,
+            record.createdAt,
+            record.updatedAt,
+            record.isDeleted ? 1 : 0,
+            currentMax
+          )
+        );
+      }
+
       await this.db.batch(statements);
     }
 
