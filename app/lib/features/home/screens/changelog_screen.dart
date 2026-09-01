@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// Data model representing a release section in the changelog.
@@ -16,7 +16,7 @@ class ChangeLogRelease {
   });
 }
 
-/// Parses raw markdown text from `documents/changeLog.md` into structured [ChangeLogRelease] sections.
+/// Parses raw markdown text from `assets/changeLog.md` into structured [ChangeLogRelease] sections.
 List<ChangeLogRelease> parseChangeLogReleases(String markdown) {
   final lines = markdown.split('\n');
   final releases = <ChangeLogRelease>[];

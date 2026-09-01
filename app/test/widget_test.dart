@@ -15,6 +15,10 @@ import 'package:roboref/features/incidents/state/incident_controller.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
 
 void main() {
+  setUpAll(() {
+    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  });
+
   testWidgets('RoboRefApp Hierarchical Navigation test (Home Hub -> Event Workspace)', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
       'current_sku': 'TEST-SKU-2026',
@@ -51,6 +55,7 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         databaseProvider.overrideWithValue(testDb),
+        syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(prefs, httpClient: mockHttpClient)),
         vexEventsClientProvider.overrideWithValue(
           VexEventsClient(
             client: mockHttpClient,
@@ -100,13 +105,18 @@ void main() {
     });
     await tester.pumpAndSettle();
 
-    // Verify selecting an event immediately navigates to the Event Workspace displaying the 5 tabs
+    // Verify selecting an event immediately navigates to the Event Workspace displaying the 5 tabs in order
     expect(find.byType(NavigationBar), findsOneWidget);
-    expect(find.text('Incidents'), findsOneWidget);
-    expect(find.text('Matches'), findsOneWidget);
-    expect(find.text('Teams'), findsOneWidget);
-    expect(find.text('Rules'), findsOneWidget);
-    expect(find.text('Manage'), findsOneWidget);
+    final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(navBar.selectedIndex, 0); // Matches is default tab (index 0)
+    expect(navBar.destinations.length, 5);
+    expect((navBar.destinations[0] as NavigationDestination).label, 'Matches');
+    expect((navBar.destinations[1] as NavigationDestination).label, 'Teams');
+    expect((navBar.destinations[2] as NavigationDestination).label, 'Incidents');
+    expect((navBar.destinations[3] as NavigationDestination).label, 'Rules');
+    expect((navBar.destinations[4] as NavigationDestination).label, 'Manage');
+
+    expect(find.text('Match Schedule'), findsOneWidget);
 
     // 4. Test navigating back to Home Hub
     await tester.pageBack();
@@ -118,7 +128,7 @@ void main() {
     // Verify returning to home and recent list displays the selected tournament with header
     expect(find.text('Recent Tournaments'), findsOneWidget);
     expect(find.widgetWithText(Card, 'RE-V5RC-26-4487'), findsOneWidget);
-    expect(find.text('ACTIVE'), findsOneWidget);
+    expect(find.text('ACTIVE'), findsNothing);
     expect(find.text('Welcome to RoboRef!'), findsNothing);
     expect(find.byType(NavigationBar), findsNothing); // Back on Home screen without bottom nav
 

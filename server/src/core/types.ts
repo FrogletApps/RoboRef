@@ -58,10 +58,45 @@ export interface SyncPullResponse {
   changes: IncidentNoteRecord[];
 }
 
+export interface ShareParticipant {
+  deviceId: string;
+  refereeName: string;
+  role: "admin" | "member";
+  joinedAt: number;
+}
+
+export interface ShareSessionRecord {
+  id: string;
+  sku: string;
+  adminDeviceId: string;
+  adminRefereeName: string;
+  createdAt: number;
+  updatedAt: number;
+  participants: ShareParticipant[];
+}
+
+export interface ShareSessionSummary {
+  id: string;
+  sku: string;
+  adminRefereeName: string;
+  participantCount: number;
+  createdAt: number;
+}
+
 export interface StorageAdapter {
   init(): Promise<void>;
   getEvent(sku: string): Promise<EventRecord | null>;
   saveEvent(event: EventRecord): Promise<void>;
   getNotesSince(sku: string, sinceVersion: number): Promise<IncidentNoteRecord[]>;
   applyNoteChanges(sku: string, changes: IncidentNoteRecord[]): Promise<{ latestVersion: number }>;
+  createShareSession(session: ShareSessionRecord): Promise<ShareSessionRecord>;
+  getShareSession(id: string): Promise<ShareSessionRecord | null>;
+  getActiveSharesForSku(sku: string): Promise<ShareSessionRecord[]>;
+  addParticipant(shareId: string, participant: ShareParticipant): Promise<ShareSessionRecord | null>;
+  removeParticipant(
+    shareId: string,
+    deviceId: string
+  ): Promise<{ session: ShareSessionRecord | null; deleted: boolean }>;
+  deleteShareSession(shareId: string): Promise<void>;
+  purgeSkuNotes(sku: string): Promise<void>;
 }

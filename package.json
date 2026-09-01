@@ -8,7 +8,10 @@
     "dev:cf:live": "wrangler dev --env live",
     "deploy:test": "wrangler deploy --env test",
     "deploy:live": "wrangler deploy --env live",
-    "deploy": "wrangler deploy --env test"
+    "deploy": "wrangler deploy --env test",
+    "build:server": "npm --prefix server run build:node",
+    "typecheck:server": "npm --prefix server run typecheck",
+    "typecheck": "npm --prefix server run typecheck"
   },
   "devDependencies": {
     "wrangler": "^4.125.0"

@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../incidents/state/incident_controller.dart';
+import '../../incidents/screens/incident_logger_screen.dart';
 import '../../incidents/widgets/severity_badge.dart';
 import '../state/team_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
+import '../../../core/utils/team_utils.dart';
+import '../../../core/utils/match_utils.dart';
 
 class TeamListScreen extends StatefulWidget {
   final bool showAppBar;
@@ -88,10 +91,13 @@ class _TeamListScreenState extends State<TeamListScreen> {
                     final teams = allTeamNumbers
                         .where((t) => _search.isEmpty || t.contains(_search))
                         .toList()
-                      ..sort();
+                      ..sort(compareTeamNumbers);
 
                     final Map<String, String> teamNames = {
                       for (final t in registeredTeams) t.teamNumber: t.teamName,
+                    };
+                    final Map<String, int?> teamRanks = {
+                      for (final t in registeredTeams) t.teamNumber: t.rank,
                     };
 
                     if (teams.isEmpty) {
@@ -119,9 +125,16 @@ class _TeamListScreenState extends State<TeamListScreen> {
                         final team = teams[index];
                         final list = teamNotes[team] ?? [];
                         final teamName = teamNames[team];
+                        final teamRank = teamRanks[team];
 
                         final warningCount = list.where((n) => n.severity == 'warning').length;
                         final majorCount = list.where((n) => n.severity == 'major' || n.severity == 'd_q').length;
+
+                        final textColor = majorCount > 0
+                            ? Colors.red.shade900
+                            : (warningCount > 0
+                                ? Colors.amber.shade900
+                                : Theme.of(context).colorScheme.onPrimaryContainer);
 
                         return Card(
                           child: ListTile(
@@ -131,18 +144,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                   : (warningCount > 0
                                       ? Colors.amber.shade100
                                       : Theme.of(context).colorScheme.primaryContainer),
-                              child: Text(
-                                team.length > 3 ? team.substring(0, 3) : team,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: majorCount > 0
-                                      ? Colors.red.shade900
-                                      : (warningCount > 0
-                                          ? Colors.amber.shade900
-                                          : Theme.of(context).colorScheme.onPrimaryContainer),
-                                ),
-                              ),
+                              child: _buildRankAvatar(teamRank, textColor),
                             ),
                             title: Row(
                               children: [
@@ -211,6 +213,58 @@ class _TeamListScreenState extends State<TeamListScreen> {
     );
   }
 
+  Widget _buildRankAvatar(int? teamRank, Color textColor) {
+    if (teamRank == null) {
+      return Text(
+        '-',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+      );
+    }
+
+    final suffix = getOrdinalSuffix(teamRank);
+    final numFontSize = teamRank > 99 ? 13.0 : (teamRank > 9 ? 15.5 : 17.5);
+    final suffixFontSize = teamRank > 99 ? 8.0 : (teamRank > 9 ? 9.5 : 10.5);
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$teamRank',
+              style: TextStyle(
+                fontSize: numFontSize,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+                height: 1.0,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 0.5),
+              child: Text(
+                suffix,
+                style: TextStyle(
+                  fontSize: suffixFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showTeamHistory(BuildContext context, String teamNumber, List<dynamic> notes) {
     showModalBottomSheet(
       context: context,
@@ -236,9 +290,29 @@ class _TeamListScreenState extends State<TeamListScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                'Team $teamNumber History',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Team $teamNumber History',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        ),
+                        builder: (c) => AddIncidentSheet(initialTeam: teamNumber),
+                      );
+                    },
+                    icon: const Icon(Icons.add_alert, size: 18),
+                    label: const Text('Log Incident'),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               if (notes.isEmpty)
@@ -268,7 +342,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  note.matchId ?? 'General Note',
+                                  note.matchId != null ? formatMatchShortName(note.matchId!) : 'General Note',
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 SeverityBadge(severity: note.severity),

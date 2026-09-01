@@ -84,9 +84,7 @@ RoboRef/
 │   ├── deploy.ps1        # Automated build + deploy script for Cloudflare (test/live)
 │   ├── deploy.sh         # Automated Linux / Bash deploy script for Cloudflare
 │   └── generate-icons.mjs# Icon generation pipeline for Android, iOS, and Web assets
-├── wrangler.toml         # Root Cloudflare configuration (Workers + Static Web Assets, test/live)
-└── documents/            # Project documentation and changelog records
-    └── changeLog.md      # User-facing change log & release notes
+└── wrangler.toml         # Root Cloudflare configuration (Workers + Static Web Assets, test/live)
 ```
 
 ---
@@ -179,22 +177,30 @@ RoboRef uses Calendar Versioning (**CalVer**, formatted as `YYYY.M.D`) paired wi
 # Build Android APK (default target: apk)
 .\scripts\build.ps1 apk
 
-# Build Android App Bundle (.aab)
+# Build / Typecheck Sync Server & Cloudflare Worker
+.\scripts\build.ps1 server
+
+# Build both Android APK and Server
+.\scripts\build.ps1 all
+
+# Build other Flutter targets
 .\scripts\build.ps1 appbundle
-
-# Build Web PWA bundle
 .\scripts\build.ps1 web
-
-# Build Windows Desktop executable
 .\scripts\build.ps1 windows
 ```
 
 #### Linux / macOS (Bash)
 ```bash
-# Build Android APK
+# Build Android APK (default target: apk)
 ./scripts/build.sh apk
 
-# Build Web PWA bundle
+# Build / Typecheck Sync Server & Cloudflare Worker
+./scripts/build.sh server
+
+# Build both Android APK and Server
+./scripts/build.sh all
+
+# Build other Flutter targets
 ./scripts/build.sh web
 ```
 
@@ -232,23 +238,34 @@ Ensure you are logged into Wrangler (`npx wrangler login`) before deploying.
 
 ##### Windows (PowerShell)
 ```powershell
-# Build Web and deploy to Test environment (test D1 database)
+# Build Server & Web, then deploy to Test environment (test D1 database)
 .\scripts\deploy.ps1 test
 
-# Build Web and deploy to Live environment (roboref.app + live D1 database)
+# Build Server & Web, then deploy to Live environment (roboref.app + live D1 database)
 .\scripts\deploy.ps1 live
 
-# Deploy existing build without rebuilding Flutter
+# Deploy existing build without rebuilding
 .\scripts\deploy.ps1 test -SkipBuild
+
+# Deploy without rebuilding Flutter Web (e.g. server-only updates)
+.\scripts\deploy.ps1 test -SkipWebBuild
+
+# Deploy without rebuilding Server (e.g. web-only updates)
+.\scripts\deploy.ps1 test -SkipServerBuild
 ```
 
 ##### Linux / macOS (Bash)
 ```bash
-# Build Web and deploy to Test
+# Build Server & Web, then deploy to Test
 ./scripts/deploy.sh test
 
-# Build Web and deploy to Live
+# Build Server & Web, then deploy to Live
 ./scripts/deploy.sh live
+
+# Deploy with skip options
+./scripts/deploy.sh test --skip-build
+./scripts/deploy.sh test --skip-web
+./scripts/deploy.sh test --skip-server
 ```
 
 #### 2. Direct Wrangler CLI Commands
@@ -298,7 +315,7 @@ Create a `.env` file inside the `server/` folder or set environment variables on
 ### In-App Client Settings
 
 Inside the RoboRef app under **Settings**:
-- **Tournament SKU & Referee Name**: Configure active tournament SKU and referee display name.
+- **Referee Display Name**: Configure referee display name. Active tournaments are selected from the Event List on the Home screen.
 - **Sync Server Address**: Configure the sync server host (defaults to `http://roboref.local:8080` for venue LAN). All VEX Events queries proxy securely through the sync server.
 
 ---
@@ -322,8 +339,8 @@ npm run typecheck
 
 ## 📅 Versioning & Changelog
 
-- **CalVer Scheme**: Releases follow `YYYY.M.D+<commit_count>` (e.g. `2026.8.24+1`).
-- **In-App Changelog**: RoboRef dynamically renders release notes from [documents/changeLog.md](documents/changeLog.md) inside the application.
+- **CalVer Scheme**: Releases follow `YYYY.M.D+<commit_count>` (e.g. `2026.8.27+1`).
+- **In-App Changelog**: RoboRef dynamically renders release notes directly from [app/assets/changeLog.md](app/assets/changeLog.md) inside the application.
 
 ---
 
@@ -333,7 +350,7 @@ When modifying or extending RoboRef:
 
 1. **Clean-Slate Architecture**: All code is built fresh with Flutter/Dart and TypeScript/Hono. Do not use legacy referee.fyi code.
 2. **Offline-First Constraint**: All user interactions must function completely offline and sync gracefully when connectivity is re-established.
-3. **Changelog Requirement**: Any user-facing change (UI adjustments, features, bug fixes) must be documented in [documents/changeLog.md](documents/changeLog.md) under the current date.
+3. **Changelog Requirement**: Any user-facing change (UI adjustments, features, bug fixes) must be documented in [app/assets/changeLog.md](app/assets/changeLog.md) under the current release/date.
 4. **AI Guidelines**: Review [AGENTS.md](AGENTS.md) for full context and instructions when using AI coding assistants.
 
 ---

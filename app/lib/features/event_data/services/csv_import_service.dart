@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import '../../../database/app_database.dart';
+import '../../../core/utils/match_utils.dart';
 
 class CsvImportResult {
   final bool success;
@@ -41,6 +42,7 @@ class CsvImportService {
 
       int numberIdx = headers.indexWhere((h) => h.contains('number') || h == 'team');
       int nameIdx = headers.indexWhere((h) => h.contains('name') || h == 'team name');
+      int rankIdx = headers.indexWhere((h) => h == 'rank' || h == 'ranking' || h == 'pos' || h == 'position' || h == '#' || h == 'place');
       int orgIdx = headers.indexWhere((h) => h.contains('org') || h.contains('affiliation') || h.contains('school'));
       int cityIdx = headers.indexWhere((h) => h.contains('city'));
       int regionIdx = headers.indexWhere((h) => h.contains('state') || h.contains('region') || h.contains('prov'));
@@ -65,6 +67,7 @@ class CsvImportService {
         if (teamNumber.isEmpty) continue;
 
         final teamName = (nameIdx != -1 && cols.length > nameIdx) ? cols[nameIdx].trim() : 'Team $teamNumber';
+        final rank = (rankIdx != -1 && cols.length > rankIdx) ? int.tryParse(cols[rankIdx].trim()) : null;
         final org = (orgIdx != -1 && cols.length > orgIdx) ? cols[orgIdx].trim() : null;
         final city = (cityIdx != -1 && cols.length > cityIdx) ? cols[cityIdx].trim() : null;
         final region = (regionIdx != -1 && cols.length > regionIdx) ? cols[regionIdx].trim() : null;
@@ -79,6 +82,7 @@ class CsvImportService {
             city: Value(city),
             region: Value(region),
             country: Value(country),
+            rank: Value(rank),
           ),
         );
       }
@@ -128,6 +132,14 @@ class CsvImportService {
       int b1Idx = headers.indexWhere((h) => h.contains('blue 1') || h.contains('blue1'));
       int b2Idx = headers.indexWhere((h) => h.contains('blue 2') || h.contains('blue2'));
 
+      // Fallback for VEX IQ (Team 1, Team 2 / Alliance 1, Alliance 2)
+      if (r1Idx == -1) {
+        r1Idx = headers.indexWhere((h) => h.contains('team 1') || h.contains('team1') || h.contains('team_1') || (h.contains('team') && !h.contains('name') && !h.contains('2')));
+      }
+      if (r2Idx == -1) {
+        r2Idx = headers.indexWhere((h) => h.contains('team 2') || h.contains('team2') || h.contains('team_2'));
+      }
+
       if (matchIdx == -1) {
         matchIdx = 0;
       }
@@ -140,9 +152,9 @@ class CsvImportService {
 
         final cols = _parseCsvRow(line, delimiter);
         if (cols.length <= matchIdx) continue;
-
-        final matchName = cols[matchIdx].trim().toUpperCase();
-        if (matchName.isEmpty) continue;
+        final rawMatchName = cols[matchIdx].trim();
+        if (rawMatchName.isEmpty) continue;
+        final matchName = normalizeMatchName(rawMatchName);
 
         final field = (fieldIdx != -1 && cols.length > fieldIdx) ? cols[fieldIdx].trim() : null;
         final time = (timeIdx != -1 && cols.length > timeIdx) ? cols[timeIdx].trim() : null;

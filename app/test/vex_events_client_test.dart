@@ -289,7 +289,7 @@ void main() {
 
       final matches = await db.getMatchesForSku('RE-VRC-18-6495');
       expect(matches.length, equals(1));
-      expect(matches.first.name, equals('Q1'));
+      expect(matches.first.name, equals('Qualification 1'));
       expect(matches.first.redScore, equals(50));
       expect(matches.first.blueScore, equals(45));
     });

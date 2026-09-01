@@ -75,17 +75,17 @@ void main() {
       );
     });
 
-    test('root documents/changeLog.md matches app/assets/changeLog.md and current version', () {
-      final docFile = File('../documents/changeLog.md');
-      if (docFile.existsSync()) {
-        final docContent = docFile.readAsStringSync();
-        final docReleases = parseChangeLogReleases(docContent);
-        expect(
-          docReleases.first.title,
-          equals(currentVersion),
-          reason: 'The top release title in documents/changeLog.md must match pubspec.yaml version ($currentVersion)',
-        );
-      }
+    test('app/assets/changeLog.md exists and top release matches current pubspec.yaml version', () {
+      final assetFile = File('assets/changeLog.md');
+      expect(assetFile.existsSync(), isTrue, reason: 'assets/changeLog.md must exist as the single changelog file');
+      final content = assetFile.readAsStringSync();
+      final releases = parseChangeLogReleases(content);
+      expect(releases.isNotEmpty, isTrue, reason: 'Changelog must contain at least one release');
+      expect(
+        releases.first.title,
+        equals(currentVersion),
+        reason: 'The top release title in assets/changeLog.md must match pubspec.yaml version ($currentVersion)',
+      );
     });
   });
 
@@ -115,8 +115,7 @@ void main() {
       expect(find.text(currentVersion), findsOneWidget);
 
       // 4. Check markdown content is present
-      expect(find.textContaining('Theme Improvements', findRichText: true), findsWidgets);
-      expect(find.textContaining('Event Filters', findRichText: true), findsWidgets);
+      expect(find.textContaining('Team Rankings', findRichText: true), findsWidgets);
     });
 
     testWidgets('filters items when search query is entered', (tester) async {
@@ -148,7 +147,7 @@ void main() {
       await tester.tap(find.text('Clear search'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Theme Improvements', findRichText: true), findsWidgets);
+      expect(find.textContaining('Team Rankings', findRichText: true), findsWidgets);
     });
 
     testWidgets('copies version to clipboard when copy button is tapped', (tester) async {

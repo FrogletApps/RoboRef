@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../core/utils/sku_utils.dart';
+
 enum ServerConnectionStatus {
   unknown,
   connectedLocal,
@@ -38,6 +40,48 @@ Uri? buildHealthCheckUri(String rawUrl) {
     return Uri.tryParse(url);
   }
   return Uri.tryParse('$url/api/health');
+}
+
+/// Resolves the default sync server URL based on persistent storage or active environment.
+String resolveDefaultServerUrl({
+  SharedPreferences? prefs,
+  AppEnvironment? environment,
+  String? webOrigin,
+  bool isWeb = kIsWeb,
+}) {
+  final stored = prefs?.getString('server_url');
+  if (stored != null && stored.trim().isNotEmpty) {
+    return stored.trim();
+  }
+
+  final env = environment ?? getAppEnvironment();
+  switch (env) {
+    case AppEnvironment.local:
+      return 'http://localhost:8080';
+    case AppEnvironment.test:
+      if (isWeb) {
+        try {
+          final origin = webOrigin ?? (Uri.base.origin.startsWith('http') ? Uri.base.origin : null);
+          if (origin != null && (origin.contains('test.') || origin.contains('workers.dev'))) {
+            return origin;
+          }
+        } catch (_) {}
+      }
+      return 'https://test.roboref.app';
+    case AppEnvironment.production:
+      if (isWeb) {
+        try {
+          final origin = webOrigin ?? (Uri.base.origin.startsWith('http') ? Uri.base.origin : null);
+          if (origin != null &&
+              !origin.contains('localhost') &&
+              !origin.contains('127.0.0.1') &&
+              !origin.endsWith('.local')) {
+            return origin;
+          }
+        } catch (_) {}
+      }
+      return 'http://roboref.local:8080';
+  }
 }
 
 class SyncSettingsState {
@@ -96,28 +140,12 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
   final SharedPreferences prefs;
   final http.Client? httpClient;
 
-  static String _getDefaultServerUrl(SharedPreferences prefs) {
-    final stored = prefs.getString('server_url');
-    if (stored != null && stored.trim().isNotEmpty) {
-      return stored.trim();
-    }
-    if (kIsWeb) {
-      try {
-        final origin = Uri.base.origin;
-        if (origin.isNotEmpty && origin.startsWith('http')) {
-          return origin;
-        }
-      } catch (_) {}
-    }
-    return 'http://roboref.local:8080';
-  }
-
-  SyncSettingsNotifier(this.prefs, {this.httpClient})
+  SyncSettingsNotifier(this.prefs, {this.httpClient, AppEnvironment? environment})
       : super(SyncSettingsState(
           currentSku: prefs.getString('current_sku') ?? 'DEMO-EVENT-2026',
           refereeName: prefs.getString('referee_name') ?? 'Head Referee',
           deviceId: prefs.getString('device_id') ?? const Uuid().v4(),
-          serverUrl: _getDefaultServerUrl(prefs),
+          serverUrl: resolveDefaultServerUrl(prefs: prefs, environment: environment),
         )) {
     if (!prefs.containsKey('device_id')) {
       prefs.setString('device_id', state.deviceId);
@@ -198,7 +226,10 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
         final status = isLocal
             ? ServerConnectionStatus.connectedLocal
             : ServerConnectionStatus.connectedCloud;
-        final serverType = isLocal ? 'Venue LAN' : 'Cloud Server';
+        final isLocalhost = hostLower == 'localhost' || hostLower == '127.0.0.1';
+        final serverType = isLocalhost
+            ? 'Local Server'
+            : (isLocal ? 'Venue LAN' : 'Cloud Server');
         final latencyMs = stopwatch.elapsedMilliseconds;
         final msg = 'Connected to $serverType ($latencyMs ms)';
 

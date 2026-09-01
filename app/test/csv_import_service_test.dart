@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:roboref/database/app_database.dart';
 import 'package:roboref/features/event_data/services/csv_import_service.dart';
@@ -33,172 +33,196 @@ void main() {
   });
 
   group('CsvImportService - importTeamsCsv', () {
-    test('returns failure if SKU is empty or whitespace', () async {
-      final res1 = await CsvImportService.importTeamsCsv(
+    test('returns error when SKU is empty or whitespace', () async {
+      final resultEmpty = await CsvImportService.importTeamsCsv(
         csvContent: 'Number,Name\n1234A,Alpha',
         sku: '',
         db: db,
       );
-      expect(res1.success, false);
-      expect(res1.errorMessage, 'SKU cannot be empty');
+      expect(resultEmpty.success, false);
+      expect(resultEmpty.errorMessage, 'SKU cannot be empty');
 
-      final res2 = await CsvImportService.importTeamsCsv(
+      final resultWhitespace = await CsvImportService.importTeamsCsv(
         csvContent: 'Number,Name\n1234A,Alpha',
         sku: '   ',
         db: db,
       );
-      expect(res2.success, false);
-      expect(res2.errorMessage, 'SKU cannot be empty');
+      expect(resultWhitespace.success, false);
+      expect(resultWhitespace.errorMessage, 'SKU cannot be empty');
     });
 
-    test('returns failure if CSV content is empty or whitespace', () async {
-      final res1 = await CsvImportService.importTeamsCsv(
-        csvContent: '',
-        sku: 'SKU123',
+    test('returns error when CSV content is empty or whitespace', () async {
+      final result = await CsvImportService.importTeamsCsv(
+        csvContent: '   \n  \n ',
+        sku: 'RE-V5RC-24-1234',
         db: db,
       );
-      expect(res1.success, false);
-      expect(res1.errorMessage, 'CSV is empty');
-
-      final res2 = await CsvImportService.importTeamsCsv(
-        csvContent: '   \n  \n',
-        sku: 'SKU123',
-        db: db,
-      );
-      expect(res2.success, false);
-      expect(res2.errorMessage, 'CSV is empty');
+      expect(result.success, false);
+      expect(result.errorMessage, 'CSV is empty');
     });
 
-    test('parses standard comma-separated teams CSV with all columns', () async {
+    test('imports teams from standard comma-separated CSV with all headers', () async {
+      const sku = 'RE-V5RC-24-1234';
       const csv = '''
 Number,Name,Organization,City,State,Country
-1234A,Robo Team,Robo Org,Austin,TX,USA
-5678B,Tech Titans,Tech High,Dallas,TX,USA
-''';
-      final res = await CsvImportService.importTeamsCsv(
-        csvContent: csv,
-        sku: 'sku123',
-        db: db,
-      );
-
-      expect(res.success, true);
-      expect(res.teamsImported, 2);
-
-      final teams = await db.watchTeamsForSku('SKU123').first;
-      expect(teams.length, 2);
-
-      final t1 = teams.firstWhere((t) => t.teamNumber == '1234A');
-      expect(t1.teamName, 'Robo Team');
-      expect(t1.organization, 'Robo Org');
-      expect(t1.city, 'Austin');
-      expect(t1.region, 'TX');
-      expect(t1.country, 'USA');
-      expect(t1.sku, 'SKU123');
-    });
-
-    test('parses tab-separated values (TSV) and header alias variations', () async {
-      const tsv = 'Team\tTeam Name\tAffiliation\tCity\tProv\tCountry\n'
-          '9999X\tX-Ray\tSchool A\tToronto\tON\tCanada';
-
-      final res = await CsvImportService.importTeamsCsv(
-        csvContent: tsv,
-        sku: 'SKU_TSV',
-        db: db,
-      );
-
-      expect(res.success, true);
-      expect(res.teamsImported, 1);
-
-      final teams = await db.watchTeamsForSku('SKU_TSV').first;
-      expect(teams.length, 1);
-      expect(teams[0].teamNumber, '9999X');
-      expect(teams[0].teamName, 'X-Ray');
-      expect(teams[0].organization, 'School A');
-      expect(teams[0].city, 'Toronto');
-      expect(teams[0].region, 'ON');
-      expect(teams[0].country, 'Canada');
-    });
-
-    test('handles fallback when no header contains number or team keyword', () async {
-      // Header without 'number' or 'team'
-      const csv = '''
-Col0,Col1,Col2
-1111A,Alpha Bot,Some Org
-2222B,Beta Bot,Other Org
+1111A,Alpha Bot,Robotics Club,Austin,TX,USA
+2222B,Beta Bot,High School,London,ON,Canada
 ''';
 
-      final res = await CsvImportService.importTeamsCsv(
+      final result = await CsvImportService.importTeamsCsv(
         csvContent: csv,
-        sku: 'FALLBACK_SKU',
+        sku: sku,
         db: db,
       );
 
-      expect(res.success, true);
-      expect(res.teamsImported, 2);
+      expect(result.success, true);
+      expect(result.teamsImported, 2);
+      expect(result.errorMessage, isNull);
 
-      final teams = await db.watchTeamsForSku('FALLBACK_SKU').first;
+      final teams = await db.getTeamsForSku(sku);
       expect(teams.length, 2);
       expect(teams[0].teamNumber, '1111A');
       expect(teams[0].teamName, 'Alpha Bot');
+      expect(teams[0].organization, 'Robotics Club');
+      expect(teams[0].city, 'Austin');
+      expect(teams[0].region, 'TX');
+      expect(teams[0].country, 'USA');
+
+      expect(teams[1].teamNumber, '2222B');
+      expect(teams[1].teamName, 'Beta Bot');
+      expect(teams[1].organization, 'High School');
+      expect(teams[1].city, 'London');
+      expect(teams[1].region, 'ON');
+      expect(teams[1].country, 'Canada');
     });
 
-    test('handles fallback team name when column is missing or default name', () async {
-      const csv = 'Number\n1234A\n5678B';
-
-      final res = await CsvImportService.importTeamsCsv(
-        csvContent: csv,
-        sku: 'NO_NAME_SKU',
-        db: db,
-      );
-
-      expect(res.success, true);
-      expect(res.teamsImported, 2);
-
-      final teams = await db.watchTeamsForSku('NO_NAME_SKU').first;
-      expect(teams[0].teamName, 'Team 1234A');
-      expect(teams[1].teamName, 'Team 5678B');
-    });
-
-    test('handles quoted strings and escaped double quotes in CSV row', () async {
-      const csv = 'Number,Name,Org\n'
-          '1000A,"Robo ""Super"" Squad","School, High"';
-
-      final res = await CsvImportService.importTeamsCsv(
-        csvContent: csv,
-        sku: 'QUOTED_SKU',
-        db: db,
-      );
-
-      expect(res.success, true);
-      expect(res.teamsImported, 1);
-
-      final teams = await db.watchTeamsForSku('QUOTED_SKU').first;
-      expect(teams[0].teamNumber, '1000A');
-      expect(teams[0].teamName, 'Robo Super Squad');
-      expect(teams[0].organization, 'School, High');
-    });
-
-    test('skips empty rows, rows missing team numbers, or rows with insufficient columns', () async {
+    test('imports teams with alternative header names (Team, Team Name, Affiliation, Prov)', () async {
+      const sku = 'RE-V5RC-24-1234';
       const csv = '''
-Number,Name
-1001A,Valid Team
-
-,Empty Number
-2002B
+Team,Team Name,Affiliation,City,Prov,Country
+9999Z,Zeta Bot,Tech Academy,Seattle,WA,USA
 ''';
 
-      final res = await CsvImportService.importTeamsCsv(
+      final result = await CsvImportService.importTeamsCsv(
         csvContent: csv,
-        sku: 'SKIP_TEST',
+        sku: sku,
         db: db,
       );
 
-      expect(res.success, true);
-      expect(res.teamsImported, 2);
+      expect(result.success, true);
+      expect(result.teamsImported, 1);
 
-      final teams = await db.watchTeamsForSku('SKIP_TEST').first;
-      expect(teams.length, 2);
-      expect(teams.map((t) => t.teamNumber), containsAll(['1001A', '2002B']));
+      final teams = await db.getTeamsForSku(sku);
+      expect(teams.first.teamNumber, '9999Z');
+      expect(teams.first.teamName, 'Zeta Bot');
+      expect(teams.first.organization, 'Tech Academy');
+      expect(teams.first.region, 'WA');
+    });
+
+    test('imports tab-separated CSV content', () async {
+      const sku = 'RE-V5RC-24-1234';
+      const csv = "Number\tName\tCity\n5555E\tEcho Bot\tDallas";
+
+      final result = await CsvImportService.importTeamsCsv(
+        csvContent: csv,
+        sku: sku,
+        db: db,
+      );
+
+      expect(result.success, true);
+      expect(result.teamsImported, 1);
+
+      final teams = await db.getTeamsForSku(sku);
+      expect(teams.first.teamNumber, '5555E');
+      expect(teams.first.teamName, 'Echo Bot');
+      expect(teams.first.city, 'Dallas');
+    });
+
+    test('handles quoted values with quotes and spaces', () async {
+      const sku = 'RE-V5RC-24-1234';
+      const csv = '''
+"Number","Name","Organization"
+"7777G",""Special" Quoting","Academy, Inc."
+''';
+
+      final result = await CsvImportService.importTeamsCsv(
+        csvContent: csv,
+        sku: sku,
+        db: db,
+      );
+
+      expect(result.success, true);
+      expect(result.teamsImported, 1);
+
+      final teams = await db.getTeamsForSku(sku);
+      expect(teams.first.teamNumber, '7777G');
+      expect(teams.first.teamName, 'Special Quoting');
+      expect(teams.first.organization, 'Academy, Inc.');
+    });
+
+    test('fallback logic when team number header is missing (column 0 = number, column 1 = name)', () async {
+      const sku = 'RE-V5RC-24-1234';
+      const csv = '''
+CustomHeader1,CustomHeader2
+8888H,Helix Bot
+''';
+
+      final result = await CsvImportService.importTeamsCsv(
+        csvContent: csv,
+        sku: sku,
+        db: db,
+      );
+
+      expect(result.success, true);
+      expect(result.teamsImported, 1);
+
+      final teams = await db.getTeamsForSku(sku);
+      expect(teams.first.teamNumber, '8888H');
+      expect(teams.first.teamName, 'Helix Bot');
+    });
+
+    test('skips empty rows or rows with empty team numbers', () async {
+      const sku = 'RE-V5RC-24-1234';
+      const csv = '''
+Number,Name
+1111A,Alpha Bot
+
+,No Number Bot
+3333C,Gamma Bot
+''';
+
+      final result = await CsvImportService.importTeamsCsv(
+        csvContent: csv,
+        sku: sku,
+        db: db,
+      );
+
+      expect(result.success, true);
+      expect(result.teamsImported, 2);
+
+      final teams = await db.getTeamsForSku(sku);
+      expect(teams.map((t) => t.teamNumber).toList(), ['1111A', '3333C']);
+    });
+
+    test('defaults team name to "Team <Number>" when name column is missing or absent', () async {
+      const sku = 'RE-V5RC-24-1234';
+      const csv = '''
+Number
+4444D
+''';
+
+      final result = await CsvImportService.importTeamsCsv(
+        csvContent: csv,
+        sku: sku,
+        db: db,
+      );
+
+      expect(result.success, true);
+      expect(result.teamsImported, 1);
+
+      final teams = await db.getTeamsForSku(sku);
+      expect(teams.first.teamNumber, '4444D');
+      expect(teams.first.teamName, 'Team 4444D');
     });
 
     test('returns 0 teams imported when header exists but no valid team rows', () async {
@@ -216,100 +240,82 @@ Number,Name
   });
 
   group('CsvImportService - importMatchesCsv', () {
-    test('returns failure if SKU is empty or whitespace', () async {
-      final res = await CsvImportService.importMatchesCsv(
+    test('returns error when SKU is empty or whitespace', () async {
+      final resultEmpty = await CsvImportService.importMatchesCsv(
         csvContent: 'Match,Red 1,Blue 1\nQ1,1111A,2222B',
-        sku: '   ',
+        sku: '',
         db: db,
       );
-      expect(res.success, false);
-      expect(res.errorMessage, 'SKU cannot be empty');
+      expect(resultEmpty.success, false);
+      expect(resultEmpty.errorMessage, 'SKU cannot be empty');
     });
 
-    test('returns failure if CSV content is empty or whitespace', () async {
-      final res = await CsvImportService.importMatchesCsv(
-        csvContent: '   ',
-        sku: 'SKU123',
+    test('returns error when CSV content is empty', () async {
+      final result = await CsvImportService.importMatchesCsv(
+        csvContent: '',
+        sku: 'RE-V5RC-24-1234',
         db: db,
       );
-      expect(res.success, false);
-      expect(res.errorMessage, 'CSV is empty');
+      expect(result.success, false);
+      expect(result.errorMessage, 'CSV is empty');
     });
 
-    test('parses standard comma-separated matches CSV with all fields', () async {
+    test('imports V5RC matches with Red 1, Red 2, Blue 1, Blue 2', () async {
+      const sku = 'RE-V5RC-24-1234';
       const csv = '''
-Match,Field,Scheduled Time,Red 1,Red 2,Blue 1,Blue 2
+Match,Field,Time,Red 1,Red 2,Blue 1,Blue 2
 Q1,Field 1,09:00 AM,1111A,2222B,3333C,4444D
-Q2,Field 2,09:15 AM,5555E,,6666F,
+Q2,Field 2,09:10 AM,5555E,6666F,7777G,8888H
 ''';
 
-      final res = await CsvImportService.importMatchesCsv(
+      final result = await CsvImportService.importMatchesCsv(
         csvContent: csv,
-        sku: 'MATCH_SKU',
+        sku: sku,
         db: db,
       );
 
-      expect(res.success, true);
-      expect(res.matchesImported, 2);
+      expect(result.success, true);
+      expect(result.matchesImported, 2);
+      expect(result.errorMessage, isNull);
 
-      final matches = await db.watchMatchesForSku('MATCH_SKU').first;
+      final matches = await db.getMatchesForSku(sku);
       expect(matches.length, 2);
+      expect(matches[0].name, 'Qualification 1');
+      expect(matches[0].field, 'Field 1');
+      expect(matches[0].scheduledTime, '09:00 AM');
+      expect(jsonDecode(matches[0].redTeamsJson), ['1111A', '2222B']);
+      expect(jsonDecode(matches[0].blueTeamsJson), ['3333C', '4444D']);
 
-      final q1 = matches.firstWhere((m) => m.matchId == 'Q1');
-      expect(q1.field, 'Field 1');
-      expect(q1.scheduledTime, '09:00 AM');
-      expect(jsonDecode(q1.redTeamsJson), ['1111A', '2222B']);
-      expect(jsonDecode(q1.blueTeamsJson), ['3333C', '4444D']);
-
-      final q2 = matches.firstWhere((m) => m.matchId == 'Q2');
-      expect(q2.field, 'Field 2');
-      expect(q2.scheduledTime, '09:15 AM');
-      expect(jsonDecode(q2.redTeamsJson), ['5555E']);
-      expect(jsonDecode(q2.blueTeamsJson), ['6666F']);
+      expect(matches[1].name, 'Qualification 2');
+      expect(matches[1].field, 'Field 2');
+      expect(matches[1].scheduledTime, '09:10 AM');
+      expect(jsonDecode(matches[1].redTeamsJson), ['5555E', '6666F']);
+      expect(jsonDecode(matches[1].blueTeamsJson), ['7777G', '8888H']);
     });
 
-    test('parses tab-separated matches CSV with alternative header names (red1, sched, etc)', () async {
-      const tsv = 'Match\tField\tSched\tRed1\tRed2\tBlue1\tBlue2\n'
-          'P1\tMain\t10:00 AM\t1010A\t2020B\t3030C\t4040D';
+    test('imports tab-delimited matches CSV', () async {
+      const sku = 'RE-V5RC-24-1234';
+      const csv = "Match\tField\tSched Time\tRed1\tRed2\tBlue1\tBlue2\nQ1\tField A\t08:00 AM\t100A\t100B\t200A\t200B";
 
-      final res = await CsvImportService.importMatchesCsv(
-        csvContent: tsv,
-        sku: 'MATCH_TSV',
-        db: db,
-      );
-
-      expect(res.success, true);
-      expect(res.matchesImported, 1);
-
-      final matches = await db.watchMatchesForSku('MATCH_TSV').first;
-      expect(matches[0].name, 'P1');
-      expect(matches[0].scheduledTime, '10:00 AM');
-      expect(jsonDecode(matches[0].redTeamsJson), ['1010A', '2020B']);
-      expect(jsonDecode(matches[0].blueTeamsJson), ['3030C', '4040D']);
-    });
-
-    test('handles fallback when header does not contain "match"', () async {
-      const csv = '''
-Col0,Col1,Col2
-Q1,Field 1,09:00 AM
-Q2,Field 2,09:10 AM
-''';
-
-      final res = await CsvImportService.importMatchesCsv(
+      final result = await CsvImportService.importMatchesCsv(
         csvContent: csv,
-        sku: 'FALLBACK_MATCH_SKU',
+        sku: sku,
         db: db,
       );
 
-      expect(res.success, true);
-      expect(res.matchesImported, 2);
+      expect(result.success, true);
+      expect(result.matchesImported, 1);
 
-      final matches = await db.watchMatchesForSku('FALLBACK_MATCH_SKU').first;
-      expect(matches[0].matchId, 'Q1');
-      expect(matches[1].matchId, 'Q2');
+      final matches = await db.getMatchesForSku(sku);
+      expect(matches.first.name, 'Qualification 1');
+      expect(matches.first.field, 'Field A');
+      expect(matches.first.scheduledTime, '08:00 AM');
+      expect(jsonDecode(matches.first.redTeamsJson), ['100A', '100B']);
+      expect(jsonDecode(matches.first.blueTeamsJson), ['200A', '200B']);
     });
 
-    test('skips empty rows, blank match names, or rows with insufficient columns', () async {
+    test('skips empty match names or empty lines in match CSV', () async {
+      const sku = 'RE-V5RC-24-1234';
       const csv = '''
 Match,Red 1,Blue 1
 Q1,1111A,2222B
@@ -318,17 +324,17 @@ Q1,1111A,2222B
 Q2,5555E,6666F
 ''';
 
-      final res = await CsvImportService.importMatchesCsv(
+      final result = await CsvImportService.importMatchesCsv(
         csvContent: csv,
-        sku: 'SKIP_MATCHES',
+        sku: sku,
         db: db,
       );
 
-      expect(res.success, true);
-      expect(res.matchesImported, 2);
+      expect(result.success, true);
+      expect(result.matchesImported, 2);
 
-      final matches = await db.watchMatchesForSku('SKIP_MATCHES').first;
-      expect(matches.map((m) => m.matchId), containsAll(['Q1', 'Q2']));
+      final matches = await db.getMatchesForSku(sku);
+      expect(matches.map((m) => m.name).toList(), ['Qualification 1', 'Qualification 2']);
     });
 
     test('returns 0 matches imported when header exists but no valid match rows', () async {

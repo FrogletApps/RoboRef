@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import type { StorageAdapter, EventRecord, IncidentNoteRecord } from "../core/types.js";
+import type { StorageAdapter, EventRecord, IncidentNoteRecord, ShareSessionRecord, ShareParticipant } from "../core/types.js";
 
 export class LocalSqliteAdapter implements StorageAdapter {
   private db: DatabaseSync;
@@ -38,6 +38,18 @@ export class LocalSqliteAdapter implements StorageAdapter {
       );
 
       CREATE INDEX IF NOT EXISTS idx_notes_sku_ver ON notes (sku, version);
+
+      CREATE TABLE IF NOT EXISTS share_sessions (
+        id TEXT PRIMARY KEY,
+        sku TEXT NOT NULL,
+        adminDeviceId TEXT NOT NULL,
+        adminRefereeName TEXT NOT NULL,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL,
+        participantsJson TEXT NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_share_sessions_sku ON share_sessions (sku);
     `);
   }
 
@@ -123,5 +135,119 @@ export class LocalSqliteAdapter implements StorageAdapter {
     }
 
     return { latestVersion: currentMax };
+  }
+
+  private mapShareRow(row: any): ShareSessionRecord {
+    return {
+      id: row.id,
+      sku: row.sku,
+      adminDeviceId: row.adminDeviceId,
+      adminRefereeName: row.adminRefereeName,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      participants: JSON.parse(row.participantsJson || "[]"),
+    };
+  }
+
+  async createShareSession(session: ShareSessionRecord): Promise<ShareSessionRecord> {
+    const stmt = this.db.prepare(`
+      INSERT INTO share_sessions (id, sku, adminDeviceId, adminRefereeName, createdAt, updatedAt, participantsJson)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        sku=excluded.sku,
+        adminDeviceId=excluded.adminDeviceId,
+        adminRefereeName=excluded.adminRefereeName,
+        updatedAt=excluded.updatedAt,
+        participantsJson=excluded.participantsJson
+    `);
+    stmt.run(
+      session.id,
+      session.sku,
+      session.adminDeviceId,
+      session.adminRefereeName,
+      session.createdAt,
+      session.updatedAt,
+      JSON.stringify(session.participants)
+    );
+    return session;
+  }
+
+  async getShareSession(id: string): Promise<ShareSessionRecord | null> {
+    const row = this.db.prepare("SELECT * FROM share_sessions WHERE id = ?").get(id) as any;
+    if (!row) return null;
+    return this.mapShareRow(row);
+  }
+
+  async getActiveSharesForSku(sku: string): Promise<ShareSessionRecord[]> {
+    const rows = this.db.prepare("SELECT * FROM share_sessions WHERE sku = ? ORDER BY createdAt DESC").all(sku) as any[];
+    return rows.map((r) => this.mapShareRow(r));
+  }
+
+  async addParticipant(shareId: string, participant: ShareParticipant): Promise<ShareSessionRecord | null> {
+    const session = await this.getShareSession(shareId);
+    if (!session) return null;
+
+    const existingIdx = session.participants.findIndex((p: ShareParticipant) => p.deviceId === participant.deviceId);
+    if (existingIdx >= 0) {
+      session.participants[existingIdx] = {
+        ...session.participants[existingIdx],
+        refereeName: participant.refereeName,
+        joinedAt: participant.joinedAt,
+      };
+    } else {
+      session.participants.push(participant);
+    }
+    session.updatedAt = Date.now();
+
+    const stmt = this.db.prepare("UPDATE share_sessions SET participantsJson = ?, updatedAt = ? WHERE id = ?");
+    stmt.run(JSON.stringify(session.participants), session.updatedAt, shareId);
+    return session;
+  }
+
+  async removeParticipant(
+    shareId: string,
+    deviceId: string
+  ): Promise<{ session: ShareSessionRecord | null; deleted: boolean }> {
+    const session = await this.getShareSession(shareId);
+    if (!session) {
+      return { session: null, deleted: false };
+    }
+
+    const isAdmin = session.adminDeviceId === deviceId;
+    if (isAdmin && session.participants.length > 1) {
+      throw new Error("ADMIN_CANNOT_LEAVE_WITH_ACTIVE_PARTICIPANTS");
+    }
+
+    const updatedParticipants = session.participants.filter((p: ShareParticipant) => p.deviceId !== deviceId);
+
+    if (updatedParticipants.length === 0) {
+      // Last participant (or admin when alone) left -> delete share session and purge notes
+      this.db.exec("BEGIN;");
+      try {
+        this.db.prepare("DELETE FROM share_sessions WHERE id = ?").run(shareId);
+        this.db.prepare("DELETE FROM notes WHERE sku = ?").run(session.sku);
+        this.db.exec("COMMIT;");
+      } catch (err) {
+        this.db.exec("ROLLBACK;");
+        throw err;
+      }
+      return { session: null, deleted: true };
+    }
+
+    session.participants = updatedParticipants;
+    session.updatedAt = Date.now();
+
+    const stmt = this.db.prepare("UPDATE share_sessions SET participantsJson = ?, updatedAt = ? WHERE id = ?");
+    stmt.run(JSON.stringify(session.participants), session.updatedAt, shareId);
+
+    return { session, deleted: false };
+  }
+
+  async deleteShareSession(shareId: string): Promise<void> {
+    this.db.prepare("DELETE FROM share_sessions WHERE id = ?").run(shareId);
+  }
+
+  async purgeSkuNotes(sku: string): Promise<void> {
+    this.db.prepare("DELETE FROM notes WHERE sku = ?").run(sku);
   }
 }

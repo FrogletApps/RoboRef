@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/utils/sku_utils.dart';
+import '../../../core/utils/match_utils.dart';
 import '../../../database/app_database.dart';
 import '../../event_selection/models/event_model.dart';
 
@@ -344,6 +345,58 @@ class VexEventsClient {
         bool hasMorePages = true;
         final List<TeamsCompanion> allTeamCompanions = [];
 
+        if (divisionIds.isEmpty) {
+          divisionIds = [1];
+        }
+
+        // Fetch division rankings
+        final Map<String, int> teamRanks = {};
+        for (final divId in divisionIds) {
+          int rankPage = 1;
+          bool hasMoreRanks = true;
+          while (hasMoreRanks && rankPage <= 5) {
+            try {
+              final rankResponse = await _getWithFallback(
+                '/events/$resolvedId/divisions/$divId/rankings',
+                queryParams: {
+                  'page': [rankPage.toString()],
+                  'per_page': ['250'],
+                },
+                timeout: const Duration(seconds: 12),
+                serverUrl: serverUrl,
+              );
+
+              final rankData = jsonDecode(rankResponse.body);
+              if (rankData['data'] is List) {
+                final list = rankData['data'] as List;
+                for (final r in list) {
+                  final teamObj = r['team'];
+                  String? teamNum;
+                  if (teamObj is Map) {
+                    teamNum = (teamObj['name'] ?? teamObj['number'] ?? teamObj['team_name'])?.toString();
+                  }
+                  final rankVal = r['rank'] is int ? r['rank'] as int : int.tryParse(r['rank']?.toString() ?? '');
+                  if (teamNum != null && teamNum.trim().isNotEmpty && rankVal != null) {
+                    teamRanks[teamNum.trim().toUpperCase()] = rankVal;
+                  }
+                }
+
+                final meta = rankData['meta'];
+                final lastPage = meta?['last_page'] as int? ?? 1;
+                if (rankPage >= lastPage || list.isEmpty) {
+                  hasMoreRanks = false;
+                } else {
+                  rankPage++;
+                }
+              } else {
+                hasMoreRanks = false;
+              }
+            } catch (_) {
+              hasMoreRanks = false;
+            }
+          }
+        }
+
         while (hasMorePages && page <= 5) {
           try {
             final teamsResponse = await _getWithFallback(
@@ -371,6 +424,7 @@ class VexEventsClient {
                       city: Value(t['location']?['city']?.toString()),
                       region: Value(t['location']?['region']?.toString()),
                       country: Value(t['location']?['country']?.toString()),
+                      rank: Value(teamRanks[teamNum]),
                     ),
                   );
                 }
@@ -388,6 +442,21 @@ class VexEventsClient {
             }
           } catch (_) {
             hasMorePages = false;
+          }
+        }
+
+        // Add any ranked teams not in the event team roster
+        final existingNums = allTeamCompanions.map((t) => t.teamNumber.value).toSet();
+        for (final entry in teamRanks.entries) {
+          if (!existingNums.contains(entry.key)) {
+            allTeamCompanions.add(
+              TeamsCompanion(
+                teamNumber: Value(entry.key),
+                teamName: Value('Team ${entry.key}'),
+                sku: Value(cleanSku),
+                rank: Value(entry.value),
+              ),
+            );
           }
         }
 
@@ -423,7 +492,11 @@ class VexEventsClient {
                 final list = matchesData['data'] as List;
                 for (final m in list) {
                   final matchId = m['id']?.toString() ?? m['name']?.toString() ?? '';
-                  final name = m['name']?.toString() ?? 'Match';
+                  final rawName = m['name']?.toString();
+                  final round = m['round'] as int?;
+                  final instance = m['instance'] as int?;
+                  final matchnum = m['matchnum'] as int?;
+                  final name = normalizeMatchName(rawName, round: round, instance: instance, matchnum: matchnum);
                   final field = m['field']?.toString();
                   final scheduledTime = m['scheduled']?.toString();
 

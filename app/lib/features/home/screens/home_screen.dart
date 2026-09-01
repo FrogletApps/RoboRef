@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
@@ -5,12 +6,15 @@ import '../../../core/utils/sku_utils.dart';
 import '../../event_selection/screens/event_selection_screen.dart';
 import '../../event_selection/state/event_controller.dart';
 import '../../event_workspace/screens/event_workspace_screen.dart';
+import '../../incidents/state/incident_controller.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
+import '../../sharing/state/share_controller.dart';
 import 'changelog_screen.dart';
 import 'share_screen.dart';
+import '../../sharing/widgets/event_share_sheet.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToIncidents;
 
   const HomeScreen({
@@ -18,8 +22,73 @@ class HomeScreen extends ConsumerWidget {
     this.onNavigateToIncidents,
   });
 
+  @visibleForTesting
+  static void resetDeepLinkCheckForTesting() {
+    _HomeScreenState._initialDeepLinkChecked = false;
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  static bool _initialDeepLinkChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInitialDeepLink();
+    });
+  }
+
+  Future<void> _checkInitialDeepLink() async {
+    if (_initialDeepLinkChecked) return;
+    _initialDeepLinkChecked = true;
+
+    if (!kIsWeb) return;
+
+    try {
+      final params = Uri.base.queryParameters;
+      final skuParam = params['sku'] ?? params['SKU'];
+      final joinShareParam = params['joinShare'] ?? params['join'] ?? params['shareId'];
+
+      if (skuParam != null && skuParam.trim().isNotEmpty) {
+        final cleanSku = skuParam.trim().toUpperCase();
+        final db = ref.read(databaseProvider);
+        final existingEvent = await db.getEventBySku(cleanSku);
+
+        if (existingEvent == null) {
+          await ref.read(eventControllerProvider.notifier).addManualEvent(sku: cleanSku);
+        } else {
+          ref.read(syncSettingsProvider.notifier).setSku(cleanSku);
+        }
+
+        if (joinShareParam != null && joinShareParam.trim().isNotEmpty) {
+          final cleanShareId = joinShareParam.trim().toUpperCase();
+          await ref.read(shareControllerProvider.notifier).joinShare(
+            shareId: cleanShareId,
+            sku: cleanSku,
+          );
+        }
+
+        if (mounted) {
+          if (widget.onNavigateToIncidents != null) {
+            widget.onNavigateToIncidents!();
+          } else {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const EventWorkspaceScreen(),
+              ),
+            );
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final recentEventsAsync = ref.watch(recentEventsStreamProvider);
     final settings = ref.watch(syncSettingsProvider);
     final env = getAppEnvironment();
@@ -67,7 +136,8 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       ...events.map((event) {
-                      final isActive = event.sku.toUpperCase() == settings.currentSku.toUpperCase();
+                      final isShared = event.isShared;
+                      final serverType = getServerTypeDisplayName(settings.serverUrl);
                       final color = getSkuColor(event.sku);
                       final dateRange = formatEventDateRange(
                         event.startDate,
@@ -77,29 +147,20 @@ class HomeScreen extends ConsumerWidget {
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        elevation: isActive ? 3 : 1,
+                        elevation: 1,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
-                            color: isActive
-                                ? color.withValues(alpha: 0.8)
-                                : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                            width: isActive ? 1.5 : 1.0,
+                            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                            width: 1.0,
                           ),
                         ),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            // Set as active tournament SKU
                             ref.read(syncSettingsProvider.notifier).setSku(event.sku);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Active tournament: ${event.sku}'),
-                                duration: const Duration(seconds: 1),
-                              ),
-                            );
-                            if (onNavigateToIncidents != null) {
-                              onNavigateToIncidents!();
+                            if (widget.onNavigateToIncidents != null) {
+                              widget.onNavigateToIncidents!();
                             } else {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -113,7 +174,7 @@ class HomeScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Top Row: SKU Badge + Dates + Active indicator
+                                // Top Row: SKU Badge + Dates + Sharing indicator
                                 Row(
                                   children: [
                                     Container(
@@ -146,21 +207,21 @@ class HomeScreen extends ConsumerWidget {
                                       ),
                                     ] else
                                       const Spacer(),
-                                    if (isActive)
+                                    if (isShared)
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: Colors.green.withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(4),
                                         ),
-                                        child: const Row(
+                                        child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(Icons.check_circle, size: 12, color: Colors.green),
-                                            SizedBox(width: 4),
+                                            const Icon(Icons.share, size: 12, color: Colors.green),
+                                            const SizedBox(width: 4),
                                             Text(
-                                              'ACTIVE',
-                                              style: TextStyle(
+                                              'Sharing: $serverType',
+                                              style: const TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
                                                 color: Colors.green,
@@ -169,12 +230,22 @@ class HomeScreen extends ConsumerWidget {
                                           ],
                                         ),
                                       ),
+
                                     PopupMenuButton<String>(
                                       icon: const Icon(Icons.more_vert, size: 18, color: Colors.grey),
                                       padding: EdgeInsets.zero,
                                       constraints: const BoxConstraints(),
                                       onSelected: (action) {
-                                        if (action == 'hide') {
+                                        if (action == 'share') {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                            ),
+                                            builder: (ctx) => EventShareSheet(sku: event.sku),
+                                          );
+                                        } else if (action == 'hide') {
                                           ref.read(eventControllerProvider.notifier).hideEvent(event.sku);
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(content: Text('Removed ${event.sku} from recent list')),
@@ -182,6 +253,16 @@ class HomeScreen extends ConsumerWidget {
                                         }
                                       },
                                       itemBuilder: (context) => [
+                                        const PopupMenuItem(
+                                          value: 'share',
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.share_outlined, size: 16),
+                                              SizedBox(width: 8),
+                                              Text('Share Event Online'),
+                                            ],
+                                          ),
+                                        ),
                                         const PopupMenuItem(
                                           value: 'hide',
                                           child: Row(

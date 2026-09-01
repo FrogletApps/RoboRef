@@ -4,6 +4,8 @@ import 'tables/teams_table.dart';
 import 'tables/matches_table.dart';
 import 'tables/incident_notes_table.dart';
 import 'connection/connection.dart' as impl;
+import '../core/utils/team_utils.dart';
+import '../core/utils/match_utils.dart';
 
 part 'app_database.g.dart';
 
@@ -14,7 +16,19 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) async {
+          await m.createAll();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.addColumn(teams, teams.rank);
+          }
+        },
+      );
 
   // Stream of all active (non-deleted) incident notes for a specific tournament SKU
   Stream<List<IncidentNote>> watchNotesForSku(String sku) {
@@ -64,6 +78,16 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  // Get latest version number for notes of a tournament SKU
+  Future<int> getLatestNoteVersion(String sku) async {
+    final maxVer = incidentNotes.version.max();
+    final query = selectOnly(incidentNotes)
+      ..addColumns([maxVer])
+      ..where(incidentNotes.sku.equals(sku));
+    final row = await query.getSingleOrNull();
+    return row?.read(maxVer) ?? 0;
+  }
+
   // --- Events DAO Methods ---
 
   // Stream of recent visible events
@@ -97,6 +121,33 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  // Update event share state (isShared, shareId, role, etc.)
+  Future<void> updateEventShareState(
+    String sku, {
+    required bool isShared,
+    String? shareId,
+    String? shareRole,
+    String? adminRefereeName,
+    String? adminDeviceId,
+  }) async {
+    await (update(events)..where((tbl) => tbl.sku.equals(sku))).write(
+      EventsCompanion(
+        isShared: Value(isShared),
+        shareId: Value(shareId),
+        shareRole: Value(shareRole),
+        adminRefereeName: Value(adminRefereeName),
+        adminDeviceId: Value(adminDeviceId),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  // Check if an event is currently marked as shared
+  Future<bool> isEventShared(String sku) async {
+    final event = await getEventBySku(sku);
+    return event?.isShared ?? false;
+  }
+
   // Unhide an event in history
   Future<void> unhideEvent(String sku) {
     return (update(events)..where((tbl) => tbl.sku.equals(sku))).write(
@@ -112,16 +163,16 @@ class AppDatabase extends _$AppDatabase {
   // --- Teams DAO Methods ---
   Stream<List<Team>> watchTeamsForSku(String sku) {
     return (select(teams)
-          ..where((tbl) => tbl.sku.equals(sku))
-          ..orderBy([(t) => OrderingTerm.asc(t.teamNumber)]))
-        .watch();
+          ..where((tbl) => tbl.sku.equals(sku)))
+        .watch()
+        .map((list) => List<Team>.from(list)..sort(compareTeams));
   }
 
-  Future<List<Team>> getTeamsForSku(String sku) {
-    return (select(teams)
-          ..where((tbl) => tbl.sku.equals(sku))
-          ..orderBy([(t) => OrderingTerm.asc(t.teamNumber)]))
+  Future<List<Team>> getTeamsForSku(String sku) async {
+    final list = await (select(teams)
+          ..where((tbl) => tbl.sku.equals(sku)))
         .get();
+    return List<Team>.from(list)..sort(compareTeams);
   }
 
   Future<void> upsertTeams(List<TeamsCompanion> entries) async {
@@ -142,16 +193,16 @@ class AppDatabase extends _$AppDatabase {
   // --- Matches DAO Methods ---
   Stream<List<Matche>> watchMatchesForSku(String sku) {
     return (select(matches)
-          ..where((tbl) => tbl.sku.equals(sku))
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
-        .watch();
+          ..where((tbl) => tbl.sku.equals(sku)))
+        .watch()
+        .map((list) => List<Matche>.from(list)..sort(compareMatches));
   }
 
-  Future<List<Matche>> getMatchesForSku(String sku) {
-    return (select(matches)
-          ..where((tbl) => tbl.sku.equals(sku))
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+  Future<List<Matche>> getMatchesForSku(String sku) async {
+    final list = await (select(matches)
+          ..where((tbl) => tbl.sku.equals(sku)))
         .get();
+    return List<Matche>.from(list)..sort(compareMatches);
   }
 
   Future<void> upsertMatches(List<MatchesCompanion> entries) async {

@@ -314,3 +314,72 @@ String getAppTitle([AppEnvironment? env]) {
   }
 }
 
+/// Categorize sync server URL as 'RoboRef Cloud Server' or 'Other Server'
+String getServerTypeDisplayName(String serverUrl) {
+  final clean = serverUrl.trim().toLowerCase();
+  if (clean.contains('roboref.app') || clean.contains('roboref.fyi') || clean.contains('workers.dev')) {
+    return 'RoboRef Cloud Server';
+  }
+  return 'Other Server';
+}
+
+/// Constructs a share join URL for an event SKU and share session ID.
+/// Resolves correctly for:
+/// - Test environment / test cloud server: https://test.roboref.app?joinShare=...&sku=...
+/// - Production cloud server: https://roboref.app?joinShare=...&sku=...
+/// - Custom LAN / Local server: http://192.168.1.50:8080?joinShare=...&sku=... or http://roboref.local:8080?joinShare=...&sku=...
+String buildJoinUrl({
+  required String shareId,
+  required String sku,
+  required String serverUrl,
+  AppEnvironment? environment,
+  String? webOrigin,
+  bool isWeb = kIsWeb,
+}) {
+  final cleanSku = sku.trim().toUpperCase();
+  final cleanShareId = shareId.trim().toUpperCase();
+  final cleanServer = serverUrl.trim();
+  final env = environment ?? getAppEnvironment();
+
+  String baseUrl;
+  final serverLower = cleanServer.toLowerCase();
+
+  // If connected to a test server / test domain or running in test environment with a cloud server
+  if (serverLower.contains('test.roboref.app') ||
+      serverLower.contains('test.roboref.fyi') ||
+      (env == AppEnvironment.test &&
+          (serverLower.contains('roboref.app') ||
+              serverLower.contains('roboref.fyi') ||
+              serverLower.contains('workers.dev')))) {
+    baseUrl = 'https://test.roboref.app';
+  } else if (serverLower.contains('roboref.app') || serverLower.contains('roboref.fyi')) {
+    baseUrl = 'https://roboref.app';
+  } else if (isWeb && webOrigin != null && webOrigin.startsWith('http')) {
+    final originLower = webOrigin.toLowerCase();
+    if (originLower.contains('test.roboref.app') ||
+        originLower.contains('test.roboref.fyi') ||
+        (env == AppEnvironment.test && originLower.contains('test'))) {
+      baseUrl = 'https://test.roboref.app';
+    } else if (originLower.contains('roboref.app') || originLower.contains('roboref.fyi')) {
+      baseUrl = 'https://roboref.app';
+    } else {
+      baseUrl = webOrigin.replaceAll(RegExp(r'/+$'), '');
+    }
+  } else if (cleanServer.isNotEmpty) {
+    baseUrl = cleanServer.replaceAll(RegExp(r'/+$'), '');
+  } else {
+    baseUrl = env == AppEnvironment.test ? 'https://test.roboref.app' : 'https://roboref.app';
+  }
+
+  // Check if running in web browser where origin is test.roboref.app
+  if (isWeb && baseUrl.contains('roboref.app') && !baseUrl.contains('test.')) {
+    try {
+      final origin = webOrigin ?? (Uri.base.origin.startsWith('http') ? Uri.base.origin : null);
+      if (origin != null && (origin.contains('test.') || origin.contains('workers.dev'))) {
+        baseUrl = 'https://test.roboref.app';
+      }
+    } catch (_) {}
+  }
+
+  return '$baseUrl?joinShare=$cleanShareId&sku=$cleanSku';
+}

@@ -180,5 +180,247 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     });
   });
 
+  function generateShareCode(): string {
+    const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    let code = "";
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
+  // Check existing active shares for an event SKU
+  app.get("/api/share/check", async (c) => {
+    const sku = c.req.query("sku");
+    if (!sku) {
+      return c.json({ error: "Missing required 'sku' query parameter" }, 400);
+    }
+
+    const storage = c.get("storage");
+    const activeShares = await storage.getActiveSharesForSku(sku);
+
+    return c.json({
+      sku,
+      activeShares: activeShares.map((s) => ({
+        id: s.id,
+        sku: s.sku,
+        adminRefereeName: s.adminRefereeName,
+        participantCount: s.participants.length,
+        createdAt: s.createdAt,
+      })),
+    });
+  });
+
+  // Create a new share session for an event
+  app.post("/api/share/create", async (c) => {
+    const body = await c.req.json<{
+      sku: string;
+      adminDeviceId: string;
+      adminRefereeName: string;
+      force?: boolean;
+    }>();
+
+    if (!body.sku || !body.adminDeviceId || !body.adminRefereeName) {
+      return c.json({ error: "Missing required fields: sku, adminDeviceId, adminRefereeName" }, 400);
+    }
+
+    const storage = c.get("storage");
+    const activeShares = await storage.getActiveSharesForSku(body.sku);
+
+    // If active share exists and user did not specify force, warn user
+    if (activeShares.length > 0 && !body.force) {
+      const existing = activeShares[0];
+      if (existing.adminDeviceId !== body.adminDeviceId) {
+        return c.json(
+          {
+            error: "SHARE_ALREADY_EXISTS",
+            message: `A share session for ${body.sku} already exists and is hosted by ${existing.adminRefereeName}`,
+            existingShares: activeShares.map((s) => ({
+              id: s.id,
+              sku: s.sku,
+              adminRefereeName: s.adminRefereeName,
+              participantCount: s.participants.length,
+              createdAt: s.createdAt,
+            })),
+          },
+          409
+        );
+      } else {
+        // Same admin already created a share, return existing session
+        return c.json({
+          success: true,
+          session: existing,
+          isExisting: true,
+        });
+      }
+    }
+
+    const now = Date.now();
+    const shareId = generateShareCode();
+    const session = await storage.createShareSession({
+      id: shareId,
+      sku: body.sku,
+      adminDeviceId: body.adminDeviceId,
+      adminRefereeName: body.adminRefereeName,
+      createdAt: now,
+      updatedAt: now,
+      participants: [
+        {
+          deviceId: body.adminDeviceId,
+          refereeName: body.adminRefereeName,
+          role: "admin",
+          joinedAt: now,
+        },
+      ],
+    });
+
+    return c.json({
+      success: true,
+      session,
+    });
+  });
+
+  // Get share session status and participants
+  app.get("/api/share/status", async (c) => {
+    const shareId = c.req.query("shareId");
+    const deviceId = c.req.query("deviceId");
+
+    if (!shareId) {
+      return c.json({ error: "Missing required 'shareId' query parameter" }, 400);
+    }
+
+    const storage = c.get("storage");
+    const session = await storage.getShareSession(shareId);
+
+    if (!session) {
+      return c.json({ error: "Share session not found or has ended", ended: true }, 404);
+    }
+
+    const participant = deviceId ? session.participants.find((p) => p.deviceId === deviceId) : undefined;
+
+    return c.json({
+      success: true,
+      session,
+      isParticipant: Boolean(participant),
+      role: participant?.role,
+    });
+  });
+
+  // Join an existing share session
+  app.post("/api/share/join", async (c) => {
+    const body = await c.req.json<{
+      shareId?: string;
+      sku?: string;
+      deviceId: string;
+      refereeName: string;
+    }>();
+
+    if (!body.deviceId || !body.refereeName) {
+      return c.json({ error: "Missing required fields: deviceId, refereeName" }, 400);
+    }
+
+    const storage = c.get("storage");
+    let targetShareId = body.shareId?.trim().toUpperCase();
+
+    if (!targetShareId && body.sku) {
+      const active = await storage.getActiveSharesForSku(body.sku);
+      if (active.length > 0) {
+        targetShareId = active[0].id;
+      }
+    }
+
+    if (!targetShareId) {
+      return c.json({ error: "No active share session found to join" }, 404);
+    }
+
+    const session = await storage.getShareSession(targetShareId);
+    if (!session) {
+      return c.json({ error: "Share session not found or has ended" }, 404);
+    }
+
+    const updated = await storage.addParticipant(targetShareId, {
+      deviceId: body.deviceId,
+      refereeName: body.refereeName,
+      role: session.adminDeviceId === body.deviceId ? "admin" : "member",
+      joinedAt: Date.now(),
+    });
+
+    return c.json({
+      success: true,
+      session: updated,
+    });
+  });
+
+  // Leave a share session
+  app.post("/api/share/leave", async (c) => {
+    const body = await c.req.json<{
+      shareId: string;
+      deviceId: string;
+    }>();
+
+    if (!body.shareId || !body.deviceId) {
+      return c.json({ error: "Missing required fields: shareId, deviceId" }, 400);
+    }
+
+    const storage = c.get("storage");
+    try {
+      const result = await storage.removeParticipant(body.shareId, body.deviceId);
+      return c.json({
+        success: true,
+        deleted: result.deleted,
+        remainingCount: result.session ? result.session.participants.length : 0,
+      });
+    } catch (e: any) {
+      if (e?.message === "ADMIN_CANNOT_LEAVE_WITH_ACTIVE_PARTICIPANTS") {
+        return c.json(
+          {
+            error: "ADMIN_CANNOT_LEAVE_WITH_ACTIVE_PARTICIPANTS",
+            message: "The admin cannot leave while other referees are still in the session. Remove all participants first.",
+          },
+          400
+        );
+      }
+      return c.json({ error: e?.message || "Failed to leave share session" }, 500);
+    }
+  });
+
+  // Admin removes/kicks a participant from the share session
+  app.post("/api/share/remove-participant", async (c) => {
+    const body = await c.req.json<{
+      shareId: string;
+      adminDeviceId: string;
+      targetDeviceId: string;
+    }>();
+
+    if (!body.shareId || !body.adminDeviceId || !body.targetDeviceId) {
+      return c.json({ error: "Missing required fields: shareId, adminDeviceId, targetDeviceId" }, 400);
+    }
+
+    const storage = c.get("storage");
+    const session = await storage.getShareSession(body.shareId);
+
+    if (!session) {
+      return c.json({ error: "Share session not found" }, 404);
+    }
+
+    if (session.adminDeviceId !== body.adminDeviceId) {
+      return c.json({ error: "Only the session admin can remove participants" }, 403);
+    }
+
+    if (body.targetDeviceId === session.adminDeviceId) {
+      return c.json({ error: "Admin cannot remove themselves via this endpoint. Use leave endpoint." }, 400);
+    }
+
+    try {
+      const result = await storage.removeParticipant(body.shareId, body.targetDeviceId);
+      return c.json({
+        success: true,
+        session: result.session,
+      });
+    } catch (e: any) {
+      return c.json({ error: e?.message || "Failed to remove participant" }, 500);
+    }
+  });
+
   return app;
 }
