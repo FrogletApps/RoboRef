@@ -153,11 +153,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Find About & Legal header and Privacy Policy tile
-      expect(find.text('About & Legal'), findsOneWidget);
+      // Find About header and Privacy Policy tile
+      expect(find.text('About'), findsOneWidget);
       final privacyTile = find.widgetWithText(ListTile, 'Privacy Policy');
       expect(privacyTile, findsOneWidget);
-      expect(find.text('Offline data storage and privacy practices'), findsOneWidget);
 
       // Tap Privacy Policy tile and complete navigation animation
       await tester.tap(privacyTile);

@@ -418,15 +418,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // About & Legal Section
+              // About Section
               const Text(
-                'About & Legal',
+                'About',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'RoboRef operates with local-first data principles and minimal permissions.',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 12),
               Card(
@@ -445,10 +440,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text(
                     'Privacy Policy',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  subtitle: const Text(
-                    'Offline data storage and privacy practices',
-                    style: TextStyle(fontSize: 12.5),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 20),
                   onTap: () {
