@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/utils/sku_utils.dart';
 import 'features/home/screens/home_screen.dart';
+import 'features/settings/screens/privacy_policy_screen.dart';
 import 'features/settings/state/sync_settings_controller.dart';
 
 Future<void> main() async {
@@ -80,7 +81,11 @@ class RoboRefApp extends ConsumerWidget {
         }
         return supportedLocales.first;
       },
-      home: const HomeScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (_) => const HomeScreen(),
+        '/privacy': (_) => const PrivacyPolicyScreen(),
+      },
     );
   }
 }

@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.9.2+1
+
+- **Added Privacy Policy**: Viewable in the app and web version.
+
 ## 2026.9.1+1
 
 - **Background Sync Polling**: Automatically checks for remote note updates every 60 seconds and on app resume.

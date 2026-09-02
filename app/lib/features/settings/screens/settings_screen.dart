@@ -5,6 +5,7 @@ import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
+import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final bool showAppBar;
@@ -415,6 +416,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 24),
+
+              // About & Legal Section
+              const Text(
+                'About & Legal',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'RoboRef operates with local-first data principles and minimal permissions.',
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.shield_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: const Text(
+                    'Privacy Policy',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  subtitle: const Text(
+                    'Offline data storage and privacy practices',
+                    style: TextStyle(fontSize: 12.5),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PrivacyPolicyScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         );
