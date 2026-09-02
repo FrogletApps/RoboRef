@@ -1,4 +1,4 @@
-package fyi.roboref.roboref
+package app.roboref
 
 import io.flutter.embedding.android.FlutterActivity
 
