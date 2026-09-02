@@ -1,6 +1,6 @@
 # Change Log
 
-## 2026.9.2+1
+## 2026.9.2+102
 
 - **Added Privacy Policy**: Viewable in the app and web version.
 
