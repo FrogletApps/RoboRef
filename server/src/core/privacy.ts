@@ -123,9 +123,6 @@ export function renderPrivacyHtml(markdown: string): string {
       --border: #e2e8f0;
       --primary: #2563eb;
       --primary-hover: #1d4ed8;
-      --banner-bg: #eff6ff;
-      --banner-border: #bfdbfe;
-      --banner-text: #1e40af;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -136,9 +133,6 @@ export function renderPrivacyHtml(markdown: string): string {
         --border: #334155;
         --primary: #3b82f6;
         --primary-hover: #60a5fa;
-        --banner-bg: #1e293b;
-        --banner-border: #3b82f6;
-        --banner-text: #93c5fd;
       }
     }
     * {
@@ -190,15 +184,6 @@ export function renderPrivacyHtml(markdown: string): string {
       font-size: 0.85rem;
       color: var(--muted);
       font-weight: 500;
-    }
-    .callout {
-      background: var(--banner-bg);
-      border: 1px solid var(--banner-border);
-      color: var(--banner-text);
-      border-radius: 10px;
-      padding: 14px 18px;
-      margin: 20px 0;
-      font-size: 0.95rem;
     }
     h1 {
       font-size: 2rem;
@@ -267,9 +252,6 @@ export function renderPrivacyHtml(markdown: string): string {
     <div class="header-nav">
       <a href="/" class="back-btn">&#8592; Go to RoboRef</a>
       <span class="app-badge">RoboRef Assistant</span>
-    </div>
-    <div class="callout">
-      <strong>Offline-First &amp; Minimal Collection:</strong> RoboRef operates entirely offline on your device. Match notes and incident records are never sent to external servers unless you explicitly share an event or connect to a sync server.
     </div>
     ${contentHtml}
     <footer>

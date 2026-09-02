@@ -87,7 +87,7 @@ export function createSyncApp(storageProvider) {
                     : "text/plain; charset=utf-8",
             });
         }
-        c.header("Cache-Control", "public, max-age=3600");
+        c.header("Cache-Control", "public, max-age=0, must-revalidate");
         return c.html(renderPrivacyHtml(markdown));
     };
     app.get("/privacy", handlePrivacy);

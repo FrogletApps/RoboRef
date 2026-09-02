@@ -121,43 +121,6 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
               children: [
-                // Info banner highlighting offline-first
-                Card(
-                  color: isDark ? const Color(0xFF1E2330) : const Color(0xFFEFF6FF),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(
-                      color: isDark ? const Color(0xFF2563EB).withValues(alpha: 0.3) : const Color(0xFFBFDBFE),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.verified_user_outlined,
-                          size: 20,
-                          color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'RoboRef works completely offline. Your notes, teams, and match anomaly data never leave your device unless tournament sync is explicitly enabled.',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: isDark ? const Color(0xFFDBEAFE) : const Color(0xFF1E40AF),
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
                 // Markdown body
                 MarkdownBody(
                   data: content,

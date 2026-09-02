@@ -107,7 +107,7 @@ export function createSyncApp(storageProvider: StorageAdapter) {
       });
     }
 
-    c.header("Cache-Control", "public, max-age=3600");
+    c.header("Cache-Control", "public, max-age=0, must-revalidate");
     return c.html(renderPrivacyHtml(markdown));
   };
 

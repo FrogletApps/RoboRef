@@ -52,7 +52,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Privacy Policy'), findsWidgets);
-      expect(find.textContaining('RoboRef works completely offline'), findsOneWidget);
       expect(find.textContaining('Offline-First by Design'), findsOneWidget);
       expect(find.textContaining('Global Robotics & Science Foundation'), findsOneWidget);
 
