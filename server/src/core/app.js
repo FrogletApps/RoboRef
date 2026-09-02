@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { renderPrivacyHtml } from "./privacy.js";
 export function createSyncApp(storageProvider) {
     const app = new Hono();
     // In-memory cache for vexevents proxy
@@ -38,6 +39,59 @@ export function createSyncApp(storageProvider) {
             timestamp: Date.now(),
         });
     });
+    // Public Privacy Policy endpoint serving the single copy from app/assets/privacy.md
+    const handlePrivacy = async (c) => {
+        let markdown = null;
+        // 1. In Cloudflare Workers with [assets], fetch from static assets
+        const env = c.env;
+        if (env?.ASSETS) {
+            try {
+                const assetUrl = new URL("/assets/assets/privacy.md", c.req.url);
+                const res = await env.ASSETS.fetch(new Request(assetUrl));
+                if (res.ok) {
+                    markdown = await res.text();
+                }
+            }
+            catch (err) {
+                console.error("Failed to fetch privacy markdown from ASSETS:", err);
+            }
+        }
+        // 2. In Node environment, read from disk if available
+        if (!markdown && typeof process !== "undefined" && process.cwd) {
+            try {
+                const fs = await import("node:fs");
+                const path = await import("node:path");
+                const candidatePaths = [
+                    path.resolve(process.cwd(), "../app/assets/privacy.md"),
+                    path.resolve(process.cwd(), "app/assets/privacy.md"),
+                    path.resolve(process.cwd(), "assets/privacy.md"),
+                ];
+                for (const p of candidatePaths) {
+                    if (fs.existsSync(p)) {
+                        markdown = fs.readFileSync(p, "utf-8");
+                        break;
+                    }
+                }
+            }
+            catch {
+                // Ignored in non-node or bundle environments
+            }
+        }
+        if (!markdown) {
+            return c.text("Privacy policy is temporarily unavailable.", 503);
+        }
+        if (c.req.header("Accept")?.includes("text/markdown") || c.req.header("Accept")?.includes("text/plain")) {
+            return c.body(markdown, 200, {
+                "Content-Type": c.req.header("Accept")?.includes("text/markdown")
+                    ? "text/markdown; charset=utf-8"
+                    : "text/plain; charset=utf-8",
+            });
+        }
+        c.header("Cache-Control", "public, max-age=3600");
+        return c.html(renderPrivacyHtml(markdown));
+    };
+    app.get("/privacy", handlePrivacy);
+    app.get("/privacy/", handlePrivacy);
     // Proxy endpoint for VEX Events API v2
     app.get("/api/vexevents/*", async (c) => {
         const rawPath = c.req.path.replace(/^\/api\/vexevents\/?/, "");

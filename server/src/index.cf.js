@@ -16,6 +16,10 @@ export default {
                 console.error("Failed to initialize D1 storage schema:", e);
             }
         }
-        return cachedApp.fetch(request, env, ctx);
+        const response = await cachedApp.fetch(request, env, ctx);
+        if (response.status === 404 && env.ASSETS) {
+            return env.ASSETS.fetch(request);
+        }
+        return response;
     },
 };

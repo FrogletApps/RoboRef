@@ -7,6 +7,7 @@ export interface Env {
   ENVIRONMENT: string;
   VEX_EVENTS_TOKEN?: string;
   VEX_API_KEY?: string;
+  ASSETS?: { fetch: typeof fetch };
 }
 
 let cachedApp: ReturnType<typeof createSyncApp> | null = null;
@@ -27,7 +28,11 @@ export default {
       }
     }
 
-    return cachedApp.fetch(request, env, ctx);
+    const response = await cachedApp.fetch(request, env, ctx);
+    if (response.status === 404 && env.ASSETS) {
+      return env.ASSETS.fetch(request);
+    }
+    return response;
   },
 };
 
