@@ -7,7 +7,7 @@
 
 **RoboRef** ([roboref.app](https://roboref.app)) is an offline-first match anomaly log and referee assistant built specifically for Head Referees and field referees at VEX Robotics competitions (**V5RC**, **VIQRC**, **VEX U**, and **VEX AI**).
 
-RoboRef enables field referees to quickly log rule infractions, inspect a team's prior incident history before match queuing, and synchronize notes seamlessly across peer devices in real-time—even in tournament venues with severe RF interference and zero internet connectivity.
+RoboRef enables field referees to quickly log rule infractions, inspect a team's prior incident history before match queuing, and synchronise notes seamlessly across peer devices in real-time.
 
 ---
 
