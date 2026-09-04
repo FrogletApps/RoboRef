@@ -64,6 +64,9 @@ function Build-Flutter([string]$flutterTarget) {
     $appDir = Join-Path $PSScriptRoot "..\app"
     Push-Location $appDir
     try {
+        if (-not $env:GRADLE_OPTS -or $env:GRADLE_OPTS -notmatch "--enable-native-access") {
+            $env:GRADLE_OPTS = "$($env:GRADLE_OPTS) --enable-native-access=ALL-UNNAMED".Trim()
+        }
         flutter build $flutterTarget --build-name=$versionName --build-number=$buildNumber @ExtraArgs
         if ($LASTEXITCODE -ne 0) { throw "Flutter build failed for target '$flutterTarget'" }
         Write-Host ">>> Flutter client ($flutterTarget) build completed successfully." -ForegroundColor Green
