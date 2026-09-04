@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.9.4+107
+
+- **Backend changes**: Adding Android support
+
 ## 2026.9.2+102
 
 - **Added Privacy Policy**: Viewable in the app and web version.
