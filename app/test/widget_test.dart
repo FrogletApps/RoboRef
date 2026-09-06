@@ -76,7 +76,7 @@ void main() {
 
     // 1. Verify Home Screen has NO bottom navigation bar
     expect(find.byType(NavigationBar), findsNothing);
-    expect(find.text('Incidents'), findsNothing);
+    expect(find.text('Notes'), findsNothing);
     expect(find.text('Matches'), findsNothing);
     expect(find.text('Teams'), findsNothing);
 
@@ -112,7 +112,7 @@ void main() {
     expect(navBar.destinations.length, 5);
     expect((navBar.destinations[0] as NavigationDestination).label, 'Matches');
     expect((navBar.destinations[1] as NavigationDestination).label, 'Teams');
-    expect((navBar.destinations[2] as NavigationDestination).label, 'Incidents');
+    expect((navBar.destinations[2] as NavigationDestination).label, 'Notes');
     expect((navBar.destinations[3] as NavigationDestination).label, 'Rules');
     expect((navBar.destinations[4] as NavigationDestination).label, 'Manage');
 

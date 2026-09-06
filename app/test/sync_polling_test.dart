@@ -140,8 +140,8 @@ void main() {
       await tester.tap(find.text('Teams'));
       await tester.pumpAndSettle();
 
-      // Verify switching to Incidents tab (index 2) triggers quiet sync check without error
-      await tester.tap(find.text('Incidents'));
+      // Verify switching to Notes tab (index 2) triggers quiet sync check without error
+      await tester.tap(find.text('Notes'));
       await tester.pumpAndSettle();
 
       // Fast-forward 60 seconds to simulate a periodic background polling tick

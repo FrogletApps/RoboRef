@@ -241,7 +241,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
           NavigationDestination(
             icon: Icon(Icons.rate_review_outlined),
             selectedIcon: Icon(Icons.rate_review),
-            label: 'Incidents',
+            label: 'Notes',
           ),
           NavigationDestination(
             icon: Icon(Icons.menu_book_outlined),
