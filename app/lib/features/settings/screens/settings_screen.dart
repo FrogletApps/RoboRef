@@ -23,7 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _nameController;
   late TextEditingController _serverController;
   bool _initialized = false;
-  String _selectedServerOption = 'lan';
+  String _selectedServerOption = 'cloud';
   bool _isTestingConnection = false;
 
   @override

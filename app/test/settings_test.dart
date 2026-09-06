@@ -56,10 +56,18 @@ void main() {
       );
     });
 
-    test('resolveDefaultServerUrl returns http://roboref.local:8080 for production environment', () {
+    test('resolveDefaultServerUrl returns https://roboref.app for production environment', () {
       expect(
         resolveDefaultServerUrl(environment: AppEnvironment.production, isWeb: false),
-        equals('http://roboref.local:8080'),
+        equals('https://roboref.app'),
+      );
+      expect(
+        resolveDefaultServerUrl(
+          environment: AppEnvironment.production,
+          isWeb: true,
+          webOrigin: 'https://roboref.app',
+        ),
+        equals('https://roboref.app'),
       );
     });
 
@@ -418,6 +426,56 @@ void main() {
 
       final textField = tester.widget<TextField>(customFieldFinder);
       expect(textField.controller?.text, equals('http://localhost:8080'));
+    });
+
+    testWidgets('defaults to Cloud Server with https://roboref.app when running in production without saved preference', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'RE-V5RC-24-1234',
+        'referee_name': 'Test Referee',
+        // No server_url stored
+      });
+      final freshPrefs = await SharedPreferences.getInstance();
+
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/health') {
+          return http.Response('{"status":"ok"}', 200);
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(freshPrefs),
+          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(
+            freshPrefs,
+            httpClient: mockClient,
+            environment: AppEnvironment.production,
+          )),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify Dropdown displays Cloud Server (https://roboref.app)
+      expect(find.text('Cloud Server (https://roboref.app)'), findsOneWidget);
+
+      // Custom URL textfield should NOT be displayed when Cloud Server is selected
+      expect(find.widgetWithText(TextField, 'Custom Server URL'), findsNothing);
     });
   });
 }

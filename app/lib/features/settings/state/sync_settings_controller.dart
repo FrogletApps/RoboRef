@@ -80,7 +80,7 @@ String resolveDefaultServerUrl({
           }
         } catch (_) {}
       }
-      return 'http://roboref.local:8080';
+      return 'https://roboref.app';
   }
 }
 
