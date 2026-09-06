@@ -15,6 +15,8 @@ import 'package:roboref/features/event_selection/screens/event_selection_screen.
 import 'package:roboref/features/event_selection/state/event_controller.dart';
 import 'package:roboref/features/event_selection/state/event_filter_controller.dart';
 import 'package:roboref/features/event_data/screens/event_import_sheet.dart';
+import 'package:roboref/features/event_selection/models/event_model.dart';
+import 'package:roboref/features/event_selection/services/event_cache_service.dart';
 
 void main() {
   group('AppDatabase Event Operations', () {
@@ -478,4 +480,253 @@ void main() {
       await testDb.close();
     });
   });
+
+  group('EventSelectionScreen Caching Tests', () {
+    testWidgets('loads and displays cached events immediately without waiting for network', (WidgetTester tester) async {
+      final now = DateTime.now();
+      final validEvents = [
+        EventModel(
+          id: 101,
+          sku: 'RE-CACHE-01',
+          name: 'Instant Cached Event 1',
+          program: 'V5RC',
+          season: '2026-2027',
+          startDate: now.add(const Duration(days: 1)).toIso8601String(),
+          endDate: now.add(const Duration(days: 2)).toIso8601String(),
+        ),
+        EventModel(
+          id: 102,
+          sku: 'RE-CACHE-02',
+          name: 'Instant Cached Event 2',
+          program: 'V5RC',
+          season: '2026-2027',
+          startDate: now.add(const Duration(days: 3)).toIso8601String(),
+          endDate: now.add(const Duration(days: 4)).toIso8601String(),
+        ),
+      ];
+
+      SharedPreferences.setMockInitialValues({
+        EventCacheService.cacheKey: jsonEncode(validEvents.map((e) => e.toJson()).toList()),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final testDb = AppDatabase.forTesting(DatabaseConnection(NativeDatabase.memory()));
+
+      // Mock client that delays response
+      final mockHttpClient = MockClient((request) async {
+        await Future.delayed(const Duration(milliseconds: 200));
+        return http.Response(jsonEncode({'data': []}), 200);
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            vexEventsClientProvider.overrideWithValue(
+              VexEventsClient(
+                client: mockHttpClient,
+                serverUrl: 'http://127.0.0.1:8080',
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: EventSelectionScreen(),
+          ),
+        ),
+      );
+
+      // On the very first frame before network resolves, cached events are already visible!
+      await tester.pump();
+      expect(find.text('RE-CACHE-01'), findsOneWidget);
+      expect(find.text('RE-CACHE-02'), findsOneWidget);
+      expect(find.text('Instant Cached Event 1'), findsOneWidget);
+
+      // Settle network delay
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 250));
+      });
+      await tester.pumpAndSettle();
+
+      await testDb.close();
+    });
+
+    testWidgets('does not visibly remove an event from UI if removed upstream, but removes it before next view', (WidgetTester tester) async {
+      final now = DateTime.now();
+      final initialCachedEvents = [
+        EventModel(
+          id: 201,
+          sku: 'RE-STAY-01',
+          name: 'Tournament Stay',
+          program: 'V5RC',
+          season: '2026-2027',
+          startDate: now.add(const Duration(days: 1)).toIso8601String(),
+          endDate: now.add(const Duration(days: 2)).toIso8601String(),
+        ),
+        EventModel(
+          id: 202,
+          sku: 'RE-UPSTREAM-REMOVED',
+          name: 'Tournament Removed Upstream',
+          program: 'V5RC',
+          season: '2026-2027',
+          startDate: now.add(const Duration(days: 2)).toIso8601String(),
+          endDate: now.add(const Duration(days: 3)).toIso8601String(),
+        ),
+      ];
+
+      SharedPreferences.setMockInitialValues({
+        EventCacheService.cacheKey: jsonEncode(initialCachedEvents.map((e) => e.toJson()).toList()),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final testDb = AppDatabase.forTesting(DatabaseConnection(NativeDatabase.memory()));
+
+      // Mock server returns RE-STAY-01 and RE-NEW-03 (RE-UPSTREAM-REMOVED was deleted on server)
+      final mockHttpClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 201,
+                'sku': 'RE-STAY-01',
+                'name': 'Tournament Stay Updated',
+                'program': {'code': 'V5RC'},
+                'start': now.add(const Duration(days: 1)).toIso8601String(),
+                'end': now.add(const Duration(days: 2)).toIso8601String(),
+              },
+              {
+                'id': 203,
+                'sku': 'RE-NEW-03',
+                'name': 'Tournament New',
+                'program': {'code': 'V5RC'},
+                'start': now.add(const Duration(days: 3)).toIso8601String(),
+                'end': now.add(const Duration(days: 4)).toIso8601String(),
+              },
+            ],
+          }),
+          200,
+        );
+      });
+
+      // 1. First View: Screen loads with cached events and receives remote update
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            vexEventsClientProvider.overrideWithValue(
+              VexEventsClient(
+                client: mockHttpClient,
+                serverUrl: 'http://127.0.0.1:8080',
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: EventSelectionScreen(),
+          ),
+        ),
+      );
+
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+
+      // In current UI: RE-UPSTREAM-REMOVED is NOT visibly removed because it was visible to the user!
+      expect(find.text('RE-UPSTREAM-REMOVED'), findsOneWidget);
+      expect(find.text('RE-STAY-01'), findsOneWidget);
+      expect(find.text('RE-NEW-03'), findsOneWidget);
+
+      // BUT in persistent cache: RE-UPSTREAM-REMOVED HAS been removed!
+      final cacheService = EventCacheService(prefs);
+      final cacheAfterUpdate = cacheService.getCachedEvents();
+      expect(cacheAfterUpdate.any((e) => e.sku == 'RE-UPSTREAM-REMOVED'), isFalse);
+      expect(cacheAfterUpdate.any((e) => e.sku == 'RE-STAY-01'), isTrue);
+      expect(cacheAfterUpdate.any((e) => e.sku == 'RE-NEW-03'), isTrue);
+
+      // 2. Next Time Viewed: When user navigates to the screen anew, removed event is no longer visible
+      // Unmount first, then mount a new EventSelectionScreen with UniqueKey
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            vexEventsClientProvider.overrideWithValue(
+              VexEventsClient(
+                client: mockHttpClient,
+                serverUrl: 'http://127.0.0.1:8080',
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: EventSelectionScreen(key: ValueKey('new_view_session')),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // RE-UPSTREAM-REMOVED is not in cache, so it is never shown!
+      expect(find.text('RE-UPSTREAM-REMOVED'), findsNothing);
+      expect(find.text('RE-STAY-01'), findsOneWidget);
+      expect(find.text('RE-NEW-03'), findsOneWidget);
+
+      await testDb.close();
+    });
+
+    testWidgets('offline resilience: cached events remain visible when network fails', (WidgetTester tester) async {
+      final now = DateTime.now();
+      final initialCachedEvents = [
+        EventModel(
+          id: 301,
+          sku: 'RE-OFFLINE-01',
+          name: 'Offline Tournament Event',
+          program: 'V5RC',
+          season: '2026-2027',
+          startDate: now.add(const Duration(days: 1)).toIso8601String(),
+          endDate: now.add(const Duration(days: 2)).toIso8601String(),
+        ),
+      ];
+
+      SharedPreferences.setMockInitialValues({
+        EventCacheService.cacheKey: jsonEncode(initialCachedEvents.map((e) => e.toJson()).toList()),
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final testDb = AppDatabase.forTesting(DatabaseConnection(NativeDatabase.memory()));
+
+      // Mock server returns network failure (e.g. 500 or throws)
+      final mockHttpClient = MockClient((request) async {
+        throw http.ClientException('Connection failed');
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            vexEventsClientProvider.overrideWithValue(
+              VexEventsClient(
+                client: mockHttpClient,
+                serverUrl: 'http://127.0.0.1:8080',
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: EventSelectionScreen(),
+          ),
+        ),
+      );
+
+      await tester.runAsync(() async {
+        await Future.delayed(const Duration(milliseconds: 50));
+      });
+      await tester.pumpAndSettle();
+
+      // Event is still displayed, and no error message replaced the event list!
+      expect(find.text('RE-OFFLINE-01'), findsOneWidget);
+      expect(find.text('Offline Tournament Event'), findsOneWidget);
+      expect(find.text('Could not connect to VEX Events proxy.'), findsNothing);
+
+      await testDb.close();
+    });
+  });
 }
+

@@ -80,4 +80,28 @@ class EventModel {
       divisions: divs,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        if (id != null) 'id': id,
+        'sku': sku,
+        'name': name,
+        'program': program,
+        'season': season,
+        'startDate': startDate,
+        'endDate': endDate,
+        if (venue != null) 'venue': venue,
+        if (city != null) 'city': city,
+        if (region != null) 'region': region,
+        if (country != null) 'country': country,
+        'divisions': divisions.map((e) => e.toJson()).toList(),
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EventModel && runtimeType == other.runtimeType && sku == other.sku;
+
+  @override
+  int get hashCode => sku.hashCode;
 }
+

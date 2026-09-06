@@ -1,8 +1,9 @@
 # Change Log
 
-## 2026.9.6+110
+## 2026.9.6+111
 
-- **Android Adaptive Icon**: Added adaptive icon layers (background stripes, foreground gear with drop shadow, and monochrome themed icon) for modern Android launchers.
+- **Cached Event List**: Load event data from local cache with automatic background updates when online.
+- **Android Adaptive Icon**: Fixed the app icon on Android
 
 ## 2026.9.4+107
 

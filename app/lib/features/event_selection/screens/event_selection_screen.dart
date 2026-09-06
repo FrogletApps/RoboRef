@@ -5,6 +5,7 @@ import '../../../core/utils/event_regions.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../../event_workspace/screens/event_workspace_screen.dart';
 import '../models/event_model.dart';
+import '../services/event_cache_service.dart';
 import '../state/event_controller.dart';
 import '../state/event_filter_controller.dart';
 
@@ -22,8 +23,10 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
   bool _isLoading = false;
   bool _isLoadingMore = false;
+  bool _isUpdating = false;
   String? _errorMessage;
   List<EventModel> _apiEvents = [];
+  final Set<String> _sessionVisibleSkus = {};
 
   // Date range: currently active (past 3 days) or over the next week (7 days)
   late DateTime _startDate;
@@ -38,7 +41,26 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     final now = DateTime.now();
     _startDate = now.subtract(const Duration(days: 3));
     _endDate = now.add(Duration(days: _daysForward));
+    _loadFromCache();
     _fetchEvents();
+  }
+
+  void _loadFromCache() {
+    try {
+      final cacheService = ref.read(eventCacheServiceProvider);
+      final cached = cacheService.getCachedEvents();
+      if (cached.isNotEmpty) {
+        _apiEvents = cached;
+        for (final e in cached) {
+          _sessionVisibleSkus.add(e.sku.toUpperCase());
+        }
+        _isLoading = false;
+      } else {
+        _isLoading = true;
+      }
+    } catch (_) {
+      _isLoading = true;
+    }
   }
 
   @override
@@ -59,13 +81,19 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     });
   }
 
-  Future<void> _fetchEvents({bool isLoadMore = false}) async {
+  Future<void> _fetchEvents({
+    bool isLoadMore = false,
+    bool isExplicitReload = false,
+  }) async {
     if (!mounted) return;
     setState(() {
       if (isLoadMore) {
         _isLoadingMore = true;
-      } else {
+      } else if (_apiEvents.isEmpty) {
         _isLoading = true;
+        _errorMessage = null;
+      } else {
+        _isUpdating = true;
         _errorMessage = null;
       }
     });
@@ -86,20 +114,93 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
         perPage: 50,
       );
 
-      if (mounted) {
-        setState(() {
-          _apiEvents = results;
-          _isLoading = false;
-          _isLoadingMore = false;
-        });
+      if (!mounted) return;
+
+      // 1. Update persistent cache:
+      // Removed events (missing from results within the query scope) are pruned from cache
+      // so they will NOT appear next time the list is viewed.
+      try {
+        final cacheService = ref.read(eventCacheServiceProvider);
+        if (isLoadMore) {
+          final currentCached = cacheService.getCachedEvents();
+          final merged = [...currentCached, ...results];
+          await cacheService.saveCachedEvents(merged);
+        } else {
+          await cacheService.updateCacheWithRemoteEvents(
+            remoteEvents: results,
+            query: cleanQuery.isNotEmpty ? cleanQuery : null,
+            program: filters.program != 'All' ? filters.program : null,
+            region: filters.division != 'All'
+                ? filters.division
+                : (filters.region != 'All' ? filters.region : null),
+            windowStart: cleanQuery.toUpperCase().startsWith('RE-') ? null : _startDate,
+            windowEnd: cleanQuery.toUpperCase().startsWith('RE-') ? null : _endDate,
+          );
+        }
+      } catch (_) {}
+
+      // 2. Update UI list (_apiEvents):
+      // "If an event has been removed then don't visibly remove this from the UI
+      // if it's visible to the user, just remove it before the next time the list is viewed."
+      final updatedMap = <String, EventModel>{};
+
+      if (isLoadMore) {
+        for (final e in _apiEvents) {
+          updatedMap[e.sku.toUpperCase()] = e;
+        }
+        for (final e in results) {
+          updatedMap[e.sku.toUpperCase()] = e;
+          _sessionVisibleSkus.add(e.sku.toUpperCase());
+        }
+      } else {
+        // Upsert new results from remote
+        for (final e in results) {
+          updatedMap[e.sku.toUpperCase()] = e;
+          _sessionVisibleSkus.add(e.sku.toUpperCase());
+        }
+
+        // For any event that was already visible to the user in this screen session,
+        // retain it in UI so it does not visibly vanish while the user is viewing it!
+        for (final existing in _apiEvents) {
+          final sku = existing.sku.toUpperCase();
+          if (_sessionVisibleSkus.contains(sku) && !updatedMap.containsKey(sku)) {
+            updatedMap[sku] = existing;
+          }
+        }
       }
+
+      final mergedList = updatedMap.values.toList();
+      mergedList.sort((a, b) {
+        final aDate = DateTime.tryParse(a.startDate) ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bDate = DateTime.tryParse(b.startDate) ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return aDate.compareTo(bDate);
+      });
+
+      setState(() {
+        _apiEvents = mergedList;
+        _isLoading = false;
+        _isLoadingMore = false;
+        _isUpdating = false;
+      });
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
           _isLoadingMore = false;
-          _errorMessage = e.toString();
+          _isUpdating = false;
+          if (_apiEvents.isEmpty) {
+            _errorMessage = e.toString();
+          }
         });
+
+        if (isExplicitReload && _apiEvents.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not reach server. Showing cached events.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
     }
   }
@@ -348,7 +449,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Reload Events',
-            onPressed: () => _fetchEvents(),
+            onPressed: () => _fetchEvents(isExplicitReload: true),
           ),
         ],
       ),
@@ -559,7 +660,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
           // Search Results / Tournament List
           Expanded(
             child: RefreshIndicator(
-              onRefresh: () => _fetchEvents(),
+              onRefresh: () => _fetchEvents(isExplicitReload: true),
               child: ListView(
                 padding: const EdgeInsets.all(16.0),
                 children: [
@@ -620,7 +721,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                           style: const TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ),
-                      if (_isLoading) ...[
+                      if (_isLoading || _isUpdating) ...[
                         const SizedBox(width: 8),
                         const SizedBox(
                           width: 14,
@@ -633,7 +734,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                   const SizedBox(height: 12),
 
                   // Loading indicator or empty state
-                  if (_isLoading)
+                  if (_isLoading && displayEvents.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40.0),
                       child: Center(
