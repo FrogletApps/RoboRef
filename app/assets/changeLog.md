@@ -6,6 +6,7 @@
 - **Default Sync Server**: Live deployments and Android app now default to the Cloud Server (roboref.app).
 - **Cached Event List**: Load event data from local cache with automatic background updates when online.
 - **Android Adaptive Icon**: Fixed the app icon on Android
+- **Update dependencies**
 
 ## 2026.9.4+107
 
