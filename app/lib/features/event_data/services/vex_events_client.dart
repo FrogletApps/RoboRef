@@ -130,16 +130,24 @@ class VexEventsClient {
     switch (program.toUpperCase()) {
       case 'V5RC':
       case 'VRC':
+      case 'VE-V5':
+      case 'V5':
         return [1];
       case 'VIQRC':
       case 'VIQC':
+      case 'VE-IQ':
+      case 'IQ':
         return [41];
       case 'VEX U':
       case 'VURC':
+      case 'VE-U':
+      case 'U':
         return [4];
       case 'VEX AI':
       case 'VAIRC':
       case 'VAIC':
+      case 'VE-AI':
+      case 'AI':
         return [57, 58];
       default:
         return [];
@@ -154,16 +162,24 @@ class VexEventsClient {
     switch (program.toUpperCase()) {
       case 'V5RC':
       case 'VRC':
+      case 'VE-V5':
+      case 'V5':
         return [204, 197, 190, 181, 173];
       case 'VIQRC':
       case 'VIQC':
+      case 'VE-IQ':
+      case 'IQ':
         return [203, 196, 189, 180, 174];
       case 'VEX U':
       case 'VURC':
+      case 'VE-U':
+      case 'U':
         return [205, 198, 191, 182, 175];
       case 'VEX AI':
       case 'VAIRC':
       case 'VAIC':
+      case 'VE-AI':
+      case 'AI':
         return [206, 199, 194, 185, 171];
       default:
         return [];
@@ -189,13 +205,13 @@ class VexEventsClient {
     };
 
     final isSkuSearch = (sku != null && sku.trim().isNotEmpty) ||
-        (query != null && query.trim().toUpperCase().startsWith('RE-'));
+        (query != null && isSkuQuery(query));
 
     if (sku != null && sku.trim().isNotEmpty) {
       queryParams['sku[]'] = [sku.trim().toUpperCase()];
     } else if (query != null && query.trim().isNotEmpty) {
       final cleanQuery = query.trim();
-      if (cleanQuery.toUpperCase().startsWith('RE-')) {
+      if (isSkuQuery(cleanQuery)) {
         queryParams['sku[]'] = [cleanQuery.toUpperCase()];
       }
     }

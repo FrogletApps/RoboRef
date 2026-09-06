@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:drift/drift.dart' hide isNotNull;
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:roboref/database/app_database.dart';
 import 'package:roboref/features/event_data/services/vex_events_client.dart';
@@ -123,6 +123,35 @@ void main() {
       final events = await client.searchEvents(program: 'VIQRC');
       expect(events.length, equals(1));
       expect(events.first.sku, equals('RE-VIQRC-26-4368'));
+    });
+
+    test('searchEvents handles VE- event SKU queries and bypasses season filtering', () async {
+      final mockClient = MockClient((request) async {
+        final skus = request.url.queryParametersAll['sku[]'];
+        expect(skus, isNotNull);
+        expect(skus, contains('VE-IQ-26-65627'));
+        // Direct SKU queries bypass season filtering
+        expect(request.url.queryParameters['season[]'], isNull);
+
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 65627,
+                'sku': 'VE-IQ-26-65627',
+                'name': 'BCPS ONLY- VEX IQ Competitive League',
+                'program': {'code': 'VIQRC'},
+              }
+            ]
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+      final events = await client.searchEvents(query: 've-iq-26-65627');
+      expect(events.length, equals(1));
+      expect(events.first.sku, equals('VE-IQ-26-65627'));
     });
 
     test('searchEvents passes start and end dates formatted as ISO strings', () async {

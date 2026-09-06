@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Regex matching official VEX Tournament SKUs
+/// Regex matching official VEX Tournament SKUs (supports RE- and VE- prefixes)
 final RegExp skuRegex = RegExp(
-  r'^RE-(VRC|V5RC|VEXU|VURC|VIQRC|VIQC|VAIRC)-[0-9]{2}-[0-9]{4}$',
+  r'^(RE|VE)-(VRC|V5RC|VEXU|VURC|VIQRC|VIQC|VAIRC|IQ|V5|U|AI)-[0-9]{2}-[0-9]{4,6}$',
   caseSensitive: false,
 );
 
@@ -13,18 +13,45 @@ bool isValidSku(String sku) {
   return skuRegex.hasMatch(sku.trim());
 }
 
+/// Check if a search query looks like an event SKU query (starts with RE- or VE-)
+bool isSkuQuery(String? query) {
+  if (query == null || query.isEmpty) return false;
+  final upper = query.trim().toUpperCase();
+  return upper.startsWith('RE-') || upper.startsWith('VE-');
+}
+
 /// Check if the SKU represents a VEX IQ Robotics Competition event
 bool isVIQRC(String? sku) {
   if (sku == null || sku.isEmpty) return false;
   final upper = sku.toUpperCase();
-  return upper.contains('VIQRC') || upper.contains('VIQC');
+  return upper.contains('VIQRC') ||
+      upper.contains('VIQC') ||
+      upper.contains('VE-IQ') ||
+      upper.contains('-IQ-') ||
+      upper == 'IQ';
 }
 
 /// Check if the SKU represents a VEX AI Robotics Competition event
 bool isVAIRC(String? sku) {
   if (sku == null || sku.isEmpty) return false;
   final upper = sku.toUpperCase();
-  return upper.contains('VAIRC') || upper.contains('VAIC') || upper.contains('VEX AI');
+  return upper.contains('VAIRC') ||
+      upper.contains('VAIC') ||
+      upper.contains('VEX AI') ||
+      upper.contains('VE-AI') ||
+      upper.contains('-AI-') ||
+      upper == 'AI';
+}
+
+/// Check if the SKU represents a VEX U competition event
+bool isVEXU(String? sku) {
+  if (sku == null || sku.isEmpty) return false;
+  final upper = sku.toUpperCase();
+  return upper.contains('VEXU') ||
+      upper.contains('VURC') ||
+      upper.contains('VE-U') ||
+      upper.contains('-U-') ||
+      upper == 'U';
 }
 
 /// Check if the SKU represents a V5RC / VRC / VEX U competition event
@@ -35,7 +62,10 @@ bool isV5(String? sku) {
       upper.contains('VRC') ||
       upper.contains('VEXU') ||
       upper.contains('VURC') ||
-      upper.contains('V5');
+      upper.contains('VE-V5') ||
+      upper.contains('-V5-') ||
+      upper.contains('V5') ||
+      isVEXU(upper);
 }
 
 /// Extract readable program code from SKU
@@ -43,9 +73,7 @@ String getSkuProgram(String? sku) {
   if (sku == null || sku.isEmpty) return 'VEX';
   if (isVIQRC(sku)) return 'VIQRC';
   if (isVAIRC(sku)) return 'VEX AI';
-  if (sku.toUpperCase().contains('VEXU') || sku.toUpperCase().contains('VURC')) {
-    return 'VEX U';
-  }
+  if (isVEXU(sku)) return 'VEX U';
   if (isV5(sku)) return 'V5RC';
   return 'VEX';
 }
@@ -65,6 +93,8 @@ bool isEventMatchingProgram({
     case 'VIQRC':
       return progUpper == 'VIQRC' ||
           progUpper == 'VIQC' ||
+          progUpper == 'VE-IQ' ||
+          progUpper == 'IQ' ||
           isVIQRC(skuUpper) ||
           getSkuProgram(skuUpper) == 'VIQRC';
 
@@ -72,14 +102,17 @@ bool isEventMatchingProgram({
       return progUpper == 'VURC' ||
           progUpper == 'VEX U' ||
           progUpper == 'VEXU' ||
-          skuUpper.contains('VEXU') ||
-          skuUpper.contains('VURC') ||
+          progUpper == 'VE-U' ||
+          progUpper == 'U' ||
+          isVEXU(skuUpper) ||
           getSkuProgram(skuUpper) == 'VEX U';
 
     case 'VEX AI':
       return progUpper == 'VAIRC' ||
           progUpper == 'VAIC' ||
           progUpper == 'VEX AI' ||
+          progUpper == 'VE-AI' ||
+          progUpper == 'AI' ||
           isVAIRC(skuUpper) ||
           getSkuProgram(skuUpper) == 'VEX AI';
 
@@ -87,14 +120,17 @@ bool isEventMatchingProgram({
       if (progUpper == 'VURC' ||
           progUpper == 'VEX U' ||
           progUpper == 'VEXU' ||
-          skuUpper.contains('VEXU') ||
-          skuUpper.contains('VURC')) {
+          progUpper == 'VE-U' ||
+          progUpper == 'U' ||
+          isVEXU(skuUpper)) {
         return false;
       }
       return progUpper == 'V5RC' ||
           progUpper == 'VRC' ||
+          progUpper == 'VE-V5' ||
+          progUpper == 'V5' ||
           getSkuProgram(skuUpper) == 'V5RC' ||
-          (!isVIQRC(skuUpper) && !isVAIRC(skuUpper) && isV5(skuUpper));
+          (!isVIQRC(skuUpper) && !isVAIRC(skuUpper) && !isVEXU(skuUpper) && isV5(skuUpper));
 
     default:
       return progUpper == selectedProgram.toUpperCase();

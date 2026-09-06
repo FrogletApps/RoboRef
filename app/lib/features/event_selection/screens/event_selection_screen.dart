@@ -109,8 +109,8 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
         region: filters.division != 'All'
             ? filters.division
             : (filters.region != 'All' ? filters.region : null),
-        start: cleanQuery.toUpperCase().startsWith('RE-') ? null : _startDate,
-        end: cleanQuery.toUpperCase().startsWith('RE-') ? null : _endDate,
+        start: isSkuQuery(cleanQuery) ? null : _startDate,
+        end: isSkuQuery(cleanQuery) ? null : _endDate,
         perPage: 50,
       );
 
@@ -133,8 +133,8 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
             region: filters.division != 'All'
                 ? filters.division
                 : (filters.region != 'All' ? filters.region : null),
-            windowStart: cleanQuery.toUpperCase().startsWith('RE-') ? null : _startDate,
-            windowEnd: cleanQuery.toUpperCase().startsWith('RE-') ? null : _endDate,
+            windowStart: isSkuQuery(cleanQuery) ? null : _startDate,
+            windowEnd: isSkuQuery(cleanQuery) ? null : _endDate,
           );
         }
       } catch (_) {}
@@ -298,7 +298,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     // Client-side text filter over API results if query is typed
     List<EventModel> filteredApiEvents = _apiEvents;
 
-    final isDirectSkuQuery = cleanQuery.startsWith('RE-');
+    final isDirectSkuQuery = isSkuQuery(cleanQuery);
     if (selectedProgram != 'All' && !isDirectSkuQuery) {
       filteredApiEvents = filteredApiEvents
           .where((e) => isEventMatchingProgram(
@@ -476,7 +476,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                   controller: _searchController,
                   autofocus: false,
                   decoration: InputDecoration(
-                    hintText: 'Search by SKU (RE-...) or event name',
+                    hintText: 'Search by SKU (RE-... / VE-...) or event name',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(

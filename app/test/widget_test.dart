@@ -95,7 +95,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Pick An Event'), findsOneWidget);
-    expect(find.text('Search by SKU (RE-...) or event name'), findsOneWidget);
+    expect(find.text('Search by SKU (RE-... / VE-...) or event name'), findsOneWidget);
 
     // 3. Test selecting a live event
     expect(find.text('RE-V5RC-26-4487'), findsOneWidget);

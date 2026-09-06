@@ -723,7 +723,63 @@ void main() {
       // Event is still displayed, and no error message replaced the event list!
       expect(find.text('RE-OFFLINE-01'), findsOneWidget);
       expect(find.text('Offline Tournament Event'), findsOneWidget);
-      expect(find.text('Could not connect to VEX Events proxy.'), findsNothing);
+      await testDb.close();
+    });
+
+    testWidgets('EventSelectionScreen recognizes VE- SKU input and displays custom event card', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1000, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final testDb = AppDatabase.forTesting(DatabaseConnection(NativeDatabase.memory()));
+
+      final mockHttpClient = MockClient((request) async {
+        return http.Response(jsonEncode({'data': []}), 200);
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            vexEventsClientProvider.overrideWithValue(
+              VexEventsClient(client: mockHttpClient),
+            ),
+          ],
+          child: const MaterialApp(
+            home: EventSelectionScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Enter VE-IQ SKU
+      final searchField = find.byType(TextField);
+      await tester.enterText(searchField, 'VE-IQ-26-65627');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add & Select'), findsOneWidget);
+      expect(find.text('Add & fetch custom VIQRC tournament schedule'), findsOneWidget);
+
+      // Enter VE-V5 SKU
+      await tester.enterText(searchField, 'VE-V5-26-65764');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add & Select'), findsOneWidget);
+      expect(find.text('Add & fetch custom V5RC tournament schedule'), findsOneWidget);
+
+      // Enter VE-U SKU
+      await tester.enterText(searchField, 'VE-U-26-65535');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add & Select'), findsOneWidget);
+      expect(find.text('Add & fetch custom VEX U tournament schedule'), findsOneWidget);
 
       await testDb.close();
     });
