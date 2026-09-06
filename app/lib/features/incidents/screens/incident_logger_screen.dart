@@ -680,7 +680,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   controller: _notesController,
                   maxLines: 3,
                   decoration: const InputDecoration(
-                    labelText: 'Referee Notes / Context',
+                    labelText: 'Referee Notes',
                     hintText: 'Describe details, warnings given, or match conditions...',
                     border: OutlineInputBorder(),
                   ),
