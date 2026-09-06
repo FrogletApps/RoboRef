@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.9.6+110
+
+- **Android Adaptive Icon**: Added adaptive icon layers (background stripes, foreground gear with drop shadow, and monochrome themed icon) for modern Android launchers.
+
 ## 2026.9.4+107
 
 - **Backend changes**: Adding Android support

@@ -115,7 +115,7 @@ void main() {
       expect(find.text(currentVersion), findsOneWidget);
 
       // 4. Check markdown content is present
-      expect(find.textContaining('Team Rankings', findRichText: true), findsWidgets);
+      expect(find.textContaining('Android Adaptive Icon', findRichText: true), findsWidgets);
     });
 
     testWidgets('filters items when search query is entered', (tester) async {
@@ -147,7 +147,7 @@ void main() {
       await tester.tap(find.text('Clear search'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Team Rankings', findRichText: true), findsWidgets);
+      expect(find.textContaining('Android Adaptive Icon', findRichText: true), findsWidgets);
     });
 
     testWidgets('copies version to clipboard when copy button is tapped', (tester) async {
