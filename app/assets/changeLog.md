@@ -2,6 +2,7 @@
 
 ## 2026.9.6+112
 
+- **UI Terminology**: Renamed "Log Incident" to "Add Note" and simplified incident-related labels throughout the app.
 - **Note Types**: Replaced severity selector with Note Type picker (General, Minor, Major, Inspection, Disabled) with consistent sizing that no longer overflows on small screens.
 - **VE Event Support**: Added compatibility for `VE-` tournament event codes (like `VE-IQ` and `VE-V5`) and 5-digit event identifiers.
 - **Default Sync Server**: Live deployments and Android app now default to the Cloud Server (roboref.app).

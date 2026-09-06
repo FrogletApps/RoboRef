@@ -120,7 +120,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                         const SizedBox(height: 12),
                         Text(
                           _searchQuery.isEmpty
-                              ? 'No incident notes logged yet for this tournament.'
+                              ? 'No notes logged yet for this tournament.'
                               : 'No matching notes found.',
                           style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                         ),
@@ -247,7 +247,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddIncidentDialog(context),
         icon: const Icon(Icons.add_alert),
-        label: const Text('Log Incident'),
+        label: const Text('Add Note'),
       ),
     );
       },
@@ -258,8 +258,8 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Incident Note?'),
-        content: const Text('Are you sure you want to remove this incident log?'),
+        title: const Text('Delete Note?'),
+        content: const Text('Are you sure you want to remove this note?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
@@ -465,7 +465,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Log Match Incident / Rule Note',
+                  'New Note',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
@@ -713,7 +713,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
 
                       Navigator.pop(context);
                     },
-                    child: const Text('Save & Sync Incident', style: TextStyle(fontSize: 16)),
+                    child: const Text('Save Note', style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],

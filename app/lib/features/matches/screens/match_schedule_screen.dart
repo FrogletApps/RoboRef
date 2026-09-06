@@ -308,7 +308,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               const SizedBox(height: 16),
               ListTile(
                 leading: Icon(Icons.add_alert, color: Theme.of(context).colorScheme.primary),
-                title: Text('Log Incident Note for $displayMatchName'),
+                title: Text('Add Note for $displayMatchName'),
                 subtitle: const Text('Pre-fills match number into note'),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -325,7 +325,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               if (redTeams.isNotEmpty || blueTeams.isNotEmpty) ...[
                 const Divider(height: 24),
                 const Text(
-                  'Log Incident for Specific Team:',
+                  'Add Note for Specific Team:',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 10),

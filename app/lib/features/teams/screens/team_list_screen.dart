@@ -109,7 +109,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                             const SizedBox(height: 12),
                             Text(
                               _search.isEmpty
-                                  ? 'No team incident records yet.'
+                                  ? 'No team notes yet.'
                                   : 'No teams matching "$_search"',
                               style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                             ),
@@ -157,7 +157,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                               ],
                             ),
                             subtitle: Text(
-                              list.isEmpty ? 'No incident notes logged' : '${list.length} incident note(s)',
+                              list.isEmpty ? 'No notes logged' : '${list.length} note(s)',
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -293,7 +293,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                       );
                     },
                     icon: const Icon(Icons.add_alert, size: 18),
-                    label: const Text('Log Incident'),
+                    label: const Text('Add Note'),
                   ),
                 ],
               ),
@@ -301,7 +301,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
               if (notes.isEmpty)
                 const Expanded(
                   child: Center(
-                    child: Text('No logged incidents for this team yet.'),
+                    child: Text('No notes logged for this team yet.'),
                   ),
                 )
               else

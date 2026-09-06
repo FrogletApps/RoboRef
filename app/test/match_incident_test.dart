@@ -109,7 +109,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final saveButton = find.text('Save & Sync Incident');
+    final saveButton = find.text('Save Note');
     await tester.ensureVisible(saveButton);
     await tester.pumpAndSettle();
 
@@ -155,7 +155,7 @@ void main() {
 
     // Match actions modal should be shown
     expect(find.text('Actions for Q 12'), findsOneWidget);
-    expect(find.text('Log Incident Note for Q 12'), findsOneWidget);
+    expect(find.text('Add Note for Q 12'), findsOneWidget);
     expect(find.text('Pre-fills match number into note'), findsOneWidget);
 
     // Tap on action chip for team 2056A
@@ -165,12 +165,12 @@ void main() {
     await tester.pumpAndSettle();
 
     // AddIncidentSheet should open with both Q 12 and 2056A pre-filled
-    expect(find.text('Log Match Incident / Rule Note'), findsOneWidget);
+    expect(find.text('New Note'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Q 12'), findsOneWidget);
     expect(find.widgetWithText(TextField, '2056A'), findsOneWidget);
 
     // Save incident
-    final saveButton = find.text('Save & Sync Incident');
+    final saveButton = find.text('Save Note');
     await tester.ensureVisible(saveButton);
     await tester.pumpAndSettle();
 
@@ -259,7 +259,7 @@ void main() {
     expect(find.byType(FilterChip), findsNWidgets(6));
 
     // Save note
-    final saveButton = find.text('Save & Sync Incident');
+    final saveButton = find.text('Save Note');
     await tester.ensureVisible(saveButton);
     await tester.pumpAndSettle();
     await tester.tap(saveButton);
@@ -313,7 +313,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Save note with no rules selected
-    final saveButton = find.text('Save & Sync Incident');
+    final saveButton = find.text('Save Note');
     await tester.ensureVisible(saveButton);
     await tester.pumpAndSettle();
     await tester.tap(saveButton);
