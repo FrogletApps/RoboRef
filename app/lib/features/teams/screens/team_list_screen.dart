@@ -127,23 +127,18 @@ class _TeamListScreenState extends State<TeamListScreen> {
                         final teamName = teamNames[team];
                         final teamRank = teamRanks[team];
 
-                        final warningCount = list.where((n) => n.severity == 'warning').length;
-                        final majorCount = list.where((n) => n.severity == 'major' || n.severity == 'd_q').length;
+                        final majorCount = list.where((n) => n.severity == 'major' || n.severity == 'disabled').length;
 
                         final textColor = majorCount > 0
                             ? Colors.red.shade900
-                            : (warningCount > 0
-                                ? Colors.amber.shade900
-                                : Theme.of(context).colorScheme.onPrimaryContainer);
+                            : Theme.of(context).colorScheme.onPrimaryContainer;
 
                         return Card(
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundColor: majorCount > 0
                                   ? Colors.red.shade100
-                                  : (warningCount > 0
-                                      ? Colors.amber.shade100
-                                      : Theme.of(context).colorScheme.primaryContainer),
+                                  : Theme.of(context).colorScheme.primaryContainer,
                               child: _buildRankAvatar(teamRank, textColor),
                             ),
                             title: Row(
@@ -178,18 +173,6 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                     child: Text(
                                       '$majorCount MAJOR',
                                       style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                if (warningCount > 0)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.amber.shade700,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      '$warningCount WARN',
-                                      style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 const SizedBox(width: 8),

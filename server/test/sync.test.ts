@@ -137,7 +137,7 @@ describe("Sync Server Endpoints", () => {
         sku: "OTHER-SKU",
         teamNumber: "9999X",
         ruleCodes: ["G3"],
-        severity: "warning",
+        severity: "general",
         notes: "Other note",
         refereeName: "Ref 3",
         deviceId: "dev-3",

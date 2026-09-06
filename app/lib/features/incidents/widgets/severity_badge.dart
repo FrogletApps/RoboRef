@@ -12,27 +12,31 @@ class SeverityBadge extends StatelessWidget {
     String label;
 
     switch (severity.toLowerCase()) {
-      case 'd_q':
-      case 'dq':
-        bg = Colors.red.shade700;
+      case 'disabled':
+        bg = Colors.purple.shade700;
         fg = Colors.white;
-        label = 'DISQUALIFIED';
+        label = 'DISABLED';
         break;
       case 'major':
         bg = Colors.deepOrange.shade600;
         fg = Colors.white;
         label = 'MAJOR VIOLATION';
         break;
-      case 'warning':
-        bg = Colors.amber.shade700;
-        fg = Colors.black;
-        label = 'WARNING';
+      case 'inspection':
+        bg = Colors.teal.shade700;
+        fg = Colors.white;
+        label = 'INSPECTION';
         break;
       case 'minor':
+        bg = Colors.blue.shade100;
+        fg = Colors.blue.shade900;
+        label = 'MINOR';
+        break;
+      case 'general':
       default:
         bg = Colors.blueGrey.shade100;
         fg = Colors.blueGrey.shade900;
-        label = 'MINOR';
+        label = 'GENERAL';
         break;
     }
 

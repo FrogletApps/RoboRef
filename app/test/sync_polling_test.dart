@@ -82,7 +82,7 @@ void main() {
           sku: const drift.Value('RE-V5RC-24-9999'),
           teamNumber: const drift.Value('2222B'),
           ruleCodesJson: drift.Value(jsonEncode(['G2'])),
-          severity: const drift.Value('warning'),
+          severity: const drift.Value('general'),
           notes: const drift.Value('Note 2'),
           refereeName: const drift.Value('Bob'),
           deviceId: const drift.Value('dev-1'),

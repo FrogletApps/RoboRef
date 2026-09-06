@@ -36,7 +36,7 @@ export interface IncidentNoteRecord {
   teamNumber: string;
   matchId?: string;
   ruleCodes: string[]; // e.g. ["G12", "S1", "SG6"]
-  severity: "minor" | "major" | "warning" | "d_q";
+  severity: "general" | "minor" | "major" | "inspection" | "disabled";
   notes: string;
   refereeName: string;
   deviceId: string;

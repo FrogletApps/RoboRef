@@ -54,7 +54,7 @@ void main() {
       sku: 'RE-V5RC-26-4487',
       teamNumber: '12B',
       ruleCodesJson: '[]',
-      severity: 'warning',
+      severity: 'general',
       notes: 'Test note',
       refereeName: 'Ref',
       deviceId: 'dev',

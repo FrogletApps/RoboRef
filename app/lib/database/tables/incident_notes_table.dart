@@ -6,7 +6,7 @@ class IncidentNotes extends Table {
   TextColumn get teamNumber => text()();
   TextColumn get matchId => text().nullable()();
   TextColumn get ruleCodesJson => text()(); // JSON list of string rule codes
-  TextColumn get severity => text()(); // 'minor', 'major', 'warning', 'd_q'
+  TextColumn get severity => text()(); // 'general', 'minor', 'major', 'inspection', 'disabled'
   TextColumn get notes => text()();
   TextColumn get refereeName => text()();
   TextColumn get deviceId => text()();

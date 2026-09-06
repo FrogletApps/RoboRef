@@ -29,7 +29,7 @@ void main() {
         teamNumber: const Value('1234A'),
         matchId: const Value('Q1'),
         ruleCodesJson: Value(jsonEncode(['G12', 'S1'])),
-        severity: const Value('warning'),
+        severity: const Value('general'),
         notes: const Value('Entanglement near mobile goal'),
         refereeName: const Value('Ref Alice'),
         deviceId: const Value('device-1'),
@@ -56,7 +56,7 @@ void main() {
     // Test stream query
     final notes = await db.watchNotesForSku(sku).first;
     expect(notes.length, 1);
-    expect(notes.first.severity, 'warning');
+    expect(notes.first.severity, 'general');
   });
 
   test('can import Tournament Manager teams CSV and query teams', () async {

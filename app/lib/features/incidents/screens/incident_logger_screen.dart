@@ -305,7 +305,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
   late final TextEditingController _matchController;
   final _notesController = TextEditingController();
 
-  String _severity = 'warning';
+  String _severity = 'general';
   final Set<String> _selectedRules = {};
 
   @override
@@ -594,14 +594,21 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                const Text('Severity Level', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text('Note Type', style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 SegmentedButton<String>(
+                  expandedInsets: EdgeInsets.zero,
+                  showSelectedIcon: false,
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 2)),
+                  ),
                   segments: const [
-                    ButtonSegment(value: 'minor', label: Text('Minor')),
-                    ButtonSegment(value: 'warning', label: Text('Warning')),
-                    ButtonSegment(value: 'major', label: Text('Major')),
-                    ButtonSegment(value: 'd_q', label: Text('DQ')),
+                    ButtonSegment(value: 'general', label: FittedBox(fit: BoxFit.scaleDown, child: Text('General'))),
+                    ButtonSegment(value: 'minor', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Minor'))),
+                    ButtonSegment(value: 'major', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Major'))),
+                    ButtonSegment(value: 'inspection', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Inspection'))),
+                    ButtonSegment(value: 'disabled', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Disabled'))),
                   ],
                   selected: {_severity},
                   onSelectionChanged: (val) => setState(() => _severity = val.first),
