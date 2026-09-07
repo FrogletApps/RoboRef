@@ -7,6 +7,7 @@ import '../../event_selection/state/event_controller.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../data/default_rules.dart';
 import '../models/rule_model.dart';
+import '../state/rules_disclaimer_controller.dart';
 
 class RulesScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -177,6 +178,14 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
   Widget build(BuildContext context) {
     final settings = ref.watch(syncSettingsProvider);
     final activeEventAsync = ref.watch(activeEventProvider);
+
+    final activeSku = (activeEventAsync.value?.sku.trim().isNotEmpty == true
+            ? activeEventAsync.value!.sku
+            : settings.currentSku)
+        .trim()
+        .toUpperCase();
+    final isDisclaimerDismissed = activeSku.isNotEmpty &&
+        ref.watch(rulesDisclaimerProvider).contains(activeSku);
 
     final program = activeEventAsync.value?.program ?? getSkuProgram(settings.currentSku);
     final season = activeEventAsync.value?.season ?? '2026-2027';
@@ -396,26 +405,42 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
           ),
 
           // Bottom Disclaimer Banner
-          Container(
-            width: double.infinity,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF991B1B)
-                : const Color(0xFFDC2626),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: const SafeArea(
-              top: false,
-              child: Text(
-                'DISCLAIMER:  These are a summary of the official rules and are only for reference - check the game manual before you make a ruling.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.3,
+          if (!isDisclaimerDismissed)
+            Container(
+              width: double.infinity,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF991B1B)
+                  : const Color(0xFFDC2626),
+              padding: const EdgeInsets.fromLTRB(16, 6, 8, 6),
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'DISCLAIMER:  These are a summary of the official rules and are only for reference - check the game manual before you make a ruling.',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                      tooltip: 'Dismiss disclaimer',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      onPressed: () {
+                        ref.read(rulesDisclaimerProvider.notifier).dismiss(activeSku);
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
