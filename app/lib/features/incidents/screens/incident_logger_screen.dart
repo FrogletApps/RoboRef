@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../state/incident_controller.dart';
@@ -246,7 +247,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddIncidentDialog(context),
-        icon: const Icon(Icons.add_alert),
+        icon: const Icon(Symbols.note_stack_add),
         label: const Text('Add Note'),
       ),
     );

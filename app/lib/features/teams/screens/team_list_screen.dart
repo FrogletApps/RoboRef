@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
@@ -292,7 +293,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                         builder: (c) => AddIncidentSheet(initialTeam: teamNumber),
                       );
                     },
-                    icon: const Icon(Icons.add_alert, size: 18),
+                    icon: const Icon(Symbols.note_stack_add, size: 18),
                     label: const Text('Add Note'),
                   ),
                 ],

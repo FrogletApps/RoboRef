@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/match_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
@@ -307,7 +308,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               ),
               const SizedBox(height: 16),
               ListTile(
-                leading: Icon(Icons.add_alert, color: Theme.of(context).colorScheme.primary),
+                leading: Icon(Symbols.note_stack_add, color: Theme.of(context).colorScheme.primary),
                 title: Text('Add Note for $displayMatchName'),
                 subtitle: const Text('Pre-fills match number into note'),
                 onTap: () {

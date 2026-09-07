@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.9.7+113
+
+- **Update Icons**: Updated some icons to better match what they do.
+
 ## 2026.9.6+112
 
 - **UI Terminology**: Renamed "Log Incident" to "Add Note" and simplified incident-related labels throughout the app.

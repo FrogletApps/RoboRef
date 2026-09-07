@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 import '../../event_selection/state/event_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
@@ -229,18 +230,18 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
+            icon: Icon(Symbols.format_list_numbered),
+            selectedIcon: Icon(Symbols.format_list_numbered, fill: 1),
             label: 'Matches',
           ),
           NavigationDestination(
-            icon: Icon(Icons.shield_outlined),
-            selectedIcon: Icon(Icons.shield),
+            icon: Icon(Symbols.groups),
+            selectedIcon: Icon(Symbols.groups, fill: 1),
             label: 'Teams',
           ),
           NavigationDestination(
-            icon: Icon(Icons.rate_review_outlined),
-            selectedIcon: Icon(Icons.rate_review),
+            icon: Icon(Symbols.note_stack),
+            selectedIcon: Icon(Symbols.note_stack, fill: 1),
             label: 'Notes',
           ),
           NavigationDestination(
