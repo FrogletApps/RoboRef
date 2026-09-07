@@ -3,9 +3,6 @@
 ## 2026.9.7+114
 
 - **Dismiss Rules Disclaimer**: Made the rules disclaimer banner dismissable per event.
-
-## 2026.9.7+113
-
 - **Update Icons**: Updated some icons to better match what they do.
 
 ## 2026.9.6+112
