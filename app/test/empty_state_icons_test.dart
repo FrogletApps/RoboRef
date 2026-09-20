@@ -50,7 +50,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Symbols.format_list_numbered), findsOneWidget);
-    expect(find.text('No match schedule loaded yet.'), findsOneWidget);
+    expect(find.text('No match schedule has been loaded yet.'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
   });
 
@@ -71,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Symbols.groups), findsOneWidget);
-    expect(find.text('No team notes yet.'), findsOneWidget);
+    expect(find.text('No teams have been loaded yet.'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
   });
 

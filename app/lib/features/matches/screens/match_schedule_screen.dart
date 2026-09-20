@@ -102,7 +102,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                             const SizedBox(height: 12),
                             Text(
                               matches.isEmpty
-                                  ? 'No match schedule loaded yet.'
+                                  ? 'No match schedule has been loaded yet.'
                                   : 'No matches found matching "$_searchQuery"',
                               style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                             ),
