@@ -1,7 +1,10 @@
 # Change Log
 
-## 2026.9.7+114
+## 2026.9.20+115
 
+- **Empty State Icons**: Updated empty state placeholder icons to match bottom navigation tab icons.
+
+## 2026.9.7+114
 - **Dismiss Rules Disclaimer**: Made the rules disclaimer banner dismissable per event.
 - **Update Icons**: Updated some icons to better match what they do.
 

@@ -106,11 +106,11 @@ class _TeamListScreenState extends State<TeamListScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.shield_outlined, size: 64, color: Colors.grey.shade400),
+                            Icon(Symbols.groups, size: 64, color: Colors.grey.shade400),
                             const SizedBox(height: 12),
                             Text(
                               _search.isEmpty
-                                  ? 'No team notes yet.'
+                                  ? 'No teams have been loaded yet.'
                                   : 'No teams matching "$_search"',
                               style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                             ),

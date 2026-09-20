@@ -117,7 +117,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.notes, size: 64, color: Colors.grey.shade400),
+                        Icon(Symbols.note_stack, size: 64, color: Colors.grey.shade400),
                         const SizedBox(height: 12),
                         Text(
                           _searchQuery.isEmpty

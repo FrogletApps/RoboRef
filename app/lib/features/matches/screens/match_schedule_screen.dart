@@ -98,7 +98,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.calendar_month_outlined, size: 64, color: Colors.grey.shade400),
+                            Icon(Symbols.format_list_numbered, size: 64, color: Colors.grey.shade400),
                             const SizedBox(height: 12),
                             Text(
                               matches.isEmpty
