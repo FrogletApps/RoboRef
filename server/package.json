@@ -26,7 +26,7 @@
     "@types/node": "^26.6.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "wrangler": "^4.135.0"
+    "wrangler": "^4.137.0"
   },
   "allowScripts": {
     "better-sqlite3@11.10.0": true,
