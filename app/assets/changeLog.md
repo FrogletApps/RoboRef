@@ -1,6 +1,6 @@
 # Change Log
 
-## 2026.10.05+117
+## 2026.10.05+155
 
 - **Manage Page Updates**: Renamed "About" to "About RoboRef" and added "Event Information" section with link to VEX Events page.
 - **Experimental Features Setting**: Added an Experimental Features toggle in Settings for local and test deployments to gate local data import buttons.
