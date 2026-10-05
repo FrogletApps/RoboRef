@@ -52,7 +52,7 @@ RoboRef enables field referees to quickly log rule infractions, inspect a team's
 | Component | Technology | Purpose |
 | :--- | :--- | :--- |
 | **Frontend Client** | **Flutter** (Dart ^3.5.0) | Cross-platform mobile (Android, iOS) & Web/PWA client |
-| **State Management** | **Riverpod** 2.x | Reactive state and dependency injection |
+| **State Management** | **Riverpod** 3.x | Reactive state and dependency injection |
 | **Client Storage** | **Drift** (SQLite) | Embedded, high-performance offline database |
 | **Sync Server** | **Hono** + **TypeScript** | Universal backend running on Node.js (LAN) and Cloudflare Workers (Cloud) |
 | **Server Storage** | **better-sqlite3** / **Cloudflare D1** | High-speed server persistence and delta sync logging |
