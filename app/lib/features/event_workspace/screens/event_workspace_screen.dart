@@ -7,10 +7,12 @@ import '../../event_selection/state/event_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../matches/screens/match_schedule_screen.dart';
+import '../../rules/data/default_rules.dart';
 import '../../rules/screens/rules_screen.dart';
 import '../../teams/screens/team_list_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
+import '../../../core/utils/sku_utils.dart';
 
 import '../../sharing/widgets/event_share_sheet.dart';
 import '../../sharing/state/share_controller.dart';
@@ -119,7 +121,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
       'Match Schedule',
       'Team Histories',
       'RoboRef',
-      'Game Rules',
+      'Game Rules Summary',
       'Manage & Sync',
     ];
 
@@ -198,6 +200,10 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
     }
 
 
+    final program = event?.program ?? getSkuProgram(settings.currentSku);
+    final season = event?.season ?? '2026-2027';
+    final ruleset = getGameRuleset(program, season);
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -207,7 +213,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
             ),
             Text(
-              eventName,
+              _currentIndex == 3 ? ruleset.version : eventName,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

@@ -81,7 +81,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // 1. Verify Home Screen has NO bottom navigation bar
+    // Verify Home Screen has NO bottom navigation bar
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.text('Notes'), findsNothing);
     expect(find.text('Matches'), findsNothing);
@@ -97,14 +97,14 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.text('Welcome to RoboRef!'), findsOneWidget);
 
-    // 2. Test navigating to Event Selection Screen
+    // Test navigating to Event Selection Screen
     await tester.tap(find.text('Add a new event'));
     await tester.pumpAndSettle();
 
     expect(find.text('Pick An Event'), findsOneWidget);
     expect(find.text('Search by SKU (RE-... / VE-...) or event name'), findsOneWidget);
 
-    // 3. Test selecting a live event
+    // Test selecting a live event
     expect(find.text('RE-V5RC-26-4487'), findsOneWidget);
     await tester.tap(find.text('RE-V5RC-26-4487'));
     await tester.runAsync(() async {
@@ -125,7 +125,7 @@ void main() {
 
     expect(find.text('Match Schedule'), findsOneWidget);
 
-    // 4. Test switching to Manage tab in Event Workspace
+    // Test switching to Manage tab in Event Workspace
     await tester.tap(find.text('Manage'));
     await tester.pumpAndSettle();
     expect(find.text('Event Information'), findsOneWidget);
@@ -133,7 +133,17 @@ void main() {
     expect(find.text('About RoboRef'), findsOneWidget);
     expect(find.text('Privacy Policy'), findsOneWidget);
 
-    // 5. Test navigating back to Home Hub
+    // Switch to Rules tab to verify Game Rules Summary header and Version 2.0 subtitle
+    await tester.tap(find.text('Rules'));
+    await tester.pumpAndSettle();
+    expect(find.text('Game Rules Summary'), findsOneWidget);
+    expect(find.text('Version 2.0'), findsOneWidget);
+
+    // Switch back to Matches tab before navigating back
+    await tester.tap(find.text('Matches'));
+    await tester.pumpAndSettle();
+
+    // Test navigating back to Home Hub
     await tester.pageBack();
     await tester.runAsync(() async {
       await Future.delayed(const Duration(milliseconds: 100));

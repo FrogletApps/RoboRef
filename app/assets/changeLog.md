@@ -1,8 +1,9 @@
 # Change Log
 
-## 2026.10.05+116
+## 2026.10.05+117
 
 - **Manage Page Updates**: Renamed "About" to "About RoboRef" and added "Event Information" section with link to VEX Events page.
+- **Game Rules V2 Updates**: Updated V5RC and VIQRC game rules to Version 2.0.
 - **Update Dependencies**
 
 ## 2026.9.20+115
