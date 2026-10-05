@@ -146,8 +146,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Find About header and Privacy Policy tile
-      expect(find.text('About'), findsOneWidget);
+      // Find About RoboRef header and Privacy Policy tile
+      expect(find.text('About RoboRef'), findsOneWidget);
       final privacyTile = find.widgetWithText(ListTile, 'Privacy Policy');
       expect(privacyTile, findsOneWidget);
 

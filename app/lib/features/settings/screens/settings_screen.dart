@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
@@ -9,10 +11,14 @@ import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final bool showAppBar;
+  final bool? isEventManagePage;
+  final String? eventSku;
 
   const SettingsScreen({
     super.key,
     this.showAppBar = true,
+    this.isEventManagePage,
+    this.eventSku,
   });
 
   @override
@@ -25,6 +31,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _initialized = false;
   String _selectedServerOption = 'cloud';
   bool _isTestingConnection = false;
+
+  bool get _isEventManagePage => widget.isEventManagePage ?? !widget.showAppBar;
+
+  Future<void> _openExternalUrl(BuildContext context, String urlString) async {
+    final uri = Uri.parse(urlString);
+    try {
+      final success = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!success && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open link: $urlString'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        Clipboard.setData(ClipboardData(text: urlString));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Link copied to clipboard: $urlString'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -62,6 +95,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context, ref, child) {
         final settings = ref.watch(syncSettingsProvider);
         final themeMode = ref.watch(themeModeProvider);
+        final currentSku = (widget.eventSku ?? settings.currentSku).trim().toUpperCase();
+        final vexEventsUrl = currentSku.isNotEmpty
+            ? 'https://events.vex.com/$currentSku.html'
+            : 'https://events.vex.com';
         final env = getAppEnvironment();
         final cloudUrl = (env == AppEnvironment.test) ? 'https://test.roboref.app' : 'https://roboref.app';
         const venueLanUrl = 'http://roboref.local:8080';
@@ -475,9 +512,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // About Section
+              // Event Information Section (if on the manage page for the event)
+              if (_isEventManagePage) ...[
+                const Text(
+                  'Event Information',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.public,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: const Text(
+                      'VEX Events Page',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, size: 20),
+                    onTap: () => _openExternalUrl(context, vexEventsUrl),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+
+              // About RoboRef Section
               const Text(
-                'About',
+                'About RoboRef',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),

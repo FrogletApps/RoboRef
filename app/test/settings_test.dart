@@ -514,6 +514,7 @@ void main() {
       expect(find.widgetWithText(TextField, 'Custom Server URL'), findsNothing);
     });
 
+    testWidgets('displays "About RoboRef" and does NOT display "Event Information" when on general settings', (tester) async {
     testWidgets('toggling Experimental Features prompts confirmation warning and gates Import Event Data', (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
@@ -545,6 +546,20 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // Find About RoboRef label
+      expect(find.text('About RoboRef'), findsOneWidget);
+      // "Event Information" and "VEX Events Page" should not be present
+      expect(find.text('Event Information'), findsNothing);
+      expect(find.text('VEX Events Page'), findsNothing);
+    });
+
+    testWidgets('displays "Event Information" section above "About RoboRef" with "VEX Events Page" tile when on event manage page', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
       // Checkbox is present and unchecked
       final checkboxFinder = find.byType(CheckboxListTile);
       expect(checkboxFinder, findsOneWidget);
@@ -614,6 +629,33 @@ void main() {
         ],
       );
 
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(isEventManagePage: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Both sections must exist
+      expect(find.text('Event Information'), findsOneWidget);
+      expect(find.text('About RoboRef'), findsOneWidget);
+
+      // Verify "Event Information" appears above "About RoboRef"
+      final eventInfoPos = tester.getTopLeft(find.text('Event Information')).dy;
+      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
+      expect(eventInfoPos, lessThan(aboutPos), reason: 'Event Information must be positioned above About RoboRef');
+
+      // VEX Events Page tile exists and has public icon
+      final vexEventsTile = find.widgetWithText(ListTile, 'VEX Events Page');
+      expect(vexEventsTile, findsOneWidget);
+      expect(find.descendant(of: vexEventsTile, matching: find.byIcon(Icons.public)), findsOneWidget);
+
+      // Tap VEX Events Page tile
+      await tester.tap(vexEventsTile);
+      await tester.pump();
       final notifier = container.read(syncSettingsProvider.notifier);
       expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isFalse);
 

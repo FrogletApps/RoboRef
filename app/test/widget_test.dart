@@ -20,6 +20,13 @@ void main() {
   });
 
   testWidgets('RoboRefApp Hierarchical Navigation test (Home Hub -> Event Workspace)', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     SharedPreferences.setMockInitialValues({
       'current_sku': 'TEST-SKU-2026',
       'referee_name': 'Test Referee',
@@ -74,7 +81,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // 1. Verify Home Screen has NO bottom navigation bar
+    // Verify Home Screen has NO bottom navigation bar
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.text('Notes'), findsNothing);
     expect(find.text('Matches'), findsNothing);
@@ -90,14 +97,14 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.text('Welcome to RoboRef!'), findsOneWidget);
 
-    // 2. Test navigating to Event Selection Screen
+    // Test navigating to Event Selection Screen
     await tester.tap(find.text('Add a new event'));
     await tester.pumpAndSettle();
 
     expect(find.text('Pick An Event'), findsOneWidget);
     expect(find.text('Search by SKU (RE-... / VE-...) or event name'), findsOneWidget);
 
-    // 3. Test selecting a live event
+    // Test selecting a live event
     expect(find.text('RE-V5RC-26-4487'), findsOneWidget);
     await tester.tap(find.text('RE-V5RC-26-4487'));
     await tester.runAsync(() async {
@@ -118,6 +125,14 @@ void main() {
 
     expect(find.text('Match Schedule'), findsOneWidget);
 
+    // Test switching to Manage tab in Event Workspace
+    await tester.tap(find.text('Manage'));
+    await tester.pumpAndSettle();
+    expect(find.text('Event Information'), findsOneWidget);
+    expect(find.text('VEX Events Page'), findsOneWidget);
+    expect(find.text('About RoboRef'), findsOneWidget);
+    expect(find.text('Privacy Policy'), findsOneWidget);
+
     // Switch to Rules tab to verify Game Rules Summary header and Version 2.0 subtitle
     await tester.tap(find.text('Rules'));
     await tester.pumpAndSettle();
@@ -128,7 +143,7 @@ void main() {
     await tester.tap(find.text('Matches'));
     await tester.pumpAndSettle();
 
-    // 4. Test navigating back to Home Hub
+    // Test navigating back to Home Hub
     await tester.pageBack();
     await tester.runAsync(() async {
       await Future.delayed(const Duration(milliseconds: 100));
