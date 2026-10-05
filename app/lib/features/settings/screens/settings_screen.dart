@@ -99,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final vexEventsUrl = currentSku.isNotEmpty
             ? 'https://events.vex.com/$currentSku.html'
             : 'https://events.vex.com';
-        final env = getAppEnvironment();
+        final env = ref.watch(syncSettingsEnvironmentProvider) ?? getAppEnvironment();
         final cloudUrl = (env == AppEnvironment.test) ? 'https://test.roboref.app' : 'https://roboref.app';
         const venueLanUrl = 'http://roboref.local:8080';
 
@@ -176,84 +176,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Experimental Features Section
-              const Text(
-                'Experimental Features',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              Card(
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: CheckboxListTile(
-                  title: const Text(
-                    'Enable extra features that may not work as intended',
-                  ),
-                  value: settings.experimentalFeaturesEnabled,
-                  onChanged: (val) async {
-                    if (val == true) {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Warning!  Experimental Features!'),
-                          content: const Text(
-                            'Ticking this will enable extra features that may not work as intended',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(false),
-                              child: const Text('Cancel'),
-                            ),
-                            FilledButton(
-                              onPressed: () => Navigator.of(ctx).pop(true),
-                              child: const Text('Enable'),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirmed == true) {
-                        ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(true);
-                      }
-                    } else {
-                      ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(false);
-                    }
-                  },
-                ),
-              ),
-
-              if (settings.experimentalFeaturesEnabled) ...[
-                const SizedBox(height: 16),
+              // Experimental Features Section (only shown in local or test deployments)
+              if (env == AppEnvironment.local || env == AppEnvironment.test) ...[
                 const Text(
-                  'Import Event Data',
+                  'Experimental Features',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'This feature is experimental and may not work as intended',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                Card(
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: CheckboxListTile(
+                    title: const Text(
+                      'Enable extra features that may not work as intended',
+                    ),
+                    value: settings.experimentalFeaturesEnabled,
+                    onChanged: (val) async {
+                      if (val == true) {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Warning!  Experimental Features!'),
+                            content: const Text(
+                              'Ticking this will enable extra features that may not work as intended',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              FilledButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                child: const Text('Enable'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(true);
+                        }
+                      } else {
+                        ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(false);
+                      }
+                    },
+                  ),
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                      ),
-                      builder: (ctx) => const EventImportSheet(),
-                    );
-                  },
-                  icon: const Icon(Icons.file_upload_outlined),
-                  label: const Text('Import Event Data (TM CSV)'),
-                ),
+
+                if (settings.experimentalFeaturesEnabled) ...[
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Import Event Data',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'This feature is experimental and may not work as intended',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        ),
+                        builder: (ctx) => const EventImportSheet(),
+                      );
+                    },
+                    icon: const Icon(Icons.file_upload_outlined),
+                    label: const Text('Import Event Data (TM CSV)'),
+                  ),
+                ],
+                const SizedBox(height: 24),
               ],
-              const SizedBox(height: 24),
 
               // Sync Server Section
               const Text(

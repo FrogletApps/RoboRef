@@ -513,6 +513,10 @@ void main() {
 
       // Custom URL textfield should NOT be displayed when Cloud Server is selected
       expect(find.widgetWithText(TextField, 'Custom Server URL'), findsNothing);
+
+      // Experimental features toggle should NOT be displayed in live releases
+      expect(find.text('Experimental Features'), findsNothing);
+      expect(find.text('Enable extra features that may not work as intended'), findsNothing);
     });
 
     testWidgets('displays "About RoboRef" and does NOT display "Event Information" when on general settings', (tester) async {

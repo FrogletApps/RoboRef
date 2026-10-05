@@ -14,6 +14,7 @@ import 'package:roboref/features/incidents/state/incident_controller.dart';
 import 'package:roboref/features/event_selection/state/event_controller.dart';
 import 'package:roboref/features/settings/screens/settings_screen.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
+import 'package:roboref/core/utils/sku_utils.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -267,6 +268,96 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.widget<CheckboxListTile>(checkboxFinder).value, isFalse);
       expect(find.text('Import Event Data (TM CSV)'), findsNothing);
+    });
+
+    testWidgets('hides experimental features toggle in live / production releases', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.production),
+          ],
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Experimental Features'), findsNothing);
+      expect(find.text('Enable extra features that may not work as intended'), findsNothing);
+      expect(find.byType(CheckboxListTile), findsNothing);
+    });
+
+    testWidgets('shows experimental features toggle in test deployments', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.test),
+          ],
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Experimental Features'), findsOneWidget);
+      expect(find.text('Enable extra features that may not work as intended'), findsOneWidget);
+      expect(find.byType(CheckboxListTile), findsOneWidget);
+    });
+
+    testWidgets('shows experimental features toggle in local deployments', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            databaseProvider.overrideWithValue(testDb),
+            syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.local),
+          ],
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Experimental Features'), findsOneWidget);
+      expect(find.text('Enable extra features that may not work as intended'), findsOneWidget);
+      expect(find.byType(CheckboxListTile), findsOneWidget);
     });
   });
 }
