@@ -46,7 +46,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
     final shareState = ref.watch(shareControllerProvider);
     final settings = ref.watch(syncSettingsProvider);
     final activeEventAsync = ref.watch(activeEventProvider);
-    final event = activeEventAsync.valueOrNull;
+    final event = activeEventAsync.value;
     final eventName = (event?.name.isNotEmpty ?? false) ? event!.name : widget.sku;
     final skuColor = getSkuColor(widget.sku);
     final isDark = Theme.of(context).brightness == Brightness.dark;

@@ -26,50 +26,57 @@ class EventFiltersState {
   }
 }
 
-class EventFiltersNotifier extends StateNotifier<EventFiltersState> {
-  final SharedPreferences? prefs;
-
+class EventFiltersNotifier extends Notifier<EventFiltersState> {
   static const String keyProgram = 'event_filter_program';
   static const String keyRegion = 'event_filter_region';
   static const String keyDivision = 'event_filter_division';
 
-  EventFiltersNotifier(this.prefs)
-      : super(EventFiltersState(
-          program: prefs?.getString(keyProgram) ?? 'All',
-          region: prefs?.getString(keyRegion) ?? 'All',
-          division: prefs?.getString(keyDivision) ?? 'All',
-        ));
+  SharedPreferences? get _prefs {
+    try {
+      return ref.read(sharedPreferencesProvider);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  EventFiltersState build() {
+    SharedPreferences? prefs;
+    try {
+      prefs = ref.watch(sharedPreferencesProvider);
+    } catch (_) {
+      prefs = null;
+    }
+    return EventFiltersState(
+      program: prefs?.getString(keyProgram) ?? 'All',
+      region: prefs?.getString(keyRegion) ?? 'All',
+      division: prefs?.getString(keyDivision) ?? 'All',
+    );
+  }
 
   void setProgram(String program) {
     state = state.copyWith(program: program);
-    prefs?.setString(keyProgram, program);
+    _prefs?.setString(keyProgram, program);
   }
 
   void setRegion(String region) {
     state = state.copyWith(region: region, division: 'All');
-    prefs?.setString(keyRegion, region);
-    prefs?.setString(keyDivision, 'All');
+    _prefs?.setString(keyRegion, region);
+    _prefs?.setString(keyDivision, 'All');
   }
 
   void setDivision(String division) {
     state = state.copyWith(division: division);
-    prefs?.setString(keyDivision, division);
+    _prefs?.setString(keyDivision, division);
   }
 
   void resetFilters() {
     state = const EventFiltersState(program: 'All', region: 'All', division: 'All');
-    prefs?.setString(keyProgram, 'All');
-    prefs?.setString(keyRegion, 'All');
-    prefs?.setString(keyDivision, 'All');
+    _prefs?.setString(keyProgram, 'All');
+    _prefs?.setString(keyRegion, 'All');
+    _prefs?.setString(keyDivision, 'All');
   }
 }
 
 final eventFiltersProvider =
-    StateNotifierProvider<EventFiltersNotifier, EventFiltersState>((ref) {
-  try {
-    final prefs = ref.watch(sharedPreferencesProvider);
-    return EventFiltersNotifier(prefs);
-  } catch (_) {
-    return EventFiltersNotifier(null);
-  }
-});
+    NotifierProvider<EventFiltersNotifier, EventFiltersState>(EventFiltersNotifier.new);

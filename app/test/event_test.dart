@@ -421,26 +421,34 @@ void main() {
         'event_filter_division': 'All',
       });
       final prefs = await SharedPreferences.getInstance();
-      final notifier = EventFiltersNotifier(prefs);
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(eventFiltersProvider.notifier);
 
-      expect(notifier.state.program, equals('VIQRC'));
-      expect(notifier.state.region, equals('United Kingdom'));
-      expect(notifier.state.division, equals('All'));
+      expect(container.read(eventFiltersProvider).program, equals('VIQRC'));
+      expect(container.read(eventFiltersProvider).region, equals('United Kingdom'));
+      expect(container.read(eventFiltersProvider).division, equals('All'));
 
       notifier.setProgram('V5RC');
       expect(prefs.getString(EventFiltersNotifier.keyProgram), equals('V5RC'));
+      expect(container.read(eventFiltersProvider).program, equals('V5RC'));
 
       notifier.setRegion('United States');
       expect(prefs.getString(EventFiltersNotifier.keyRegion), equals('United States'));
       expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('All'));
+      expect(container.read(eventFiltersProvider).region, equals('United States'));
 
       notifier.setDivision('Texas');
       expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('Texas'));
+      expect(container.read(eventFiltersProvider).division, equals('Texas'));
 
       notifier.resetFilters();
       expect(prefs.getString(EventFiltersNotifier.keyProgram), equals('All'));
       expect(prefs.getString(EventFiltersNotifier.keyRegion), equals('All'));
       expect(prefs.getString(EventFiltersNotifier.keyDivision), equals('All'));
+      expect(container.read(eventFiltersProvider).program, equals('All'));
     });
   });
 
@@ -454,7 +462,6 @@ void main() {
         overrides: [
           databaseProvider.overrideWithValue(testDb),
           sharedPreferencesProvider.overrideWithValue(prefs),
-          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(prefs)),
         ],
       );
 

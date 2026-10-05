@@ -113,7 +113,11 @@ void main() {
         'rules_disclaimer_dismissed_skus': ['RE-V5RC-26-1111', 'RE-VIQRC-26-2222'],
       });
       final prefs = await SharedPreferences.getInstance();
-      final notifier = RulesDisclaimerNotifier(prefs);
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(rulesDisclaimerProvider.notifier);
 
       expect(notifier.isDismissed('RE-V5RC-26-1111'), isTrue);
       expect(notifier.isDismissed('re-v5rc-26-1111'), isTrue);
@@ -124,7 +128,11 @@ void main() {
     test('RulesDisclaimerNotifier dismiss and reset work and persist to prefs', () async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      final notifier = RulesDisclaimerNotifier(prefs);
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(rulesDisclaimerProvider.notifier);
 
       expect(notifier.isDismissed('RE-EVENT-1'), isFalse);
       await notifier.dismiss('RE-EVENT-1');

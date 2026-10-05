@@ -78,7 +78,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (err, _) => Center(child: Text('Error loading teams: $err')),
                   data: (notes) {
-                    final registeredTeams = registeredTeamsAsync.valueOrNull ?? [];
+                    final registeredTeams = registeredTeamsAsync.value ?? [];
                     final Map<String, List<dynamic>> teamNotes = {};
                     for (final note in notes) {
                       teamNotes.putIfAbsent(note.teamNumber, () => []).add(note);

@@ -3,11 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/settings/state/sync_settings_controller.dart';
 
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  final SharedPreferences prefs;
+class ThemeModeNotifier extends Notifier<ThemeMode> {
   static const String key = 'theme_mode';
 
-  ThemeModeNotifier(this.prefs) : super(_loadThemeMode(prefs));
+  SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
+
+  @override
+  ThemeMode build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return _loadThemeMode(prefs);
+  }
 
   static ThemeMode _loadThemeMode(SharedPreferences prefs) {
     final modeStr = prefs.getString(key);
@@ -26,20 +31,17 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     state = mode;
     switch (mode) {
       case ThemeMode.light:
-        prefs.setString(key, 'light');
+        _prefs.setString(key, 'light');
         break;
       case ThemeMode.dark:
-        prefs.setString(key, 'dark');
+        _prefs.setString(key, 'dark');
         break;
       case ThemeMode.system:
-        prefs.setString(key, 'system');
+        _prefs.setString(key, 'system');
         break;
     }
   }
 }
 
 final themeModeProvider =
-    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return ThemeModeNotifier(prefs);
-});
+    NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);

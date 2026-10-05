@@ -7,6 +7,7 @@
 ## 2026.9.20+115
 
 - **Empty State Icons**: Updated empty state placeholder icons to match bottom navigation tab icons.
+- **Update Dependencies**: Upgraded to Riverpod 3.4.
 
 ## 2026.9.7+114
 - **Dismiss Rules Disclaimer**: Made the rules disclaimer banner dismissable per event.
