@@ -405,10 +405,10 @@ void main() {
       expect(find.widgetWithText(TextField, 'Tournament SKU'), findsNothing);
       expect(find.text('Tournament & Referee Setup'), findsNothing);
 
-      // Verify Import Event Data section
-      expect(find.text('Import Event Data'), findsOneWidget);
-      expect(find.text('This feature is experimental and may not work as intended'), findsOneWidget);
-      expect(find.widgetWithText(OutlinedButton, 'Import Event Data (TM CSV)'), findsOneWidget);
+      // Verify Experimental Features section is present and Import Event Data is hidden by default
+      expect(find.text('Experimental Features'), findsWidgets);
+      expect(find.text('Import Event Data'), findsNothing);
+      expect(find.widgetWithText(OutlinedButton, 'Import Event Data (TM CSV)'), findsNothing);
 
       // Verify Sync Server Configuration section
       expect(find.text('Sync Server Configuration'), findsOneWidget);
@@ -512,6 +512,118 @@ void main() {
 
       // Custom URL textfield should NOT be displayed when Cloud Server is selected
       expect(find.widgetWithText(TextField, 'Custom Server URL'), findsNothing);
+    });
+
+    testWidgets('toggling Experimental Features prompts confirmation warning and gates Import Event Data', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'RE-V5RC-24-1234',
+        'referee_name': 'Test Referee',
+        'experimental_features_enabled': false,
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Checkbox is present and unchecked
+      final checkboxFinder = find.byType(CheckboxListTile);
+      expect(checkboxFinder, findsOneWidget);
+      final checkboxWidget = tester.widget<CheckboxListTile>(checkboxFinder);
+      expect(checkboxWidget.value, isFalse);
+
+      // Import Event Data button is not present
+      expect(find.text('Import Event Data'), findsNothing);
+      expect(find.widgetWithText(OutlinedButton, 'Import Event Data (TM CSV)'), findsNothing);
+
+      // Tap the checkbox to enable
+      await tester.tap(checkboxFinder);
+      await tester.pumpAndSettle();
+
+      // Confirmation dialog should be displayed with required warning text
+      expect(find.text('Warning!  Experimental Features!'), findsOneWidget);
+      expect(find.text('Ticking this will enable extra features that may not work as intended'), findsOneWidget);
+      expect(find.widgetWithText(TextButton, 'Cancel'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Enable'), findsOneWidget);
+
+      // Tap Cancel
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      // Dialog dismissed, still unchecked, Import Event Data still hidden
+      expect(find.text('Warning!  Experimental Features!'), findsNothing);
+      expect(tester.widget<CheckboxListTile>(checkboxFinder).value, isFalse);
+      expect(find.text('Import Event Data'), findsNothing);
+      expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isFalse);
+
+      // Tap checkbox again, this time tap Enable
+      await tester.tap(checkboxFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Warning!  Experimental Features!'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Enable'));
+      await tester.pumpAndSettle();
+
+      // Now experimentalFeaturesEnabled is true
+      expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isTrue);
+      expect(prefs.getBool('experimental_features_enabled'), isTrue);
+      expect(tester.widget<CheckboxListTile>(checkboxFinder).value, isTrue);
+
+      // Import Event Data section and button are now revealed
+      expect(find.text('Import Event Data'), findsOneWidget);
+      expect(find.widgetWithText(OutlinedButton, 'Import Event Data (TM CSV)'), findsOneWidget);
+
+      // Tap checkbox again to uncheck (should disable immediately without dialog)
+      await tester.tap(checkboxFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Warning!  Experimental Features!'), findsNothing);
+      expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isFalse);
+      expect(prefs.getBool('experimental_features_enabled'), isFalse);
+      expect(find.text('Import Event Data'), findsNothing);
+    });
+  });
+
+  group('SyncSettingsNotifier Experimental Features Unit Tests', () {
+    test('defaults to false and toggles state with persistence', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      final notifier = container.read(syncSettingsProvider.notifier);
+      expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isFalse);
+
+      notifier.setExperimentalFeaturesEnabled(true);
+      expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isTrue);
+      expect(prefs.getBool('experimental_features_enabled'), isTrue);
+
+      notifier.setExperimentalFeaturesEnabled(false);
+      expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isFalse);
+      expect(prefs.getBool('experimental_features_enabled'), isFalse);
     });
   });
 }

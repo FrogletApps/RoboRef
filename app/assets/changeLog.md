@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.10.05+117
+
+- **Experimental Features Setting**: Added an Experimental Features toggle in Settings with a warning confirmation dialog to gate local data import buttons.
+
 ## 2026.10.05+116
 
 - **Update Dependencies**

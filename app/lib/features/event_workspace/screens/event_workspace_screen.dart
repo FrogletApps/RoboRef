@@ -128,22 +128,26 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
 
       switch (_currentIndex) {
         case 0: // Matches
-          list.add(
-            IconButton(
-              icon: const Icon(Icons.download),
-              tooltip: 'Load / Import Schedule',
-              onPressed: () => _showImportSheet(context),
-            ),
-          );
+          if (settings.experimentalFeaturesEnabled) {
+            list.add(
+              IconButton(
+                icon: const Icon(Icons.download),
+                tooltip: 'Load / Import Schedule',
+                onPressed: () => _showImportSheet(context),
+              ),
+            );
+          }
           break;
         case 1: // Teams
-          list.add(
-            IconButton(
-              icon: const Icon(Icons.download),
-              tooltip: 'Load / Import Teams',
-              onPressed: () => _showImportSheet(context),
-            ),
-          );
+          if (settings.experimentalFeaturesEnabled) {
+            list.add(
+              IconButton(
+                icon: const Icon(Icons.download),
+                tooltip: 'Load / Import Teams',
+                onPressed: () => _showImportSheet(context),
+              ),
+            );
+          }
           break;
         case 2: // Incidents
           list.add(
