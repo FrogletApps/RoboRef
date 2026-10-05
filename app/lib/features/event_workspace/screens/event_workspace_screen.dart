@@ -112,7 +112,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
       TeamListScreen(showAppBar: false),
       IncidentLoggerScreen(showAppBar: false),
       RulesScreen(showAppBar: false),
-      SettingsScreen(showAppBar: false),
+      SettingsScreen(showAppBar: false, isEventManagePage: true),
     ];
 
     final titles = [

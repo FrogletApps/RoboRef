@@ -20,6 +20,13 @@ void main() {
   });
 
   testWidgets('RoboRefApp Hierarchical Navigation test (Home Hub -> Event Workspace)', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     SharedPreferences.setMockInitialValues({
       'current_sku': 'TEST-SKU-2026',
       'referee_name': 'Test Referee',
@@ -118,7 +125,15 @@ void main() {
 
     expect(find.text('Match Schedule'), findsOneWidget);
 
-    // 4. Test navigating back to Home Hub
+    // 4. Test switching to Manage tab in Event Workspace
+    await tester.tap(find.text('Manage'));
+    await tester.pumpAndSettle();
+    expect(find.text('Event Information'), findsOneWidget);
+    expect(find.text('VEX Events Page'), findsOneWidget);
+    expect(find.text('About RoboRef'), findsOneWidget);
+    expect(find.text('Privacy Policy'), findsOneWidget);
+
+    // 5. Test navigating back to Home Hub
     await tester.pageBack();
     await tester.runAsync(() async {
       await Future.delayed(const Duration(milliseconds: 100));

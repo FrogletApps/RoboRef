@@ -2,6 +2,7 @@
 
 ## 2026.10.05+116
 
+- **Manage Page Updates**: Renamed "About" to "About RoboRef" and added "Event Information" section with link to VEX Events page.
 - **Update Dependencies**
 
 ## 2026.9.20+115
