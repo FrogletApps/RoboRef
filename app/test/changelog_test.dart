@@ -115,6 +115,7 @@ void main() {
       expect(find.text(currentVersion), findsOneWidget);
 
       // 4. Check markdown content is present
+      expect(find.textContaining('Experimental Features Setting', findRichText: true), findsWidgets);
       expect(find.textContaining('Game Rules V2 Updates', findRichText: true), findsWidgets);
     });
 
@@ -147,6 +148,7 @@ void main() {
       await tester.tap(find.text('Clear search'));
       await tester.pumpAndSettle();
 
+      expect(find.textContaining('Experimental Features Setting', findRichText: true), findsWidgets);
       expect(find.textContaining('Game Rules V2 Updates', findRichText: true), findsWidgets);
     });
 

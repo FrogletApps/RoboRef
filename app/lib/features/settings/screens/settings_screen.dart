@@ -176,31 +176,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Import Event Data Section
+              // Experimental Features Section
               const Text(
-                'Import Event Data',
+                'Experimental Features',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'This feature is experimental and may not work as intended',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+              Card(
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Experimental Features',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text(
+                    'Enable extra features that may not work as intended',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: settings.experimentalFeaturesEnabled,
+                  onChanged: (val) async {
+                    if (val == true) {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Warning!  Experimental Features!'),
+                          content: const Text(
+                            'Ticking this will enable extra features that may not work as intended',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              child: const Text('Enable'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirmed == true) {
+                        ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(true);
+                      }
+                    } else {
+                      ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(false);
+                    }
+                  },
+                ),
               ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                    ),
-                    builder: (ctx) => const EventImportSheet(),
-                  );
-                },
-                icon: const Icon(Icons.file_upload_outlined),
-                label: const Text('Import Event Data (TM CSV)'),
-              ),
+
+              if (settings.experimentalFeaturesEnabled) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Import Event Data',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'This feature is experimental and may not work as intended',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      ),
+                      builder: (ctx) => const EventImportSheet(),
+                    );
+                  },
+                  icon: const Icon(Icons.file_upload_outlined),
+                  label: const Text('Import Event Data (TM CSV)'),
+                ),
+              ],
               const SizedBox(height: 24),
 
               // Sync Server Section
