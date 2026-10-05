@@ -116,6 +116,7 @@ void main() {
 
       // 4. Check markdown content is present
       expect(find.textContaining('Experimental Features Setting', findRichText: true), findsWidgets);
+      expect(find.textContaining('Game Rules V2 Updates', findRichText: true), findsWidgets);
     });
 
     testWidgets('filters items when search query is entered', (tester) async {
@@ -148,6 +149,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Experimental Features Setting', findRichText: true), findsWidgets);
+      expect(find.textContaining('Game Rules V2 Updates', findRichText: true), findsWidgets);
     });
 
     testWidgets('copies version to clipboard when copy button is tapped', (tester) async {

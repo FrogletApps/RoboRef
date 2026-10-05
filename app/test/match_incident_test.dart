@@ -221,7 +221,7 @@ void main() {
 
     // In RuleSelectionSheet modal, verify title and search for GG2
     expect(find.text('Select Rule Violations'), findsOneWidget);
-    expect(find.text('V5RC Override (138 rules)'), findsOneWidget);
+    expect(find.text('V5RC Override (137 rules)'), findsOneWidget);
 
     // Search GG2
     final searchInput = find.widgetWithText(TextField, 'Search by rule code (SG1, GG2...) or summary...');
