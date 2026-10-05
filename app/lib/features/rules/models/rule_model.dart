@@ -32,6 +32,7 @@ class GameRuleset {
   final String gameTitle;
   final String season;
   final String program;
+  final String version;
   final String manualUrl;
   final String qaUrl;
   final List<RuleModel> rules;
@@ -40,6 +41,7 @@ class GameRuleset {
     required this.gameTitle,
     required this.season,
     required this.program,
+    this.version = 'Version 2.0',
     required this.manualUrl,
     required this.qaUrl,
     required this.rules,

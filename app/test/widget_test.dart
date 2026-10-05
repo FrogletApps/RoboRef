@@ -118,6 +118,16 @@ void main() {
 
     expect(find.text('Match Schedule'), findsOneWidget);
 
+    // Switch to Rules tab to verify Game Rules Summary header and Version 2.0 subtitle
+    await tester.tap(find.text('Rules'));
+    await tester.pumpAndSettle();
+    expect(find.text('Game Rules Summary'), findsOneWidget);
+    expect(find.text('Version 2.0'), findsOneWidget);
+
+    // Switch back to Matches tab before navigating back
+    await tester.tap(find.text('Matches'));
+    await tester.pumpAndSettle();
+
     // 4. Test navigating back to Home Hub
     await tester.pageBack();
     await tester.runAsync(() async {

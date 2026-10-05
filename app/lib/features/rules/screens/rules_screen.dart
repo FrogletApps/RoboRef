@@ -209,7 +209,20 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
     return Scaffold(
       appBar: widget.showAppBar
           ? AppBar(
-              title: Text('${ruleset.program} Rules (${ruleset.gameTitle})'),
+              title: Column(
+                children: [
+                  const Text(
+                    'Game Rules Summary',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  ),
+                  Text(
+                    ruleset.version,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             )
           : null,
       body: Column(

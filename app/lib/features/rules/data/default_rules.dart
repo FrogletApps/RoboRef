@@ -15,6 +15,7 @@ const List<RuleModel> _v5rc20262027Rules = [
   RuleModel(code: '<SG10>', title: 'Scoring Objects can\'t be removed from neutral or opponent-Alliance Goals', description: 'Scoring Objects can\'t be removed from neutral or opponent-Alliance Goals', group: 'Specific Game Rules', link: 'https://www.vexrobotics.com/override-manual#sg10'),
   RuleModel(code: '<SG11>', title: 'Match Loads may be introduced during the Match under certain conditions', description: 'Match Loads may be introduced during the Match under certain conditions', group: 'Specific Game Rules', link: 'https://www.vexrobotics.com/override-manual#sg11'),
   RuleModel(code: '<SG12>', title: 'Some rules change during the Endgame period', description: 'Some rules change during the Endgame period', group: 'Specific Game Rules', link: 'https://www.vexrobotics.com/override-manual#sg12'),
+  RuleModel(code: '<SG13>', title: 'Load Zones are protected', description: 'Load Zones are protected', group: 'Specific Game Rules', link: 'https://www.vexrobotics.com/override-manual#sg13'),
   // Scoring Rules
   RuleModel(code: '<SC1>', title: 'All scoring statuses are evaluated after the Match ends', description: 'All scoring statuses are evaluated after the Match ends', group: 'Scoring Rules', link: 'https://www.vexrobotics.com/override-manual#sc1'),
   RuleModel(code: '<SC2>', title: 'Placed Scoring Object criteria', description: 'Placed Scoring Object criteria', group: 'Scoring Rules', link: 'https://www.vexrobotics.com/override-manual#sc2'),
@@ -48,8 +49,7 @@ const List<RuleModel> _v5rc20262027Rules = [
   RuleModel(code: '<G2>', title: 'V5RC is a Student-centered program', description: 'V5RC is a Student-centered program', group: 'General Rules', link: 'https://www.vexrobotics.com/override-manual#g2'),
   RuleModel(code: '<G3>', title: 'Use common sense', description: 'Use common sense', group: 'General Rules', link: 'https://www.vexrobotics.com/override-manual#g3'),
   RuleModel(code: '<G4>', title: 'All work must represent the skill level of the Students on the Team', description: 'All work must represent the skill level of the Students on the Team', group: 'General Rules', link: 'https://www.vexrobotics.com/override-manual#g4'),
-  RuleModel(code: '<G5>', title: 'Each Student can only belong to one Team', description: 'Each Student can only belong to one Team', group: 'General Rules', link: 'https://www.vexrobotics.com/override-manual#g5'),
-  RuleModel(code: '<G6>', title: 'There is a difference between accidentally and willfully violating a Robot rule', description: 'There is a difference between accidentally and willfully violating a Robot rule', group: 'General Rules', link: 'https://www.vexrobotics.com/override-manual#g6'),
+  RuleModel(code: '<G5>', title: 'There is a difference between accidentally and willfully violating a Robot rule', description: 'There is a difference between accidentally and willfully violating a Robot rule', group: 'General Rules', link: 'https://www.vexrobotics.com/override-manual#g5'),
   // Safety Rules
   RuleModel(code: '<S1>', title: 'Be safe out there', description: 'Be safe out there', group: 'Safety Rules', link: 'https://www.vexrobotics.com/override-manual#s1'),
   RuleModel(code: '<S2>', title: 'Students must be accompanied by an Adult', description: 'Students must be accompanied by an Adult', group: 'Safety Rules', link: 'https://www.vexrobotics.com/override-manual#s2'),
@@ -150,14 +150,14 @@ const List<RuleModel> _v5rc20262027Rules = [
   RuleModel(code: '<VUT3>', title: 'Elimination Matches will be conducted in the same manner, but without an Alliance Selection', description: 'Elimination Matches will be conducted in the same manner, but without an Alliance Selection', group: 'VEX U Tournament Rules', link: 'https://www.vexrobotics.com/override-manual#vut3'),
   RuleModel(code: '<VUT4>', title: 'The Autonomous Period at the beginning of each Head-to-Head Match will be 30 seconds', description: 'The Autonomous Period at the beginning of each Head-to-Head Match will be 30 seconds', group: 'VEX U Tournament Rules', link: 'https://www.vexrobotics.com/override-manual#vut4'),
   RuleModel(code: '<VUT5>', title: 'The Driver Controlled Period is shortened to 90 seconds', description: 'The Driver Controlled Period is shortened to 90 seconds', group: 'VEX U Tournament Rules', link: 'https://www.vexrobotics.com/override-manual#vut5'),
-  RuleModel(code: '<VUT6>', title: 'VEX U Student eligibility', description: 'VEX U Student eligibility', group: 'VEX U Tournament Rules', link: 'https://www.vexrobotics.com/override-manual#vut6'),
-  RuleModel(code: '<VUT7>', title: 'VURC Tournaments have fewer Teams in Elimination Matches', description: 'VURC Tournaments have fewer Teams in Elimination Matches', group: 'VEX U Tournament Rules', link: 'https://www.vexrobotics.com/override-manual#vut7'),
+  RuleModel(code: '<VUT6>', title: 'VURC Tournaments have fewer Teams in Elimination Matches', description: 'VURC Tournaments have fewer Teams in Elimination Matches', group: 'VEX U Tournament Rules', link: 'https://www.vexrobotics.com/override-manual#vut6'),
 ];
 
 const _v5rc20262027Ruleset = GameRuleset(
   gameTitle: 'Override',
   season: '2026-2027',
   program: 'V5RC',
+  version: 'Version 2.0',
   manualUrl: 'https://www.vexrobotics.com/override-manual',
   qaUrl: 'https://events.vex.com/V5RC/2026-2027/QA',
   rules: _v5rc20262027Rules,
@@ -660,8 +660,7 @@ const List<RuleModel> _viqrc20262027Rules = [
   RuleModel(code: '<G2>', title: 'VIQRC is a Student-centered program', description: 'VIQRC is a Student-centered program', group: 'General Rules', link: 'https://www.vexrobotics.com/level-up-manual#g2'),
   RuleModel(code: '<G3>', title: 'Use common sense', description: 'Use common sense', group: 'General Rules', link: 'https://www.vexrobotics.com/level-up-manual#g3'),
   RuleModel(code: '<G4>', title: 'All work must represent the skill level of the Students on the Team', description: 'All work must represent the skill level of the Students on the Team', group: 'General Rules', link: 'https://www.vexrobotics.com/level-up-manual#g4'),
-  RuleModel(code: '<G5>', title: 'Each Student can only belong to one Team', description: 'Each Student can only belong to one Team', group: 'General Rules', link: 'https://www.vexrobotics.com/level-up-manual#g5'),
-  RuleModel(code: '<G6>', title: 'There is a difference between accidentally and willfully violating a Robot rule', description: 'There is a difference between accidentally and willfully violating a Robot rule', group: 'General Rules', link: 'https://www.vexrobotics.com/level-up-manual#g6'),
+  RuleModel(code: '<G5>', title: 'There is a difference between accidentally and willfully violating a Robot rule', description: 'There is a difference between accidentally and willfully violating a Robot rule', group: 'General Rules', link: 'https://www.vexrobotics.com/level-up-manual#g5'),
   // General Game Rules
   RuleModel(code: '<GG1>', title: 'Drivers drive your Robot, and stay in the Driver Station', description: 'Drivers drive your Robot, and stay in the Driver Station', group: 'General Game Rules', link: 'https://www.vexrobotics.com/level-up-manual#gg1'),
   RuleModel(code: '<GG2>', title: 'A Team\'s Robot should attend every Match', description: 'A Team\'s Robot should attend every Match', group: 'General Game Rules', link: 'https://www.vexrobotics.com/level-up-manual#gg2'),
@@ -730,6 +729,7 @@ const _viqrc20262027Ruleset = GameRuleset(
   gameTitle: 'Level Up',
   season: '2026-2027',
   program: 'VIQRC',
+  version: 'Version 2.0',
   manualUrl: 'https://www.vexrobotics.com/level-up-manual',
   qaUrl: 'https://events.vex.com/VIQRC/2026-2027/QA',
   rules: _viqrc20262027Rules,
@@ -1023,6 +1023,7 @@ GameRuleset _getVexURuleset(String season) {
     gameTitle: '${v5.gameTitle} (VEX U)',
     season: v5.season,
     program: 'VEX U',
+    version: v5.version,
     manualUrl: v5.manualUrl,
     qaUrl: 'https://events.vex.com/VEXU/${v5.season}/QA',
     rules: [...vexuRules, ...otherRules],
@@ -1038,6 +1039,7 @@ GameRuleset _getVexAiRuleset(String season) {
     gameTitle: '${v5.gameTitle} (VEX AI)',
     season: v5.season,
     program: 'VEX AI',
+    version: v5.version,
     manualUrl: v5.manualUrl,
     qaUrl: 'https://events.vex.com/VAIRC/${v5.season}/QA',
     rules: [...aiRules, ...otherRules],
