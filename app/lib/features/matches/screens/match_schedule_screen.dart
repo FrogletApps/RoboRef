@@ -44,11 +44,12 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                     ],
                   ),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.download),
-                      tooltip: 'Load / Import Schedule',
-                      onPressed: () => _showImportSheet(context),
-                    ),
+                    if (settings.experimentalFeaturesEnabled)
+                      IconButton(
+                        icon: const Icon(Icons.download),
+                        tooltip: 'Load / Import Schedule',
+                        onPressed: () => _showImportSheet(context),
+                      ),
                   ],
                 )
               : null,
@@ -106,12 +107,14 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                   : 'No matches found matching "$_searchQuery"',
                               style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                             ),
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: () => _showImportSheet(context),
-                              icon: const Icon(Icons.cloud_download),
-                              label: const Text('Fetch or Import Schedule'),
-                            ),
+                            if (settings.experimentalFeaturesEnabled) ...[
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () => _showImportSheet(context),
+                                icon: const Icon(Icons.cloud_download),
+                                label: const Text('Fetch or Import Schedule'),
+                              ),
+                            ],
                           ],
                         ),
                       );

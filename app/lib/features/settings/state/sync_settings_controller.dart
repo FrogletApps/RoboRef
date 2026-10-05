@@ -95,6 +95,7 @@ class SyncSettingsState {
   final ServerConnectionStatus connectionStatus;
   final String? lastConnectionMessage;
   final bool? lastConnectionSuccess;
+  final bool experimentalFeaturesEnabled;
 
   SyncSettingsState({
     required this.currentSku,
@@ -107,6 +108,7 @@ class SyncSettingsState {
     this.connectionStatus = ServerConnectionStatus.unknown,
     this.lastConnectionMessage,
     this.lastConnectionSuccess,
+    this.experimentalFeaturesEnabled = false,
   });
 
   SyncSettingsState copyWith({
@@ -120,6 +122,7 @@ class SyncSettingsState {
     ServerConnectionStatus? connectionStatus,
     String? lastConnectionMessage,
     bool? lastConnectionSuccess,
+    bool? experimentalFeaturesEnabled,
   }) {
     return SyncSettingsState(
       currentSku: currentSku ?? this.currentSku,
@@ -132,6 +135,8 @@ class SyncSettingsState {
       connectionStatus: connectionStatus ?? this.connectionStatus,
       lastConnectionMessage: lastConnectionMessage ?? this.lastConnectionMessage,
       lastConnectionSuccess: lastConnectionSuccess ?? this.lastConnectionSuccess,
+      experimentalFeaturesEnabled:
+          experimentalFeaturesEnabled ?? this.experimentalFeaturesEnabled,
     );
   }
 }
@@ -144,21 +149,31 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
       : _customHttpClient = httpClient,
         _customEnvironment = environment;
 
-  SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
+  SharedPreferences? get _prefs {
+    try {
+      return ref.read(sharedPreferencesProvider);
+    } catch (_) {
+      return null;
+    }
+  }
   http.Client? get httpClient => _customHttpClient ?? ref.read(syncSettingsHttpClientProvider);
   AppEnvironment? get environment => _customEnvironment ?? ref.read(syncSettingsEnvironmentProvider);
 
   @override
   SyncSettingsState build() {
-    final prefs = ref.watch(sharedPreferencesProvider);
+    SharedPreferences? prefs;
+    try {
+      prefs = ref.watch(sharedPreferencesProvider);
+    } catch (_) {}
     final env = _customEnvironment ?? ref.watch(syncSettingsEnvironmentProvider);
     final initialState = SyncSettingsState(
-      currentSku: prefs.getString('current_sku') ?? 'DEMO-EVENT-2026',
-      refereeName: prefs.getString('referee_name') ?? 'Head Referee',
-      deviceId: prefs.getString('device_id') ?? const Uuid().v4(),
+      currentSku: prefs?.getString('current_sku') ?? 'DEMO-EVENT-2026',
+      refereeName: prefs?.getString('referee_name') ?? 'Head Referee',
+      deviceId: prefs?.getString('device_id') ?? const Uuid().v4(),
       serverUrl: resolveDefaultServerUrl(prefs: prefs, environment: env),
+      experimentalFeaturesEnabled: prefs?.getBool('experimental_features_enabled') ?? false,
     );
-    if (!prefs.containsKey('device_id')) {
+    if (prefs != null && !prefs.containsKey('device_id')) {
       prefs.setString('device_id', initialState.deviceId);
     }
     Future.microtask(() {
@@ -169,18 +184,23 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
     return initialState;
   }
 
+  void setExperimentalFeaturesEnabled(bool enabled) {
+    _prefs?.setBool('experimental_features_enabled', enabled);
+    state = state.copyWith(experimentalFeaturesEnabled: enabled);
+  }
+
   void setSku(String sku) {
-    _prefs.setString('current_sku', sku);
+    _prefs?.setString('current_sku', sku);
     state = state.copyWith(currentSku: sku);
   }
 
   void setRefereeName(String name) {
-    _prefs.setString('referee_name', name);
+    _prefs?.setString('referee_name', name);
     state = state.copyWith(refereeName: name);
   }
 
   void setServerUrl(String url) {
-    _prefs.setString('server_url', url);
+    _prefs?.setString('server_url', url);
     state = state.copyWith(serverUrl: url);
     checkServerHealth();
   }

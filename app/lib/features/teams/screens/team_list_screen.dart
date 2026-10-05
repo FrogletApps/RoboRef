@@ -7,6 +7,7 @@ import '../../incidents/screens/incident_logger_screen.dart';
 import '../../incidents/widgets/severity_badge.dart';
 import '../state/team_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
+import '../../settings/state/sync_settings_controller.dart';
 import '../../../core/utils/team_utils.dart';
 import '../../../core/utils/match_utils.dart';
 
@@ -31,26 +32,28 @@ class _TeamListScreenState extends State<TeamListScreen> {
       builder: (context, ref, child) {
         final notesAsync = ref.watch(activeTournamentNotesProvider);
         final registeredTeamsAsync = ref.watch(activeTournamentTeamsProvider);
+        final settings = ref.watch(syncSettingsProvider);
 
         return Scaffold(
           appBar: widget.showAppBar
               ? AppBar(
                   title: const Text('Team Histories'),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.download),
-                      tooltip: 'Load / Import Teams',
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                          ),
-                          builder: (ctx) => const EventImportSheet(),
-                        );
-                      },
-                    ),
+                    if (settings.experimentalFeaturesEnabled)
+                      IconButton(
+                        icon: const Icon(Icons.download),
+                        tooltip: 'Load / Import Teams',
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                            ),
+                            builder: (ctx) => const EventImportSheet(),
+                          );
+                        },
+                      ),
                   ],
                 )
               : null,
