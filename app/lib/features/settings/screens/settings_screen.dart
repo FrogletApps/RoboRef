@@ -192,12 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: CheckboxListTile(
                   title: const Text(
-                    'Experimental Features',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: const Text(
                     'Enable extra features that may not work as intended',
-                    style: TextStyle(fontSize: 12),
                   ),
                   value: settings.experimentalFeaturesEnabled,
                   onChanged: (val) async {

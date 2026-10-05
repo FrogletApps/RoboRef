@@ -406,7 +406,8 @@ void main() {
       expect(find.text('Tournament & Referee Setup'), findsNothing);
 
       // Verify Experimental Features section is present and Import Event Data is hidden by default
-      expect(find.text('Experimental Features'), findsWidgets);
+      expect(find.text('Experimental Features'), findsOneWidget);
+      expect(find.text('Enable extra features that may not work as intended'), findsOneWidget);
       expect(find.text('Import Event Data'), findsNothing);
       expect(find.widgetWithText(OutlinedButton, 'Import Event Data (TM CSV)'), findsNothing);
 
@@ -515,20 +516,12 @@ void main() {
     });
 
     testWidgets('displays "About RoboRef" and does NOT display "Event Information" when on general settings', (tester) async {
-    testWidgets('toggling Experimental Features prompts confirmation warning and gates Import Event Data', (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
       });
-
-      SharedPreferences.setMockInitialValues({
-        'current_sku': 'RE-V5RC-24-1234',
-        'referee_name': 'Test Referee',
-        'experimental_features_enabled': false,
-      });
-      final prefs = await SharedPreferences.getInstance();
 
       final container = ProviderContainer(
         overrides: [
@@ -560,6 +553,73 @@ void main() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
       });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(isEventManagePage: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Both sections must exist
+      expect(find.text('Event Information'), findsOneWidget);
+      expect(find.text('About RoboRef'), findsOneWidget);
+
+      // Verify "Event Information" appears above "About RoboRef"
+      final eventInfoPos = tester.getTopLeft(find.text('Event Information')).dy;
+      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
+      expect(eventInfoPos, lessThan(aboutPos), reason: 'Event Information must be positioned above About RoboRef');
+
+      // VEX Events Page tile exists and has public icon
+      final vexEventsTile = find.widgetWithText(ListTile, 'VEX Events Page');
+      expect(vexEventsTile, findsOneWidget);
+      expect(find.descendant(of: vexEventsTile, matching: find.byIcon(Icons.public)), findsOneWidget);
+
+      // Tap VEX Events Page tile
+      await tester.tap(vexEventsTile);
+      await tester.pump();
+    });
+
+    testWidgets('toggling Experimental Features prompts confirmation warning and gates Import Event Data', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'RE-V5RC-24-1234',
+        'referee_name': 'Test Referee',
+        'experimental_features_enabled': false,
+      });
+      final freshPrefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(freshPrefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
       // Checkbox is present and unchecked
       final checkboxFinder = find.byType(CheckboxListTile);
       expect(checkboxFinder, findsOneWidget);
@@ -600,7 +660,7 @@ void main() {
 
       // Now experimentalFeaturesEnabled is true
       expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isTrue);
-      expect(prefs.getBool('experimental_features_enabled'), isTrue);
+      expect(freshPrefs.getBool('experimental_features_enabled'), isTrue);
       expect(tester.widget<CheckboxListTile>(checkboxFinder).value, isTrue);
 
       // Import Event Data section and button are now revealed
@@ -613,7 +673,7 @@ void main() {
 
       expect(find.text('Warning!  Experimental Features!'), findsNothing);
       expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isFalse);
-      expect(prefs.getBool('experimental_features_enabled'), isFalse);
+      expect(freshPrefs.getBool('experimental_features_enabled'), isFalse);
       expect(find.text('Import Event Data'), findsNothing);
     });
   });
@@ -629,33 +689,6 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const MaterialApp(
-            home: SettingsScreen(isEventManagePage: true),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Both sections must exist
-      expect(find.text('Event Information'), findsOneWidget);
-      expect(find.text('About RoboRef'), findsOneWidget);
-
-      // Verify "Event Information" appears above "About RoboRef"
-      final eventInfoPos = tester.getTopLeft(find.text('Event Information')).dy;
-      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
-      expect(eventInfoPos, lessThan(aboutPos), reason: 'Event Information must be positioned above About RoboRef');
-
-      // VEX Events Page tile exists and has public icon
-      final vexEventsTile = find.widgetWithText(ListTile, 'VEX Events Page');
-      expect(vexEventsTile, findsOneWidget);
-      expect(find.descendant(of: vexEventsTile, matching: find.byIcon(Icons.public)), findsOneWidget);
-
-      // Tap VEX Events Page tile
-      await tester.tap(vexEventsTile);
-      await tester.pump();
       final notifier = container.read(syncSettingsProvider.notifier);
       expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isFalse);
 
