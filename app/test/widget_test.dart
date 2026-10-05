@@ -55,7 +55,7 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         databaseProvider.overrideWithValue(testDb),
-        syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(prefs, httpClient: mockHttpClient)),
+        syncSettingsHttpClientProvider.overrideWithValue(mockHttpClient),
         vexEventsClientProvider.overrideWithValue(
           VexEventsClient(
             client: mockHttpClient,

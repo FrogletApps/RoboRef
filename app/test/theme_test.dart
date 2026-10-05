@@ -15,43 +15,59 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
-      final notifier = ThemeModeNotifier(prefs);
-      expect(notifier.state, equals(ThemeMode.system));
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(themeModeProvider), equals(ThemeMode.system));
     });
 
     test('loads saved light theme mode from SharedPreferences', () async {
       SharedPreferences.setMockInitialValues({'theme_mode': 'light'});
       final prefs = await SharedPreferences.getInstance();
 
-      final notifier = ThemeModeNotifier(prefs);
-      expect(notifier.state, equals(ThemeMode.light));
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(themeModeProvider), equals(ThemeMode.light));
     });
 
     test('loads saved dark theme mode from SharedPreferences', () async {
       SharedPreferences.setMockInitialValues({'theme_mode': 'dark'});
       final prefs = await SharedPreferences.getInstance();
 
-      final notifier = ThemeModeNotifier(prefs);
-      expect(notifier.state, equals(ThemeMode.dark));
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(themeModeProvider), equals(ThemeMode.dark));
     });
 
     test('setThemeMode updates state and persists to SharedPreferences', () async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
-      final notifier = ThemeModeNotifier(prefs);
-      expect(notifier.state, equals(ThemeMode.system));
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
 
-      notifier.setThemeMode(ThemeMode.light);
-      expect(notifier.state, equals(ThemeMode.light));
+      expect(container.read(themeModeProvider), equals(ThemeMode.system));
+
+      container.read(themeModeProvider.notifier).setThemeMode(ThemeMode.light);
+      expect(container.read(themeModeProvider), equals(ThemeMode.light));
       expect(prefs.getString('theme_mode'), equals('light'));
 
-      notifier.setThemeMode(ThemeMode.dark);
-      expect(notifier.state, equals(ThemeMode.dark));
+      container.read(themeModeProvider.notifier).setThemeMode(ThemeMode.dark);
+      expect(container.read(themeModeProvider), equals(ThemeMode.dark));
       expect(prefs.getString('theme_mode'), equals('dark'));
 
-      notifier.setThemeMode(ThemeMode.system);
-      expect(notifier.state, equals(ThemeMode.system));
+      container.read(themeModeProvider.notifier).setThemeMode(ThemeMode.system);
+      expect(container.read(themeModeProvider), equals(ThemeMode.system));
       expect(prefs.getString('theme_mode'), equals('system'));
     });
   });

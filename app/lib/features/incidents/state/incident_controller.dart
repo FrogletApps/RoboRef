@@ -23,11 +23,9 @@ final activeTournamentNotesProvider = StreamProvider.autoDispose<List<IncidentNo
   }
 });
 
-// Incident Action Notifier
-class IncidentController extends StateNotifier<AsyncValue<void>> {
-  final Ref ref;
-
-  IncidentController(this.ref) : super(const AsyncValue.data(null));
+class IncidentController extends Notifier<AsyncValue<void>> {
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
 
   AppDatabase get _db => ref.read(databaseProvider);
   SyncSettingsState get _settings => ref.read(syncSettingsProvider);
@@ -157,6 +155,4 @@ class IncidentController extends StateNotifier<AsyncValue<void>> {
 }
 
 final incidentControllerProvider =
-    StateNotifierProvider<IncidentController, AsyncValue<void>>((ref) {
-  return IncidentController(ref);
-});
+    NotifierProvider<IncidentController, AsyncValue<void>>(IncidentController.new);

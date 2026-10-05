@@ -104,7 +104,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
     final settings = ref.watch(syncSettingsProvider);
     final shareState = ref.watch(shareControllerProvider);
     final activeEventAsync = ref.watch(activeEventProvider);
-    final event = activeEventAsync.valueOrNull;
+    final event = activeEventAsync.value;
     final eventName = (event?.name.isNotEmpty ?? false) ? event!.name : settings.currentSku;
 
     final screens = const [

@@ -37,10 +37,9 @@ final vexEventsClientProvider = Provider<VexEventsClient>((ref) {
   );
 });
 
-class EventController extends StateNotifier<AsyncValue<void>> {
-  final Ref ref;
-
-  EventController(this.ref) : super(const AsyncValue.data(null));
+class EventController extends Notifier<AsyncValue<void>> {
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
 
   AppDatabase get _db => ref.read(databaseProvider);
   VexEventsClient get _client => ref.read(vexEventsClientProvider);
@@ -155,6 +154,4 @@ class EventController extends StateNotifier<AsyncValue<void>> {
 }
 
 final eventControllerProvider =
-    StateNotifierProvider<EventController, AsyncValue<void>>((ref) {
-  return EventController(ref);
-});
+    NotifierProvider<EventController, AsyncValue<void>>(EventController.new);

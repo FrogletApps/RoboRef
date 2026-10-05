@@ -65,21 +65,7 @@ class EventShareState {
   }
 }
 
-class ShareController extends StateNotifier<EventShareState> {
-  final Ref ref;
-
-  ShareController(this.ref)
-      : super(EventShareState(
-          sku: ref.read(syncSettingsProvider).currentSku,
-        )) {
-    ref.listen<SyncSettingsState>(syncSettingsProvider, (previous, next) {
-      if (previous?.currentSku != next.currentSku) {
-        loadEventShareState(next.currentSku);
-      }
-    });
-    loadEventShareState(state.sku);
-  }
-
+class ShareController extends Notifier<EventShareState> {
   AppDatabase get _db => ref.read(databaseProvider);
   SyncSettingsState get _settings => ref.read(syncSettingsProvider);
 
@@ -87,8 +73,26 @@ class ShareController extends StateNotifier<EventShareState> {
         baseUrl: _settings.serverUrl,
       );
 
+  @override
+  EventShareState build() {
+    ref.listen<SyncSettingsState>(syncSettingsProvider, (previous, next) {
+      if (previous?.currentSku != next.currentSku) {
+        loadEventShareState(next.currentSku);
+      }
+    });
+
+    final currentSku = ref.read(syncSettingsProvider).currentSku;
+    Future.microtask(() {
+      if (ref.mounted) {
+        loadEventShareState(currentSku);
+      }
+    });
+    return EventShareState(sku: currentSku);
+  }
+
   /// Load persistent share state from local database for an event SKU
   Future<void> loadEventShareState(String sku) async {
+    if (!ref.mounted) return;
     state = state.copyWith(sku: sku, isLoading: true, errorMessage: null);
 
     try {
@@ -342,6 +346,4 @@ class ShareController extends StateNotifier<EventShareState> {
 }
 
 final shareControllerProvider =
-    StateNotifierProvider<ShareController, EventShareState>((ref) {
-  return ShareController(ref);
-});
+    NotifierProvider<ShareController, EventShareState>(ShareController.new);

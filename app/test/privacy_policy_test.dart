@@ -81,11 +81,8 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(
-            prefs,
-            httpClient: mockClient,
-            environment: AppEnvironment.local,
-          )),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.local),
         ],
       );
 
@@ -134,11 +131,8 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(
-            prefs,
-            httpClient: mockClient,
-            environment: AppEnvironment.local,
-          )),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.local),
         ],
       );
 

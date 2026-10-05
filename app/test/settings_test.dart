@@ -101,15 +101,22 @@ void main() {
         return http.Response('Not Found', 404);
       });
 
-      final notifier = SyncSettingsNotifier(prefs, httpClient: mockClient);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(syncSettingsProvider.notifier);
       final result = await notifier.checkServerHealth('http://roboref.local:8080');
 
       expect(result.isSuccess, isTrue);
       expect(result.status, equals(ServerConnectionStatus.connectedLocal));
       expect(result.message, contains('Venue LAN'));
-      expect(notifier.state.connectionStatus, equals(ServerConnectionStatus.connectedLocal));
-      expect(notifier.state.lastConnectionSuccess, isTrue);
-      expect(notifier.state.lastConnectionMessage, contains('Venue LAN'));
+      expect(container.read(syncSettingsProvider).connectionStatus, equals(ServerConnectionStatus.connectedLocal));
+      expect(container.read(syncSettingsProvider).lastConnectionSuccess, isTrue);
+      expect(container.read(syncSettingsProvider).lastConnectionMessage, contains('Venue LAN'));
     });
 
     test('successfully detects Localhost Server connection (HTTP 200)', () async {
@@ -120,15 +127,22 @@ void main() {
         return http.Response('Not Found', 404);
       });
 
-      final notifier = SyncSettingsNotifier(prefs, httpClient: mockClient);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(syncSettingsProvider.notifier);
       final result = await notifier.checkServerHealth('http://localhost:8080');
 
       expect(result.isSuccess, isTrue);
       expect(result.status, equals(ServerConnectionStatus.connectedLocal));
       expect(result.message, contains('Local Server'));
-      expect(notifier.state.connectionStatus, equals(ServerConnectionStatus.connectedLocal));
-      expect(notifier.state.lastConnectionSuccess, isTrue);
-      expect(notifier.state.lastConnectionMessage, contains('Local Server'));
+      expect(container.read(syncSettingsProvider).connectionStatus, equals(ServerConnectionStatus.connectedLocal));
+      expect(container.read(syncSettingsProvider).lastConnectionSuccess, isTrue);
+      expect(container.read(syncSettingsProvider).lastConnectionMessage, contains('Local Server'));
     });
 
     test('successfully detects Cloud Server connection (HTTP 200)', () async {
@@ -139,15 +153,22 @@ void main() {
         return http.Response('Not Found', 404);
       });
 
-      final notifier = SyncSettingsNotifier(prefs, httpClient: mockClient);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(syncSettingsProvider.notifier);
       final result = await notifier.checkServerHealth('https://test.roboref.app');
 
       expect(result.isSuccess, isTrue);
       expect(result.status, equals(ServerConnectionStatus.connectedCloud));
       expect(result.message, contains('Cloud Server'));
-      expect(notifier.state.connectionStatus, equals(ServerConnectionStatus.connectedCloud));
-      expect(notifier.state.lastConnectionSuccess, isTrue);
-      expect(notifier.state.lastConnectionMessage, contains('Cloud Server'));
+      expect(container.read(syncSettingsProvider).connectionStatus, equals(ServerConnectionStatus.connectedCloud));
+      expect(container.read(syncSettingsProvider).lastConnectionSuccess, isTrue);
+      expect(container.read(syncSettingsProvider).lastConnectionMessage, contains('Cloud Server'));
     });
 
     test('handles HTTP 500 error response gracefully', () async {
@@ -155,14 +176,21 @@ void main() {
         return http.Response('Internal Server Error', 500);
       });
 
-      final notifier = SyncSettingsNotifier(prefs, httpClient: mockClient);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(syncSettingsProvider.notifier);
       final result = await notifier.checkServerHealth('http://roboref.local:8080');
 
       expect(result.isSuccess, isFalse);
       expect(result.status, equals(ServerConnectionStatus.unreachable));
       expect(result.message, contains('500'));
-      expect(notifier.state.connectionStatus, equals(ServerConnectionStatus.unreachable));
-      expect(notifier.state.lastConnectionSuccess, isFalse);
+      expect(container.read(syncSettingsProvider).connectionStatus, equals(ServerConnectionStatus.unreachable));
+      expect(container.read(syncSettingsProvider).lastConnectionSuccess, isFalse);
     });
 
     test('handles TimeoutException / network failure gracefully', () async {
@@ -170,24 +198,38 @@ void main() {
         throw TimeoutException('Connection timed out');
       });
 
-      final notifier = SyncSettingsNotifier(prefs, httpClient: mockClient);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(syncSettingsProvider.notifier);
       final result = await notifier.checkServerHealth('http://roboref.local:8080');
 
       expect(result.isSuccess, isFalse);
       expect(result.status, equals(ServerConnectionStatus.unreachable));
       expect(result.message, contains('timed out'));
-      expect(notifier.state.connectionStatus, equals(ServerConnectionStatus.unreachable));
-      expect(notifier.state.lastConnectionSuccess, isFalse);
+      expect(container.read(syncSettingsProvider).connectionStatus, equals(ServerConnectionStatus.unreachable));
+      expect(container.read(syncSettingsProvider).lastConnectionSuccess, isFalse);
     });
 
     test('handles empty server URL gracefully', () async {
       final mockClient = MockClient((request) async => http.Response('ok', 200));
-      final notifier = SyncSettingsNotifier(prefs, httpClient: mockClient);
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(syncSettingsProvider.notifier);
       final result = await notifier.checkServerHealth('');
 
       expect(result.isSuccess, isFalse);
       expect(result.message, contains('empty'));
-      expect(notifier.state.connectionStatus, equals(ServerConnectionStatus.unreachable));
+      expect(container.read(syncSettingsProvider).connectionStatus, equals(ServerConnectionStatus.unreachable));
     });
   });
 
@@ -221,7 +263,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(prefs, httpClient: mockClient)),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
         ],
       );
 
@@ -260,7 +302,7 @@ void main() {
       final asyncContainer = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(prefs, httpClient: asyncClient)),
+          syncSettingsHttpClientProvider.overrideWithValue(asyncClient),
         ],
       );
 
@@ -306,7 +348,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(prefs, httpClient: failingClient)),
+          syncSettingsHttpClientProvider.overrideWithValue(failingClient),
         ],
       );
 
@@ -399,11 +441,8 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(freshPrefs),
-          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(
-            freshPrefs,
-            httpClient: mockClient,
-            environment: AppEnvironment.local,
-          )),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.local),
         ],
       );
 
@@ -453,11 +492,8 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(freshPrefs),
-          syncSettingsProvider.overrideWith((ref) => SyncSettingsNotifier(
-            freshPrefs,
-            httpClient: mockClient,
-            environment: AppEnvironment.production,
-          )),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.production),
         ],
       );
 

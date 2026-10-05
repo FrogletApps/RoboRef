@@ -136,35 +136,51 @@ class SyncSettingsState {
   }
 }
 
-class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
-  final SharedPreferences prefs;
-  final http.Client? httpClient;
+class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
+  final http.Client? _customHttpClient;
+  final AppEnvironment? _customEnvironment;
 
-  SyncSettingsNotifier(this.prefs, {this.httpClient, AppEnvironment? environment})
-      : super(SyncSettingsState(
-          currentSku: prefs.getString('current_sku') ?? 'DEMO-EVENT-2026',
-          refereeName: prefs.getString('referee_name') ?? 'Head Referee',
-          deviceId: prefs.getString('device_id') ?? const Uuid().v4(),
-          serverUrl: resolveDefaultServerUrl(prefs: prefs, environment: environment),
-        )) {
+  SyncSettingsNotifier({http.Client? httpClient, AppEnvironment? environment})
+      : _customHttpClient = httpClient,
+        _customEnvironment = environment;
+
+  SharedPreferences get _prefs => ref.read(sharedPreferencesProvider);
+  http.Client? get httpClient => _customHttpClient ?? ref.read(syncSettingsHttpClientProvider);
+  AppEnvironment? get environment => _customEnvironment ?? ref.read(syncSettingsEnvironmentProvider);
+
+  @override
+  SyncSettingsState build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final env = _customEnvironment ?? ref.watch(syncSettingsEnvironmentProvider);
+    final initialState = SyncSettingsState(
+      currentSku: prefs.getString('current_sku') ?? 'DEMO-EVENT-2026',
+      refereeName: prefs.getString('referee_name') ?? 'Head Referee',
+      deviceId: prefs.getString('device_id') ?? const Uuid().v4(),
+      serverUrl: resolveDefaultServerUrl(prefs: prefs, environment: env),
+    );
     if (!prefs.containsKey('device_id')) {
-      prefs.setString('device_id', state.deviceId);
+      prefs.setString('device_id', initialState.deviceId);
     }
-    checkServerHealth();
+    Future.microtask(() {
+      if (ref.mounted) {
+        checkServerHealth();
+      }
+    });
+    return initialState;
   }
 
   void setSku(String sku) {
-    prefs.setString('current_sku', sku);
+    _prefs.setString('current_sku', sku);
     state = state.copyWith(currentSku: sku);
   }
 
   void setRefereeName(String name) {
-    prefs.setString('referee_name', name);
+    _prefs.setString('referee_name', name);
     state = state.copyWith(refereeName: name);
   }
 
   void setServerUrl(String url) {
-    prefs.setString('server_url', url);
+    _prefs.setString('server_url', url);
     state = state.copyWith(serverUrl: url);
     checkServerHealth();
   }
@@ -178,6 +194,13 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
   }
 
   Future<ServerHealthResult> checkServerHealth([String? testUrl]) async {
+    if (!ref.mounted) {
+      return const ServerHealthResult(
+        isSuccess: false,
+        status: ServerConnectionStatus.unreachable,
+        message: 'Provider not mounted',
+      );
+    }
     final targetUrl = testUrl != null ? testUrl.trim() : state.serverUrl.trim();
 
     if (targetUrl.isEmpty) {
@@ -186,11 +209,13 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
         status: ServerConnectionStatus.unreachable,
         message: 'Server URL is empty',
       );
-      state = state.copyWith(
-        connectionStatus: ServerConnectionStatus.unreachable,
-        lastConnectionMessage: 'Server URL is empty',
-        lastConnectionSuccess: false,
-      );
+      if (ref.mounted) {
+        state = state.copyWith(
+          connectionStatus: ServerConnectionStatus.unreachable,
+          lastConnectionMessage: 'Server URL is empty',
+          lastConnectionSuccess: false,
+        );
+      }
       return result;
     }
 
@@ -233,11 +258,13 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
         final latencyMs = stopwatch.elapsedMilliseconds;
         final msg = 'Connected to $serverType ($latencyMs ms)';
 
-        state = state.copyWith(
-          connectionStatus: status,
-          lastConnectionMessage: msg,
-          lastConnectionSuccess: true,
-        );
+        if (ref.mounted) {
+          state = state.copyWith(
+            connectionStatus: status,
+            lastConnectionMessage: msg,
+            lastConnectionSuccess: true,
+          );
+        }
 
         return ServerHealthResult(
           isSuccess: true,
@@ -248,11 +275,13 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
         );
       } else {
         final msg = 'Server reachable but returned HTTP ${res.statusCode}';
-        state = state.copyWith(
-          connectionStatus: ServerConnectionStatus.unreachable,
-          lastConnectionMessage: msg,
-          lastConnectionSuccess: false,
-        );
+        if (ref.mounted) {
+          state = state.copyWith(
+            connectionStatus: ServerConnectionStatus.unreachable,
+            lastConnectionMessage: msg,
+            lastConnectionSuccess: false,
+          );
+        }
         return ServerHealthResult(
           isSuccess: false,
           status: ServerConnectionStatus.unreachable,
@@ -277,11 +306,13 @@ class SyncSettingsNotifier extends StateNotifier<SyncSettingsState> {
         errorMsg = 'Invalid server URL format';
       }
 
-      state = state.copyWith(
-        connectionStatus: ServerConnectionStatus.unreachable,
-        lastConnectionMessage: errorMsg,
-        lastConnectionSuccess: false,
-      );
+      if (ref.mounted) {
+        state = state.copyWith(
+          connectionStatus: ServerConnectionStatus.unreachable,
+          lastConnectionMessage: errorMsg,
+          lastConnectionSuccess: false,
+        );
+      }
 
       return ServerHealthResult(
         isSuccess: false,
@@ -297,8 +328,8 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('Initialize in main()');
 });
 
+final syncSettingsHttpClientProvider = Provider<http.Client?>((ref) => null);
+final syncSettingsEnvironmentProvider = Provider<AppEnvironment?>((ref) => null);
+
 final syncSettingsProvider =
-    StateNotifierProvider<SyncSettingsNotifier, SyncSettingsState>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return SyncSettingsNotifier(prefs);
-});
+    NotifierProvider<SyncSettingsNotifier, SyncSettingsState>(SyncSettingsNotifier.new);

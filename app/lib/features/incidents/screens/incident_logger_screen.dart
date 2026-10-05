@@ -328,9 +328,9 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
-        final registeredTeams = ref.watch(activeTournamentTeamsProvider).valueOrNull ?? [];
-        final tournamentMatches = ref.watch(activeTournamentMatchesProvider).valueOrNull ?? [];
-        final tournamentNotes = ref.watch(activeTournamentNotesProvider).valueOrNull ?? [];
+        final registeredTeams = ref.watch(activeTournamentTeamsProvider).value ?? [];
+        final tournamentMatches = ref.watch(activeTournamentMatchesProvider).value ?? [];
+        final tournamentNotes = ref.watch(activeTournamentNotesProvider).value ?? [];
         final settings = ref.watch(syncSettingsProvider);
         final activeEventAsync = ref.watch(activeEventProvider);
 
