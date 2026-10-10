@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026.10.10+156
+
+- **Referee Name Synchronization**: Updating your referee name now updates across connected shared events for all referees.
+- **Referee Name History**: Added info button to connected referees section to view previous names for referees at an event.
+
 ## 2026.10.05+155
 
 - **Manage Page Updates**: Renamed "About" to "About RoboRef" and added "Event Information" section with link to VEX Events page.

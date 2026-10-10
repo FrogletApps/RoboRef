@@ -63,6 +63,7 @@ export interface ShareParticipant {
   refereeName: string;
   role: "admin" | "member";
   joinedAt: number;
+  previousNames?: string[];
 }
 
 export interface ShareSessionRecord {
@@ -93,6 +94,11 @@ export interface StorageAdapter {
   getShareSession(id: string): Promise<ShareSessionRecord | null>;
   getActiveSharesForSku(sku: string): Promise<ShareSessionRecord[]>;
   addParticipant(shareId: string, participant: ShareParticipant): Promise<ShareSessionRecord | null>;
+  updateParticipantName(
+    deviceId: string,
+    newRefereeName: string,
+    shareId?: string
+  ): Promise<ShareSessionRecord[]>;
   removeParticipant(
     shareId: string,
     deviceId: string

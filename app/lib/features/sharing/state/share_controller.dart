@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../incidents/state/incident_controller.dart';
@@ -71,13 +72,24 @@ class ShareController extends Notifier<EventShareState> {
 
   ShareClient get _client => ShareClient(
         baseUrl: _settings.serverUrl,
+        httpClient: ref.read(syncSettingsHttpClientProvider),
       );
+
+  Timer? _nameDebounceTimer;
+  String? _lastCommittedName;
 
   @override
   EventShareState build() {
+    _lastCommittedName = ref.read(syncSettingsProvider).refereeName.trim();
+
     ref.listen<SyncSettingsState>(syncSettingsProvider, (previous, next) {
       if (previous?.currentSku != next.currentSku) {
         loadEventShareState(next.currentSku);
+      }
+      if (previous != null &&
+          previous.refereeName.trim() != next.refereeName.trim() &&
+          next.refereeName.trim().isNotEmpty) {
+        _onRefereeNameChanged(next.refereeName.trim());
       }
     });
 
@@ -88,6 +100,103 @@ class ShareController extends Notifier<EventShareState> {
       }
     });
     return EventShareState(sku: currentSku);
+  }
+
+  void _onRefereeNameChanged(String newName) {
+    _nameDebounceTimer?.cancel();
+    _nameDebounceTimer = Timer(const Duration(milliseconds: 600), () {
+      flushRefereeNameChange();
+    });
+  }
+
+  void flushRefereeNameChange() {
+    _nameDebounceTimer?.cancel();
+    final currentName = ref.read(syncSettingsProvider).refereeName.trim();
+    if (currentName.isEmpty || currentName == _lastCommittedName) return;
+    _lastCommittedName = currentName;
+    updateRefereeName(currentName);
+  }
+
+  /// Update referee name across all connected events and on the remote sync server
+  Future<void> updateRefereeName(String newName) async {
+    final trimmed = newName.trim();
+    if (trimmed.isEmpty) return;
+
+    final deviceId = _settings.deviceId;
+
+    // 1. If currently active share, update in local state immediately
+    if (state.isShared) {
+      final updatedParticipants = state.participants.map((p) {
+        if (p.deviceId == deviceId && p.refereeName != trimmed) {
+          final previousNames = List<String>.from(p.previousNames);
+          if (p.refereeName.isNotEmpty && !previousNames.contains(p.refereeName)) {
+            previousNames.add(p.refereeName);
+          }
+          return ShareParticipantModel(
+            deviceId: p.deviceId,
+            refereeName: trimmed,
+            role: p.role,
+            joinedAt: p.joinedAt,
+            previousNames: previousNames,
+          );
+        }
+        return p;
+      }).toList();
+
+      final newAdminName = state.role == ShareRole.admin ? trimmed : state.adminRefereeName;
+
+      state = state.copyWith(
+        participants: updatedParticipants,
+        adminRefereeName: newAdminName,
+      );
+
+      if (state.role == ShareRole.admin) {
+        await _db.updateAdminRefereeName(state.sku, trimmed);
+      }
+    }
+
+    // 2. Fetch all shared events in local DB and update server & DB
+    try {
+      final sharedEvents = await _db.getSharedEvents();
+      final visitedShareIds = <String>{};
+
+      for (final event in sharedEvents) {
+        if (event.shareRole == 'admin') {
+          await _db.updateAdminRefereeName(event.sku, trimmed);
+        }
+        if (event.shareId != null) {
+          visitedShareIds.add(event.shareId!);
+          final updatedSession = await _client.updateRefereeName(
+            deviceId: deviceId,
+            refereeName: trimmed,
+            shareId: event.shareId,
+            sku: event.sku,
+          );
+          if (updatedSession != null && event.sku == state.sku) {
+            state = state.copyWith(
+              participants: updatedSession.participants,
+              adminRefereeName: updatedSession.adminRefereeName,
+            );
+          }
+        }
+      }
+
+      // Also ensure current active share is updated on server if not in sharedEvents list
+      if (state.isShared && state.shareId != null && !visitedShareIds.contains(state.shareId)) {
+        final updatedSession = await _client.updateRefereeName(
+          deviceId: deviceId,
+          refereeName: trimmed,
+          shareId: state.shareId,
+          sku: state.sku,
+        );
+        if (updatedSession != null) {
+          state = state.copyWith(
+            participants: updatedSession.participants,
+            adminRefereeName: updatedSession.adminRefereeName,
+          );
+        }
+      }
+    } catch (_) {}
   }
 
   /// Load persistent share state from local database for an event SKU

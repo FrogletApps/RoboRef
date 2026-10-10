@@ -148,6 +148,21 @@ class AppDatabase extends _$AppDatabase {
     return event?.isShared ?? false;
   }
 
+  // Get all events currently marked as shared
+  Future<List<Event>> getSharedEvents() {
+    return (select(events)..where((tbl) => tbl.isShared.equals(true))).get();
+  }
+
+  // Update admin referee name for an event
+  Future<void> updateAdminRefereeName(String sku, String adminRefereeName) async {
+    await (update(events)..where((tbl) => tbl.sku.equals(sku))).write(
+      EventsCompanion(
+        adminRefereeName: Value(adminRefereeName),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
   // Unhide an event in history
   Future<void> unhideEvent(String sku) {
     return (update(events)..where((tbl) => tbl.sku.equals(sku))).write(
