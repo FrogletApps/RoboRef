@@ -1011,8 +1011,8 @@ void main() {
     });
   });
 
-  group('SettingsScreen Advanced Settings Section Tests', () {
-    testWidgets('displays horizontal divider underneath About RoboRef and labels Advanced Settings section on main settings in test env without Sync Server', (tester) async {
+  group('SettingsScreen Sync & Sharing and Section Order Tests', () {
+    testWidgets('does not display Advanced Settings label on main settings in test env without Sync Server', (tester) async {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -1043,23 +1043,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(find.text('Advanced Settings'), findsNothing);
       expect(find.text('About RoboRef'), findsOneWidget);
-      expect(find.byType(Divider), findsOneWidget);
-      expect(find.text('Advanced Settings'), findsOneWidget);
       expect(find.text('Sync Server Configuration'), findsNothing);
+      expect(find.text('Sync & Sharing'), findsNothing);
+      expect(find.text('Event Information'), findsNothing);
       expect(find.text('Experimental Features'), findsOneWidget);
-
-      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
-      final dividerPos = tester.getTopLeft(find.byType(Divider)).dy;
-      final advancedPos = tester.getTopLeft(find.text('Advanced Settings')).dy;
-      final experimentalPos = tester.getTopLeft(find.text('Experimental Features')).dy;
-
-      expect(aboutPos, lessThan(dividerPos), reason: 'About RoboRef must be above Divider');
-      expect(dividerPos, lessThan(advancedPos), reason: 'Divider must be above Advanced Settings');
-      expect(advancedPos, lessThan(experimentalPos), reason: 'Advanced Settings must be above Experimental Features');
     });
 
-    testWidgets('displays Sync Server Configuration under Advanced Settings on event manage page when shared', (tester) async {
+    testWidgets('displays Sync Server Configuration above Event Information and divider between Sync Server Configuration and About RoboRef on event manage page when shared', (tester) async {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -1092,7 +1084,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.test),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.production),
           databaseProvider.overrideWithValue(db),
         ],
       );
@@ -1107,22 +1099,89 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('About RoboRef'), findsOneWidget);
-      expect(find.byType(Divider), findsOneWidget);
-      expect(find.text('Advanced Settings'), findsOneWidget);
+      expect(find.text('Advanced Settings'), findsNothing);
+      expect(find.text('Referee Setup'), findsOneWidget);
       expect(find.text('Sync Server Configuration'), findsOneWidget);
-      expect(find.text('Experimental Features'), findsOneWidget);
+      expect(find.text('Event Information'), findsOneWidget);
+      expect(find.byType(Divider), findsOneWidget);
+      expect(find.text('About RoboRef'), findsOneWidget);
 
-      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
-      final dividerPos = tester.getTopLeft(find.byType(Divider)).dy;
-      final advancedPos = tester.getTopLeft(find.text('Advanced Settings')).dy;
+      final refereePos = tester.getTopLeft(find.text('Referee Setup')).dy;
       final syncServerPos = tester.getTopLeft(find.text('Sync Server Configuration')).dy;
-      final experimentalPos = tester.getTopLeft(find.text('Experimental Features')).dy;
+      final eventInfoPos = tester.getTopLeft(find.text('Event Information')).dy;
+      final dividerPos = tester.getTopLeft(find.byType(Divider)).dy;
+      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
 
-      expect(aboutPos, lessThan(dividerPos), reason: 'About RoboRef must be above Divider');
-      expect(dividerPos, lessThan(advancedPos), reason: 'Divider must be above Advanced Settings');
-      expect(advancedPos, lessThan(syncServerPos), reason: 'Advanced Settings must be above Sync Server Configuration');
-      expect(syncServerPos, lessThan(experimentalPos), reason: 'Sync Server Configuration must be above Experimental Features');
+      expect(refereePos, lessThan(syncServerPos), reason: 'Referee Setup must be above Sync Server Configuration');
+      expect(syncServerPos, lessThan(eventInfoPos), reason: 'Sync Server Configuration must be above Event Information');
+      expect(eventInfoPos, lessThan(dividerPos), reason: 'Event Information must be above Divider');
+      expect(dividerPos, lessThan(aboutPos), reason: 'Divider must be above About RoboRef');
+    });
+
+    testWidgets('displays Sync & Sharing above Event Information and divider between Sync & Sharing and About RoboRef on event manage page when not shared', (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'RE-V5RC-24-1234',
+        'referee_name': 'Test Referee',
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'RE-V5RC-24-1234',
+          name: 'Test Tournament',
+          program: 'V5RC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          updatedAt: 1000,
+          isShared: const Value(false),
+        ),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.production),
+          databaseProvider.overrideWithValue(db),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(isEventManagePage: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Advanced Settings'), findsNothing);
+      expect(find.text('Referee Setup'), findsOneWidget);
+      expect(find.text('Sync & Sharing'), findsOneWidget);
+      expect(find.text('Sharing Not Enabled'), findsOneWidget);
+      expect(find.text('Event Information'), findsOneWidget);
+      expect(find.byType(Divider), findsOneWidget);
+      expect(find.text('About RoboRef'), findsOneWidget);
+
+      final refereePos = tester.getTopLeft(find.text('Referee Setup')).dy;
+      final syncSharingPos = tester.getTopLeft(find.text('Sync & Sharing')).dy;
+      final eventInfoPos = tester.getTopLeft(find.text('Event Information')).dy;
+      final dividerPos = tester.getTopLeft(find.byType(Divider)).dy;
+      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
+
+      expect(refereePos, lessThan(syncSharingPos), reason: 'Referee Setup must be above Sync & Sharing');
+      expect(syncSharingPos, lessThan(eventInfoPos), reason: 'Sync & Sharing must be above Event Information');
+      expect(eventInfoPos, lessThan(dividerPos), reason: 'Event Information must be above Divider');
+      expect(dividerPos, lessThan(aboutPos), reason: 'Divider must be above About RoboRef');
     });
   });
 }
