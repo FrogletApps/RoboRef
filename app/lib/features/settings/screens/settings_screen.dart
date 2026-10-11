@@ -9,7 +9,10 @@ import '../state/sync_settings_controller.dart';
 import '../../home/screens/changelog_screen.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
+import '../../event_selection/state/event_controller.dart';
+import '../../sharing/models/share_models.dart';
 import '../../sharing/state/share_controller.dart';
+import '../../sharing/widgets/event_share_sheet.dart';
 import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -46,6 +49,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } else {
       _loadAppVersion();
     }
+    Future.microtask(() {
+      if (mounted) {
+        final currentSku = (widget.eventSku ?? ref.read(syncSettingsProvider).currentSku).trim().toUpperCase();
+        if (currentSku.isNotEmpty) {
+          ref.read(shareControllerProvider.notifier).loadEventShareState(currentSku);
+        }
+      }
+    });
   }
 
   Future<void> _loadAppVersion() async {
@@ -131,6 +142,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         final settings = ref.watch(syncSettingsProvider);
         final themeMode = ref.watch(themeModeProvider);
         final currentSku = (widget.eventSku ?? settings.currentSku).trim().toUpperCase();
+        final shareState = ref.watch(shareControllerProvider);
+        final activeEventAsync = ref.watch(activeEventProvider);
+        final event = activeEventAsync.value;
+
+        final isEventShared = _isEventManagePage && (
+          (event != null && event.sku == currentSku && event.isShared) ||
+          (shareState.sku == currentSku && shareState.isShared)
+        );
+        final isShareAdmin = _isEventManagePage && isEventShared && (
+          (event != null && event.sku == currentSku && event.shareRole == 'admin') ||
+          (shareState.sku == currentSku && shareState.role == ShareRole.admin)
+        );
+        final adminName = (event?.adminRefereeName?.isNotEmpty ?? false)
+            ? event!.adminRefereeName!
+            : (shareState.adminRefereeName ?? 'Head Referee');
+
         final vexEventsUrl = currentSku.isNotEmpty
             ? 'https://events.vex.com/$currentSku.html'
             : 'https://events.vex.com';
@@ -143,6 +170,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _serverController = TextEditingController(text: settings.serverUrl);
           _selectedServerOption = _getOptionForUrl(settings.serverUrl, cloudUrl, venueLanUrl);
           _initialized = true;
+        } else {
+          if (_serverController.text != settings.serverUrl && !_isTestingConnection) {
+            _serverController.text = settings.serverUrl;
+            _selectedServerOption = _getOptionForUrl(settings.serverUrl, cloudUrl, venueLanUrl);
+          }
         }
 
         return Scaffold(
@@ -306,268 +338,378 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 24),
-
               // Advanced Settings Section
-              const Text(
-                'Advanced Settings',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
+              if (_isEventManagePage || env == AppEnvironment.local || env == AppEnvironment.test) ...[
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 24),
 
-              // Sync Server Section
-              const Text(
-                'Sync Server Configuration',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Connect to the cloud server or a server on your local network',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-
-              // Sync Server Mode Dropdown
-              DropdownButtonFormField<String>(
-                initialValue: _selectedServerOption,
-                decoration: const InputDecoration(
-                  labelText: 'Sync Server Mode',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                  prefixIcon: Icon(Icons.dns_outlined),
+                const Text(
+                  'Advanced Settings',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                items: [
-                  DropdownMenuItem(
-                    value: 'cloud',
-                    child: Text(
-                      'Cloud Server ($cloudUrl)',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const DropdownMenuItem(
-                    value: 'lan',
-                    child: Text(
-                      'Local Server (http://roboref.local:8080)',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const DropdownMenuItem(
-                    value: 'custom',
-                    child: Text('Custom Server URL'),
-                  ),
-                ],
-                onChanged: (newOption) {
-                  if (newOption == null) return;
-                  setState(() {
-                    _selectedServerOption = newOption;
-                    if (newOption == 'cloud') {
-                      _serverController.text = cloudUrl;
-                      ref.read(syncSettingsProvider.notifier).setServerUrl(cloudUrl);
-                    } else if (newOption == 'lan') {
-                      _serverController.text = venueLanUrl;
-                      ref.read(syncSettingsProvider.notifier).setServerUrl(venueLanUrl);
-                    } else if (newOption == 'custom') {
-                      final current = _serverController.text.trim();
-                      if (current.isEmpty || current == cloudUrl || current == venueLanUrl) {
-                        const defaultCustom = 'http://localhost:8080';
-                        _serverController.text = defaultCustom;
-                        ref.read(syncSettingsProvider.notifier).setServerUrl(defaultCustom);
-                      }
-                    }
-                  });
-                },
-              ),
+                const SizedBox(height: 16),
 
-              // Custom Server URL free-text input
-              if (_selectedServerOption == 'custom') ...[
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _serverController,
-                  decoration: const InputDecoration(
-                    labelText: 'Custom Server URL',
-                    hintText: 'e.g. http://localhost:8080 or https://sync.roboref.app',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                    prefixIcon: Icon(Icons.link),
+                // On Event Manage Page when sharing has NOT been enabled
+                if (_isEventManagePage && !isEventShared) ...[
+                  const Text(
+                    'Sync & Sharing',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  onChanged: (val) => ref.read(syncSettingsProvider.notifier).setServerUrl(val.trim()),
-                ),
-              ],
-
-              const SizedBox(height: 16),
-              Card(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  const SizedBox(height: 6),
+                  Card(
+                    margin: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Server Status:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          _buildConnectionBadge(settings.connectionStatus, settings.serverUrl),
+                          Row(
+                            children: [
+                              Icon(Icons.cloud_off_outlined, color: Colors.grey.shade600, size: 22),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Sharing Not Enabled',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Notes are stored locally on this device. Once sharing is enabled for this event, the share admin can configure and manage the sync server.',
+                            style: TextStyle(fontSize: 13, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 14),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                ),
+                                builder: (ctx) => EventShareSheet(sku: currentSku),
+                              );
+                            },
+                            icon: const Icon(Icons.share, size: 18),
+                            label: const Text('Share Event Online'),
+                          ),
                         ],
                       ),
-                      if (settings.lastConnectionMessage != null) ...[
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(
-                              settings.lastConnectionSuccess == true
-                                  ? Icons.check_circle
-                                  : Icons.error_outline,
-                              size: 14,
-                              color: settings.lastConnectionSuccess == true
-                                  ? Colors.green
-                                  : Colors.redAccent,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
+                // Sync Server Configuration (ONLY visible when on event manage page AND sharing is enabled)
+                if (_isEventManagePage && isEventShared) ...[
+                  const Text(
+                    'Sync Server Configuration',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    isShareAdmin
+                        ? 'Connect to the cloud server or a server on your local network'
+                        : 'Sync server is configured by the share admin for this event',
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (!isShareAdmin) ...[
+                    // Member View: Notice that host manages the sync server
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.lock_outline, size: 20, color: Colors.blue),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Managed by Host ($adminName). Only the share admin can configure the sync server for this event.',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.blue),
                             ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                settings.lastConnectionMessage!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(Icons.dns_outlined),
+                        title: Text(
+                          settings.serverUrl,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          getServerTypeDisplayName(settings.serverUrl),
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    // Admin View: Sync Server Mode Dropdown
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedServerOption,
+                      decoration: const InputDecoration(
+                        labelText: 'Sync Server Mode',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        prefixIcon: Icon(Icons.dns_outlined),
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'cloud',
+                          child: Text(
+                            'Cloud Server ($cloudUrl)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const DropdownMenuItem(
+                          value: 'lan',
+                          child: Text(
+                            'Local Server (http://roboref.local:8080)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const DropdownMenuItem(
+                          value: 'custom',
+                          child: Text('Custom Server URL'),
+                        ),
+                      ],
+                      onChanged: (newOption) {
+                        if (newOption == null) return;
+                        setState(() {
+                          _selectedServerOption = newOption;
+                          if (newOption == 'cloud') {
+                            _serverController.text = cloudUrl;
+                            ref.read(syncSettingsProvider.notifier).setServerUrl(cloudUrl, sku: currentSku);
+                          } else if (newOption == 'lan') {
+                            _serverController.text = venueLanUrl;
+                            ref.read(syncSettingsProvider.notifier).setServerUrl(venueLanUrl, sku: currentSku);
+                          } else if (newOption == 'custom') {
+                            final current = _serverController.text.trim();
+                            if (current.isEmpty || current == cloudUrl || current == venueLanUrl) {
+                              const defaultCustom = 'http://localhost:8080';
+                              _serverController.text = defaultCustom;
+                              ref.read(syncSettingsProvider.notifier).setServerUrl(defaultCustom, sku: currentSku);
+                            }
+                          }
+                        });
+                      },
+                    ),
+
+                    // Custom Server URL free-text input
+                    if (_selectedServerOption == 'custom') ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _serverController,
+                        decoration: const InputDecoration(
+                          labelText: 'Custom Server URL',
+                          hintText: 'e.g. http://localhost:8080 or https://sync.roboref.app',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          prefixIcon: Icon(Icons.link),
+                        ),
+                        onChanged: (val) => ref.read(syncSettingsProvider.notifier).setServerUrl(val.trim(), sku: currentSku),
+                      ),
+                    ],
+                  ],
+
+                  const SizedBox(height: 16),
+                  Card(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Server Status:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              _buildConnectionBadge(settings.connectionStatus, settings.serverUrl),
+                            ],
+                          ),
+                          if (settings.lastConnectionMessage != null) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Icon(
+                                  settings.lastConnectionSuccess == true
+                                      ? Icons.check_circle
+                                      : Icons.error_outline,
+                                  size: 14,
                                   color: settings.lastConnectionSuccess == true
                                       ? Colors.green
                                       : Colors.redAccent,
                                 ),
-                              ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    settings.lastConnectionMessage!,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: settings.lastConnectionSuccess == true
+                                          ? Colors.green
+                                          : Colors.redAccent,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Sync Status:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          if (settings.isSyncing)
-                            const Row(
-                              children: [
-                                SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
-                                SizedBox(width: 6),
-                                Text('Syncing...', style: TextStyle(color: Colors.blue)),
-                              ],
-                            )
-                          else
-                            const Text('Idle / Ready', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Sync Status:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              if (settings.isSyncing)
+                                const Row(
+                                  children: [
+                                    SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                                    SizedBox(width: 6),
+                                    Text('Syncing...', style: TextStyle(color: Colors.blue)),
+                                  ],
+                                )
+                              else
+                                const Text('Idle / Ready', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text('Device UUID: ${settings.deviceId}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          if (settings.lastSyncTime != null) ...[
+                            const SizedBox(height: 4),
+                            Text('Last sync: ${settings.lastSyncTime}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          ],
+                          if (settings.lastError != null) ...[
+                            const SizedBox(height: 6),
+                            Text('Error: ${settings.lastError}', style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
+                          ],
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text('Device UUID: ${settings.deviceId}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                      if (settings.lastSyncTime != null) ...[
-                        const SizedBox(height: 4),
-                        Text('Last sync: ${settings.lastSyncTime}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                      ],
-                      if (settings.lastError != null) ...[
-                        const SizedBox(height: 6),
-                        Text('Error: ${settings.lastError}', style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: (settings.isSyncing || _isTestingConnection)
+                              ? null
+                              : () {
+                                  ref.read(incidentControllerProvider.notifier).triggerSync();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Triggered background sync...')),
+                                  );
+                                },
+                          icon: const Icon(Icons.sync),
+                          label: const Text('Sync Now'),
+                        ),
+                      ),
+                      if (isShareAdmin) ...[
+                        const SizedBox(width: 12),
+                        OutlinedButton.icon(
+                          onPressed: _isTestingConnection
+                              ? null
+                              : () async {
+                                  final targetUrl = _serverController.text.trim();
+                                  ref.read(syncSettingsProvider.notifier).setServerUrl(targetUrl, sku: currentSku);
+
+                                  setState(() => _isTestingConnection = true);
+
+                                  final messenger = ScaffoldMessenger.of(context);
+                                  messenger.hideCurrentSnackBar();
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 4),
+                                      content: Row(
+                                        children: [
+                                          const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              'Testing connection to ${targetUrl.isEmpty ? 'server' : targetUrl}...',
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+
+                                  final result = await ref
+                                      .read(syncSettingsProvider.notifier)
+                                      .checkServerHealth(targetUrl);
+
+                                  if (!mounted) return;
+                                  setState(() => _isTestingConnection = false);
+
+                                  messenger.hideCurrentSnackBar();
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: result.isSuccess ? Colors.green.shade800 : Colors.red.shade800,
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 4),
+                                      content: Row(
+                                        children: [
+                                          Icon(
+                                            result.isSuccess ? Icons.check_circle_outline : Icons.error_outline,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              result.isSuccess
+                                                  ? 'Connection successful: ${result.message}'
+                                                  : 'Connection failed: ${result.message}',
+                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                          icon: _isTestingConnection
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.wifi_find),
+                          label: Text(_isTestingConnection ? 'Testing...' : 'Test Connection'),
+                        ),
                       ],
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: (settings.isSyncing || _isTestingConnection)
-                          ? null
-                          : () {
-                              ref.read(incidentControllerProvider.notifier).triggerSync();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Triggered background sync...')),
-                              );
-                            },
-                      icon: const Icon(Icons.sync),
-                      label: const Text('Sync Now'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  OutlinedButton.icon(
-                    onPressed: _isTestingConnection
-                        ? null
-                        : () async {
-                            final targetUrl = _serverController.text.trim();
-                            ref.read(syncSettingsProvider.notifier).setServerUrl(targetUrl);
-
-                            setState(() => _isTestingConnection = true);
-
-                            final messenger = ScaffoldMessenger.of(context);
-                            messenger.hideCurrentSnackBar();
-                            messenger.showSnackBar(
-                              SnackBar(
-                                behavior: SnackBarBehavior.floating,
-                                duration: const Duration(seconds: 4),
-                                content: Row(
-                                  children: [
-                                    const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        'Testing connection to ${targetUrl.isEmpty ? 'server' : targetUrl}...',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-
-                            final result = await ref
-                                .read(syncSettingsProvider.notifier)
-                                .checkServerHealth(targetUrl);
-
-                            if (!mounted) return;
-                            setState(() => _isTestingConnection = false);
-
-                            messenger.hideCurrentSnackBar();
-                            messenger.showSnackBar(
-                              SnackBar(
-                                backgroundColor: result.isSuccess ? Colors.green.shade800 : Colors.red.shade800,
-                                behavior: SnackBarBehavior.floating,
-                                duration: const Duration(seconds: 4),
-                                content: Row(
-                                  children: [
-                                    Icon(
-                                      result.isSuccess ? Icons.check_circle_outline : Icons.error_outline,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        result.isSuccess
-                                            ? 'Connection successful: ${result.message}'
-                                            : 'Connection failed: ${result.message}',
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                    icon: _isTestingConnection
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.wifi_find),
-                    label: Text(_isTestingConnection ? 'Testing...' : 'Test Connection'),
-                  ),
+                  const SizedBox(height: 24),
                 ],
-              ),
-              const SizedBox(height: 24),
 
               // Experimental Features Section (only shown in local or test deployments)
               if (env == AppEnvironment.local || env == AppEnvironment.test) ...[
@@ -649,9 +791,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
                 const SizedBox(height: 24),
               ],
-              const SizedBox(height: 16),
             ],
-          ),
+            const SizedBox(height: 16),
+          ],
+        ),
         );
       },
     );

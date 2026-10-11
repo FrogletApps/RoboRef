@@ -7,6 +7,10 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:roboref/core/utils/sku_utils.dart';
+import 'package:drift/native.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:roboref/database/app_database.dart';
+import 'package:roboref/features/incidents/state/incident_controller.dart';
 import 'package:roboref/features/home/screens/changelog_screen.dart';
 import 'package:roboref/features/settings/screens/settings_screen.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
@@ -73,13 +77,50 @@ void main() {
       );
     });
 
-    test('resolveDefaultServerUrl honors stored preferences over environment defaults', () async {
-      SharedPreferences.setMockInitialValues({'server_url': 'http://192.168.1.99:8080'});
+    test('resolveDefaultServerUrl honors event-specific stored preferences over global preferences', () async {
+      SharedPreferences.setMockInitialValues({
+        'server_url': 'https://roboref.app',
+        'server_url_RE-V5RC-24-1234': 'http://192.168.1.99:8080',
+      });
       final prefs = await SharedPreferences.getInstance();
       expect(
-        resolveDefaultServerUrl(prefs: prefs, environment: AppEnvironment.local),
+        resolveDefaultServerUrl(prefs: prefs, sku: 'RE-V5RC-24-1234'),
         equals('http://192.168.1.99:8080'),
       );
+      expect(
+        resolveDefaultServerUrl(prefs: prefs, sku: 'RE-V5RC-24-9999'),
+        equals('https://roboref.app'),
+      );
+    });
+
+    test('SyncSettingsNotifier updates and saves serverUrl per event SKU', () async {
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'SKU-A',
+        'server_url_SKU-A': 'http://server-a.local:8080',
+        'server_url_SKU-B': 'http://server-b.local:8080',
+      });
+      final testPrefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(testPrefs),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(syncSettingsProvider.notifier);
+      expect(container.read(syncSettingsProvider).currentSku, equals('SKU-A'));
+      expect(container.read(syncSettingsProvider).serverUrl, equals('http://server-a.local:8080'));
+
+      notifier.setSku('SKU-B');
+      expect(container.read(syncSettingsProvider).currentSku, equals('SKU-B'));
+      expect(container.read(syncSettingsProvider).serverUrl, equals('http://server-b.local:8080'));
+
+      notifier.setServerUrl('http://new-b.local:8080');
+      expect(container.read(syncSettingsProvider).serverUrl, equals('http://new-b.local:8080'));
+      expect(testPrefs.getString('server_url_SKU-B'), equals('http://new-b.local:8080'));
+
+      notifier.setSku('SKU-A');
+      expect(container.read(syncSettingsProvider).serverUrl, equals('http://server-a.local:8080'));
     });
   });
 
@@ -247,7 +288,7 @@ void main() {
       prefs = await SharedPreferences.getInstance();
     });
 
-    testWidgets('renders dropdown mode, switches to custom URL, and tests connection', (tester) async {
+    testWidgets('event manage page when shared as admin renders dropdown mode, switches to custom URL, and tests connection', (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -255,9 +296,31 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'RE-V5RC-24-1234',
+          name: 'Test Tournament',
+          program: 'V5RC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          updatedAt: 1000,
+          isShared: const Value(true),
+          shareId: const Value('ABC123'),
+          shareRole: const Value('admin'),
+        ),
+      );
+
+      int healthRequests = 0;
+      final completer = Completer<http.Response>();
       final mockClient = MockClient((request) async {
         if (request.url.path == '/api/health') {
-          return http.Response('{"status":"ok"}', 200);
+          healthRequests++;
+          if (healthRequests == 1) {
+            return http.Response('{"status":"ok"}', 200);
+          }
+          return await completer.future;
         }
         return http.Response('Not Found', 404);
       });
@@ -266,14 +329,16 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+          databaseProvider.overrideWithValue(db),
         ],
       );
+      addTearDown(container.dispose);
 
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
           child: const MaterialApp(
-            home: SettingsScreen(),
+            home: SettingsScreen(isEventManagePage: true),
           ),
         ),
       );
@@ -296,29 +361,6 @@ void main() {
       expect(find.widgetWithText(TextField, 'Custom Server URL'), findsOneWidget);
 
       // 3. Tap Test Connection and verify in-flight and success state
-      final completer = Completer<http.Response>();
-      final asyncClient = MockClient((request) async {
-        return await completer.future;
-      });
-
-      final asyncContainer = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-          syncSettingsHttpClientProvider.overrideWithValue(asyncClient),
-        ],
-      );
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: asyncContainer,
-          child: const MaterialApp(
-            home: SettingsScreen(),
-          ),
-        ),
-      );
-      await tester.pump();
-
-      // Tap test connection
       final testConnFinder = find.byIcon(Icons.wifi_find);
       expect(testConnFinder, findsOneWidget);
       await tester.tap(testConnFinder);
@@ -335,13 +377,29 @@ void main() {
       expect(find.textContaining('Connection successful'), findsOneWidget);
     });
 
-    testWidgets('shows failure SnackBar when connection test fails', (tester) async {
+    testWidgets('shows failure SnackBar when connection test fails on event manage page as admin', (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
       });
+
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'RE-V5RC-24-1234',
+          name: 'Test Tournament',
+          program: 'V5RC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          updatedAt: 1000,
+          isShared: const Value(true),
+          shareId: const Value('ABC123'),
+          shareRole: const Value('admin'),
+        ),
+      );
 
       final failingClient = MockClient((request) async {
         throw TimeoutException('Network unreachable');
@@ -351,6 +409,7 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           syncSettingsHttpClientProvider.overrideWithValue(failingClient),
+          databaseProvider.overrideWithValue(db),
         ],
       );
 
@@ -358,7 +417,7 @@ void main() {
         UncontrolledProviderScope(
           container: container,
           child: const MaterialApp(
-            home: SettingsScreen(),
+            home: SettingsScreen(isEventManagePage: true),
           ),
         ),
       );
@@ -375,7 +434,100 @@ void main() {
       expect(find.textContaining('Connection failed'), findsOneWidget);
     });
 
-    testWidgets('renders Referee Setup section without Tournament SKU field', (tester) async {
+    testWidgets('event manage page when unshared displays Sharing Not Enabled card and hides Sync Server Configuration', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'RE-V5RC-24-1234',
+          name: 'Test Tournament',
+          program: 'V5RC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          updatedAt: 1000,
+          isShared: const Value(false),
+        ),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(db),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(isEventManagePage: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sharing Not Enabled'), findsOneWidget);
+      expect(find.text('Share Event Online'), findsOneWidget);
+      expect(find.text('Sync Server Configuration'), findsNothing);
+      expect(find.text('Sync Server Mode'), findsNothing);
+    });
+
+    testWidgets('event manage page when shared as member displays host-managed banner and read-only server URL', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'RE-V5RC-24-1234',
+          name: 'Test Tournament',
+          program: 'V5RC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          updatedAt: 1000,
+          isShared: const Value(true),
+          shareId: const Value('ABC123'),
+          shareRole: const Value('member'),
+          adminRefereeName: const Value('Lead Host'),
+        ),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(db),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(isEventManagePage: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sync Server Configuration'), findsOneWidget);
+      expect(find.textContaining('Managed by Host (Lead Host)'), findsOneWidget);
+      expect(find.text('Sync Server Mode'), findsNothing); // Admin only
+      expect(find.widgetWithText(ElevatedButton, 'Sync Now'), findsOneWidget);
+    });
+
+    testWidgets('renders main settings page without Sync Server Configuration', (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -407,19 +559,13 @@ void main() {
       expect(find.widgetWithText(TextField, 'Tournament SKU'), findsNothing);
       expect(find.text('Tournament & Referee Setup'), findsNothing);
 
-      // Verify Experimental Features section is present and Import Event Data is hidden by default
-      expect(find.text('Experimental Features'), findsOneWidget);
-      expect(find.text('Enable extra features that may not work as intended'), findsOneWidget);
-      expect(find.text('Import Event Data'), findsNothing);
-      expect(find.widgetWithText(OutlinedButton, 'Import Event Data (TM CSV)'), findsNothing);
-
-      // Verify Sync Server Configuration section
-      expect(find.text('Sync Server Configuration'), findsOneWidget);
-      expect(find.text('Connect to the cloud server or a server on your local network'), findsOneWidget);
-      expect(find.text('Local Server (http://roboref.local:8080)'), findsOneWidget);
+      // Verify Sync Server Configuration section is NOT present on main settings page
+      expect(find.text('Sync Server Configuration'), findsNothing);
+      expect(find.text('Sync Server Mode'), findsNothing);
+      expect(find.byIcon(Icons.wifi_find), findsNothing);
     });
 
-    testWidgets('defaults to Custom Server URL with http://localhost:8080 when running on local system without saved preference', (tester) async {
+    testWidgets('defaults to Custom Server URL on event manage page when running on local system without saved preference', (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -434,6 +580,22 @@ void main() {
       });
       final freshPrefs = await SharedPreferences.getInstance();
 
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'RE-V5RC-24-1234',
+          name: 'Test Tournament',
+          program: 'V5RC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          updatedAt: 1000,
+          isShared: const Value(true),
+          shareId: const Value('ABC123'),
+          shareRole: const Value('admin'),
+        ),
+      );
+
       final mockClient = MockClient((request) async {
         if (request.url.path == '/api/health') {
           return http.Response('{"status":"ok"}', 200);
@@ -446,6 +608,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(freshPrefs),
           syncSettingsHttpClientProvider.overrideWithValue(mockClient),
           syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.local),
+          databaseProvider.overrideWithValue(db),
         ],
       );
 
@@ -453,7 +616,7 @@ void main() {
         UncontrolledProviderScope(
           container: container,
           child: const MaterialApp(
-            home: SettingsScreen(),
+            home: SettingsScreen(isEventManagePage: true),
           ),
         ),
       );
@@ -470,7 +633,7 @@ void main() {
       expect(textField.controller?.text, equals('http://localhost:8080'));
     });
 
-    testWidgets('defaults to Cloud Server with https://roboref.app when running in production without saved preference', (tester) async {
+    testWidgets('defaults to Cloud Server on event manage page when running in production without saved preference', (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -485,6 +648,22 @@ void main() {
       });
       final freshPrefs = await SharedPreferences.getInstance();
 
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'RE-V5RC-24-1234',
+          name: 'Test Tournament',
+          program: 'V5RC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          updatedAt: 1000,
+          isShared: const Value(true),
+          shareId: const Value('ABC123'),
+          shareRole: const Value('admin'),
+        ),
+      );
+
       final mockClient = MockClient((request) async {
         if (request.url.path == '/api/health') {
           return http.Response('{"status":"ok"}', 200);
@@ -497,6 +676,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(freshPrefs),
           syncSettingsHttpClientProvider.overrideWithValue(mockClient),
           syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.production),
+          databaseProvider.overrideWithValue(db),
         ],
       );
 
@@ -504,7 +684,7 @@ void main() {
         UncontrolledProviderScope(
           container: container,
           child: const MaterialApp(
-            home: SettingsScreen(),
+            home: SettingsScreen(isEventManagePage: true),
           ),
         ),
       );
@@ -832,7 +1012,7 @@ void main() {
   });
 
   group('SettingsScreen Advanced Settings Section Tests', () {
-    testWidgets('displays horizontal divider underneath About RoboRef and labels Advanced Settings section', (tester) async {
+    testWidgets('displays horizontal divider underneath About RoboRef and labels Advanced Settings section on main settings in test env without Sync Server', (tester) async {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -858,6 +1038,70 @@ void main() {
           container: container,
           child: const MaterialApp(
             home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('About RoboRef'), findsOneWidget);
+      expect(find.byType(Divider), findsOneWidget);
+      expect(find.text('Advanced Settings'), findsOneWidget);
+      expect(find.text('Sync Server Configuration'), findsNothing);
+      expect(find.text('Experimental Features'), findsOneWidget);
+
+      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
+      final dividerPos = tester.getTopLeft(find.byType(Divider)).dy;
+      final advancedPos = tester.getTopLeft(find.text('Advanced Settings')).dy;
+      final experimentalPos = tester.getTopLeft(find.text('Experimental Features')).dy;
+
+      expect(aboutPos, lessThan(dividerPos), reason: 'About RoboRef must be above Divider');
+      expect(dividerPos, lessThan(advancedPos), reason: 'Divider must be above Advanced Settings');
+      expect(advancedPos, lessThan(experimentalPos), reason: 'Advanced Settings must be above Experimental Features');
+    });
+
+    testWidgets('displays Sync Server Configuration under Advanced Settings on event manage page when shared', (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'RE-V5RC-24-1234',
+        'referee_name': 'Test Referee',
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      await db.upsertEvent(
+        EventsCompanion.insert(
+          sku: 'RE-V5RC-24-1234',
+          name: 'Test Tournament',
+          program: 'V5RC',
+          season: '2024-2025',
+          startDate: '2024-11-10',
+          endDate: '2024-11-12',
+          updatedAt: 1000,
+          isShared: const Value(true),
+          shareId: const Value('ABC123'),
+          shareRole: const Value('admin'),
+        ),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.test),
+          databaseProvider.overrideWithValue(db),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(isEventManagePage: true),
           ),
         ),
       );

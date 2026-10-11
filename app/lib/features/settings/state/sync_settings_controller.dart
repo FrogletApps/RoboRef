@@ -48,7 +48,16 @@ String resolveDefaultServerUrl({
   AppEnvironment? environment,
   String? webOrigin,
   bool isWeb = kIsWeb,
+  String? sku,
 }) {
+  if (sku != null && sku.trim().isNotEmpty) {
+    final cleanSku = sku.trim().toUpperCase();
+    final eventStored = prefs?.getString('server_url_$cleanSku');
+    if (eventStored != null && eventStored.trim().isNotEmpty) {
+      return eventStored.trim();
+    }
+  }
+
   final stored = prefs?.getString('server_url');
   if (stored != null && stored.trim().isNotEmpty) {
     return stored.trim();
@@ -166,11 +175,12 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
       prefs = ref.watch(sharedPreferencesProvider);
     } catch (_) {}
     final env = _customEnvironment ?? ref.watch(syncSettingsEnvironmentProvider);
+    final currentSku = prefs?.getString('current_sku') ?? 'DEMO-EVENT-2026';
     final initialState = SyncSettingsState(
-      currentSku: prefs?.getString('current_sku') ?? 'DEMO-EVENT-2026',
+      currentSku: currentSku,
       refereeName: prefs?.getString('referee_name') ?? 'Head Referee',
       deviceId: prefs?.getString('device_id') ?? const Uuid().v4(),
-      serverUrl: resolveDefaultServerUrl(prefs: prefs, environment: env),
+      serverUrl: resolveDefaultServerUrl(prefs: prefs, environment: env, sku: currentSku),
       experimentalFeaturesEnabled: prefs?.getBool('experimental_features_enabled') ?? false,
     );
     if (prefs != null && !prefs.containsKey('device_id')) {
@@ -190,8 +200,16 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
   }
 
   void setSku(String sku) {
-    _prefs?.setString('current_sku', sku);
-    state = state.copyWith(currentSku: sku);
+    final cleanSku = sku.trim().toUpperCase();
+    _prefs?.setString('current_sku', cleanSku);
+    final env = environment ?? (ref.mounted ? ref.read(syncSettingsEnvironmentProvider) : null);
+    final newServerUrl = resolveDefaultServerUrl(
+      prefs: _prefs,
+      environment: env,
+      sku: cleanSku,
+    );
+    state = state.copyWith(currentSku: cleanSku, serverUrl: newServerUrl);
+    checkServerHealth();
   }
 
   void setRefereeName(String name) {
@@ -199,10 +217,25 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
     state = state.copyWith(refereeName: name);
   }
 
-  void setServerUrl(String url) {
+  void setServerUrl(String url, {String? sku}) {
+    final targetSku = (sku ?? state.currentSku).trim().toUpperCase();
+    if (targetSku.isNotEmpty) {
+      _prefs?.setString('server_url_$targetSku', url);
+    }
     _prefs?.setString('server_url', url);
-    state = state.copyWith(serverUrl: url);
-    checkServerHealth();
+    if (targetSku.isEmpty || targetSku == state.currentSku.trim().toUpperCase()) {
+      state = state.copyWith(serverUrl: url);
+      checkServerHealth();
+    }
+  }
+
+  String getServerUrlForSku(String sku) {
+    final env = environment ?? (ref.mounted ? ref.read(syncSettingsEnvironmentProvider) : null);
+    return resolveDefaultServerUrl(
+      prefs: _prefs,
+      environment: env,
+      sku: sku,
+    );
   }
 
   void setSyncing(bool syncing, {String? error}) {

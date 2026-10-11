@@ -91,6 +91,13 @@ void main() {
 
   group('ChangeLogScreen Widget Tests', () {
     testWidgets('renders release history with current version as top item', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(
         const MaterialApp(
           home: ChangeLogScreen(),
@@ -115,6 +122,13 @@ void main() {
     });
 
     testWidgets('filters items when search query is entered', (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(
         const MaterialApp(
           home: ChangeLogScreen(),
