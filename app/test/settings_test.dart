@@ -830,4 +830,56 @@ void main() {
       expect(find.text('Change Log'), findsWidgets);
     });
   });
+
+  group('SettingsScreen Advanced Settings Section Tests', () {
+    testWidgets('displays horizontal divider underneath About RoboRef and labels Advanced Settings section', (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'RE-V5RC-24-1234',
+        'referee_name': 'Test Referee',
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.test),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('About RoboRef'), findsOneWidget);
+      expect(find.byType(Divider), findsOneWidget);
+      expect(find.text('Advanced Settings'), findsOneWidget);
+      expect(find.text('Sync Server Configuration'), findsOneWidget);
+      expect(find.text('Experimental Features'), findsOneWidget);
+
+      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
+      final dividerPos = tester.getTopLeft(find.byType(Divider)).dy;
+      final advancedPos = tester.getTopLeft(find.text('Advanced Settings')).dy;
+      final syncServerPos = tester.getTopLeft(find.text('Sync Server Configuration')).dy;
+      final experimentalPos = tester.getTopLeft(find.text('Experimental Features')).dy;
+
+      expect(aboutPos, lessThan(dividerPos), reason: 'About RoboRef must be above Divider');
+      expect(dividerPos, lessThan(advancedPos), reason: 'Divider must be above Advanced Settings');
+      expect(advancedPos, lessThan(syncServerPos), reason: 'Advanced Settings must be above Sync Server Configuration');
+      expect(syncServerPos, lessThan(experimentalPos), reason: 'Sync Server Configuration must be above Experimental Features');
+    });
+  });
 }
+

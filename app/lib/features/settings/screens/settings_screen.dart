@@ -212,13 +212,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Experimental Features Section (only shown in local or test deployments)
-              if (env == AppEnvironment.local || env == AppEnvironment.test) ...[
+              // Event Information Section (if on the manage page for the event)
+              if (_isEventManagePage) ...[
                 const Text(
-                  'Experimental Features',
+                  'Event Information',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 12),
                 Card(
                   margin: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
@@ -227,71 +227,95 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
                     ),
                   ),
-                  child: CheckboxListTile(
-                    title: const Text(
-                      'Enable extra features that may not work as intended',
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.public,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    value: settings.experimentalFeaturesEnabled,
-                    onChanged: (val) async {
-                      if (val == true) {
-                        final confirmed = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Warning!  Experimental Features!'),
-                            content: const Text(
-                              'Ticking this will enable extra features that may not work as intended',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(false),
-                                child: const Text('Cancel'),
-                              ),
-                              FilledButton(
-                                onPressed: () => Navigator.of(ctx).pop(true),
-                                child: const Text('Enable'),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (confirmed == true) {
-                          ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(true);
-                        }
-                      } else {
-                        ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(false);
-                      }
-                    },
+                    title: const Text(
+                      'VEX Events Page',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, size: 20),
+                    onTap: () => _openExternalUrl(context, vexEventsUrl),
                   ),
                 ),
-
-                if (settings.experimentalFeaturesEnabled) ...[
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Import Event Data',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'This feature is experimental and may not work as intended',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                        ),
-                        builder: (ctx) => const EventImportSheet(),
-                      );
-                    },
-                    icon: const Icon(Icons.file_upload_outlined),
-                    label: const Text('Import Event Data (TM CSV)'),
-                  ),
-                ],
                 const SizedBox(height: 24),
               ],
+
+              // About RoboRef Section
+              const Text(
+                'About RoboRef',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              _buildVersionCard(context, Theme.of(context).brightness == Brightness.dark),
+              const SizedBox(height: 10),
+              Card(
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.history_rounded,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: const Text(
+                    'Change Log',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ChangeLogScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              Card(
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.shield_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: const Text(
+                    'Privacy Policy',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PrivacyPolicyScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 24),
+
+              // Advanced Settings Section
+              const Text(
+                'Advanced Settings',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
 
               // Sync Server Section
               const Text(
@@ -545,13 +569,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Event Information Section (if on the manage page for the event)
-              if (_isEventManagePage) ...[
+              // Experimental Features Section (only shown in local or test deployments)
+              if (env == AppEnvironment.local || env == AppEnvironment.test) ...[
                 const Text(
-                  'Event Information',
+                  'Experimental Features',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 Card(
                   margin: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
@@ -560,85 +584,71 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
                     ),
                   ),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.public,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                  child: CheckboxListTile(
                     title: const Text(
-                      'VEX Events Page',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      'Enable extra features that may not work as intended',
                     ),
-                    trailing: const Icon(Icons.chevron_right, size: 20),
-                    onTap: () => _openExternalUrl(context, vexEventsUrl),
+                    value: settings.experimentalFeaturesEnabled,
+                    onChanged: (val) async {
+                      if (val == true) {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Warning!  Experimental Features!'),
+                            content: const Text(
+                              'Ticking this will enable extra features that may not work as intended',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              FilledButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                child: const Text('Enable'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(true);
+                        }
+                      } else {
+                        ref.read(syncSettingsProvider.notifier).setExperimentalFeaturesEnabled(false);
+                      }
+                    },
                   ),
                 ),
+
+                if (settings.experimentalFeaturesEnabled) ...[
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Import Event Data',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'This feature is experimental and may not work as intended',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        ),
+                        builder: (ctx) => const EventImportSheet(),
+                      );
+                    },
+                    icon: const Icon(Icons.file_upload_outlined),
+                    label: const Text('Import Event Data (TM CSV)'),
+                  ),
+                ],
                 const SizedBox(height: 24),
               ],
-
-              // About RoboRef Section
-              const Text(
-                'About RoboRef',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              _buildVersionCard(context, Theme.of(context).brightness == Brightness.dark),
-              const SizedBox(height: 10),
-              Card(
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: ListTile(
-                  leading: Icon(
-                    Icons.history_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: const Text(
-                    'Change Log',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  trailing: const Icon(Icons.chevron_right, size: 20),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ChangeLogScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 10),
-              Card(
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: ListTile(
-                  leading: Icon(
-                    Icons.shield_outlined,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: const Text(
-                    'Privacy Policy',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  trailing: const Icon(Icons.chevron_right, size: 20),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const PrivacyPolicyScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
               const SizedBox(height: 16),
             ],
           ),

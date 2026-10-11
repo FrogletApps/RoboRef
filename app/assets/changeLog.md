@@ -2,6 +2,7 @@
 
 ## 2026.10.11+157
 
+- **Advanced Settings**: Moved Sync Server Configuration and Experimental Features into a new Advanced Settings section below About RoboRef.
 - **Change Log & Version Display Moved**: Moved the Change Log and app version display into the Settings "About RoboRef" section, and removed Change Log from the home screen quick actions.
 
 ## 2026.10.10+156
