@@ -410,6 +410,42 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     });
   });
 
+  // Update referee name across connected sessions
+  app.post("/api/share/update-name", async (c) => {
+    const body = await c.req.json<{
+      deviceId: string;
+      refereeName: string;
+      shareId?: string;
+      sku?: string;
+    }>();
+
+    if (!body.deviceId || !body.refereeName) {
+      return c.json({ error: "Missing required fields: deviceId, refereeName" }, 400);
+    }
+
+    const storage = c.get("storage");
+    let targetShareId = body.shareId?.trim().toUpperCase();
+
+    if (!targetShareId && body.sku) {
+      const active = await storage.getActiveSharesForSku(body.sku);
+      if (active.length > 0) {
+        targetShareId = active[0].id;
+      }
+    }
+
+    const updatedSessions = await storage.updateParticipantName(
+      body.deviceId,
+      body.refereeName.trim(),
+      targetShareId
+    );
+
+    return c.json({
+      success: true,
+      session: updatedSessions[0] || null,
+      updatedSessions,
+    });
+  });
+
   // Leave a share session
   app.post("/api/share/leave", async (c) => {
     const body = await c.req.json<{

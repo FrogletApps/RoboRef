@@ -41,12 +41,81 @@ class MockShareStorageAdapter implements StorageAdapter {
     if (!s) return null;
     const existingIdx = s.participants.findIndex((p) => p.deviceId === participant.deviceId);
     if (existingIdx >= 0) {
-      s.participants[existingIdx] = participant;
+      const existing = s.participants[existingIdx];
+      const oldName = existing.refereeName?.trim();
+      const newName = participant.refereeName?.trim();
+      const previousNames = Array.isArray(existing.previousNames) ? [...existing.previousNames] : [];
+      if (oldName && newName && oldName !== newName && !previousNames.includes(oldName)) {
+        previousNames.push(oldName);
+      }
+      s.participants[existingIdx] = {
+        ...existing,
+        refereeName: newName,
+        previousNames,
+        joinedAt: participant.joinedAt,
+      };
+      if (s.adminDeviceId === participant.deviceId) {
+        s.adminRefereeName = newName;
+      }
     } else {
-      s.participants.push(participant);
+      s.participants.push({
+        ...participant,
+        previousNames: participant.previousNames ?? [],
+      });
+      if (s.adminDeviceId === participant.deviceId) {
+        s.adminRefereeName = participant.refereeName;
+      }
     }
     s.updatedAt = Date.now();
     return s;
+  }
+  async updateParticipantName(
+    deviceId: string,
+    newRefereeName: string,
+    shareId?: string
+  ): Promise<ShareSessionRecord[]> {
+    const trimmedNewName = newRefereeName.trim();
+    if (!trimmedNewName) return [];
+
+    let targetSessions = this.shareSessions;
+    if (shareId) {
+      targetSessions = this.shareSessions.filter((s) => s.id === shareId);
+    } else {
+      targetSessions = this.shareSessions.filter(
+        (s) => s.participants.some((p) => p.deviceId === deviceId) || s.adminDeviceId === deviceId
+      );
+    }
+
+    const updatedSessions: ShareSessionRecord[] = [];
+    for (const s of targetSessions) {
+      let changed = false;
+      const existingIdx = s.participants.findIndex((p) => p.deviceId === deviceId);
+      if (existingIdx >= 0) {
+        const existing = s.participants[existingIdx];
+        const oldName = existing.refereeName?.trim();
+        if (oldName !== trimmedNewName) {
+          const previousNames = Array.isArray(existing.previousNames) ? [...existing.previousNames] : [];
+          if (oldName && !previousNames.includes(oldName)) {
+            previousNames.push(oldName);
+          }
+          s.participants[existingIdx] = {
+            ...existing,
+            refereeName: trimmedNewName,
+            previousNames,
+          };
+          changed = true;
+        }
+      }
+      if (s.adminDeviceId === deviceId && s.adminRefereeName !== trimmedNewName) {
+        s.adminRefereeName = trimmedNewName;
+        changed = true;
+      }
+      if (changed) {
+        s.updatedAt = Date.now();
+      }
+      updatedSessions.push(s);
+    }
+    return updatedSessions;
   }
   async removeParticipant(
     shareId: string,
@@ -319,5 +388,96 @@ describe("Secure Share Server Endpoints", () => {
     // Verify session and notes were purged from storage
     assert.strictEqual(storage.shareSessions.length, 0);
     assert.strictEqual(storage.notes.length, 0);
+  });
+
+  it("POST /api/share/update-name updates referee name and records previous names", async () => {
+    const storage = new MockShareStorageAdapter();
+    const app = createSyncApp(storage);
+
+    // Create session by admin
+    const createRes = await app.request("/api/share/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sku: "RE-VRC-24-1234",
+        adminDeviceId: "dev-admin-1",
+        adminRefereeName: "Alice Initial",
+      }),
+    });
+    const { session } = await createRes.json();
+
+    // Member joins
+    await app.request("/api/share/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shareId: session.id,
+        deviceId: "dev-member-2",
+        refereeName: "Bob Field Ref",
+      }),
+    });
+
+    // Member updates name to Bob Senior
+    const updateRes1 = await app.request("/api/share/update-name", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shareId: session.id,
+        deviceId: "dev-member-2",
+        refereeName: "Bob Senior",
+      }),
+    });
+    assert.strictEqual(updateRes1.status, 200);
+    const updateJson1 = await updateRes1.json();
+    const memberP1 = updateJson1.session.participants.find((p: any) => p.deviceId === "dev-member-2");
+    assert.strictEqual(memberP1.refereeName, "Bob Senior");
+    assert.deepStrictEqual(memberP1.previousNames, ["Bob Field Ref"]);
+
+    // Member updates name again to Bob Chief
+    const updateRes2 = await app.request("/api/share/update-name", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        deviceId: "dev-member-2",
+        refereeName: "Bob Chief",
+      }),
+    });
+    assert.strictEqual(updateRes2.status, 200);
+    const updateJson2 = await updateRes2.json();
+    const memberP2 = updateJson2.session.participants.find((p: any) => p.deviceId === "dev-member-2");
+    assert.strictEqual(memberP2.refereeName, "Bob Chief");
+    assert.deepStrictEqual(memberP2.previousNames, ["Bob Field Ref", "Bob Senior"]);
+  });
+
+  it("POST /api/share/update-name updates admin referee name and session.adminRefereeName", async () => {
+    const storage = new MockShareStorageAdapter();
+    const app = createSyncApp(storage);
+
+    const createRes = await app.request("/api/share/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sku: "RE-VRC-24-1234",
+        adminDeviceId: "dev-admin-1",
+        adminRefereeName: "Alice Initial",
+      }),
+    });
+    const { session } = await createRes.json();
+
+    const updateRes = await app.request("/api/share/update-name", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shareId: session.id,
+        deviceId: "dev-admin-1",
+        refereeName: "Alice Head Referee",
+      }),
+    });
+    assert.strictEqual(updateRes.status, 200);
+    const updateJson = await updateRes.json();
+    assert.strictEqual(updateJson.session.adminRefereeName, "Alice Head Referee");
+    const adminP = updateJson.session.participants.find((p: any) => p.deviceId === "dev-admin-1");
+    assert.strictEqual(adminP.refereeName, "Alice Head Referee");
+    assert.deepStrictEqual(adminP.previousNames, ["Alice Initial"]);
   });
 });

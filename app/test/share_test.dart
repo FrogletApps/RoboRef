@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:drift/native.dart';
-import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:roboref/database/app_database.dart';
@@ -229,6 +229,51 @@ void main() {
       expect(ok.success, isTrue);
       expect(ok.deleted, isTrue);
     });
+
+    test('updateRefereeName sends correct request and parses session with previousNames', () async {
+      final mockClient = MockClient((request) async {
+        expect(request.url.path, equals('/api/share/update-name'));
+        final body = jsonDecode(request.body);
+        expect(body['deviceId'], equals('dev-1'));
+        expect(body['refereeName'], equals('New Ref Name'));
+        expect(body['shareId'], equals('ABC123'));
+
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'session': {
+              'id': 'ABC123',
+              'sku': 'SKU1',
+              'adminDeviceId': 'dev-1',
+              'adminRefereeName': 'New Ref Name',
+              'createdAt': 100,
+              'updatedAt': 200,
+              'participants': [
+                {
+                  'deviceId': 'dev-1',
+                  'refereeName': 'New Ref Name',
+                  'role': 'admin',
+                  'joinedAt': 100,
+                  'previousNames': ['Old Ref Name'],
+                }
+              ],
+            },
+          }),
+          200,
+        );
+      });
+
+      final client = ShareClient(baseUrl: 'http://test.local', httpClient: mockClient);
+      final session = await client.updateRefereeName(
+        deviceId: 'dev-1',
+        refereeName: 'New Ref Name',
+        shareId: 'ABC123',
+      );
+
+      expect(session, isNotNull);
+      expect(session!.adminRefereeName, equals('New Ref Name'));
+      expect(session.participants.first.previousNames, equals(['Old Ref Name']));
+    });
   });
 
   group('EventShareSheet Widget Tests', () {
@@ -336,6 +381,126 @@ void main() {
       expect(find.text('CODE88'), findsOneWidget);
       expect(find.text('Copy Join Link'), findsOneWidget);
       expect(find.text('Close & Delete Share Session'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      container.dispose();
+      await tester.pump(Duration.zero);
+    });
+
+    testWidgets('EventShareSheet displays (i) button and opens name history popup', (tester) async {
+      await db.updateEventShareState(
+        'RE-VRC-24-9999',
+        isShared: true,
+        shareId: 'CODE88',
+        shareRole: 'admin',
+        adminRefereeName: 'Head Ref Current',
+        adminDeviceId: 'device-test-123',
+      );
+
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/share/status') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'session': {
+                'id': 'CODE88',
+                'sku': 'RE-VRC-24-9999',
+                'adminDeviceId': 'device-test-123',
+                'adminRefereeName': 'Head Ref Current',
+                'createdAt': 1000,
+                'updatedAt': 2000,
+                'participants': [
+                  {
+                    'deviceId': 'device-test-123',
+                    'refereeName': 'Head Ref Current',
+                    'role': 'admin',
+                    'joinedAt': 1000,
+                    'previousNames': ['Initial Ref', 'Ref Level 1'],
+                  },
+                  {
+                    'deviceId': 'device-member-456',
+                    'refereeName': 'Field Ref Bob',
+                    'role': 'member',
+                    'joinedAt': 1100,
+                    'previousNames': <String>[],
+                  },
+                ],
+              },
+            }),
+            200,
+          );
+        }
+        return http.Response('{}', 404);
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(db),
+          activeEventProvider.overrideWith((ref) => Stream.value(null)),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: EventShareSheet(sku: 'RE-VRC-24-9999'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify Connected Referees section header has info icon
+      final headerInfoBtn = find.byTooltip('Referee name history');
+      expect(headerInfoBtn, findsOneWidget);
+
+      // Tap the header info icon
+      await tester.tap(headerInfoBtn);
+      await tester.pumpAndSettle();
+
+      // Popup dialog appears
+      expect(find.text('Referee Name History'), findsOneWidget);
+      expect(find.text('Head Ref Current'), findsWidgets);
+      expect(find.text('Initial Ref'), findsOneWidget);
+      expect(find.text('Ref Level 1'), findsOneWidget);
+      expect(find.text('Close'), findsOneWidget);
+
+      // Close the popup
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(find.text('Referee Name History'), findsNothing);
+
+      // Verify individual referee item has info icon
+      final refereeInfoBtn = find.byTooltip('Previous names for Head Ref Current');
+      expect(refereeInfoBtn, findsOneWidget);
+
+      // Tap referee info button
+      await tester.tap(refereeInfoBtn);
+      await tester.pumpAndSettle();
+
+      // Individual Name History dialog appears
+      expect(find.text('Name History'), findsOneWidget);
+      expect(find.text('Current Name: Head Ref Current'), findsOneWidget);
+      expect(find.text('Previous names at this event:'), findsOneWidget);
+      expect(find.text('Initial Ref'), findsOneWidget);
+      expect(find.text('Ref Level 1'), findsOneWidget);
+
+      // Close individual dialog
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(find.text('Name History'), findsNothing);
 
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();

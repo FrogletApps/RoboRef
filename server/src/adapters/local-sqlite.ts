@@ -189,19 +189,94 @@ export class LocalSqliteAdapter implements StorageAdapter {
 
     const existingIdx = session.participants.findIndex((p: ShareParticipant) => p.deviceId === participant.deviceId);
     if (existingIdx >= 0) {
+      const existing = session.participants[existingIdx];
+      const oldName = existing.refereeName?.trim();
+      const newName = participant.refereeName?.trim();
+      const previousNames = Array.isArray(existing.previousNames) ? [...existing.previousNames] : [];
+      if (oldName && newName && oldName !== newName && !previousNames.includes(oldName)) {
+        previousNames.push(oldName);
+      }
       session.participants[existingIdx] = {
-        ...session.participants[existingIdx],
-        refereeName: participant.refereeName,
+        ...existing,
+        refereeName: newName,
+        previousNames,
         joinedAt: participant.joinedAt,
       };
+      if (session.adminDeviceId === participant.deviceId) {
+        session.adminRefereeName = newName;
+      }
     } else {
-      session.participants.push(participant);
+      session.participants.push({
+        ...participant,
+        previousNames: participant.previousNames ?? [],
+      });
+      if (session.adminDeviceId === participant.deviceId) {
+        session.adminRefereeName = participant.refereeName;
+      }
     }
     session.updatedAt = Date.now();
 
-    const stmt = this.db.prepare("UPDATE share_sessions SET participantsJson = ?, updatedAt = ? WHERE id = ?");
-    stmt.run(JSON.stringify(session.participants), session.updatedAt, shareId);
+    const stmt = this.db.prepare("UPDATE share_sessions SET participantsJson = ?, adminRefereeName = ?, updatedAt = ? WHERE id = ?");
+    stmt.run(JSON.stringify(session.participants), session.adminRefereeName, session.updatedAt, shareId);
     return session;
+  }
+
+  async updateParticipantName(
+    deviceId: string,
+    newRefereeName: string,
+    shareId?: string
+  ): Promise<ShareSessionRecord[]> {
+    const trimmedNewName = newRefereeName.trim();
+    if (!trimmedNewName) return [];
+
+    let targetSessions: ShareSessionRecord[] = [];
+    if (shareId) {
+      const s = await this.getShareSession(shareId);
+      if (s) targetSessions.push(s);
+    } else {
+      const rows = this.db.prepare("SELECT * FROM share_sessions").all() as any[];
+      targetSessions = rows
+        .map((r) => this.mapShareRow(r))
+        .filter((s) => s.participants.some((p) => p.deviceId === deviceId) || s.adminDeviceId === deviceId);
+    }
+
+    const updatedSessions: ShareSessionRecord[] = [];
+    const stmt = this.db.prepare("UPDATE share_sessions SET participantsJson = ?, adminRefereeName = ?, updatedAt = ? WHERE id = ?");
+
+    for (const session of targetSessions) {
+      let changed = false;
+      const existingIdx = session.participants.findIndex((p) => p.deviceId === deviceId);
+      if (existingIdx >= 0) {
+        const existing = session.participants[existingIdx];
+        const oldName = existing.refereeName?.trim();
+        if (oldName !== trimmedNewName) {
+          const previousNames = Array.isArray(existing.previousNames) ? [...existing.previousNames] : [];
+          if (oldName && !previousNames.includes(oldName)) {
+            previousNames.push(oldName);
+          }
+          session.participants[existingIdx] = {
+            ...existing,
+            refereeName: trimmedNewName,
+            previousNames,
+          };
+          changed = true;
+        }
+      }
+      if (session.adminDeviceId === deviceId && session.adminRefereeName !== trimmedNewName) {
+        session.adminRefereeName = trimmedNewName;
+        changed = true;
+      }
+
+      if (changed) {
+        session.updatedAt = Date.now();
+        stmt.run(JSON.stringify(session.participants), session.adminRefereeName, session.updatedAt, session.id);
+        updatedSessions.push(session);
+      } else {
+        updatedSessions.push(session);
+      }
+    }
+
+    return updatedSessions;
   }
 
   async removeParticipant(

@@ -7,9 +7,10 @@ import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
+import '../../sharing/state/share_controller.dart';
 import 'privacy_policy_screen.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
   final bool? isEventManagePage;
   final String? eventSku;
@@ -22,10 +23,10 @@ class SettingsScreen extends StatefulWidget {
   });
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _nameController;
   late TextEditingController _serverController;
   bool _initialized = false;
@@ -61,6 +62,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void dispose() {
+    try {
+      ref.read(shareControllerProvider.notifier).flushRefereeNameChange();
+    } catch (_) {}
     _nameController.dispose();
     _serverController.dispose();
     super.dispose();
@@ -173,6 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   isDense: true,
                 ),
                 onChanged: (val) => ref.read(syncSettingsProvider.notifier).setRefereeName(val.trim()),
+                onSubmitted: (_) => ref.read(shareControllerProvider.notifier).flushRefereeNameChange(),
               ),
               const SizedBox(height: 24),
 

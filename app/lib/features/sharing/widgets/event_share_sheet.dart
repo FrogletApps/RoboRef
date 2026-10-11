@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -567,9 +568,20 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Connected Referees ($participantCount)',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Connected Referees ($participantCount)',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: const Icon(Icons.info_outline, size: 18),
+                  tooltip: 'Referee name history',
+                  onPressed: () => _showAllPreviousNamesDialog(context, shareState.participants),
+                ),
+              ],
             ),
             IconButton(
               icon: const Icon(Icons.refresh, size: 18),
@@ -595,6 +607,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
 
               return ListTile(
                 dense: true,
+                onTap: () => _showRefereePreviousNamesDialog(context, participant),
                 leading: CircleAvatar(
                   radius: 14,
                   backgroundColor: isItemAdmin ? Colors.green.shade700 : Colors.blue.shade700,
@@ -606,11 +619,14 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                 ),
                 title: Row(
                   children: [
-                    Text(
-                      participant.refereeName,
-                      style: TextStyle(
-                        fontWeight: isMe ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 13.5,
+                    Flexible(
+                      child: Text(
+                        participant.refereeName,
+                        style: TextStyle(
+                          fontWeight: isMe ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 13.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (isMe) ...[
@@ -640,13 +656,22 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                     ],
                   ],
                 ),
-                trailing: (isAdmin && !isMe)
-                    ? IconButton(
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.info_outline, size: 18),
+                      tooltip: 'Previous names for ${participant.refereeName}',
+                      onPressed: () => _showRefereePreviousNamesDialog(context, participant),
+                    ),
+                    if (isAdmin && !isMe)
+                      IconButton(
                         icon: const Icon(Icons.person_remove_outlined, size: 18, color: Colors.redAccent),
                         tooltip: 'Remove ${participant.refereeName}',
                         onPressed: () => _confirmRemoveParticipant(context, participant),
-                      )
-                    : null,
+                      ),
+                  ],
+                ),
               );
             },
           ),
@@ -805,6 +830,214 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showRefereePreviousNamesDialog(BuildContext context, ShareParticipantModel participant) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.history, size: 22),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Name History',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Current Name: ${participant.refereeName}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Previous names at this event:',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                if (participant.previousNames.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 16, color: Colors.grey),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'No previous names recorded for this referee at this event.',
+                            style: TextStyle(fontSize: 13, color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  for (final name in participant.previousNames) ...[
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.person_outline, size: 16, color: Colors.grey),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAllPreviousNamesDialog(BuildContext context, List<ShareParticipantModel> participants) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final anyWithPrevious = participants.any((p) => p.previousNames.isNotEmpty);
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.history, size: 22),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Referee Name History',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!anyWithPrevious)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline, size: 16, color: Colors.grey),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'No previous names recorded for any referee at this event.',
+                              style: TextStyle(fontSize: 13, color: Colors.grey),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    for (int i = 0; i < participants.length; i++) ...[
+                      if (i > 0) const Divider(height: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  participants[i].refereeName,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (participants[i].role == ShareRole.admin) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'Admin',
+                                    style: TextStyle(fontSize: 9, color: Colors.green, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          if (participants[i].previousNames.isEmpty)
+                            const Text(
+                              'No previous names',
+                              style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                            )
+                          else
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              children: participants[i].previousNames.map((name) {
+                                return Chip(
+                                  visualDensity: VisualDensity.compact,
+                                  padding: EdgeInsets.zero,
+                                  labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                                  label: Text(name, style: const TextStyle(fontSize: 11)),
+                                );
+                              }).toList(),
+                            ),
+                        ],
+                      ),
+                    ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

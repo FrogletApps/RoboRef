@@ -69,6 +69,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
     final shareState = ref.read(shareControllerProvider);
     if (shareState.isShared) {
       ref.read(incidentControllerProvider.notifier).triggerSync(quiet: quiet);
+      ref.read(shareControllerProvider.notifier).refreshShareStatus(shareState.sku);
     }
   }
 

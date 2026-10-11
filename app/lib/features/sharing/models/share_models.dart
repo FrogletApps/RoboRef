@@ -13,12 +13,14 @@ class ShareParticipantModel {
   final String refereeName;
   final ShareRole role;
   final int joinedAt;
+  final List<String> previousNames;
 
   ShareParticipantModel({
     required this.deviceId,
     required this.refereeName,
     required this.role,
     required this.joinedAt,
+    this.previousNames = const [],
   });
 
   factory ShareParticipantModel.fromJson(Map<String, dynamic> json) {
@@ -27,6 +29,10 @@ class ShareParticipantModel {
       refereeName: json['refereeName'] as String? ?? 'Referee',
       role: ShareRole.fromString(json['role'] as String?),
       joinedAt: json['joinedAt'] as int? ?? DateTime.now().millisecondsSinceEpoch,
+      previousNames: (json['previousNames'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
     );
   }
 
@@ -35,6 +41,7 @@ class ShareParticipantModel {
     'refereeName': refereeName,
     'role': role.name,
     'joinedAt': joinedAt,
+    'previousNames': previousNames,
   };
 }
 

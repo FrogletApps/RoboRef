@@ -245,4 +245,36 @@ class ShareClient {
     } catch (_) {}
     return null;
   }
+
+  /// Update referee name across connected sessions
+  Future<ShareSessionModel?> updateRefereeName({
+    required String deviceId,
+    required String refereeName,
+    String? shareId,
+    String? sku,
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/share/update-name');
+      final response = await _client
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              if (shareId != null) 'shareId': shareId,
+              if (sku != null) 'sku': sku,
+              'deviceId': deviceId,
+              'refereeName': refereeName,
+            }),
+          )
+          .timeout(const Duration(seconds: 6));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['session'] is Map<String, dynamic>) {
+          return ShareSessionModel.fromJson(data['session'] as Map<String, dynamic>);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
 }
