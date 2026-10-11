@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.10.11+157
+
+- **Change Log & Version Display Moved**: Moved the Change Log and app version display into the Settings "About RoboRef" section, and removed Change Log from the home screen quick actions.
+
 ## 2026.10.10+156
 
 - **Referee Name Synchronization**: Updating your referee name now updates across connected shared events for all referees.

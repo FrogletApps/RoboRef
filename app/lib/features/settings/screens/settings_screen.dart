@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
+import '../../home/screens/changelog_screen.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 import '../../sharing/state/share_controller.dart';
@@ -14,12 +16,14 @@ class SettingsScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
   final bool? isEventManagePage;
   final String? eventSku;
+  final String? overrideVersion;
 
   const SettingsScreen({
     super.key,
     this.showAppBar = true,
     this.isEventManagePage,
     this.eventSku,
+    this.overrideVersion,
   });
 
   @override
@@ -32,6 +36,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _initialized = false;
   String _selectedServerOption = 'cloud';
   bool _isTestingConnection = false;
+  String _version = '2026.10.11+157';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.overrideVersion != null) {
+      _version = widget.overrideVersion!;
+    } else {
+      _loadAppVersion();
+    }
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      setState(() {
+        if (info.buildNumber.isNotEmpty) {
+          _version = '${info.version}+${info.buildNumber}';
+        } else {
+          _version = info.version;
+        }
+      });
+    } catch (_) {
+      // Fallback to default version if platform channel is unavailable (e.g. tests)
+    }
+  }
 
   bool get _isEventManagePage => widget.isEventManagePage ?? !widget.showAppBar;
 
@@ -551,6 +582,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
+              _buildVersionCard(context, Theme.of(context).brightness == Brightness.dark),
+              const SizedBox(height: 10),
+              Card(
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.history_rounded,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: const Text(
+                    'Change Log',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ChangeLogScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
               Card(
                 margin: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
@@ -650,6 +711,105 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       case ServerConnectionStatus.unknown:
         return const Text('Checking...', style: TextStyle(color: Colors.grey, fontSize: 12));
     }
+  }
+
+  /// Version Card with Copy button
+  Widget _buildVersionCard(BuildContext context, bool isDark) {
+    return Card(
+      margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Current Version',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Use this to let a developer know what version you are using if you encounter an issue.',
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'RELEASE',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'v$_version',
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: _version));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Version copied to clipboard'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.copy, size: 16),
+                    label: const Text('Copy'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

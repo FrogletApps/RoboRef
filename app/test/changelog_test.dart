@@ -90,7 +90,7 @@ void main() {
   });
 
   group('ChangeLogScreen Widget Tests', () {
-    testWidgets('renders current version in version card and as top item in release history', (tester) async {
+    testWidgets('renders release history with current version as top item', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ChangeLogScreen(),
@@ -105,16 +105,11 @@ void main() {
       // 1. Check AppBar
       expect(find.text('Change Log'), findsOneWidget);
 
-      // 2. Check Version Card displays current version
-      expect(find.text('Current Version'), findsOneWidget);
-      expect(find.text('v$currentVersion'), findsOneWidget);
-      expect(find.text('Copy'), findsOneWidget);
-
-      // 3. Check Release History header and verify current version is the top release title
+      // 2. Check Release History header and verify current version is the top release title
       expect(find.text('Release History'), findsOneWidget);
       expect(find.text(currentVersion), findsOneWidget);
 
-      // 4. Check markdown content is present
+      // 3. Check markdown content is present
       expect(find.textContaining('Experimental Features Setting', findRichText: true), findsWidgets);
       expect(find.textContaining('Game Rules V2 Updates', findRichText: true), findsWidgets);
     });
@@ -152,27 +147,6 @@ void main() {
       expect(find.textContaining('Game Rules V2 Updates', findRichText: true), findsWidgets);
     });
 
-    testWidgets('copies version to clipboard when copy button is tapped', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ChangeLogScreen(),
-        ),
-      );
-
-      await tester.runAsync(() async {
-        await Future.delayed(const Duration(milliseconds: 100));
-      });
-      await tester.pumpAndSettle();
-
-      final copyButton = find.widgetWithText(TextButton, 'Copy');
-      expect(copyButton, findsOneWidget);
-
-      await tester.tap(copyButton);
-      await tester.pump(); // Start snackbar animation
-
-      expect(find.text('Version copied to clipboard'), findsOneWidget);
-    });
-
     testWidgets('renders error view on failed asset load and allows retry', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -189,23 +163,6 @@ void main() {
 
       expect(find.text('Unable to load change log'), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
-    });
-
-    testWidgets('renders custom overrideVersion when provided', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ChangeLogScreen(
-            overrideVersion: '2026.8.23+99',
-          ),
-        ),
-      );
-
-      await tester.runAsync(() async {
-        await Future.delayed(const Duration(milliseconds: 100));
-      });
-      await tester.pumpAndSettle();
-
-      expect(find.text('v2026.8.23+99'), findsOneWidget);
     });
   });
 }

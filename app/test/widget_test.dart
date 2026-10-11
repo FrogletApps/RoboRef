@@ -88,7 +88,7 @@ void main() {
     expect(find.text('Teams'), findsNothing);
 
     // Verify Home Screen quick actions and primary action
-    expect(find.text('Change Log'), findsOneWidget);
+    expect(find.text('Change Log'), findsNothing);
     expect(find.text('Share RoboRef'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget); // In Quick Actions
     expect(find.text('Add a new event'), findsOneWidget);
@@ -131,6 +131,8 @@ void main() {
     expect(find.text('Event Information'), findsOneWidget);
     expect(find.text('VEX Events Page'), findsOneWidget);
     expect(find.text('About RoboRef'), findsOneWidget);
+    expect(find.text('Current Version'), findsOneWidget);
+    expect(find.text('Change Log'), findsOneWidget);
     expect(find.text('Privacy Policy'), findsOneWidget);
 
     // Switch to Rules tab to verify Game Rules Summary header and Version 2.0 subtitle

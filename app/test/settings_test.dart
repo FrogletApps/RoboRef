@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:roboref/core/utils/sku_utils.dart';
+import 'package:roboref/features/home/screens/changelog_screen.dart';
 import 'package:roboref/features/settings/screens/settings_screen.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
 
@@ -703,6 +705,129 @@ void main() {
       notifier.setExperimentalFeaturesEnabled(false);
       expect(container.read(syncSettingsProvider).experimentalFeaturesEnabled, isFalse);
       expect(prefs.getBool('experimental_features_enabled'), isFalse);
+    });
+  });
+
+  group('SettingsScreen About RoboRef Section Tests', () {
+    testWidgets('displays version card, Change Log tile, and Privacy Policy tile', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      PackageInfo.setMockInitialValues(
+        appName: 'RoboRef',
+        packageName: 'app.roboref',
+        version: '2026.10.11',
+        buildNumber: '157',
+        buildSignature: '',
+      );
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('About RoboRef'), findsOneWidget);
+      expect(find.text('Current Version'), findsOneWidget);
+      expect(find.text('v2026.10.11+157'), findsOneWidget);
+      expect(find.text('Copy'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Change Log'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'Privacy Policy'), findsOneWidget);
+    });
+
+    testWidgets('copies version to clipboard when copy button is tapped', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(
+              overrideVersion: '2026.10.11+999',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('v2026.10.11+999'), findsOneWidget);
+
+      final copyButton = find.widgetWithText(TextButton, 'Copy');
+      expect(copyButton, findsOneWidget);
+
+      await tester.tap(copyButton);
+      await tester.pump();
+
+      expect(find.text('Version copied to clipboard'), findsOneWidget);
+    });
+
+    testWidgets('navigates to ChangeLogScreen when Change Log tile is tapped', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final changelogTile = find.widgetWithText(ListTile, 'Change Log');
+      expect(changelogTile, findsOneWidget);
+
+      await tester.tap(changelogTile);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(ChangeLogScreen), findsOneWidget);
+      expect(find.text('Change Log'), findsWidgets);
     });
   });
 }

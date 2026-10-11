@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 /// Data model representing a release section in the changelog.
 class ChangeLogRelease {
@@ -84,12 +83,10 @@ Future<String> loadChangeLogMarkdown({String? overridePath}) async {
 
 class ChangeLogScreen extends StatefulWidget {
   final String? changelogAssetPath;
-  final String? overrideVersion;
 
   const ChangeLogScreen({
     super.key,
     this.changelogAssetPath,
-    this.overrideVersion,
   });
 
   @override
@@ -97,7 +94,6 @@ class ChangeLogScreen extends StatefulWidget {
 }
 
 class _ChangeLogScreenState extends State<ChangeLogScreen> {
-  String _version = '2026.8.26+1';
   late Future<List<ChangeLogRelease>> _changelogFuture;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
@@ -105,28 +101,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.overrideVersion != null) {
-      _version = widget.overrideVersion!;
-    } else {
-      _loadAppVersion();
-    }
     _loadChangeLog();
-  }
-
-  Future<void> _loadAppVersion() async {
-    try {
-      final info = await PackageInfo.fromPlatform();
-      if (!mounted) return;
-      setState(() {
-        if (info.buildNumber.isNotEmpty) {
-          _version = '${info.version}+${info.buildNumber}';
-        } else {
-          _version = info.version;
-        }
-      });
-    } catch (_) {
-      // Fallback to default version if platform channel is unavailable (e.g. tests)
-    }
   }
 
   @override
@@ -189,8 +164,6 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
               return ListView(
                 padding: const EdgeInsets.all(16.0),
                 children: [
-                  _buildVersionCard(context, isDark),
-                  const SizedBox(height: 24),
                   Card(
                     color: Colors.red.shade900.withValues(alpha: 0.15),
                     shape: RoundedRectangleBorder(
@@ -233,24 +206,20 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
             return ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                // 1. Current Version Card with Copy action
-                _buildVersionCard(context, isDark),
-                const SizedBox(height: 20),
-
-                // 2. Search & Filter Bar
+                // 1. Search & Filter Bar
                 if (releases.isNotEmpty) ...[
                   _buildSearchBar(context),
                   const SizedBox(height: 16),
                 ],
 
-                // 3. Release History Header
+                // 2. Release History Header
                 const Text(
                   'Release History',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
 
-                // 4. Release History Cards
+                // 3. Release History Cards
                 if (filteredReleases.isEmpty)
                   _buildEmptyState(context)
                 else
@@ -287,104 +256,6 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
       }
     }
     return result;
-  }
-
-  /// Version Card with Copy button
-  Widget _buildVersionCard(BuildContext context, bool isDark) {
-    return Card(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Current Version',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Use this to let a developer know what version you are using if you encounter an issue.',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'RELEASE',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'v$_version',
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                  TextButton.icon(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: _version));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Version copied to clipboard'),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.copy, size: 16),
-                    label: const Text('Copy'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   /// Search & Filter Box

@@ -10,7 +10,6 @@ import '../../incidents/state/incident_controller.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../sharing/state/share_controller.dart';
-import 'changelog_screen.dart';
 import 'share_screen.dart';
 import '../../sharing/widgets/event_share_sheet.dart';
 
@@ -106,7 +105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _buildTitleBar(context, env),
               const SizedBox(height: 14),
 
-              // 2. Quick Actions Grid (Change Log | Share RoboRef | Settings)
+              // 2. Quick Actions Grid (Share RoboRef | Settings)
               _buildQuickActionsGrid(context),
               const SizedBox(height: 16),
 
@@ -428,28 +427,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// 3-Column Quick Actions Grid: Change Log | Share | Settings
+  /// 2-Column Quick Actions Grid: Share | Settings
   Widget _buildQuickActionsGrid(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Row(
       children: [
-        // Change Log Button
-        Expanded(
-          child: _buildQuickActionButton(
-            context,
-            icon: Icons.update_rounded,
-            label: 'Change Log',
-            isDark: isDark,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ChangeLogScreen()),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-
         // Share RoboRef Button
         Expanded(
           child: _buildQuickActionButton(
