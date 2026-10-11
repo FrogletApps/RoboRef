@@ -224,6 +224,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 24),
 
               // Referee Setup Section
               const Text(
@@ -242,6 +244,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onChanged: (val) => ref.read(syncSettingsProvider.notifier).setRefereeName(val.trim()),
                 onSubmitted: (_) => ref.read(shareControllerProvider.notifier).flushRefereeNameChange(),
               ),
+              const SizedBox(height: 24),
+              const Divider(),
               const SizedBox(height: 24),
 
               // Sync & Sharing Section (on Event Manage Page when sharing is NOT enabled)
@@ -298,6 +302,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+                const Divider(),
                 const SizedBox(height: 24),
               ],
 
@@ -603,6 +609,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 24),
               ],
 
               // Event Information Section (if on the manage page for the event)
@@ -704,6 +712,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Experimental Features Section (only shown in local or test deployments)
               if (env == AppEnvironment.local || env == AppEnvironment.test) ...[
                 const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 24),
                 const Text(
                   'Experimental Features',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -754,7 +764,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
 
                 if (settings.experimentalFeaturesEnabled) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 24),
                   const Text(
                     'Import Event Data',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

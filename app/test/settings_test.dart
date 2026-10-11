@@ -1049,9 +1049,28 @@ void main() {
       expect(find.text('Sync & Sharing'), findsNothing);
       expect(find.text('Event Information'), findsNothing);
       expect(find.text('Experimental Features'), findsOneWidget);
+
+      // On main settings page in test env:
+      // Dividers between: Appearance & Referee Setup, Referee Setup & About RoboRef, About RoboRef & Experimental Features
+      expect(find.byType(Divider), findsNWidgets(3));
+      final appearancePos = tester.getTopLeft(find.text('Appearance')).dy;
+      final refereePos = tester.getTopLeft(find.text('Referee Setup')).dy;
+      final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
+      final experimentalPos = tester.getTopLeft(find.text('Experimental Features')).dy;
+
+      final divider0Pos = tester.getTopLeft(find.byType(Divider).at(0)).dy;
+      final divider1Pos = tester.getTopLeft(find.byType(Divider).at(1)).dy;
+      final divider2Pos = tester.getTopLeft(find.byType(Divider).at(2)).dy;
+
+      expect(appearancePos, lessThan(divider0Pos));
+      expect(divider0Pos, lessThan(refereePos));
+      expect(refereePos, lessThan(divider1Pos));
+      expect(divider1Pos, lessThan(aboutPos));
+      expect(aboutPos, lessThan(divider2Pos));
+      expect(divider2Pos, lessThan(experimentalPos));
     });
 
-    testWidgets('displays Sync Server Configuration above Event Information and divider between Sync Server Configuration and About RoboRef on event manage page when shared', (tester) async {
+    testWidgets('displays dividers between all sections on event manage page when shared', (tester) async {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -1100,25 +1119,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Advanced Settings'), findsNothing);
+      expect(find.text('Appearance'), findsOneWidget);
       expect(find.text('Referee Setup'), findsOneWidget);
       expect(find.text('Sync Server Configuration'), findsOneWidget);
       expect(find.text('Event Information'), findsOneWidget);
-      expect(find.byType(Divider), findsOneWidget);
       expect(find.text('About RoboRef'), findsOneWidget);
+      expect(find.byType(Divider), findsNWidgets(4));
 
+      final appearancePos = tester.getTopLeft(find.text('Appearance')).dy;
       final refereePos = tester.getTopLeft(find.text('Referee Setup')).dy;
       final syncServerPos = tester.getTopLeft(find.text('Sync Server Configuration')).dy;
       final eventInfoPos = tester.getTopLeft(find.text('Event Information')).dy;
-      final dividerPos = tester.getTopLeft(find.byType(Divider)).dy;
       final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
 
-      expect(refereePos, lessThan(syncServerPos), reason: 'Referee Setup must be above Sync Server Configuration');
-      expect(syncServerPos, lessThan(eventInfoPos), reason: 'Sync Server Configuration must be above Event Information');
-      expect(eventInfoPos, lessThan(dividerPos), reason: 'Event Information must be above Divider');
-      expect(dividerPos, lessThan(aboutPos), reason: 'Divider must be above About RoboRef');
+      final divider0Pos = tester.getTopLeft(find.byType(Divider).at(0)).dy;
+      final divider1Pos = tester.getTopLeft(find.byType(Divider).at(1)).dy;
+      final divider2Pos = tester.getTopLeft(find.byType(Divider).at(2)).dy;
+      final divider3Pos = tester.getTopLeft(find.byType(Divider).at(3)).dy;
+
+      expect(appearancePos, lessThan(divider0Pos), reason: 'Appearance must be above Divider 0');
+      expect(divider0Pos, lessThan(refereePos), reason: 'Divider 0 must be above Referee Setup');
+      expect(refereePos, lessThan(divider1Pos), reason: 'Referee Setup must be above Divider 1');
+      expect(divider1Pos, lessThan(syncServerPos), reason: 'Divider 1 must be above Sync Server Configuration');
+      expect(syncServerPos, lessThan(divider2Pos), reason: 'Sync Server Configuration must be above Divider 2');
+      expect(divider2Pos, lessThan(eventInfoPos), reason: 'Divider 2 must be above Event Information');
+      expect(eventInfoPos, lessThan(divider3Pos), reason: 'Event Information must be above Divider 3');
+      expect(divider3Pos, lessThan(aboutPos), reason: 'Divider 3 must be above About RoboRef');
     });
 
-    testWidgets('displays Sync & Sharing above Event Information and divider between Sync & Sharing and About RoboRef on event manage page when not shared', (tester) async {
+    testWidgets('displays dividers between all sections on event manage page when not shared', (tester) async {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -1165,23 +1194,33 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Advanced Settings'), findsNothing);
+      expect(find.text('Appearance'), findsOneWidget);
       expect(find.text('Referee Setup'), findsOneWidget);
       expect(find.text('Sync & Sharing'), findsOneWidget);
       expect(find.text('Sharing Not Enabled'), findsOneWidget);
       expect(find.text('Event Information'), findsOneWidget);
-      expect(find.byType(Divider), findsOneWidget);
       expect(find.text('About RoboRef'), findsOneWidget);
+      expect(find.byType(Divider), findsNWidgets(4));
 
+      final appearancePos = tester.getTopLeft(find.text('Appearance')).dy;
       final refereePos = tester.getTopLeft(find.text('Referee Setup')).dy;
       final syncSharingPos = tester.getTopLeft(find.text('Sync & Sharing')).dy;
       final eventInfoPos = tester.getTopLeft(find.text('Event Information')).dy;
-      final dividerPos = tester.getTopLeft(find.byType(Divider)).dy;
       final aboutPos = tester.getTopLeft(find.text('About RoboRef')).dy;
 
-      expect(refereePos, lessThan(syncSharingPos), reason: 'Referee Setup must be above Sync & Sharing');
-      expect(syncSharingPos, lessThan(eventInfoPos), reason: 'Sync & Sharing must be above Event Information');
-      expect(eventInfoPos, lessThan(dividerPos), reason: 'Event Information must be above Divider');
-      expect(dividerPos, lessThan(aboutPos), reason: 'Divider must be above About RoboRef');
+      final divider0Pos = tester.getTopLeft(find.byType(Divider).at(0)).dy;
+      final divider1Pos = tester.getTopLeft(find.byType(Divider).at(1)).dy;
+      final divider2Pos = tester.getTopLeft(find.byType(Divider).at(2)).dy;
+      final divider3Pos = tester.getTopLeft(find.byType(Divider).at(3)).dy;
+
+      expect(appearancePos, lessThan(divider0Pos), reason: 'Appearance must be above Divider 0');
+      expect(divider0Pos, lessThan(refereePos), reason: 'Divider 0 must be above Referee Setup');
+      expect(refereePos, lessThan(divider1Pos), reason: 'Referee Setup must be above Divider 1');
+      expect(divider1Pos, lessThan(syncSharingPos), reason: 'Divider 1 must be above Sync & Sharing');
+      expect(syncSharingPos, lessThan(divider2Pos), reason: 'Sync & Sharing must be above Divider 2');
+      expect(divider2Pos, lessThan(eventInfoPos), reason: 'Divider 2 must be above Event Information');
+      expect(eventInfoPos, lessThan(divider3Pos), reason: 'Event Information must be above Divider 3');
+      expect(divider3Pos, lessThan(aboutPos), reason: 'Divider 3 must be above About RoboRef');
     });
   });
 }

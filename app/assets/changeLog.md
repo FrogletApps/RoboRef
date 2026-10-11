@@ -2,6 +2,7 @@
 
 ## 2026.10.11+157
 
+- **Section Dividers**: Added dividers between all sections in the Settings and Manage & Sync pages.
 - **Settings Layout**: Removed Advanced Settings label, moved Sync & Sharing above Event Information, and added divider before About RoboRef.
 - **Event-Scoped Sync Server**: Removed Sync Server Configuration from the main settings page. Sync server settings are now saved per event and only visible on the event manage page when sharing is enabled, with configuration control reserved for the share admin.
 - **Change Log & Version Display Moved**: Moved the Change Log and app version display into the Settings "About RoboRef" section, and removed Change Log from the home screen quick actions.
