@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.10.13+166
+
+- **App Display Name**: Set the launcher and display name to "RoboRef" on Android and iOS.
+
 ## 2026.10.11+157
 
 - **Section Dividers**: Added dividers between all sections in the Settings and Manage & Sync pages.
