@@ -280,17 +280,36 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
       // Check both reactive event record and shareState
       final isEventShared = event?.isShared ?? shareState.isShared;
       final role = (event?.shareRole != null ? ShareRole.fromString(event!.shareRole) : null) ?? shareState.role;
+      final participantCount = shareState.participants.length;
+
+      Widget shareIcon = Icon(
+        isEventShared ? Icons.share : Icons.share_outlined,
+        color: isEventShared ? Colors.lightGreenAccent : null,
+      );
+
+      if (isEventShared) {
+        if (participantCount > 0) {
+          shareIcon = Badge.count(
+            count: participantCount,
+            backgroundColor: Colors.green,
+            child: shareIcon,
+          );
+        } else {
+          shareIcon = Badge(
+            smallSize: 8,
+            backgroundColor: Colors.green,
+            child: shareIcon,
+          );
+        }
+      }
 
       list.add(
         IconButton(
-          icon: Icon(
-            isEventShared
-                ? (role == ShareRole.admin ? Icons.admin_panel_settings : Icons.cloud_done)
-                : Icons.share_outlined,
-            color: isEventShared ? Colors.lightGreenAccent : null,
-          ),
+          icon: shareIcon,
           tooltip: isEventShared
-              ? 'Shared Online (${shareState.participants.isNotEmpty ? shareState.participants.length : 1} connected)'
+              ? (role == ShareRole.admin
+                  ? 'Hosting Online (${participantCount > 0 ? participantCount : 1} connected)'
+                  : 'Connected Online (${participantCount > 0 ? participantCount : 1} connected)')
               : 'Share Event Online',
           onPressed: () => _showShareSheet(context, settings.currentSku),
         ),

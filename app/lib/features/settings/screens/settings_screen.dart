@@ -696,7 +696,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   title: const Text(
-                    'View the source',
+                    'View Source',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 20),

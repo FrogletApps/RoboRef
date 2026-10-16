@@ -597,14 +597,14 @@ void main() {
 
       // Expect share_outlined icon for local event
       expect(find.byIcon(Icons.share_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.admin_panel_settings), findsNothing);
+      expect(find.byIcon(Icons.share), findsNothing);
 
       // Switch to EVENT-SHARED
       container.read(syncSettingsProvider.notifier).setSku('EVENT-SHARED');
       await tester.pumpAndSettle();
 
-      // Expect admin shield icon (Icons.admin_panel_settings) immediately without tapping
-      expect(find.byIcon(Icons.admin_panel_settings), findsOneWidget);
+      // Expect active share icon (Icons.share) immediately without tapping
+      expect(find.byIcon(Icons.share), findsOneWidget);
       expect(find.byIcon(Icons.share_outlined), findsNothing);
 
       await tester.pumpWidget(const SizedBox.shrink());
