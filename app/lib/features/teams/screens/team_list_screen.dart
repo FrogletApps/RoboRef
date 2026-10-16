@@ -280,7 +280,8 @@ class _TeamListScreenState extends State<TeamListScreen> {
                   },
                 ),
               ),
-            ],
+            ),
+          ],
           ),
         );
       },
@@ -444,7 +445,6 @@ class _TeamListScreenState extends State<TeamListScreen> {
                     },
                   ),
                 ),
-              ),
             ],
           ),
         );
