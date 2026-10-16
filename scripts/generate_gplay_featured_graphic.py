@@ -5,6 +5,8 @@ import tempfile
 from pathlib import Path
 from PIL import Image
 
+from browser_utils import get_browser_path
+
 ROOT_DIR = Path(__file__).resolve().parent.parent
 APP_DIR = ROOT_DIR / "app"
 STORE_DIR = APP_DIR / "assets" / "store"
@@ -17,9 +19,7 @@ if not ICON_PATH.exists():
 ICON_B64 = base64.b64encode(ICON_PATH.read_bytes()).decode("ascii")
 ICON_DATA_URI = f"data:image/png;base64,{ICON_B64}"
 
-CHROME_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-if not os.path.exists(CHROME_PATH):
-    CHROME_PATH = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+CHROME_PATH = get_browser_path()
 
 def get_template_horizontal():
     return f"""<!DOCTYPE html>

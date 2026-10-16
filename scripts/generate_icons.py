@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 from PIL import Image, ImageDraw
+from browser_utils import get_browser_path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 APP_DIR = ROOT_DIR / "app"
@@ -107,9 +108,7 @@ for svg_path in [
 print("Wrote roboref.svg to assets and web")
 
 # Browser path for headless rendering
-chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-if not os.path.exists(chrome_path):
-    chrome_path = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+chrome_path = get_browser_path()
 
 def render_svg_to_png(svg_str, width, height):
     """Render an SVG string to a PIL RGBA Image using headless Chrome/Edge."""
