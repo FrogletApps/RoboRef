@@ -99,39 +99,60 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
 
           // Incident Notes List
           Expanded(
-            child: notesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error loading notes: $err')),
-              data: (notes) {
-                final filtered = notes.where((note) {
-                  if (_searchQuery.isEmpty) return true;
-                  final matchQuery = note.matchId?.toLowerCase().contains(_searchQuery) ?? false;
-                  final teamQuery = note.teamNumber.toLowerCase().contains(_searchQuery);
-                  final notesQuery = note.notes.toLowerCase().contains(_searchQuery);
-                  final rulesQuery = note.ruleCodesJson.toLowerCase().contains(_searchQuery);
-                  return teamQuery || matchQuery || notesQuery || rulesQuery;
-                }).toList();
-
-                if (filtered.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Symbols.note_stack, size: 64, color: Colors.grey.shade400),
-                        const SizedBox(height: 12),
-                        Text(
-                          _searchQuery.isEmpty
-                              ? 'No notes logged yet for this tournament.'
-                              : 'No matching notes found.',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                        ),
-                      ],
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await ref.read(incidentControllerProvider.notifier).triggerSync();
+              },
+              child: notesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => LayoutBuilder(
+                  builder: (context, constraints) => SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                      child: Center(child: Text('Error loading notes: $err')),
                     ),
-                  );
-                }
+                  ),
+                ),
+                data: (notes) {
+                  final filtered = notes.where((note) {
+                    if (_searchQuery.isEmpty) return true;
+                    final matchQuery = note.matchId?.toLowerCase().contains(_searchQuery) ?? false;
+                    final teamQuery = note.teamNumber.toLowerCase().contains(_searchQuery);
+                    final notesQuery = note.notes.toLowerCase().contains(_searchQuery);
+                    final rulesQuery = note.ruleCodesJson.toLowerCase().contains(_searchQuery);
+                    return teamQuery || matchQuery || notesQuery || rulesQuery;
+                  }).toList();
 
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  if (filtered.isEmpty) {
+                    return LayoutBuilder(
+                      builder: (context, constraints) => SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Symbols.note_stack, size: 64, color: Colors.grey.shade400),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _searchQuery.isEmpty
+                                      ? 'No notes logged yet for this tournament.'
+                                      : 'No matching notes found.',
+                                  style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   itemCount: filtered.length,
                   separatorBuilder: (ctx, i) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
@@ -243,7 +264,8 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
               },
             ),
           ),
-        ],
+        ),
+      ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddIncidentDialog(context),

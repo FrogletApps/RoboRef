@@ -276,6 +276,8 @@ class VexEventsClient {
     String? defaultEventName,
     String? defaultProgram,
     String? serverUrl,
+    bool fetchTeams = true,
+    bool fetchMatches = true,
   }) async {
     final cleanSku = sku.trim().toUpperCase();
     if (cleanSku.isEmpty) {
@@ -295,6 +297,8 @@ class VexEventsClient {
       String? city;
       String? region;
       List<int> divisionIds = [];
+
+      Exception? eventFetchError;
 
       // 1. Fetch Event Info if ID not given or to get fresh event details
       try {
@@ -331,8 +335,15 @@ class VexEventsClient {
             }
           }
         }
-      } catch (_) {
-        // Fall back to using default/existing metadata
+      } catch (e) {
+        eventFetchError = e is Exception ? e : Exception(e.toString());
+      }
+
+      if (resolvedId == null && eventFetchError != null) {
+        return VexEventsFetchResult(
+          success: false,
+          errorMessage: 'Could not connect to VEX Events: ${eventFetchError.toString()}',
+        );
       }
 
       // Upsert event record
@@ -356,7 +367,7 @@ class VexEventsClient {
       int matchesCount = 0;
 
       // 2. Fetch Teams if eventId was found
-      if (resolvedId != null) {
+      if (resolvedId != null && fetchTeams) {
         int page = 1;
         bool hasMorePages = true;
         final List<TeamsCompanion> allTeamCompanions = [];
@@ -482,97 +493,106 @@ class VexEventsClient {
         }
 
         // 3. Fetch Matches for each division
-        if (divisionIds.isEmpty) {
-          divisionIds = [1];
-        }
+        if (fetchMatches) {
+          if (divisionIds.isEmpty) {
+            divisionIds = [1];
+          }
 
-        final List<MatchesCompanion> allMatchCompanions = [];
-        for (final divId in divisionIds) {
-          int matchPage = 1;
-          bool hasMoreMatches = true;
+          final List<MatchesCompanion> allMatchCompanions = [];
+          for (final divId in divisionIds) {
+            int matchPage = 1;
+            bool hasMoreMatches = true;
 
-          while (hasMoreMatches && matchPage <= 5) {
-            try {
-              final matchesResponse = await _getWithFallback(
-                '/events/$resolvedId/divisions/$divId/matches',
-                queryParams: {
-                  'page': [matchPage.toString()],
-                  'per_page': ['250'],
-                },
-                timeout: const Duration(seconds: 12),
-                serverUrl: serverUrl,
-              );
+            while (hasMoreMatches && matchPage <= 5) {
+              try {
+                final matchesResponse = await _getWithFallback(
+                  '/events/$resolvedId/divisions/$divId/matches',
+                  queryParams: {
+                    'page': [matchPage.toString()],
+                    'per_page': ['250'],
+                  },
+                  timeout: const Duration(seconds: 12),
+                  serverUrl: serverUrl,
+                );
 
-              final matchesData = jsonDecode(matchesResponse.body);
-              if (matchesData['data'] is List) {
-                final list = matchesData['data'] as List;
-                for (final m in list) {
-                  final matchId = m['id']?.toString() ?? m['name']?.toString() ?? '';
-                  final rawName = m['name']?.toString();
-                  final round = m['round'] as int?;
-                  final instance = m['instance'] as int?;
-                  final matchnum = m['matchnum'] as int?;
-                  final name = normalizeMatchName(rawName, round: round, instance: instance, matchnum: matchnum);
-                  final field = m['field']?.toString();
-                  final scheduledTime = m['scheduled']?.toString();
+                final matchesData = jsonDecode(matchesResponse.body);
+                if (matchesData['data'] is List) {
+                  final list = matchesData['data'] as List;
+                  for (final m in list) {
+                    final matchId = m['id']?.toString() ?? m['name']?.toString() ?? '';
+                    final rawName = m['name']?.toString();
+                    final round = m['round'] as int?;
+                    final instance = m['instance'] as int?;
+                    final matchnum = m['matchnum'] as int?;
+                    final name = normalizeMatchName(rawName, round: round, instance: instance, matchnum: matchnum);
+                    final field = m['field']?.toString();
+                    final scheduledTime = m['scheduled']?.toString();
 
-                  List<String> redTeams = [];
-                  List<String> blueTeams = [];
+                    List<String> redTeams = [];
+                    List<String> blueTeams = [];
 
-                  if (m['alliances'] is List) {
-                    for (final alliance in m['alliances']) {
-                      final color = alliance['color']?.toString().toLowerCase();
-                      final teamsList = alliance['teams'] as List? ?? [];
-                      final numbers = teamsList
-                          .map((t) => t['team']?['name']?.toString() ?? '')
-                          .where((s) => s.isNotEmpty)
-                          .toList();
-                      if (color == 'red') {
-                        redTeams = numbers;
-                      } else if (color == 'blue') {
-                        blueTeams = numbers;
+                    if (m['alliances'] is List) {
+                      for (final alliance in m['alliances']) {
+                        final color = alliance['color']?.toString().toLowerCase();
+                        final teamsList = alliance['teams'] as List? ?? [];
+                        final numbers = teamsList
+                            .map((t) => t['team']?['name']?.toString() ?? '')
+                            .where((s) => s.isNotEmpty)
+                            .toList();
+                        if (color == 'red') {
+                          redTeams = numbers;
+                        } else if (color == 'blue') {
+                          blueTeams = numbers;
+                        }
                       }
+                    }
+
+                    if (matchId.isNotEmpty) {
+                      allMatchCompanions.add(
+                        MatchesCompanion(
+                          matchId: Value(matchId),
+                          sku: Value(cleanSku),
+                          divisionId: Value(divId),
+                          name: Value(name),
+                          field: Value(field),
+                          scheduledTime: Value(scheduledTime),
+                          redTeamsJson: Value(jsonEncode(redTeams)),
+                          blueTeamsJson: Value(jsonEncode(blueTeams)),
+                          redScore: Value(m['alliances']?[0]?['score'] as int?),
+                          blueScore: Value(m['alliances']?[1]?['score'] as int?),
+                        ),
+                      );
                     }
                   }
 
-                  if (matchId.isNotEmpty) {
-                    allMatchCompanions.add(
-                      MatchesCompanion(
-                        matchId: Value(matchId),
-                        sku: Value(cleanSku),
-                        divisionId: Value(divId),
-                        name: Value(name),
-                        field: Value(field),
-                        scheduledTime: Value(scheduledTime),
-                        redTeamsJson: Value(jsonEncode(redTeams)),
-                        blueTeamsJson: Value(jsonEncode(blueTeams)),
-                        redScore: Value(m['alliances']?[0]?['score'] as int?),
-                        blueScore: Value(m['alliances']?[1]?['score'] as int?),
-                      ),
-                    );
+                  final meta = matchesData['meta'];
+                  final lastPage = meta?['last_page'] as int? ?? 1;
+                  if (matchPage >= lastPage || list.isEmpty) {
+                    hasMoreMatches = false;
+                  } else {
+                    matchPage++;
                   }
-                }
-
-                final meta = matchesData['meta'];
-                final lastPage = meta?['last_page'] as int? ?? 1;
-                if (matchPage >= lastPage || list.isEmpty) {
-                  hasMoreMatches = false;
                 } else {
-                  matchPage++;
+                  hasMoreMatches = false;
                 }
-              } else {
+              } catch (_) {
                 hasMoreMatches = false;
               }
-            } catch (_) {
-              hasMoreMatches = false;
             }
           }
-        }
 
-        if (allMatchCompanions.isNotEmpty) {
-          await db.upsertMatches(allMatchCompanions);
-          matchesCount = allMatchCompanions.length;
+          if (allMatchCompanions.isNotEmpty) {
+            await db.upsertMatches(allMatchCompanions);
+            matchesCount = allMatchCompanions.length;
+          }
         }
+      }
+
+      if (resolvedId == null) {
+        return VexEventsFetchResult(
+          success: false,
+          errorMessage: 'Tournament "$cleanSku" not found on VEX Events',
+        );
       }
 
       return VexEventsFetchResult(

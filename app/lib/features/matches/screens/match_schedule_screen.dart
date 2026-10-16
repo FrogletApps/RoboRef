@@ -30,6 +30,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
       builder: (context, ref, child) {
         final matchesAsync = ref.watch(activeTournamentMatchesProvider);
         final settings = ref.watch(syncSettingsProvider);
+        final isReloading = ref.watch(matchScheduleControllerProvider);
 
         return Scaffold(
           appBar: widget.showAppBar
@@ -44,6 +45,49 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                     ],
                   ),
                   actions: [
+                    IconButton(
+                      icon: isReloading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : const Icon(Icons.refresh),
+                      tooltip: 'Refresh Matches',
+                      onPressed: isReloading
+                          ? null
+                          : () async {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Checking for match schedule updates...'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                              final result = await ref.read(matchScheduleControllerProvider.notifier).refreshMatches();
+                              if (context.mounted) {
+                                if (result.success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        result.matchesCount > 0
+                                            ? 'Updated ${result.matchesCount} match(es)'
+                                            : 'Match schedule is up to date',
+                                      ),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(result.errorMessage ?? 'Failed to update matches'),
+                                      backgroundColor: Theme.of(context).colorScheme.error,
+                                      duration: const Duration(seconds: 3),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                    ),
                     if (settings.experimentalFeaturesEnabled)
                       IconButton(
                         icon: const Icon(Icons.download),
@@ -76,51 +120,94 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
 
               // Match List
               Expanded(
-                child: matchesAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, _) => Center(child: Text('Error loading matches: $err')),
-                  data: (matches) {
-                    final filtered = matches.where((m) {
-                      if (_searchQuery.isEmpty) return true;
-                      final nameUpper = m.name.toUpperCase();
-                      final shortCode = getMatchShortCode(m.name).toUpperCase();
-                      final cleanQuery = _searchQuery.replaceAll(' ', '');
-                      final nameMatch = nameUpper.contains(_searchQuery) ||
-                          shortCode.contains(_searchQuery) ||
-                          nameUpper.replaceAll(' ', '').contains(cleanQuery) ||
-                          shortCode.replaceAll(' ', '').contains(cleanQuery);
-                      final redMatch = m.redTeamsJson.toUpperCase().contains(_searchQuery);
-                      final blueMatch = m.blueTeamsJson.toUpperCase().contains(_searchQuery);
-                      return nameMatch || redMatch || blueMatch;
-                    }).toList();
-
-                    if (filtered.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Symbols.format_list_numbered, size: 64, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
-                            Text(
-                              matches.isEmpty
-                                  ? 'No match schedule has been loaded yet.'
-                                  : 'No matches found matching "$_searchQuery"',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    final result = await ref.read(matchScheduleControllerProvider.notifier).refreshMatches();
+                    if (context.mounted) {
+                      if (result.success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              result.matchesCount > 0
+                                  ? 'Updated ${result.matchesCount} match(es)'
+                                  : 'Match schedule is up to date',
                             ),
-                            if (settings.experimentalFeaturesEnabled) ...[
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: () => _showImportSheet(context),
-                                icon: const Icon(Icons.cloud_download),
-                                label: const Text('Fetch or Import Schedule'),
-                              ),
-                            ],
-                          ],
-                        ),
-                      );
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(result.errorMessage ?? 'Failed to update matches'),
+                            backgroundColor: Theme.of(context).colorScheme.error,
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      }
                     }
+                  },
+                  child: matchesAsync.when(
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (err, _) => LayoutBuilder(
+                      builder: (context, constraints) => SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                          child: Center(child: Text('Error loading matches: $err')),
+                        ),
+                      ),
+                    ),
+                    data: (matches) {
+                      final filtered = matches.where((m) {
+                        if (_searchQuery.isEmpty) return true;
+                        final nameUpper = m.name.toUpperCase();
+                        final shortCode = getMatchShortCode(m.name).toUpperCase();
+                        final cleanQuery = _searchQuery.replaceAll(' ', '');
+                        final nameMatch = nameUpper.contains(_searchQuery) ||
+                            shortCode.contains(_searchQuery) ||
+                            nameUpper.replaceAll(' ', '').contains(cleanQuery) ||
+                            shortCode.replaceAll(' ', '').contains(cleanQuery);
+                        final redMatch = m.redTeamsJson.toUpperCase().contains(_searchQuery);
+                        final blueMatch = m.blueTeamsJson.toUpperCase().contains(_searchQuery);
+                        return nameMatch || redMatch || blueMatch;
+                      }).toList();
+
+                      if (filtered.isEmpty) {
+                        return LayoutBuilder(
+                          builder: (context, constraints) => SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Symbols.format_list_numbered, size: 64, color: Colors.grey.shade400),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      matches.isEmpty
+                                          ? 'No match schedule has been loaded yet.'
+                                          : 'No matches found matching "$_searchQuery"',
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                                    ),
+                                    if (settings.experimentalFeaturesEnabled) ...[
+                                      const SizedBox(height: 16),
+                                      ElevatedButton.icon(
+                                        onPressed: () => _showImportSheet(context),
+                                        icon: const Icon(Icons.cloud_download),
+                                        label: const Text('Fetch or Import Schedule'),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
 
                     return ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       itemCount: filtered.length,
                       separatorBuilder: (ctx, i) => const SizedBox(height: 8),
@@ -237,7 +324,8 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                   },
                 ),
               ),
-            ],
+            ),
+          ],
           ),
         );
       },

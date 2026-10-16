@@ -33,12 +33,56 @@ class _TeamListScreenState extends State<TeamListScreen> {
         final notesAsync = ref.watch(activeTournamentNotesProvider);
         final registeredTeamsAsync = ref.watch(activeTournamentTeamsProvider);
         final settings = ref.watch(syncSettingsProvider);
+        final isReloading = ref.watch(teamListControllerProvider);
 
         return Scaffold(
           appBar: widget.showAppBar
               ? AppBar(
                   title: const Text('Team Histories'),
                   actions: [
+                    IconButton(
+                      icon: isReloading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : const Icon(Icons.refresh),
+                      tooltip: 'Refresh Teams',
+                      onPressed: isReloading
+                          ? null
+                          : () async {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Checking for team roster updates...'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                              final result = await ref.read(teamListControllerProvider.notifier).refreshTeams();
+                              if (context.mounted) {
+                                if (result.success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        result.teamsCount > 0
+                                            ? 'Updated ${result.teamsCount} team(s)'
+                                            : 'Team list is up to date',
+                                      ),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(result.errorMessage ?? 'Failed to update teams'),
+                                      backgroundColor: Theme.of(context).colorScheme.error,
+                                      duration: const Duration(seconds: 3),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                    ),
                     if (settings.experimentalFeaturesEnabled)
                       IconButton(
                         icon: const Icon(Icons.download),
@@ -77,53 +121,96 @@ class _TeamListScreenState extends State<TeamListScreen> {
                 ),
               ),
               Expanded(
-                child: notesAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, _) => Center(child: Text('Error loading teams: $err')),
-                  data: (notes) {
-                    final registeredTeams = registeredTeamsAsync.value ?? [];
-                    final Map<String, List<dynamic>> teamNotes = {};
-                    for (final note in notes) {
-                      teamNotes.putIfAbsent(note.teamNumber, () => []).add(note);
-                    }
-
-                    final Set<String> allTeamNumbers = {
-                      ...teamNotes.keys,
-                      ...registeredTeams.map((t) => t.teamNumber),
-                    };
-
-                    final teams = allTeamNumbers
-                        .where((t) => _search.isEmpty || t.contains(_search))
-                        .toList()
-                      ..sort(compareTeamNumbers);
-
-                    final Map<String, String> teamNames = {
-                      for (final t in registeredTeams) t.teamNumber: t.teamName,
-                    };
-                    final Map<String, int?> teamRanks = {
-                      for (final t in registeredTeams) t.teamNumber: t.rank,
-                    };
-
-                    if (teams.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Symbols.groups, size: 64, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
-                            Text(
-                              _search.isEmpty
-                                  ? 'No teams have been loaded yet.'
-                                  : 'No teams matching "$_search"',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    final result = await ref.read(teamListControllerProvider.notifier).refreshTeams();
+                    if (context.mounted) {
+                      if (result.success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              result.teamsCount > 0
+                                  ? 'Updated ${result.teamsCount} team(s)'
+                                  : 'Team list is up to date',
                             ),
-                          ],
-                        ),
-                      );
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(result.errorMessage ?? 'Failed to update teams'),
+                            backgroundColor: Theme.of(context).colorScheme.error,
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      }
                     }
+                  },
+                  child: notesAsync.when(
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (err, _) => LayoutBuilder(
+                      builder: (context, constraints) => SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                          child: Center(child: Text('Error loading teams: $err')),
+                        ),
+                      ),
+                    ),
+                    data: (notes) {
+                      final registeredTeams = registeredTeamsAsync.value ?? [];
+                      final Map<String, List<dynamic>> teamNotes = {};
+                      for (final note in notes) {
+                        teamNotes.putIfAbsent(note.teamNumber, () => []).add(note);
+                      }
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      final Set<String> allTeamNumbers = {
+                        ...teamNotes.keys,
+                        ...registeredTeams.map((t) => t.teamNumber),
+                      };
+
+                      final teams = allTeamNumbers
+                          .where((t) => _search.isEmpty || t.contains(_search))
+                          .toList()
+                        ..sort(compareTeamNumbers);
+
+                      final Map<String, String> teamNames = {
+                        for (final t in registeredTeams) t.teamNumber: t.teamName,
+                      };
+                      final Map<String, int?> teamRanks = {
+                        for (final t in registeredTeams) t.teamNumber: t.rank,
+                      };
+
+                      if (teams.isEmpty) {
+                        return LayoutBuilder(
+                          builder: (context, constraints) => SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Symbols.groups, size: 64, color: Colors.grey.shade400),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      _search.isEmpty
+                                          ? 'No teams have been loaded yet.'
+                                          : 'No teams matching "$_search"',
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       itemCount: teams.length,
                       itemBuilder: (context, index) {
                         final team = teams[index];
@@ -357,6 +444,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                     },
                   ),
                 ),
+              ),
             ],
           ),
         );
