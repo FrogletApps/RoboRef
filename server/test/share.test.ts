@@ -176,7 +176,37 @@ describe("Secure Share Server Endpoints", () => {
     assert.strictEqual(json.session.adminRefereeName, "Alice Head Ref");
     assert.strictEqual(json.session.participants.length, 1);
     assert.strictEqual(json.session.participants[0].role, "admin");
-    assert.ok(json.session.id.length >= 6);
+    assert.strictEqual(json.session.id.length, 6);
+    assert.match(json.session.id, /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}$/);
+  });
+
+  it("POST /api/share/create generates cryptographically secure unique share codes matching exact format", async () => {
+    const storage = new MockShareStorageAdapter();
+    const app = createSyncApp(storage);
+
+    const generatedCodes = new Set<string>();
+    const validCharRegex = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}$/;
+
+    for (let i = 0; i < 50; i++) {
+      const res = await app.request("/api/share/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sku: `RE-VRC-24-TEST-${i}`,
+          adminDeviceId: `dev-admin-${i}`,
+          adminRefereeName: `Admin ${i}`,
+        }),
+      });
+
+      assert.strictEqual(res.status, 200);
+      const json = await res.json();
+      assert.strictEqual(json.session.id.length, 6);
+      assert.match(json.session.id, validCharRegex);
+      generatedCodes.add(json.session.id);
+    }
+
+    // Verify uniqueness across 50 generated share codes
+    assert.strictEqual(generatedCodes.size, 50);
   });
 
   it("POST /api/share/create warns with 409 if a share already exists owned by someone else", async () => {

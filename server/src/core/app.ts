@@ -295,9 +295,11 @@ export function createSyncApp(storageProvider: StorageAdapter) {
 
   function generateShareCode(): string {
     const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const bytes = new Uint8Array(6);
+    crypto.getRandomValues(bytes);
     let code = "";
     for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+      code += chars[bytes[i] & 31];
     }
     return code;
   }
