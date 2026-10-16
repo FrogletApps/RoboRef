@@ -972,6 +972,90 @@ void main() {
       expect(find.text('Version copied to clipboard'), findsOneWidget);
     });
 
+    testWidgets('adapts version card layout responsively across wide, medium, and small screens (DPR 2.75, width < 330px)', (tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      // 1. Wide screen (800px) - Single line layout: RELEASE + Version on left, Copy button on right
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(overrideVersion: '2026.10.16+167'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final releaseFinder = find.text('RELEASE');
+      final versionFinder = find.text('v2026.10.16+167');
+      final copyBtnFinder = find.widgetWithText(TextButton, 'Copy');
+
+      expect(releaseFinder, findsOneWidget);
+      expect(versionFinder, findsOneWidget);
+      expect(copyBtnFinder, findsOneWidget);
+
+      final releasePosWide = tester.getTopLeft(releaseFinder);
+      final versionPosWide = tester.getTopLeft(versionFinder);
+      final copyPosWide = tester.getTopLeft(copyBtnFinder);
+
+      // On wide screen, RELEASE and version are horizontally arranged next to each other on the same line
+      expect((releasePosWide.dy - versionPosWide.dy).abs(), lessThan(10.0));
+      expect(releasePosWide.dx, lessThan(versionPosWide.dx));
+      expect(versionPosWide.dx, lessThan(copyPosWide.dx));
+
+      // 2. Medium screen (500px in test environment with Ahem font) - RELEASE text goes above version / copy row
+      tester.view.physicalSize = const Size(500, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final releasePosMedium = tester.getTopLeft(releaseFinder);
+      final versionPosMedium = tester.getTopLeft(versionFinder);
+      final copyPosMedium = tester.getTopLeft(copyBtnFinder);
+
+      // RELEASE is above version and copy button
+      expect(releasePosMedium.dy, lessThan(versionPosMedium.dy));
+      // Version and copy button share the same row
+      expect((versionPosMedium.dy - copyPosMedium.dy).abs(), lessThan(10.0));
+      expect(versionPosMedium.dx, lessThan(copyPosMedium.dx));
+
+      // 3. Small screen with DPR 2.75 and horizontal resolution < 330px (e.g. 320px)
+      // RELEASE above version, and copy button on another line below that
+      tester.view.physicalSize = const Size(320 * 2.75, 1200 * 2.75);
+      tester.view.devicePixelRatio = 2.75;
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final releasePosSmall = tester.getTopLeft(releaseFinder);
+      final versionPosSmall = tester.getTopLeft(versionFinder);
+      final copyPosSmall = tester.getTopLeft(copyBtnFinder);
+
+      // Stage 3 vertical hierarchy: RELEASE < version < Copy button
+      expect(releasePosSmall.dy, lessThan(versionPosSmall.dy));
+      expect(versionPosSmall.dy, lessThan(copyPosSmall.dy));
+
+      // Tap Copy button in small screen layout and verify copying works
+      await tester.tap(copyBtnFinder);
+      await tester.pump();
+      expect(find.text('Version copied to clipboard'), findsOneWidget);
+    });
+
     testWidgets('navigates to ChangeLogScreen when Change Log tile is tapped', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;

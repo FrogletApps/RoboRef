@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026.10.16+167
+
+- **Settings Version Layout**: Made version display and copy button responsive on smaller devices to prevent cutoff.
+- **Security update**: Added CORS restrictions
+- **Update Dependencies**
+
 ## 2026.10.15+166
 
 - **Update dependecies**

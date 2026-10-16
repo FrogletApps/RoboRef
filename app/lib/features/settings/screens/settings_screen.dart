@@ -39,7 +39,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _initialized = false;
   String _selectedServerOption = 'cloud';
   bool _isTestingConnection = false;
-  String _version = '2026.10.11+157';
+  String _version = '2026.10.16+167';
 
   @override
   void initState() {
@@ -868,6 +868,59 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Widget _buildReleaseBadge(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        'RELEASE',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.primary,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVersionText(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Text(
+        'v$_version',
+        style: const TextStyle(
+          fontFamily: 'monospace',
+          fontWeight: FontWeight.bold,
+          fontSize: 15,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCopyButton(BuildContext context) {
+    return TextButton.icon(
+      onPressed: () {
+        Clipboard.setData(ClipboardData(text: _version));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Version copied to clipboard'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      icon: const Icon(Icons.copy, size: 16),
+      label: const Text('Copy'),
+      style: TextButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+
   /// Version Card with Copy button
   Widget _buildVersionCard(BuildContext context, bool isDark) {
     return Card(
@@ -892,9 +945,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                const Text(
-                  'Current Version',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                const Expanded(
+                  child: Text(
+                    'Current Version',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
               ],
             ),
@@ -913,52 +968,103 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'RELEASE',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final textScaler = MediaQuery.textScalerOf(context);
+
+                  final versionPainter = TextPainter(
+                    text: TextSpan(
+                      text: 'v$_version',
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'v$_version',
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
+                    ),
+                    textDirection: TextDirection.ltr,
+                    textScaler: textScaler,
+                  )..layout();
+
+                  final badgePainter = TextPainter(
+                    text: const TextSpan(
+                      text: 'RELEASE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
                       ),
-                    ],
-                  ),
-                  TextButton.icon(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: _version));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Version copied to clipboard'),
-                          duration: Duration(seconds: 1),
+                    ),
+                    textDirection: TextDirection.ltr,
+                    textScaler: textScaler,
+                  )..layout();
+
+                  final copyPainter = TextPainter(
+                    text: TextSpan(
+                      text: 'Copy',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    textDirection: TextDirection.ltr,
+                    textScaler: textScaler,
+                  )..layout();
+
+                  final badgeWidth = badgePainter.width + 12.0;
+                  final versionWidth = versionPainter.width;
+                  final copyBtnWidth = (copyPainter.width + 16.0 + 8.0 + 28.0).clamp(64.0, double.infinity);
+
+                  const badgeVersionGap = 8.0;
+                  const minHorizontalGap = 8.0;
+
+                  final stage1NeededWidth = badgeWidth + badgeVersionGap + versionWidth + minHorizontalGap + copyBtnWidth;
+                  final stage2NeededWidth = versionWidth + minHorizontalGap + copyBtnWidth;
+
+                  if (constraints.maxWidth >= stage1NeededWidth) {
+                    // Stage 1: Single line row
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildReleaseBadge(context),
+                            const SizedBox(width: badgeVersionGap),
+                            _buildVersionText(context),
+                          ],
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.copy, size: 16),
-                    label: const Text('Copy'),
-                  ),
-                ],
+                        _buildCopyButton(context),
+                      ],
+                    );
+                  } else if (constraints.maxWidth >= stage2NeededWidth) {
+                    // Stage 2: RELEASE badge above version number / copy button row
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildReleaseBadge(context),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(child: _buildVersionText(context)),
+                            _buildCopyButton(context),
+                          ],
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Stage 3: RELEASE badge above version number, and copy button on line below that
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildReleaseBadge(context),
+                        const SizedBox(height: 6),
+                        _buildVersionText(context),
+                        const SizedBox(height: 4),
+                        _buildCopyButton(context),
+                      ],
+                    );
+                  }
+                },
               ),
             ),
           ],
