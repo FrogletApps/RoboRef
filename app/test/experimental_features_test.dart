@@ -268,6 +268,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.widget<CheckboxListTile>(checkboxFinder).value, isFalse);
       expect(find.text('Import Event Data (TM CSV)'), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
     });
 
     testWidgets('hides experimental features toggle in live / production releases', (tester) async {
@@ -298,6 +301,9 @@ void main() {
       expect(find.text('Experimental Features'), findsNothing);
       expect(find.text('Enable extra features that may not work as intended'), findsNothing);
       expect(find.byType(CheckboxListTile), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
     });
 
     testWidgets('shows experimental features toggle in test deployments', (tester) async {
@@ -328,6 +334,9 @@ void main() {
       expect(find.text('Experimental Features'), findsOneWidget);
       expect(find.text('Enable extra features that may not work as intended'), findsOneWidget);
       expect(find.byType(CheckboxListTile), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
     });
 
     testWidgets('shows experimental features toggle in local deployments', (tester) async {
@@ -358,6 +367,9 @@ void main() {
       expect(find.text('Experimental Features'), findsOneWidget);
       expect(find.text('Enable extra features that may not work as intended'), findsOneWidget);
       expect(find.byType(CheckboxListTile), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
     });
   });
 }
