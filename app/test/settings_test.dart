@@ -889,7 +889,7 @@ void main() {
   });
 
   group('SettingsScreen About RoboRef Section Tests', () {
-    testWidgets('displays version card, Change Log tile, View the source tile, and Privacy Policy tile in order', (tester) async {
+    testWidgets('displays version card, Change Log tile, View Source tile, and Privacy Policy tile in order', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -929,19 +929,19 @@ void main() {
       expect(find.text('v2026.10.11+157'), findsOneWidget);
       expect(find.text('Copy'), findsOneWidget);
       expect(find.widgetWithText(ListTile, 'Change Log'), findsOneWidget);
-      expect(find.widgetWithText(ListTile, 'View the source'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'View Source'), findsOneWidget);
       expect(find.widgetWithText(ListTile, 'Privacy Policy'), findsOneWidget);
 
       final changelogTile = find.widgetWithText(ListTile, 'Change Log');
-      final viewSourceTile = find.widgetWithText(ListTile, 'View the source');
+      final viewSourceTile = find.widgetWithText(ListTile, 'View Source');
       final privacyTile = find.widgetWithText(ListTile, 'Privacy Policy');
 
       final changelogPos = tester.getTopLeft(changelogTile).dy;
       final viewSourcePos = tester.getTopLeft(viewSourceTile).dy;
       final privacyPos = tester.getTopLeft(privacyTile).dy;
 
-      expect(changelogPos, lessThan(viewSourcePos), reason: 'Change Log must be above View the source');
-      expect(viewSourcePos, lessThan(privacyPos), reason: 'View the source must be above Privacy Policy');
+      expect(changelogPos, lessThan(viewSourcePos), reason: 'Change Log must be above View Source');
+      expect(viewSourcePos, lessThan(privacyPos), reason: 'View Source must be above Privacy Policy');
       expect(find.descendant(of: viewSourceTile, matching: find.byIcon(Icons.code_rounded)), findsOneWidget);
     });
 
@@ -1107,7 +1107,7 @@ void main() {
       expect(find.text('Change Log'), findsWidgets);
     });
 
-    testWidgets('tapping View the source tile executes without errors', (tester) async {
+    testWidgets('tapping View Source tile executes without errors', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -1134,7 +1134,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final viewSourceTile = find.widgetWithText(ListTile, 'View the source');
+      final viewSourceTile = find.widgetWithText(ListTile, 'View Source');
       expect(viewSourceTile, findsOneWidget);
 
       await tester.tap(viewSourceTile);
