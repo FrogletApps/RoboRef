@@ -10,10 +10,53 @@ export interface AppEnv {
     ENVIRONMENT?: string;
     VEX_EVENTS_TOKEN?: string;
     VEX_API_KEY?: string;
+    ALLOWED_ORIGINS?: string;
+    CORS_ORIGIN?: string;
   };
   Variables: {
     storage: StorageAdapter;
   };
+}
+
+export function isAllowedOrigin(origin: string, envOrigins?: string): boolean {
+  if (!origin) return false;
+
+  // Explicit custom origins via environment variable (comma-separated or wildcard)
+  if (envOrigins) {
+    const allowedList = envOrigins.split(",").map((s) => s.trim().toLowerCase());
+    if (allowedList.includes("*") || allowedList.includes(origin.toLowerCase())) {
+      return true;
+    }
+  }
+
+  // Official RoboRef domains
+  if (/^https:\/\/(.*\.)?roboref\.app(:\d+)?$/i.test(origin)) {
+    return true;
+  }
+
+  // Localhost & Loopback addresses
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+    return true;
+  }
+
+  // Private IPv4 networks (RFC 1918)
+  // 10.0.0.0 – 10.255.255.255
+  // 172.16.0.0 – 172.31.255.255
+  // 192.168.0.0 – 192.168.255.255
+  if (
+    /^https?:\/\/(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$/i.test(
+      origin
+    )
+  ) {
+    return true;
+  }
+
+  // mDNS local hostnames (e.g., http://roboref.local:3000)
+  if (/^https?:\/\/([a-zA-Z0-9-]+\.)*local(:\d+)?$/i.test(origin)) {
+    return true;
+  }
+
+  return false;
 }
 
 export function createSyncApp(storageProvider: StorageAdapter) {
@@ -35,11 +78,22 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     await next();
     c.res.headers.set("Access-Control-Allow-Private-Network", "true");
   });
-  app.use("*", cors({
-    origin: "*",
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization", "X-Device-ID"],
-  }));
+  app.use("*", (c, next) => {
+    const corsHandler = cors({
+      origin: (origin, c) => {
+        if (!origin) return undefined;
+        const envOrigins =
+          (c.env as any)?.ALLOWED_ORIGINS ||
+          (c.env as any)?.CORS_ORIGIN ||
+          (typeof process !== "undefined" ? process.env?.ALLOWED_ORIGINS || process.env?.CORS_ORIGIN : undefined);
+
+        return isAllowedOrigin(origin, envOrigins) ? origin : undefined;
+      },
+      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowHeaders: ["Content-Type", "Authorization", "X-Device-ID"],
+    });
+    return corsHandler(c, next);
+  });
 
   // Attach storage adapter to request context
   app.use("*", async (c, next) => {
