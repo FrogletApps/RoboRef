@@ -889,7 +889,7 @@ void main() {
   });
 
   group('SettingsScreen About RoboRef Section Tests', () {
-    testWidgets('displays version card, Change Log tile, and Privacy Policy tile', (tester) async {
+    testWidgets('displays version card, Change Log tile, View the source tile, and Privacy Policy tile in order', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -929,7 +929,20 @@ void main() {
       expect(find.text('v2026.10.11+157'), findsOneWidget);
       expect(find.text('Copy'), findsOneWidget);
       expect(find.widgetWithText(ListTile, 'Change Log'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'View the source'), findsOneWidget);
       expect(find.widgetWithText(ListTile, 'Privacy Policy'), findsOneWidget);
+
+      final changelogTile = find.widgetWithText(ListTile, 'Change Log');
+      final viewSourceTile = find.widgetWithText(ListTile, 'View the source');
+      final privacyTile = find.widgetWithText(ListTile, 'Privacy Policy');
+
+      final changelogPos = tester.getTopLeft(changelogTile).dy;
+      final viewSourcePos = tester.getTopLeft(viewSourceTile).dy;
+      final privacyPos = tester.getTopLeft(privacyTile).dy;
+
+      expect(changelogPos, lessThan(viewSourcePos), reason: 'Change Log must be above View the source');
+      expect(viewSourcePos, lessThan(privacyPos), reason: 'View the source must be above Privacy Policy');
+      expect(find.descendant(of: viewSourceTile, matching: find.byIcon(Icons.code_rounded)), findsOneWidget);
     });
 
     testWidgets('copies version to clipboard when copy button is tapped', (tester) async {
@@ -1092,6 +1105,41 @@ void main() {
 
       expect(find.byType(ChangeLogScreen), findsOneWidget);
       expect(find.text('Change Log'), findsWidgets);
+    });
+
+    testWidgets('tapping View the source tile executes without errors', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final viewSourceTile = find.widgetWithText(ListTile, 'View the source');
+      expect(viewSourceTile, findsOneWidget);
+
+      await tester.tap(viewSourceTile);
+      await tester.pump();
+      expect(tester.takeException(), isNull);
     });
   });
 

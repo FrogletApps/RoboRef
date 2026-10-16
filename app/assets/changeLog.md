@@ -3,6 +3,7 @@
 ## 2026.10.16+167
 
 - **Settings Version Layout**: Made version display and copy button responsive on smaller devices to prevent cutoff.
+- **View the Source**: Added link to RoboRef GitHub repository in Settings.
 - **Security update**: Added CORS restrictions
 - **Update Dependencies**
 

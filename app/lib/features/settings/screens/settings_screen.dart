@@ -692,6 +692,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 child: ListTile(
                   leading: Icon(
+                    Icons.code_rounded,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: const Text(
+                    'View the source',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () => _openExternalUrl(context, 'https://github.com/FrogletApps/RoboRef'),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Card(
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: ListTile(
+                  leading: Icon(
                     Icons.shield_outlined,
                     color: Theme.of(context).colorScheme.primary,
                   ),
