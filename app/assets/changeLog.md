@@ -2,6 +2,7 @@
 
 ## 2026.10.16+167
 
+- **Refresh Matches & Teams**: Added reload icon in the AppBar and pull-down gesture to refresh matches and teams lists with an animated indicator.
 - **Settings Version Layout**: Made version display and copy button responsive on smaller devices to prevent cutoff.
 - **View the Source**: Added link to RoboRef GitHub repository in Settings.
 - **Security update**: Added CORS restrictions

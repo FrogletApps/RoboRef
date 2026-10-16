@@ -7,9 +7,11 @@ import '../../event_selection/state/event_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../matches/screens/match_schedule_screen.dart';
+import '../../matches/state/match_controller.dart';
 import '../../rules/data/default_rules.dart';
 import '../../rules/screens/rules_screen.dart';
 import '../../teams/screens/team_list_screen.dart';
+import '../../teams/state/team_controller.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../../core/utils/sku_utils.dart';
@@ -126,11 +128,59 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
       'Manage & Sync',
     ];
 
+    final isReloadingMatches = ref.watch(matchScheduleControllerProvider);
+    final isReloadingTeams = ref.watch(teamListControllerProvider);
+
     List<Widget> buildActions() {
       final List<Widget> list = [];
 
       switch (_currentIndex) {
         case 0: // Matches
+          list.add(
+            IconButton(
+              icon: isReloadingMatches
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Icon(Icons.refresh),
+              tooltip: 'Refresh Matches',
+              onPressed: isReloadingMatches
+                  ? null
+                  : () async {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Checking for match schedule updates...'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                      final result = await ref.read(matchScheduleControllerProvider.notifier).refreshMatches();
+                      if (context.mounted) {
+                        if (result.success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                result.matchesCount > 0
+                                    ? 'Updated ${result.matchesCount} match(es)'
+                                    : 'Match schedule is up to date',
+                              ),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(result.errorMessage ?? 'Failed to update matches'),
+                              backgroundColor: Theme.of(context).colorScheme.error,
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      }
+                    },
+            ),
+          );
           if (settings.experimentalFeaturesEnabled) {
             list.add(
               IconButton(
@@ -142,6 +192,51 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
           }
           break;
         case 1: // Teams
+          list.add(
+            IconButton(
+              icon: isReloadingTeams
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Icon(Icons.refresh),
+              tooltip: 'Refresh Teams',
+              onPressed: isReloadingTeams
+                  ? null
+                  : () async {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Checking for team roster updates...'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                      final result = await ref.read(teamListControllerProvider.notifier).refreshTeams();
+                      if (context.mounted) {
+                        if (result.success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                result.teamsCount > 0
+                                    ? 'Updated ${result.teamsCount} team(s)'
+                                    : 'Team list is up to date',
+                              ),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(result.errorMessage ?? 'Failed to update teams'),
+                              backgroundColor: Theme.of(context).colorScheme.error,
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      }
+                    },
+            ),
+          );
           if (settings.experimentalFeaturesEnabled) {
             list.add(
               IconButton(
