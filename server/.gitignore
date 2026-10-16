@@ -8,6 +8,7 @@ pnpm-debug.log*
 # TypeScript & Build outputs
 dist/
 *.tsbuildinfo
+src/**/*.js
 
 # Cloudflare Wrangler & Miniflare local dev state
 .wrangler/
