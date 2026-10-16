@@ -2,6 +2,7 @@
 
 ## 2026.10.16+167
 
+- **Event Share Icon & Status Badge**: Replaced the admin shield/cloud icon in the event header with a persistent share icon with live participant count badge and status indicator.
 - **Settings Version Layout**: Made version display and copy button responsive on smaller devices to prevent cutoff.
 - **GitHub Repository Link**: Added link to RoboRef GitHub repository in Settings.
 - **Security update**: Added CORS restrictions
