@@ -9,7 +9,7 @@
 
 ## 2026.10.15+166
 
-- **Update dependecies**
+- **Update Dependencies**
 
 ## 2026.10.13+165
 
