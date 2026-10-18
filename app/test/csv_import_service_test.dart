@@ -290,6 +290,35 @@ Q1,Main Field,10:00 AM,1001A,1002B
       expect(jsonDecode(matches.first.blueTeamsJson), isEmpty);
     });
 
+    test('imports fallback VEX IQ match format with team_1 and team_2 headers', () async {
+      const sku = 'RE-VIQRC-24-1234';
+      const csv = '''
+Match,Field,Time,team_1,team_2
+Q1,Field 1,10:00 AM,1001A,1002B
+Q2,Field 1,10:10 AM,1003C,1004D
+''';
+
+      final result = await CsvImportService.importMatchesCsv(
+        csvContent: csv,
+        sku: sku,
+        db: db,
+      );
+
+      expect(result.success, true);
+      expect(result.matchesImported, 2);
+
+      final matches = await db.getMatchesForSku(sku);
+      expect(matches.length, 2);
+
+      expect(matches[0].name, 'Qualification 1');
+      expect(jsonDecode(matches[0].redTeamsJson), ['1001A', '1002B']);
+      expect(jsonDecode(matches[0].blueTeamsJson), isEmpty);
+
+      expect(matches[1].name, 'Qualification 2');
+      expect(jsonDecode(matches[1].redTeamsJson), ['1003C', '1004D']);
+      expect(jsonDecode(matches[1].blueTeamsJson), isEmpty);
+    });
+
     test('imports tab-delimited matches CSV', () async {
       const sku = 'RE-V5RC-24-1234';
       const csv = "Match\tField\tSched Time\tRed1\tRed2\tBlue1\tBlue2\nQ1\tField A\t08:00 AM\t100A\t100B\t200A\t200B";
