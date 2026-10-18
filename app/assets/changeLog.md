@@ -1,6 +1,6 @@
 # Change Log
 
-## 2026.10.18+180
+## 2026.10.18+197
 
 - **Match Schedule Layout**: Display field name at the top right and localized date (without year) and time at the bottom right of each match card, keeping the match number and team alliances compact on the left.
 
