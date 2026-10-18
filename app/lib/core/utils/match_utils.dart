@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../database/app_database.dart';
+import 'sku_utils.dart';
 
 /// Normalizes and standardizes match names across V5 and VEX IQ programs.
 /// Converts RobotEvents and Tournament Manager variations (e.g. "Teamwork 1",
@@ -292,6 +295,134 @@ String getMatchShortCode(String? matchName) {
   }
 
   return trimmed;
+}
+
+/// Represents the parsed and formatted date and time parts for a match schedule.
+class MatchScheduledDateTime {
+  final String? date;
+  final String? time;
+
+  const MatchScheduledDateTime({this.date, this.time});
+}
+
+/// Formats a match's scheduled time string into separate localized date and time strings.
+///
+/// Converts UTC and offset timestamps to the user's local timezone.
+/// Formats date and time according to the user's native locale and 12/24-hour preference.
+MatchScheduledDateTime formatMatchScheduleDateTime(
+  String? scheduledTimeStr, {
+  BuildContext? context,
+  String? locale,
+  bool? use24HourFormat,
+}) {
+  if (scheduledTimeStr == null || scheduledTimeStr.trim().isEmpty) {
+    return const MatchScheduledDateTime();
+  }
+
+  final trimmed = scheduledTimeStr.trim();
+  final targetLocale = (locale != null && locale.isNotEmpty && locale != 'en')
+      ? locale
+      : getUserLocale(context);
+
+  final is24Hour = use24HourFormat ??
+      (context != null ? MediaQuery.maybeAlwaysUse24HourFormatOf(context) : null);
+
+  MatchScheduledDateTime formatLocal(DateTime localDt) {
+    String formattedDate;
+    try {
+      formattedDate = DateFormat.MMMd(targetLocale).format(localDt);
+    } catch (_) {
+      try {
+        formattedDate = DateFormat.MMMd().format(localDt);
+      } catch (_) {
+        formattedDate = '${localDt.day} ${_monthName(localDt.month)}';
+      }
+    }
+
+    String formattedTime;
+    try {
+      final timeFormatter = is24Hour == true
+          ? DateFormat.Hm(targetLocale)
+          : (is24Hour == false
+              ? DateFormat.jm(targetLocale)
+              : DateFormat.jm(targetLocale));
+      formattedTime = timeFormatter.format(localDt);
+    } catch (_) {
+      try {
+        formattedTime = DateFormat.jm().format(localDt);
+      } catch (_) {
+        final hour = localDt.hour;
+        final minute = localDt.minute.toString().padLeft(2, '0');
+        formattedTime = '$hour:$minute';
+      }
+    }
+
+    return MatchScheduledDateTime(date: formattedDate, time: formattedTime);
+  }
+
+  // 1. Standard ISO-8601 or DateTime.tryParse (converts UTC / offset to local timezone)
+  final parsed = DateTime.tryParse(trimmed);
+  if (parsed != null) {
+    return formatLocal(parsed.toLocal());
+  }
+
+  // 2. Common full date-time patterns
+  final customDatePatterns = [
+    'yyyy-MM-dd HH:mm:ss',
+    'yyyy-MM-dd HH:mm',
+    'yyyy-MM-ddTHH:mm:ss',
+    'MM/dd/yyyy hh:mm:ss a',
+    'MM/dd/yyyy hh:mm a',
+    'MM/dd/yyyy HH:mm',
+    'dd/MM/yyyy HH:mm',
+    'dd/MM/yyyy hh:mm a',
+    'yyyy/MM/dd HH:mm',
+  ];
+
+  for (final pattern in customDatePatterns) {
+    try {
+      final dt = DateFormat(pattern).parseLoose(trimmed);
+      return formatLocal(dt.toLocal());
+    } catch (_) {}
+  }
+
+  // 3. Time-only patterns (e.g. '09:00 AM', '14:30', '9:15')
+  final timePatterns = [
+    'hh:mm:ss a',
+    'h:mm:ss a',
+    'hh:mm a',
+    'h:mm a',
+    'HH:mm:ss',
+    'HH:mm',
+    'H:mm',
+  ];
+
+  for (final pattern in timePatterns) {
+    try {
+      final dt = DateFormat(pattern).parseLoose(trimmed);
+      String formattedTime;
+      try {
+        final timeFormatter = is24Hour == true
+            ? DateFormat.Hm(targetLocale)
+            : (is24Hour == false
+                ? DateFormat.jm(targetLocale)
+                : DateFormat.jm(targetLocale));
+        formattedTime = timeFormatter.format(dt);
+      } catch (_) {
+        formattedTime = DateFormat.jm().format(dt);
+      }
+      return MatchScheduledDateTime(date: null, time: formattedTime);
+    } catch (_) {}
+  }
+
+  // Fallback: return raw string as time
+  return MatchScheduledDateTime(date: null, time: trimmed);
+}
+
+String _monthName(int month) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  if (month >= 1 && month <= 12) return months[month - 1];
+  return '';
 }
 
 /// Round order definition for chronological tournament progression:

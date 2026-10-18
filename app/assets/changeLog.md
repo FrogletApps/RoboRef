@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.10.18+180
+
+- **Match Schedule Layout**: Display field name at the top right and localized date (without year) and time at the bottom right of each match card, keeping the match number and team alliances compact on the left.
+
 ## 2026.10.16+179
 
 - **Refresh Matches & Teams**: Added reload icon in the AppBar and pull-down gesture to refresh matches and teams lists with an animated indicator.

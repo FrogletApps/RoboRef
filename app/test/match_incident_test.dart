@@ -9,6 +9,7 @@ import 'package:roboref/database/app_database.dart';
 import 'package:roboref/features/incidents/screens/incident_logger_screen.dart';
 import 'package:roboref/features/incidents/state/incident_controller.dart';
 import 'package:roboref/features/matches/screens/match_schedule_screen.dart';
+import 'package:roboref/core/utils/match_utils.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
 
 void main() {
@@ -463,6 +464,61 @@ void main() {
 
     // Verify no edit note icon in match schedule
     expect(find.byIcon(Icons.edit_note), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('MatchScheduleScreen renders field name at top right and date/time at bottom right', (WidgetTester tester) async {
+    const isoScheduled = '2026-11-21T14:30:00Z';
+    await testDb.into(testDb.matches).insert(
+      MatchesCompanion(
+        matchId: const Value('m_datetime'),
+        divisionId: const Value(1),
+        sku: const Value('RE-V5RC-26-4487'),
+        name: const Value('Q15'),
+        field: const Value('Technology Field'),
+        scheduledTime: const Value(isoScheduled),
+        redTeamsJson: Value(jsonEncode(['1114A', '2056A'])),
+        blueTeamsJson: Value(jsonEncode(['217A', '148A'])),
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(testDb),
+        ],
+        child: const MaterialApp(
+          home: MatchScheduleScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final expectedSchedule = formatMatchScheduleDateTime(isoScheduled);
+    final fieldFinder = find.text('Technology Field');
+    final dateFinder = find.text(expectedSchedule.date!);
+    final timeFinder = find.text(expectedSchedule.time!);
+
+    expect(fieldFinder, findsOneWidget);
+    expect(dateFinder, findsOneWidget);
+    expect(timeFinder, findsOneWidget);
+
+    // Verify vertical order: field (top right) < date (bottom right) < time (under date)
+    final fieldTop = tester.getTopLeft(fieldFinder).dy;
+    final dateTop = tester.getTopLeft(dateFinder).dy;
+    final timeTop = tester.getTopLeft(timeFinder).dy;
+
+    expect(fieldTop < dateTop, isTrue, reason: 'Field name should be at the top right above date');
+    expect(dateTop < timeTop, isTrue, reason: 'Date should be above time at bottom right');
+
+    // Verify compact gap between match number and alliances
+    final matchBottom = tester.getBottomLeft(find.text('Q 15')).dy;
+    final redTop = tester.getTopLeft(find.text('RED').last).dy;
+    expect(redTop - matchBottom, lessThanOrEqualTo(12.0), reason: 'Gap between match number and alliances should be compact');
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

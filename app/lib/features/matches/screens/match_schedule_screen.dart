@@ -221,100 +221,150 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                           blueTeams = (jsonDecode(match.blueTeamsJson) as List).map((e) => e.toString()).toList()..sort(compareTeamNumbers);
                         } catch (_) {}
 
+                        final scheduleInfo = formatMatchScheduleDateTime(
+                          match.scheduledTime,
+                          context: context,
+                        );
+
                         return Card(
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
                             onTap: () => _showMatchActions(context, match.name, redTeams, blueTeams),
                             child: Padding(
                               padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        formatMatchShortName(match.name),
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                      ),
-                                      Row(
+                              child: IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    // Left side: Match number and Teams / Alliances
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          if (match.field != null && match.field!.isNotEmpty) ...[
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: Colors.grey.shade200,
-                                                borderRadius: BorderRadius.circular(4),
+                                          Text(
+                                            formatMatchShortName(match.name),
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                          ),
+                                          if (redTeams.isNotEmpty || blueTeams.isNotEmpty) ...[
+                                            const SizedBox(height: 6),
+                                            if (blueTeams.isEmpty) ...[
+                                              // Single Alliance (e.g. VEX IQ Teamwork Challenge)
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  _buildAllianceLabel('TEAMS', Theme.of(context).colorScheme.primary, width: 50),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Wrap(
+                                                      spacing: 6,
+                                                      runSpacing: 4,
+                                                      children: redTeams.map((team) {
+                                                        return _buildTeamPill(team.toString(), Theme.of(context).colorScheme.primary);
+                                                      }).toList(),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              child: Text(
-                                                match.field!,
-                                                style: TextStyle(fontSize: 11, color: Colors.grey.shade800),
+                                            ] else ...[
+                                              // Red Alliance
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  _buildAllianceLabel('RED', Colors.red.shade700),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Wrap(
+                                                      spacing: 6,
+                                                      runSpacing: 4,
+                                                      children: redTeams.map((team) {
+                                                        return _buildTeamPill(team.toString(), Colors.red.shade700);
+                                                      }).toList(),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                            ),
-                                            const SizedBox(width: 6),
+                                              const SizedBox(height: 5),
+
+                                              // Blue Alliance
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  _buildAllianceLabel('BLUE', Colors.blue.shade700),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Wrap(
+                                                      spacing: 6,
+                                                      runSpacing: 4,
+                                                      children: blueTeams.map((team) {
+                                                        return _buildTeamPill(team.toString(), Colors.blue.shade700);
+                                                      }).toList(),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ],
-                                          if (match.scheduledTime != null && match.scheduledTime!.isNotEmpty)
-                                            Text(
-                                              match.scheduledTime!,
-                                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                                            ),
                                         ],
                                       ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-
-                                  if (blueTeams.isEmpty) ...[
-                                    // Single Alliance (e.g. VEX IQ Teamwork Challenge)
-                                    Row(
-                                      children: [
-                                        _buildAllianceLabel('TEAMS', Theme.of(context).colorScheme.primary, width: 50),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Wrap(
-                                            spacing: 8,
-                                            children: redTeams.map((team) {
-                                              return _buildTeamPill(team.toString(), Theme.of(context).colorScheme.primary);
-                                            }).toList(),
-                                          ),
-                                        ),
-                                      ],
                                     ),
-                                  ] else ...[
-                                    // Red Alliance
-                                    Row(
-                                      children: [
-                                        _buildAllianceLabel('RED', Colors.red.shade700),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Wrap(
-                                            spacing: 8,
-                                            children: redTeams.map((team) {
-                                              return _buildTeamPill(team.toString(), Colors.red.shade700);
-                                            }).toList(),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
+                                    const SizedBox(width: 8),
 
-                                    // Blue Alliance
-                                    Row(
+                                    // Right side: Field at top right, Date and Time at bottom right
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        _buildAllianceLabel('BLUE', Colors.blue.shade700),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Wrap(
-                                            spacing: 8,
-                                            children: blueTeams.map((team) {
-                                              return _buildTeamPill(team.toString(), Colors.blue.shade700);
-                                            }).toList(),
-                                          ),
+                                        // Top right: Field name
+                                        if (match.field != null && match.field!.isNotEmpty)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              match.field!,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          )
+                                        else
+                                          const SizedBox.shrink(),
+
+                                        // Bottom right: Date & Time
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (scheduleInfo.date != null && scheduleInfo.date!.isNotEmpty)
+                                              Text(
+                                                scheduleInfo.date!,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                ),
+                                              ),
+                                            if (scheduleInfo.time != null && scheduleInfo.time!.isNotEmpty) ...[
+                                              if (scheduleInfo.date != null && scheduleInfo.date!.isNotEmpty)
+                                                const SizedBox(height: 1),
+                                              Text(
+                                                scheduleInfo.time!,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
                                         ),
                                       ],
                                     ),
                                   ],
-                                ],
+                                ),
                               ),
                             ),
                           ),

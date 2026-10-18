@@ -1,8 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:roboref/core/utils/match_utils.dart';
 import 'package:roboref/database/app_database.dart';
 
 void main() {
+  setUpAll(() async {
+    await initializeDateFormatting('en_US');
+    await initializeDateFormatting('en_GB');
+  });
+
   group('getMatchRoundOrder', () {
     test('identifies Practice matches', () {
       expect(getMatchRoundOrder('Practice 1'), 1);
@@ -433,6 +439,92 @@ void main() {
       expect(getMatchShortCode('QF 1-1'), 'QF 1-1');
       expect(getMatchShortCode('SF 1-1'), 'SF 1-1');
       expect(getMatchShortCode('R16 1-1'), 'R16 1-1');
+    });
+  });
+
+  group('formatMatchScheduleDateTime', () {
+    test('handles null, empty, and whitespace strings gracefully', () {
+      final res1 = formatMatchScheduleDateTime(null);
+      expect(res1.date, isNull);
+      expect(res1.time, isNull);
+
+      final res2 = formatMatchScheduleDateTime('');
+      expect(res2.date, isNull);
+      expect(res2.time, isNull);
+
+      final res3 = formatMatchScheduleDateTime('   ');
+      expect(res3.date, isNull);
+      expect(res3.time, isNull);
+    });
+
+    test('parses ISO-8601 UTC timestamp and converts to local timezone and native format', () {
+      const utcString = '2026-11-21T09:00:00Z';
+      final localDt = DateTime.parse(utcString).toLocal();
+
+      final usResult = formatMatchScheduleDateTime(
+        utcString,
+        locale: 'en_US',
+        use24HourFormat: false,
+      );
+      expect(usResult.date, isNotNull);
+      expect(usResult.date, contains('Nov'));
+      expect(usResult.date, isNot(contains('2026')));
+      expect(usResult.time, isNotNull);
+
+      final gbResult = formatMatchScheduleDateTime(
+        utcString,
+        locale: 'en_GB',
+        use24HourFormat: true,
+      );
+      expect(gbResult.date, contains('Nov'));
+      expect(gbResult.date, isNot(contains('2026')));
+      expect(gbResult.time, contains(':'));
+      expect(gbResult.time, isNot(contains('AM')));
+      expect(gbResult.time, isNot(contains('PM')));
+
+      final expectedHour = localDt.hour.toString().padLeft(2, '0');
+      final expectedMinute = localDt.minute.toString().padLeft(2, '0');
+      expect(gbResult.time, '$expectedHour:$expectedMinute');
+    });
+
+    test('parses ISO-8601 with timezone offset and converts to local timezone', () {
+      const offsetString = '2026-11-21T14:30:00-05:00';
+      final localDt = DateTime.parse(offsetString).toLocal();
+
+      final result = formatMatchScheduleDateTime(
+        offsetString,
+        locale: 'en_US',
+        use24HourFormat: true,
+      );
+
+      final expectedHour = localDt.hour.toString().padLeft(2, '0');
+      final expectedMinute = localDt.minute.toString().padLeft(2, '0');
+      expect(result.time, '$expectedHour:$expectedMinute');
+    });
+
+    test('parses time-only string from CSV imports', () {
+      final res12 = formatMatchScheduleDateTime(
+        '09:00 AM',
+        locale: 'en_US',
+        use24HourFormat: false,
+      );
+      expect(res12.date, isNull);
+      expect(res12.time, contains('9:00'));
+      expect(res12.time, contains('AM'));
+
+      final res24 = formatMatchScheduleDateTime(
+        '09:00 AM',
+        locale: 'en_GB',
+        use24HourFormat: true,
+      );
+      expect(res24.date, isNull);
+      expect(res24.time, '09:00');
+    });
+
+    test('falls back gracefully on unknown time string format', () {
+      final res = formatMatchScheduleDateTime('TBD');
+      expect(res.date, isNull);
+      expect(res.time, 'TBD');
     });
   });
 }
