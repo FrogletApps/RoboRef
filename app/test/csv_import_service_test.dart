@@ -266,7 +266,7 @@ Q2,Field 2,09:10 AM,5555E,6666F,7777G,8888H
       expect(jsonDecode(matches[1].blueTeamsJson), ['7777G', '8888H']);
     });
 
-    test('imports VEX IQ match schedule CSV (Team 1, Team 2 / Alliance format)', () async {
+    test('imports VEX IQ match schedule CSV (Team 1 -> Red, Team 2 -> Blue format)', () async {
       const sku = 'RE-VIQRC-24-1234';
       const csv = '''
 Match,Field,Time,Team 1,Team 2
@@ -286,8 +286,37 @@ Q1,Main Field,10:00 AM,1001A,1002B
       expect(matches.first.name, 'Qualification 1');
       expect(matches.first.field, 'Main Field');
       expect(matches.first.scheduledTime, '10:00 AM');
-      expect(jsonDecode(matches.first.redTeamsJson), ['1001A', '1002B']);
-      expect(jsonDecode(matches.first.blueTeamsJson), isEmpty);
+      expect(jsonDecode(matches.first.redTeamsJson), ['1001A']);
+      expect(jsonDecode(matches.first.blueTeamsJson), ['1002B']);
+    });
+
+    test('imports fallback VEX IQ match format with team_1 and team_2 headers', () async {
+      const sku = 'RE-VIQRC-24-1234';
+      const csv = '''
+Match,Field,Time,team_1,team_2
+Q1,Field 1,10:00 AM,1001A,1002B
+Q2,Field 1,10:10 AM,1003C,1004D
+''';
+
+      final result = await CsvImportService.importMatchesCsv(
+        csvContent: csv,
+        sku: sku,
+        db: db,
+      );
+
+      expect(result.success, true);
+      expect(result.matchesImported, 2);
+
+      final matches = await db.getMatchesForSku(sku);
+      expect(matches.length, 2);
+
+      expect(matches[0].name, 'Qualification 1');
+      expect(jsonDecode(matches[0].redTeamsJson), ['1001A']);
+      expect(jsonDecode(matches[0].blueTeamsJson), ['1002B']);
+
+      expect(matches[1].name, 'Qualification 2');
+      expect(jsonDecode(matches[1].redTeamsJson), ['1003C']);
+      expect(jsonDecode(matches[1].blueTeamsJson), ['1004D']);
     });
 
     test('imports tab-delimited matches CSV', () async {

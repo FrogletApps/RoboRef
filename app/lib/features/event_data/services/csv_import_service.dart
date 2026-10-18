@@ -132,12 +132,12 @@ class CsvImportService {
       int b1Idx = headers.indexWhere((h) => h.contains('blue 1') || h.contains('blue1'));
       int b2Idx = headers.indexWhere((h) => h.contains('blue 2') || h.contains('blue2'));
 
-      // Fallback for VEX IQ (Team 1, Team 2 / Alliance 1, Alliance 2)
+      // Fallback for VEX IQ (Team 1 -> Red, Team 2 -> Blue)
       if (r1Idx == -1) {
         r1Idx = headers.indexWhere((h) => h.contains('team 1') || h.contains('team1') || h.contains('team_1') || (h.contains('team') && !h.contains('name') && !h.contains('2')));
       }
-      if (r2Idx == -1) {
-        r2Idx = headers.indexWhere((h) => h.contains('team 2') || h.contains('team2') || h.contains('team_2'));
+      if (b1Idx == -1) {
+        b1Idx = headers.indexWhere((h) => h.contains('team 2') || h.contains('team2') || h.contains('team_2'));
       }
 
       if (matchIdx == -1) {
