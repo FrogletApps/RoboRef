@@ -110,42 +110,53 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     });
   });
 
+  // In-memory cache for privacy markdown
+  let cachedPrivacyMarkdown: string | null = null;
+
   // Public Privacy Policy endpoint serving the single copy from app/assets/privacy.md
   const handlePrivacy = async (c: any) => {
-    let markdown: string | null = null;
+    let markdown: string | null = cachedPrivacyMarkdown;
 
-    // 1. In Cloudflare Workers with [assets], fetch from static assets
-    const env = c.env as any;
-    if (env?.ASSETS) {
-      try {
-        const assetUrl = new URL("/assets/assets/privacy.md", c.req.url);
-        const res = await env.ASSETS.fetch(new Request(assetUrl));
-        if (res.ok) {
-          markdown = await res.text();
-        }
-      } catch (err) {
-        console.error("Failed to fetch privacy markdown from ASSETS:", err);
-      }
-    }
-
-    // 2. In Node environment, read from disk if available
-    if (!markdown && typeof process !== "undefined" && process.cwd) {
-      try {
-        const fs = await import("node:fs");
-        const path = await import("node:path");
-        const candidatePaths = [
-          path.resolve(process.cwd(), "../app/assets/privacy.md"),
-          path.resolve(process.cwd(), "app/assets/privacy.md"),
-          path.resolve(process.cwd(), "assets/privacy.md"),
-        ];
-        for (const p of candidatePaths) {
-          if (fs.existsSync(p)) {
-            markdown = fs.readFileSync(p, "utf-8");
-            break;
+    if (!markdown) {
+      // 1. In Cloudflare Workers with [assets], fetch from static assets
+      const env = c.env as any;
+      if (env?.ASSETS) {
+        try {
+          const assetUrl = new URL("/assets/assets/privacy.md", c.req.url);
+          const res = await env.ASSETS.fetch(new Request(assetUrl));
+          if (res.ok) {
+            markdown = await res.text();
           }
+        } catch (err) {
+          console.error("Failed to fetch privacy markdown from ASSETS:", err);
         }
-      } catch {
-        // Ignored in non-node or bundle environments
+      }
+
+      // 2. In Node environment, read asynchronously from disk if available
+      if (!markdown && typeof process !== "undefined" && process.cwd) {
+        try {
+          const fs = await import("node:fs/promises");
+          const path = await import("node:path");
+          const candidatePaths = [
+            path.resolve(process.cwd(), "../app/assets/privacy.md"),
+            path.resolve(process.cwd(), "app/assets/privacy.md"),
+            path.resolve(process.cwd(), "assets/privacy.md"),
+          ];
+          for (const p of candidatePaths) {
+            try {
+              markdown = await fs.readFile(p, "utf-8");
+              break;
+            } catch {
+              // File not found at candidate path, try next
+            }
+          }
+        } catch {
+          // Ignored in non-node or bundle environments
+        }
+      }
+
+      if (markdown) {
+        cachedPrivacyMarkdown = markdown;
       }
     }
 
