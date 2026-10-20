@@ -22,16 +22,16 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261015.1",
+    "@cloudflare/workers-types": "^5.20261019.1",
     "@types/node": "^26.6.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "wrangler": "^4.151.0"
+    "wrangler": "^4.151.3"
   },
   "allowScripts": {
     "better-sqlite3@11.10.0": true,
     "esbuild@0.28.2": true,
     "esbuild@0.28.1": true,
-    "workerd@1.20261012.1": true
+    "workerd@1.20261019.1": true
   }
 }
