@@ -61,6 +61,55 @@ function generateNotes(count: number, sku = "RE-VRC-24-1000"): IncidentNoteRecor
   return notes;
 }
 
+describe("CloudflareD1Adapter - init", () => {
+  it("should initialize database tables successfully on first call and do nothing on subsequent calls", async () => {
+    const mockDb = createMockD1Database();
+    const adapter = new CloudflareD1Adapter(mockDb as any);
+
+    await adapter.init();
+    assert.strictEqual(mockDb.batchCalls.length, 1);
+    assert.strictEqual(mockDb.batchCalls[0].length, 5);
+
+    // Call init a second time - should return early due to initialized flag
+    await adapter.init();
+    assert.strictEqual(mockDb.batchCalls.length, 1);
+  });
+
+  it("should log error to console and rethrow when initialization fails", async () => {
+    const mockDb = createMockD1Database();
+    const mockError = new Error("D1 connection error");
+    mockDb.batch = async () => {
+      throw mockError;
+    };
+
+    const adapter = new CloudflareD1Adapter(mockDb as any);
+
+    const originalConsoleError = console.error;
+    const loggedErrors: any[] = [];
+    console.error = (...args: any[]) => {
+      loggedErrors.push(args);
+    };
+
+    try {
+      await assert.rejects(
+        async () => {
+          await adapter.init();
+        },
+        (err: Error) => {
+          assert.strictEqual(err, mockError);
+          return true;
+        }
+      );
+
+      assert.strictEqual(loggedErrors.length, 1);
+      assert.strictEqual(loggedErrors[0][0], "CloudflareD1Adapter init error:");
+      assert.strictEqual(loggedErrors[0][1], mockError);
+    } finally {
+      console.error = originalConsoleError;
+    }
+  });
+});
+
 describe("CloudflareD1Adapter - applyNoteChanges batching test & benchmark", () => {
   it("should handle 0 changes without errors", async () => {
     const mockDb = createMockD1Database();
