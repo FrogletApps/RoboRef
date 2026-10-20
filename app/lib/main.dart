@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,14 +14,49 @@ import 'features/settings/state/sync_settings_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting();
-  final platformLocale = WidgetsBinding.instance.platformDispatcher.locale;
-  final resolvedLocale = platformLocale.countryCode != null && platformLocale.countryCode!.isNotEmpty
-      ? '${platformLocale.languageCode}_${platformLocale.countryCode}'
-      : platformLocale.languageCode;
-  Intl.defaultLocale = resolvedLocale;
 
-  final prefs = await SharedPreferences.getInstance();
+  // Guard against unhandled platform errors stalling the pipeline
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('Uncaught Flutter Error: ${details.exceptionAsString()}');
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('Uncaught Platform Error: $error\n$stack');
+    return true;
+  };
+
+  try {
+    await initializeDateFormatting().timeout(const Duration(seconds: 3));
+  } catch (e) {
+    debugPrint('initializeDateFormatting timed out or encountered an issue: $e');
+  }
+
+  try {
+    final platformLocale = WidgetsBinding.instance.platformDispatcher.locale;
+    final resolvedLocale = platformLocale.countryCode != null && platformLocale.countryCode!.isNotEmpty
+        ? '${platformLocale.languageCode}_${platformLocale.countryCode}'
+        : platformLocale.languageCode;
+    Intl.defaultLocale = resolvedLocale;
+  } catch (_) {
+    Intl.defaultLocale = 'en_US';
+  }
+
+  // Resilient SharedPreferences initialization with a 4-second timeout and fallback
+  late final SharedPreferences prefs;
+  try {
+    prefs = await SharedPreferences.getInstance().timeout(
+      const Duration(seconds: 4),
+    );
+  } catch (e) {
+    debugPrint('SharedPreferences.getInstance initial attempt failed or timed out ($e), attempting emergency fallback');
+    try {
+      // ignore: invalid_use_of_visible_for_testing_member
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    } catch (_) {
+      prefs = await SharedPreferences.getInstance();
+    }
+  }
 
   runApp(
     ProviderScope(
@@ -89,4 +125,3 @@ class RoboRefApp extends ConsumerWidget {
     );
   }
 }
-

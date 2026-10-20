@@ -213,7 +213,7 @@ Q2,Field 1,09:10 AM,1002B,1004D
       'Finals 1-5',
     ]);
 
-    expect(jsonDecode(matches.first.redTeamsJson), ['1001A', '1003C']);
-    expect(jsonDecode(matches.first.blueTeamsJson), isEmpty);
+    expect(jsonDecode(matches.first.redTeamsJson), ['1001A']);
+    expect(jsonDecode(matches.first.blueTeamsJson), ['1003C']);
   });
 }

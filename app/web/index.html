@@ -26,6 +26,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="RoboRef">
   <meta name="application-name" content="RoboRef">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#00731F">
   <link rel="icon" href="favicon.ico" sizes="32x32">
   <link rel="icon" type="image/svg+xml" href="roboref.svg">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
@@ -35,6 +37,154 @@
 
   <title>RoboRef</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    :root {
+      --splash-bg: #F8FAF8;
+      --splash-card-bg: #FFFFFF;
+      --splash-text: #1E293B;
+      --splash-subtext: #64748B;
+      --splash-brand: #00731F;
+      --splash-border: #E2E8F0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --splash-bg: #121212;
+        --splash-card-bg: #1E1E1E;
+        --splash-text: #F1F5F9;
+        --splash-subtext: #94A3B8;
+        --splash-brand: #66E07A;
+        --splash-border: #2D3748;
+      }
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--splash-bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    .splash-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--splash-bg);
+      z-index: 99999;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .splash-fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 24px;
+      max-width: 320px;
+      width: 85%;
+    }
+
+    .splash-logo {
+      width: 84px;
+      height: 84px;
+      margin-bottom: 16px;
+      animation: splash-pulse 2s ease-in-out infinite;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .splash-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--splash-brand);
+      margin: 0 0 16px 0;
+      letter-spacing: -0.3px;
+    }
+
+    .splash-progress-track {
+      width: 140px;
+      height: 4px;
+      background-color: var(--splash-border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      position: relative;
+    }
+
+    .splash-progress-bar {
+      width: 40%;
+      height: 100%;
+      background-color: var(--splash-brand);
+      border-radius: 4px;
+      position: absolute;
+      animation: splash-indeterminate 1.5s infinite ease-in-out;
+    }
+
+    .splash-status {
+      font-size: 13px;
+      color: var(--splash-subtext);
+      margin: 0 0 16px 0;
+      min-height: 18px;
+      transition: color 0.2s ease;
+    }
+
+    .splash-reload-btn {
+      display: none;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #FFFFFF;
+      background-color: #00731F;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .splash-reload-btn:active {
+      transform: scale(0.97);
+    }
+
+    @keyframes splash-pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes splash-indeterminate {
+      0% {
+        left: -40%;
+      }
+      50% {
+        left: 40%;
+        width: 60%;
+      }
+      100% {
+        left: 100%;
+        width: 40%;
+      }
+    }
+  </style>
 
   <script>
     (function() {
@@ -78,6 +228,79 @@
   </script>
 </head>
 <body>
+  <!-- Instant Branded Web Preloader with Network Watchdog -->
+  <div id="roboref-splash" class="splash-container">
+    <div class="splash-card">
+      <img src="roboref.svg" alt="RoboRef" class="splash-logo" width="84" height="84" />
+      <h1 class="splash-title">RoboRef</h1>
+      <div class="splash-progress-track">
+        <div class="splash-progress-bar"></div>
+      </div>
+      <p id="splash-status" class="splash-status">Starting referee assistant...</p>
+      <button id="splash-reload-btn" class="splash-reload-btn" onclick="window.location.reload(true)">
+        Reload RoboRef
+      </button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var splash = document.getElementById('roboref-splash');
+      var statusEl = document.getElementById('splash-status');
+      var reloadBtn = document.getElementById('splash-reload-btn');
+
+      function removeSplash() {
+        if (!splash) return;
+        splash.classList.add('splash-fade-out');
+        setTimeout(function() {
+          if (splash && splash.parentNode) {
+            splash.parentNode.removeChild(splash);
+          }
+        }, 400);
+        splash = null;
+      }
+
+      // Listen for Flutter's first-frame render event
+      window.addEventListener('flutter-first-frame', function() {
+        removeSplash();
+      });
+
+      // Backup MutationObserver to dismiss splash once Flutter mounts its canvas
+      var observer = new MutationObserver(function() {
+        if (document.querySelector('flt-glass-pane') || document.querySelector('flutter-view')) {
+          observer.disconnect();
+          setTimeout(removeSplash, 150);
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      // Progressive status updates for slow / venue Wi-Fi networks
+      setTimeout(function() {
+        if (statusEl && splash) {
+          statusEl.textContent = 'Loading tournament database...';
+        }
+      }, 4000);
+
+      setTimeout(function() {
+        if (statusEl && splash) {
+          statusEl.textContent = 'Preparing referee workspace...';
+        }
+      }, 8000);
+
+      // 12-second watchdog fallback with reload button
+      setTimeout(function() {
+        if (splash) {
+          if (statusEl) {
+            statusEl.textContent = 'Network is taking longer than usual...';
+          }
+          if (reloadBtn) {
+            reloadBtn.style.display = 'inline-block';
+          }
+        }
+      }, 12000);
+    })();
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
