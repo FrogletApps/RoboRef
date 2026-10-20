@@ -260,7 +260,10 @@ export class CloudflareD1Adapter implements StorageAdapter {
       const s = await this.getShareSession(shareId);
       if (s) targetSessions.push(s);
     } else {
-      const { results } = await this.db.prepare("SELECT * FROM share_sessions").all<any>();
+      // Optimize session lookup in D1 by filtering on adminDeviceId or deviceId in participantsJson
+      const { results } = await this.db.prepare(
+        "SELECT * FROM share_sessions WHERE adminDeviceId = ? OR participantsJson LIKE ?"
+      ).bind(deviceId, `%"deviceId":"${deviceId}"%`).all<any>();
       targetSessions = (results || [])
         .map((r) => this.mapShareRow(r))
         .filter((s) => s.participants.some((p) => p.deviceId === deviceId) || s.adminDeviceId === deviceId);
