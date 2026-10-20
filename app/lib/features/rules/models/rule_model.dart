@@ -41,7 +41,7 @@ class GameRuleset {
     required this.gameTitle,
     required this.season,
     required this.program,
-    this.version = 'Version 2.0',
+    this.version = 'Version 2.1',
     required this.manualUrl,
     required this.qaUrl,
     required this.rules,

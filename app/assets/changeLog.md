@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.10.20+198
+
+- **Game Rules Manual Update**: Updated V5RC and VIQRC game rules reference to Version 2.1.
+
 ## 2026.10.18+197
 
 - **Match Schedule Layout**: Display field name at the top right and localized date (without year) and time at the bottom right of each match card, keeping the match number and team alliances compact on the left.

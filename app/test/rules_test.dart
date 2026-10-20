@@ -19,7 +19,7 @@ void main() {
       expect(v5rc.rules.any((r) => r.code == '<GG2>'), isTrue);
       expect(v5rc.rules.any((r) => r.code == '<S1>'), isTrue);
       expect(v5rc.rules.any((r) => r.code == '<R1>'), isTrue);
-      expect(v5rc.version, equals('Version 2.0'));
+      expect(v5rc.version, equals('Version 2.1'));
       expect(v5rc.findRule('GG2')?.title, equals("A Team's Robot should attend every Match"));
       expect(v5rc.findRule('SG1')?.title, equals('Starting a Match'));
       expect(v5rc.findRule('SG13')?.title, equals('Load Zones are protected'));
@@ -30,7 +30,7 @@ void main() {
 
       final viqrc = getGameRuleset('VIQRC', '2026-2027');
       expect(viqrc.program, equals('VIQRC'));
-      expect(viqrc.version, equals('Version 2.0'));
+      expect(viqrc.version, equals('Version 2.1'));
       expect(viqrc.rules.isNotEmpty, isTrue);
       expect(viqrc.rules.any((r) => r.code == '<GG2>'), isTrue);
       expect(viqrc.findRule('G5')?.title, equals('There is a difference between accidentally and willfully violating a Robot rule'));
@@ -38,12 +38,12 @@ void main() {
 
       final vexu = getGameRuleset('VEX U', '2026-2027');
       expect(vexu.program, equals('VEX U'));
-      expect(vexu.version, equals('Version 2.0'));
+      expect(vexu.version, equals('Version 2.1'));
       expect(vexu.rules.any((r) => r.code == '<VUG1>'), isTrue);
 
       final vexai = getGameRuleset('VEX AI', '2026-2027');
       expect(vexai.program, equals('VEX AI'));
-      expect(vexai.version, equals('Version 2.0'));
+      expect(vexai.version, equals('Version 2.1'));
       expect(vexai.rules.isNotEmpty, isTrue);
       expect(vexai.rules.any((r) => r.code == '<SG1>'), isTrue);
     });
@@ -71,7 +71,7 @@ void main() {
 
       // Check Game Rules Summary header and version
       expect(find.text('Game Rules Summary'), findsOneWidget);
-      expect(find.text('Version 2.0'), findsOneWidget);
+      expect(find.text('Version 2.1'), findsOneWidget);
 
       // Check external links bar
       expect(find.text('V5RC Manual'), findsOneWidget);
