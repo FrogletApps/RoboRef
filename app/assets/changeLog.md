@@ -1,9 +1,11 @@
 # Change Log
 
-## 2026.10.20+199
+## 2026.10.20+202
 
 - **App Startup & Splash Screen**: Added branded native Android splash screen and web preloader with retry watchdog to prevent blank white screens during cold start.
 - **Game Rules Manual Update**: Updated V5RC and VIQRC game rules reference to Version 2.1.
+- **Performance Optimisation**
+- **Update Dependencies**
 
 ## 2026.10.18+197
 
