@@ -234,7 +234,10 @@ export class LocalSqliteAdapter implements StorageAdapter {
       const s = await this.getShareSession(shareId);
       if (s) targetSessions.push(s);
     } else {
-      const rows = this.db.prepare("SELECT * FROM share_sessions").all() as any[];
+      // Optimize session lookup in SQLite by searching for deviceId inside participantsJson or adminDeviceId
+      const rows = this.db.prepare(
+        "SELECT * FROM share_sessions WHERE adminDeviceId = ? OR participantsJson LIKE ?"
+      ).all(deviceId, `%"deviceId":"${deviceId}"%`) as any[];
       targetSessions = rows
         .map((r) => this.mapShareRow(r))
         .filter((s) => s.participants.some((p) => p.deviceId === deviceId) || s.adminDeviceId === deviceId);
