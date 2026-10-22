@@ -66,4 +66,69 @@ describe("Privacy Policy Endpoint (/privacy)", () => {
     assert.match(html, /Mock Policy/);
     assert.match(html, /No tracking/);
   });
+
+  it("handles ASSETS.fetch throwing an error gracefully and falls back to local disk", async () => {
+    const app = createSyncApp(new DummyStorageAdapter());
+    const fetchError = new Error("Failed ASSETS storage connection");
+    let consoleErrorCalled = false;
+    let loggedMsg = "";
+    let loggedErr: unknown = null;
+
+    const originalConsoleError = console.error;
+    console.error = (msg: string, err: unknown) => {
+      consoleErrorCalled = true;
+      loggedMsg = msg;
+      loggedErr = err;
+    };
+
+    try {
+      const mockEnv = {
+        ASSETS: {
+          fetch: async () => {
+            throw fetchError;
+          },
+        },
+      };
+
+      const res = await app.request("/privacy", {}, mockEnv);
+
+      assert.strictEqual(consoleErrorCalled, true);
+      assert.strictEqual(loggedMsg, "Failed to fetch privacy markdown from ASSETS:");
+      assert.strictEqual(loggedErr, fetchError);
+
+      assert.strictEqual(res.status, 200);
+      const html = await res.text();
+      assert.match(html, /RoboRef Privacy Policy/);
+    } finally {
+      console.error = originalConsoleError;
+    }
+  });
+
+  it("returns 503 when ASSETS.fetch throws an error and disk fallback is unavailable", async () => {
+    const app = createSyncApp(new DummyStorageAdapter());
+    const originalCwd = process.cwd;
+    const originalConsoleError = console.error;
+
+    try {
+      process.cwd = () => "/tmp/nonexistent_folder_roboref_test";
+      console.error = () => {};
+
+      const mockEnv = {
+        ASSETS: {
+          fetch: async () => {
+            throw new Error("ASSETS error");
+          },
+        },
+      };
+
+      const res = await app.request("/privacy", {}, mockEnv);
+
+      assert.strictEqual(res.status, 503);
+      const text = await res.text();
+      assert.strictEqual(text, "Privacy policy is temporarily unavailable.");
+    } finally {
+      process.cwd = originalCwd;
+      console.error = originalConsoleError;
+    }
+  });
 });
