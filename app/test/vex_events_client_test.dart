@@ -185,6 +185,66 @@ void main() {
       expect(events.first.sku, equals('RE-V5RC-26-1234'));
     });
 
+    test('searchEvents throws VexApiException when response body is malformed JSON', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response('{ invalid json structure ', 200);
+      });
+
+      final client = VexEventsClient(client: mockClient);
+
+      expect(
+        () async => await client.searchEvents(),
+        throwsA(
+          isA<VexApiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Failed to search events via sync server:'),
+          ),
+        ),
+      );
+    });
+
+    test('searchEvents throws VexApiException when items in data array have unexpected schema', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'data': ['not a map item']
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+
+      expect(
+        () async => await client.searchEvents(),
+        throwsA(
+          isA<VexApiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Failed to search events via sync server:'),
+          ),
+        ),
+      );
+    });
+
+    test('searchEvents returns empty list when data is not a List', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'data': 'not a list',
+            'status': 'ok',
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+
+      final events = await client.searchEvents();
+      expect(events, isEmpty);
+    });
+
     test('searchEvents falls back to cloud proxy if primary serverUrl fails', () async {
       int attempt = 0;
       final mockClient = MockClient((request) async {

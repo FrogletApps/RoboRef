@@ -511,6 +511,77 @@ describe("Secure Share Server Endpoints", () => {
     assert.deepStrictEqual(adminP.previousNames, ["Alice Initial"]);
   });
 
+  it("POST /api/share/leave returns 400 when missing required fields", async () => {
+    const storage = new MockShareStorageAdapter();
+    const app = createSyncApp(storage);
+
+    // Missing shareId
+    const res1 = await app.request("/api/share/leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        deviceId: "dev-admin-1",
+      }),
+    });
+    assert.strictEqual(res1.status, 400);
+    const json1 = await res1.json();
+    assert.strictEqual(json1.error, "Missing required fields: shareId, deviceId");
+
+    // Missing deviceId
+    const res2 = await app.request("/api/share/leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shareId: "ABCDEF",
+      }),
+    });
+    assert.strictEqual(res2.status, 400);
+    const json2 = await res2.json();
+    assert.strictEqual(json2.error, "Missing required fields: shareId, deviceId");
+  });
+
+  it("POST /api/share/leave returns 500 when storage throws generic error with message", async () => {
+    const storage = new MockShareStorageAdapter();
+    storage.removeParticipant = async () => {
+      throw new Error("Database error");
+    };
+    const app = createSyncApp(storage);
+
+    const res = await app.request("/api/share/leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shareId: "ABCDEF",
+        deviceId: "dev-admin-1",
+      }),
+    });
+
+    assert.strictEqual(res.status, 500);
+    const json = await res.json();
+    assert.strictEqual(json.error, "Database error");
+  });
+
+  it("POST /api/share/leave returns 500 with default message when storage throws error without message", async () => {
+    const storage = new MockShareStorageAdapter();
+    storage.removeParticipant = async () => {
+      throw {};
+    };
+    const app = createSyncApp(storage);
+
+    const res = await app.request("/api/share/leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shareId: "ABCDEF",
+        deviceId: "dev-admin-1",
+      }),
+    });
+
+    assert.strictEqual(res.status, 500);
+    const json = await res.json();
+    assert.strictEqual(json.error, "Failed to leave share session");
+  });
+
   it("POST /api/share/remove-participant handles storage error and returns 500 with message or default fallback", async () => {
     const storage = new MockShareStorageAdapter();
     const app = createSyncApp(storage);
