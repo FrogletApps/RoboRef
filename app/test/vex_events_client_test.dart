@@ -322,6 +322,56 @@ void main() {
       expect(matches.first.redScore, equals(50));
       expect(matches.first.blueScore, equals(45));
     });
+
+    test('fetchTournamentData returns failure result when a top-level exception occurs', () async {
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/vexevents/events') {
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 12345,
+                  'sku': 'RE-VRC-18-6495',
+                  'name': 'Test Event',
+                }
+              ]
+            }),
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final failingDb = _FailingAppDatabase(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+
+      final client = VexEventsClient(
+        client: mockClient,
+        serverUrl: 'http://127.0.0.1:8080',
+      );
+
+      final result = await client.fetchTournamentData(
+        sku: 'RE-VRC-18-6495',
+        db: failingDb,
+      );
+
+      expect(result.success, isFalse);
+      expect(
+        result.errorMessage,
+        contains('Failed to fetch tournament data from sync server: Exception: Database failure'),
+      );
+
+      await failingDb.close();
+    });
   });
 }
 
+class _FailingAppDatabase extends AppDatabase {
+  _FailingAppDatabase(super.connection) : super.forTesting();
+
+  @override
+  Future<void> upsertEvent(EventsCompanion entry) {
+    throw Exception('Database failure');
+  }
+}
