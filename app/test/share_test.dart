@@ -197,6 +197,41 @@ void main() {
       expect(res2.existingShares.length, equals(1));
     });
 
+    test('createShareSession handles exceptions and general HTTP errors', () async {
+      final mockThrowClient = MockClient((request) async {
+        throw Exception('Network connection failed');
+      });
+
+      final clientWithException = ShareClient(baseUrl: 'http://test.local', httpClient: mockThrowClient);
+      final exceptionResult = await clientWithException.createShareSession(
+        sku: 'SKU1',
+        adminDeviceId: 'dev-1',
+        adminRefereeName: 'Alice',
+      );
+
+      expect(exceptionResult.success, isFalse);
+      expect(exceptionResult.errorMessage, equals('Exception: Network connection failed'));
+
+      final mockErrorClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'error': 'INTERNAL_SERVER_ERROR',
+          }),
+          500,
+        );
+      });
+
+      final clientWithError = ShareClient(baseUrl: 'http://test.local', httpClient: mockErrorClient);
+      final errorResult = await clientWithError.createShareSession(
+        sku: 'SKU1',
+        adminDeviceId: 'dev-1',
+        adminRefereeName: 'Alice',
+      );
+
+      expect(errorResult.success, isFalse);
+      expect(errorResult.errorMessage, equals('INTERNAL_SERVER_ERROR'));
+    });
+
     test('leaveShareSession handles admin block and normal leave', () async {
       final mockClient = MockClient((request) async {
         final body = jsonDecode(request.body);
