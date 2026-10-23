@@ -424,6 +424,97 @@ void main() {
 
       await failingDb.close();
     });
+
+    test('fetchTournamentData fetches matches when fetchTeams is false (refreshMatches regression)', () async {
+      bool teamsEndpointCalled = false;
+      bool matchesEndpointCalled = false;
+      bool hasRefreshParam = false;
+
+      final mockClient = MockClient((request) async {
+        if (request.url.queryParameters.containsKey('refresh')) {
+          hasRefreshParam = true;
+        }
+        if (request.url.path == '/api/vexevents/events') {
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 36495,
+                  'sku': 'RE-VRC-18-6495',
+                  'name': 'Torneo Internacional VEX Robotics',
+                  'program': {'code': 'V5RC'},
+                  'season': {'name': '2026-2027'},
+                  'divisions': [
+                    {'id': 2, 'name': 'Science Division'}
+                  ]
+                }
+              ]
+            }),
+            200,
+          );
+        } else if (request.url.path.contains('/teams')) {
+          teamsEndpointCalled = true;
+          return http.Response(jsonEncode({'data': []}), 200);
+        } else if (request.url.path == '/api/vexevents/events/36495/divisions/2/matches') {
+          matchesEndpointCalled = true;
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 501,
+                  'name': 'Q1',
+                  'field': 'Field 1',
+                  'scheduled': '2026-11-21T09:00:00Z',
+                  'alliances': [
+                    {
+                      'color': 'red',
+                      'score': 0,
+                      'teams': [
+                        {'team': {'name': '1234A'}}
+                      ]
+                    },
+                    {
+                      'color': 'blue',
+                      'score': 0,
+                      'teams': [
+                        {'team': {'name': '5678B'}}
+                      ]
+                    }
+                  ]
+                }
+              ],
+              'meta': {'last_page': 1}
+            }),
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final client = VexEventsClient(
+        client: mockClient,
+        serverUrl: 'http://127.0.0.1:8080',
+      );
+
+      final result = await client.fetchTournamentData(
+        sku: 'RE-VRC-18-6495',
+        db: db,
+        fetchTeams: false,
+        fetchMatches: true,
+        forceRefresh: true,
+      );
+
+      expect(result.success, isTrue);
+      expect(teamsEndpointCalled, isFalse);
+      expect(matchesEndpointCalled, isTrue);
+      expect(hasRefreshParam, isTrue);
+      expect(result.matchesCount, equals(1));
+
+      final matches = await db.getMatchesForSku('RE-VRC-18-6495');
+      expect(matches.length, equals(1));
+      expect(matches.first.divisionId, equals(2));
+      expect(matches.first.name, equals('Qualification 1'));
+    });
   });
 }
 
