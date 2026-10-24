@@ -1,7 +1,8 @@
 # Change Log
 
-## 2026.10.24+227
+## 2026.10.24+228
 
+- **Web Loading Screen**: Removed initial "Starting referee assistant..." text when loading the PWA.
 - **Match Schedule Reloading**: Fixed match schedule refresh when an event was initially loaded before schedule generation, auto-fetch missing schedules on event open, and added a "Check for Schedule" button to the empty schedule screen.
 
 ## 2026.10.20+202
