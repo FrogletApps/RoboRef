@@ -176,4 +176,24 @@ describe("Proxy VEX Events API Endpoints (/api/vexevents/*)", () => {
     assert.strictEqual(body4.data[0].divisions.length, 1);
     assert.strictEqual(fetchCalls, 2);
   });
+
+  it("rejects path traversal attempts with 400 Bad Request", async () => {
+    let fetchCalls = 0;
+    globalThis.fetch = async () => {
+      fetchCalls++;
+      return new Response("OK", { status: 200 });
+    };
+
+    const app = createSyncApp(new DummyStorageAdapter());
+
+    const res1 = await app.request("/api/vexevents/%252e%252e/admin");
+    assert.strictEqual(res1.status, 400);
+    const body1 = await res1.json();
+    assert.deepStrictEqual(body1, { error: "Invalid path specified" });
+
+    const res2 = await app.request("/api/vexevents/events/%252e%252e/admin");
+    assert.strictEqual(res2.status, 400);
+
+    assert.strictEqual(fetchCalls, 0, "No upstream fetch calls should be attempted on path traversal");
+  });
 });
