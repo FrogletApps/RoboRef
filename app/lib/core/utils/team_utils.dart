@@ -68,6 +68,9 @@ int compareTeams(Team a, Team b) {
   return compareTeamNumbers(a.teamNumber, b.teamNumber);
 }
 
+// Pre-compiled regular expression for chunking team strings.
+final RegExp _teamChunkRegex = RegExp(r'(\d+|\D+)');
+
 class _Chunk {
   final bool isNumber;
   final BigInt numValue;
@@ -81,14 +84,19 @@ class _Chunk {
 
 List<_Chunk> _splitIntoChunks(String str) {
   final List<_Chunk> chunks = [];
-  final matches = RegExp(r'(\d+|\D+)').allMatches(str);
+  final matches = _teamChunkRegex.allMatches(str);
   for (final m in matches) {
     final s = m.group(0)!;
-    final b = BigInt.tryParse(s);
-    if (b != null) {
-      chunks.add(_Chunk.number(b, s));
+    final intVal = int.tryParse(s);
+    if (intVal != null) {
+      chunks.add(_Chunk.number(BigInt.from(intVal), s));
     } else {
-      chunks.add(_Chunk.text(s));
+      final b = BigInt.tryParse(s);
+      if (b != null) {
+        chunks.add(_Chunk.number(b, s));
+      } else {
+        chunks.add(_Chunk.text(s));
+      }
     }
   }
   return chunks;

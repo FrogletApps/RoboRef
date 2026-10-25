@@ -3,6 +3,31 @@ import 'package:intl/intl.dart';
 import '../../database/app_database.dart';
 import 'sku_utils.dart';
 
+// Static pre-compiled regular expressions for match utility parsing and sorting.
+final RegExp _digitsRegex = RegExp(r'\d+');
+final RegExp _practiceRegex = RegExp(r'^(P\s*#?\d+|P\s*[-_]\s*\d+|P\s+\d+)');
+final RegExp _r16Regex = RegExp(r'^(R\s*[-_]?\s*16|RO\s*[-_]?\s*16|R16)');
+final RegExp _qfRegex = RegExp(r'^(QF|Q-F|QTR)');
+final RegExp _sfRegex = RegExp(r'^(SF|S-F)');
+final RegExp _fRegex = RegExp(r'^(F\s*#?\d|F\s*[-_]\s*\d|F\s+\d)');
+final RegExp _dashRegex = RegExp(r'^\s*#?\s*\d+\s*-\s*\d+\s*$');
+final RegExp _qRegex = RegExp(r'^(Q\s*#?\d+|Q\s*[-_]\s*\d+|Q\s+\d+)');
+final RegExp _singleNumRegex = RegExp(r'^\s*#?\s*\d+\s*$');
+
+final RegExp _shortPCodeRegex = RegExp(r'^P\s*#?\d+');
+final RegExp _shortFCodeRegex = RegExp(r'^F\s*#?\d+');
+
+final RegExp _roundPracticeRegex = RegExp(r'^(P\s*#?\s*|P\s*[-_]\s*|P\d|PRAC)');
+final RegExp _roundR16Regex = RegExp(r'^(R\s*[-_]?\s*16|RO\s*[-_]?\s*16|R16)');
+final RegExp _roundQFRegex = RegExp(r'^(QF|Q-F|QTR)');
+final RegExp _roundSFRegex = RegExp(r'^(SF|S-F)');
+final RegExp _roundFRegex = RegExp(r'^(F\s*#?\s*|F\s*[-_]\s*|F\d)');
+final RegExp _roundFinalsDashRegex = RegExp(r'^(MATCH\s*#?\s*|M\s*#?\s*|#\s*)?\d+\s*[-]\s*\d+$');
+final RegExp _roundQRegex = RegExp(r'^(Q\s*#?\s*|Q\s*[-_]\s*|Q\d)');
+final RegExp _roundQualMatchRegex = RegExp(r'^(MATCH\s*#?\s*|M\s*#?\s*|#\s*)?\d+$');
+
+final RegExp _chunkRegex = RegExp(r'(\d+|\D+)');
+
 /// Normalizes and standardizes match names across V5 and VEX IQ programs.
 /// Converts RobotEvents and Tournament Manager variations (e.g. "Teamwork 1",
 /// "Qual #1", "Teamwork Finals 1-1", "Match 1", "1-1") into consistent standard labels:
@@ -44,9 +69,10 @@ String normalizeMatchName(String? rawName, {int? round, int? instance, int? matc
   // If explicit round info is provided from RobotEvents API
   if (round != null) {
     final inst = instance ?? 1;
+    final firstDigitMatch = _digitsRegex.firstMatch(trimmed);
     final num = matchnum ??
-        (RegExp(r'\d+').firstMatch(trimmed) != null
-            ? int.parse(RegExp(r'\d+').firstMatch(trimmed)!.group(0)!)
+        (firstDigitMatch != null
+            ? int.parse(firstDigitMatch.group(0)!)
             : 1);
     switch (round) {
       case 1:
@@ -71,7 +97,7 @@ String normalizeMatchName(String? rawName, {int? round, int? instance, int? matc
     }
   }
 
-  final numbers = RegExp(r'\d+')
+  final numbers = _digitsRegex
       .allMatches(trimmed)
       .map((m) => int.tryParse(m.group(0)!) ?? 0)
       .toList();
@@ -79,7 +105,7 @@ String normalizeMatchName(String? rawName, {int? round, int? instance, int? matc
   // 1. Practice matches
   if (upper.contains('PRACTICE') ||
       upper.contains('PRAC') ||
-      RegExp(r'^(P\s*#?\d+|P\s*[-_]\s*\d+|P\s+\d+)').hasMatch(upper)) {
+      _practiceRegex.hasMatch(upper)) {
     final num = numbers.isNotEmpty ? numbers.first : 1;
     return 'Practice $num';
   }
@@ -87,7 +113,7 @@ String normalizeMatchName(String? rawName, {int? round, int? instance, int? matc
   // 2. Round of 16
   if (upper.contains('ROUND OF 16') ||
       upper.contains('ROUND OF SIXTEEN') ||
-      RegExp(r'^(R\s*[-_]?\s*16|RO\s*[-_]?\s*16|R16)').hasMatch(upper)) {
+      _r16Regex.hasMatch(upper)) {
     if (numbers.length >= 3) {
       return 'R16 ${numbers[1]}-${numbers[2]}';
     } else if (numbers.length == 2) {
@@ -97,7 +123,7 @@ String normalizeMatchName(String? rawName, {int? round, int? instance, int? matc
   }
 
   // 3. Quarterfinals
-  if (upper.contains('QUARTER') || RegExp(r'^(QF|Q-F|QTR)').hasMatch(upper)) {
+  if (upper.contains('QUARTER') || _qfRegex.hasMatch(upper)) {
     if (numbers.length >= 2) {
       return 'QF ${numbers[0]}-${numbers[1]}';
     } else if (numbers.length == 1) {
@@ -107,7 +133,7 @@ String normalizeMatchName(String? rawName, {int? round, int? instance, int? matc
   }
 
   // 4. Semifinals
-  if (upper.contains('SEMI') || RegExp(r'^(SF|S-F)').hasMatch(upper)) {
+  if (upper.contains('SEMI') || _sfRegex.hasMatch(upper)) {
     if (numbers.length >= 2) {
       return 'SF ${numbers[0]}-${numbers[1]}';
     } else if (numbers.length == 1) {
@@ -118,11 +144,11 @@ String normalizeMatchName(String? rawName, {int? round, int? instance, int? matc
 
   // 5. Finals (including "Teamwork Finals 1-1", "Finals 1-1", "Final 1-1", "F 1-1", "1-1", "Match 1-1")
   if (upper.contains('FINAL') ||
-      RegExp(r'^(F\s*#?\d|F\s*[-_]\s*\d|F\s+\d)').hasMatch(upper) ||
+      _fRegex.hasMatch(upper) ||
       (numbers.length >= 2 &&
           (upper.startsWith('TEAMWORK') ||
               upper.startsWith('MATCH') ||
-              RegExp(r'^\s*#?\s*\d+\s*-\s*\d+\s*$').hasMatch(upper)))) {
+              _dashRegex.hasMatch(upper)))) {
     if (numbers.length >= 2) {
       return 'Finals ${numbers[0]}-${numbers[1]}';
     } else if (numbers.length == 1) {
@@ -135,13 +161,13 @@ String normalizeMatchName(String? rawName, {int? round, int? instance, int? matc
   if (upper.contains('QUAL') ||
       upper.contains('TEAMWORK') ||
       upper.startsWith('MATCH') ||
-      RegExp(r'^(Q\s*#?\d+|Q\s*[-_]\s*\d+|Q\s+\d+)').hasMatch(upper)) {
+      _qRegex.hasMatch(upper)) {
     final num = numbers.isNotEmpty ? numbers.first : 1;
     return 'Qualification $num';
   }
 
   // 7. Standalone single number "1", "2", "#1" -> Qualification
-  if (RegExp(r'^\s*#?\s*\d+\s*$').hasMatch(trimmed) && numbers.length == 1) {
+  if (_singleNumRegex.hasMatch(trimmed) && numbers.length == 1) {
     return 'Qualification ${numbers.first}';
   }
 
@@ -161,7 +187,7 @@ String formatMatchShortName(String? matchName) {
   final trimmed = matchName.trim();
   final upper = trimmed.toUpperCase();
 
-  final numbers = RegExp(r'\d+')
+  final numbers = _digitsRegex
       .allMatches(trimmed)
       .map((m) => int.tryParse(m.group(0)!) ?? 0)
       .toList();
@@ -169,7 +195,7 @@ String formatMatchShortName(String? matchName) {
   // 1. Practice
   if (upper.startsWith('PRACTICE') ||
       upper.startsWith('PRAC') ||
-      RegExp(r'^(P\s*#?\d+|P\s*[-_]\s*\d+|P\s+\d+)').hasMatch(upper)) {
+      _practiceRegex.hasMatch(upper)) {
     final num = numbers.isNotEmpty ? numbers.first : 1;
     return 'P $num';
   }
@@ -209,11 +235,11 @@ String formatMatchShortName(String? matchName) {
 
   // 5. Finals (including "Teamwork Finals 1-1", "Finals 1-1", "Final 1-1", "F 1-1", "1-1", "Match 1-1")
   if (upper.startsWith('FINAL') ||
-      RegExp(r'^(F\s*#?\d|F\s*[-_]\s*\d|F\s+\d+)').hasMatch(upper) ||
+      _fRegex.hasMatch(upper) ||
       (numbers.length >= 2 &&
           (upper.startsWith('TEAMWORK') ||
               upper.startsWith('MATCH') ||
-              RegExp(r'^\s*#?\s*\d+\s*-\s*\d+\s*$').hasMatch(upper)))) {
+              _dashRegex.hasMatch(upper)))) {
     if (numbers.length >= 2) {
       return 'F ${numbers[0]}-${numbers[1]}';
     } else if (numbers.length == 1) {
@@ -226,13 +252,13 @@ String formatMatchShortName(String? matchName) {
   if (upper.startsWith('QUAL') ||
       upper.startsWith('TEAMWORK') ||
       upper.startsWith('MATCH') ||
-      RegExp(r'^(Q\s*#?\d+|Q\s*[-_]\s*\d+|Q\s+\d+)').hasMatch(upper)) {
+      _qRegex.hasMatch(upper)) {
     final num = numbers.isNotEmpty ? numbers.first : 1;
     return 'Q $num';
   }
 
   // 7. Standalone single number "1", "#1" -> Q 1
-  if (RegExp(r'^\s*#?\s*\d+\s*$').hasMatch(trimmed) && numbers.length == 1) {
+  if (_singleNumRegex.hasMatch(trimmed) && numbers.length == 1) {
     return 'Q ${numbers.first}';
   }
 
@@ -245,24 +271,24 @@ String getMatchShortCode(String? matchName) {
   final trimmed = matchName.trim();
   final upper = trimmed.toUpperCase();
 
-  final numbers = RegExp(r'\d+')
+  final numbers = _digitsRegex
       .allMatches(trimmed)
       .map((m) => int.tryParse(m.group(0)!) ?? 0)
       .toList();
 
   if (upper.startsWith('QUAL') ||
       upper.startsWith('TEAMWORK') ||
-      RegExp(r'^(Q\s*#?\d+|Q\s*[-_]\s*\d+|Q\s+\d+)').hasMatch(upper)) {
+      _qRegex.hasMatch(upper)) {
     final num = numbers.isNotEmpty ? numbers.first : 1;
     return 'Q$num';
   }
 
-  if (upper.startsWith('PRACTICE') || upper.startsWith('PRAC') || RegExp(r'^P\s*#?\d+').hasMatch(upper)) {
+  if (upper.startsWith('PRACTICE') || upper.startsWith('PRAC') || _shortPCodeRegex.hasMatch(upper)) {
     final num = numbers.isNotEmpty ? numbers.first : 1;
     return 'P$num';
   }
 
-  if (upper.startsWith('FINAL') || RegExp(r'^F\s*#?\d+').hasMatch(upper)) {
+  if (upper.startsWith('FINAL') || _shortFCodeRegex.hasMatch(upper)) {
     if (numbers.length >= 2) {
       return 'F${numbers[0]}-${numbers[1]}';
     } else if (numbers.length == 1) {
@@ -440,7 +466,7 @@ int getMatchRoundOrder(String? matchName) {
 
   // 1. Practice matches:
   // e.g. "Practice 1", "Practice #1", "Prac 1", "P 1", "P1", "P-1", "P_1", "P#1"
-  if (RegExp(r'^(P\s*#?\s*|P\s*[-_]\s*|P\d|PRAC)').hasMatch(upper) ||
+  if (_roundPracticeRegex.hasMatch(upper) ||
       upper.contains('PRACTICE') ||
       upper.contains('PRAC')) {
     return 1;
@@ -450,38 +476,38 @@ int getMatchRoundOrder(String? matchName) {
   // e.g. "Round of 16 1-1", "RO16 1-1", "R16 1-1", "R16-1", "R16 #1"
   if (upper.contains('ROUND OF 16') ||
       upper.contains('ROUND OF SIXTEEN') ||
-      RegExp(r'^(R\s*[-_]?\s*16|RO\s*[-_]?\s*16|R16)').hasMatch(upper)) {
+      _roundR16Regex.hasMatch(upper)) {
     return 3;
   }
 
   // 3. Quarterfinals:
   // e.g. "Quarterfinal 1-1", "Quarterfinals 1-1", "Quarter-final 1-1", "QF 1-1", "QF1-1", "QTR 1"
   if (upper.contains('QUARTER') ||
-      RegExp(r'^(QF|Q-F|QTR)').hasMatch(upper)) {
+      _roundQFRegex.hasMatch(upper)) {
     return 4;
   }
 
   // 4. Semifinals:
   // e.g. "Semifinal 1-1", "Semifinals 1-1", "Semi-final 1-1", "SF 1-1", "SF1-1", "SF 1"
   if (upper.contains('SEMI') ||
-      RegExp(r'^(SF|S-F)').hasMatch(upper)) {
+      _roundSFRegex.hasMatch(upper)) {
     return 5;
   }
 
   // 6. Finals (VEX IQ Finals 1-1 onwards, V5RC Finals 1-1, Finals 1, F 1-1, 1-1, etc.):
   // e.g. "Final 1-1", "Finals 1-1", "Finals 1", "F 1-1", "F1-1", "F1", "F 1", "F#1", "1-1", "1-2", "#1-1"
-  if (RegExp(r'^(F\s*#?\s*|F\s*[-_]\s*|F\d)').hasMatch(upper) ||
+  if (_roundFRegex.hasMatch(upper) ||
       upper.contains('FINAL') ||
-      RegExp(r'^(MATCH\s*#?\s*|M\s*#?\s*|#\s*)?\d+\s*[-]\s*\d+$').hasMatch(upper)) {
+      _roundFinalsDashRegex.hasMatch(upper)) {
     return 6;
   }
 
   // 5. Qualification matches:
   // e.g. "Qualification 1", "Qualifier 1", "Quals 1", "Qual 1", "Q 1", "Q1", "Q-1", "Q#1", "Teamwork 1", "Match 1"
-  if (RegExp(r'^(Q\s*#?\s*|Q\s*[-_]\s*|Q\d)').hasMatch(upper) ||
+  if (_roundQRegex.hasMatch(upper) ||
       upper.contains('QUAL') ||
       upper.contains('TEAMWORK') ||
-      RegExp(r'^(MATCH\s*#?\s*|M\s*#?\s*|#\s*)?\d+$').hasMatch(upper)) {
+      _roundQualMatchRegex.hasMatch(upper)) {
     return 2;
   }
 
@@ -559,7 +585,7 @@ int compareMatches(Matche a, Matche b) {
 }
 
 List<int> _extractMatchNumbers(String name) {
-  return RegExp(r'\d+')
+  return _digitsRegex
       .allMatches(name)
       .map((m) => int.tryParse(m.group(0)!) ?? 0)
       .toList();
@@ -609,14 +635,19 @@ class _Chunk {
 
 List<_Chunk> _splitChunks(String str) {
   final List<_Chunk> chunks = [];
-  final matches = RegExp(r'(\d+|\D+)').allMatches(str);
+  final matches = _chunkRegex.allMatches(str);
   for (final m in matches) {
     final s = m.group(0)!;
-    final b = BigInt.tryParse(s);
-    if (b != null) {
-      chunks.add(_Chunk.number(b, s));
+    final intVal = int.tryParse(s);
+    if (intVal != null) {
+      chunks.add(_Chunk.number(BigInt.from(intVal), s));
     } else {
-      chunks.add(_Chunk.text(s));
+      final b = BigInt.tryParse(s);
+      if (b != null) {
+        chunks.add(_Chunk.number(b, s));
+      } else {
+        chunks.add(_Chunk.text(s));
+      }
     }
   }
   return chunks;
