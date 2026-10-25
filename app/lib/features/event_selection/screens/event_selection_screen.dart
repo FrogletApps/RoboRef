@@ -482,6 +482,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear),
+                            tooltip: 'Clear search',
                             onPressed: () {
                               _searchController.clear();
                               _onSearchChanged('');
@@ -1017,6 +1018,7 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                   suffixIcon: _filterText.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, size: 18),
+                          tooltip: 'Clear search',
                           onPressed: () {
                             _filterController.clear();
                             setState(() {
@@ -1215,6 +1217,7 @@ class _DivisionPickerSheetState extends State<_DivisionPickerSheet> {
                   suffixIcon: _filterText.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, size: 18),
+                          tooltip: 'Clear search',
                           onPressed: () {
                             _filterController.clear();
                             setState(() {

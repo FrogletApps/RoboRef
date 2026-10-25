@@ -1,10 +1,14 @@
 # Change Log
 
+## 2026.10.25+237
+
+- **Accessibility Improvements**: Added descriptive tooltip labels to the incident note delete button, event share modal close button, and search bar clear buttons.
+- **Update Dependencies**
+
 ## 2026.10.24+228
 
 - **Web Loading Screen**: Removed initial "Starting referee assistant..." text when loading the PWA.
 - **Match Schedule Reloading**: Fixed match schedule refresh when an event was initially loaded before schedule generation, auto-fetch missing schedules on event open, and added a "Check for Schedule" button to the empty schedule screen.
-- **Accessibility Improvements**: Added descriptive tooltip label to incident note delete action button.
 
 ## 2026.10.20+202
 
