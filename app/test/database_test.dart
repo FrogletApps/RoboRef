@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:roboref/database/app_database.dart';
 import 'package:roboref/features/event_data/services/csv_import_service.dart';
@@ -215,5 +215,113 @@ Q2,Field 1,09:10 AM,1002B,1004D
 
     expect(jsonDecode(matches.first.redTeamsJson), ['1001A']);
     expect(jsonDecode(matches.first.blueTeamsJson), ['1003C']);
+  });
+
+  test('clearTournamentData deletes matches and teams for specified sku, preserving other skus and tables', () async {
+    const targetSku = 'RE-V5RC-24-TARGET';
+    const otherSku = 'RE-V5RC-24-OTHER';
+
+    // Insert teams and matches for target SKU
+    await db.upsertTeams([
+      const TeamsCompanion(
+        teamNumber: Value('1001A'),
+        sku: Value(targetSku),
+        teamName: Value('Target Team A'),
+      ),
+    ]);
+    await db.upsertMatches([
+      const MatchesCompanion(
+        matchId: Value('M1'),
+        sku: Value(targetSku),
+        divisionId: Value(1),
+        name: Value('Qual 1'),
+        redTeamsJson: Value('["1001A"]'),
+        blueTeamsJson: Value('["1001B"]'),
+      ),
+    ]);
+
+    // Insert teams and matches for other SKU
+    await db.upsertTeams([
+      const TeamsCompanion(
+        teamNumber: Value('2002B'),
+        sku: Value(otherSku),
+        teamName: Value('Other Team B'),
+      ),
+    ]);
+    await db.upsertMatches([
+      const MatchesCompanion(
+        matchId: Value('M2'),
+        sku: Value(otherSku),
+        divisionId: Value(1),
+        name: Value('Qual 2'),
+        redTeamsJson: Value('["2002B"]'),
+        blueTeamsJson: Value('["2002C"]'),
+      ),
+    ]);
+
+    // Insert incident note and event for target SKU
+    await db.into(db.incidentNotes).insert(
+      IncidentNotesCompanion(
+        id: const Value('note-target-1'),
+        sku: const Value(targetSku),
+        teamNumber: const Value('1001A'),
+        matchId: const Value('M1'),
+        ruleCodesJson: const Value('["G12"]'),
+        severity: const Value('warning'),
+        notes: const Value('Target note'),
+        refereeName: const Value('Ref Bob'),
+        deviceId: const Value('device-1'),
+        createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+    await db.upsertEvent(
+      EventsCompanion(
+        sku: const Value(targetSku),
+        name: const Value('Target Event'),
+        program: const Value('V5RC'),
+        season: const Value('2024-2025'),
+        startDate: const Value('2024-11-01'),
+        endDate: const Value('2024-11-02'),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+
+    // Perform clearTournamentData for targetSku
+    await db.clearTournamentData(targetSku);
+
+    // Verify targetSku matches and teams are deleted
+    final targetTeams = await db.getTeamsForSku(targetSku);
+    final targetMatches = await db.getMatchesForSku(targetSku);
+    expect(targetTeams.isEmpty, true);
+    expect(targetMatches.isEmpty, true);
+
+    // Verify otherSku matches and teams are intact
+    final otherTeams = await db.getTeamsForSku(otherSku);
+    final otherMatches = await db.getMatchesForSku(otherSku);
+    expect(otherTeams.length, 1);
+    expect(otherTeams.first.teamNumber, '2002B');
+    expect(otherMatches.length, 1);
+    expect(otherMatches.first.matchId, 'M2');
+
+    // Verify incidentNotes and events for targetSku are untouched
+    final notes = await db.watchNotesForSku(targetSku).first;
+    expect(notes.length, 1);
+    expect(notes.first.id, 'note-target-1');
+
+    final event = await db.getEventBySku(targetSku);
+    expect(event, isNotNull);
+    expect(event!.name, 'Target Event');
+  });
+
+  test('clearTournamentData executes cleanly when called on a non-existent or empty sku', () async {
+    const nonExistentSku = 'RE-V5RC-24-EMPTY';
+
+    await db.clearTournamentData(nonExistentSku);
+
+    final teams = await db.getTeamsForSku(nonExistentSku);
+    final matches = await db.getMatchesForSku(nonExistentSku);
+    expect(teams.isEmpty, true);
+    expect(matches.isEmpty, true);
   });
 }
