@@ -235,9 +235,10 @@ export class LocalSqliteAdapter implements StorageAdapter {
       if (s) targetSessions.push(s);
     } else {
       // Optimize session lookup in SQLite by searching for deviceId inside participantsJson or adminDeviceId
+      const escapedDeviceId = JSON.stringify(deviceId).slice(1, -1).replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
       const rows = this.db.prepare(
-        "SELECT * FROM share_sessions WHERE adminDeviceId = ? OR participantsJson LIKE ?"
-      ).all(deviceId, `%"deviceId":"${deviceId}"%`) as any[];
+        "SELECT * FROM share_sessions WHERE adminDeviceId = ? OR participantsJson LIKE ? ESCAPE '\\'"
+      ).all(deviceId, `%"deviceId":"${escapedDeviceId}"%`) as any[];
       targetSessions = rows
         .map((r) => this.mapShareRow(r))
         .filter((s) => s.participants.some((p) => p.deviceId === deviceId) || s.adminDeviceId === deviceId);

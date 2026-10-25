@@ -217,6 +217,73 @@ Q2,Field 1,09:10 AM,1002B,1004D
     expect(jsonDecode(matches.first.blueTeamsJson), ['1003C']);
   });
 
+  test('updateAdminRefereeName updates adminRefereeName and updatedAt timestamp', () async {
+    const sku = 'RE-V5RC-24-TEST1';
+    final initialTime = DateTime.now().millisecondsSinceEpoch - 10000;
+
+    await db.upsertEvent(
+      EventsCompanion(
+        sku: const Value(sku),
+        name: const Value('Test Tournament 1'),
+        program: const Value('V5RC'),
+        season: const Value('2024-2025'),
+        startDate: const Value('2024-11-01'),
+        endDate: const Value('2024-11-02'),
+        updatedAt: Value(initialTime),
+      ),
+    );
+
+    var event = await db.getEventBySku(sku);
+    expect(event, isNotNull);
+    expect(event!.adminRefereeName, isNull);
+    expect(event.updatedAt, initialTime);
+
+    // Call updateAdminRefereeName
+    await db.updateAdminRefereeName(sku, 'Head Ref Alice');
+
+    event = await db.getEventBySku(sku);
+    expect(event, isNotNull);
+    expect(event!.adminRefereeName, 'Head Ref Alice');
+    expect(event.updatedAt, greaterThanOrEqualTo(initialTime + 10000));
+
+    // Overwrite with a new name
+    await db.updateAdminRefereeName(sku, 'Head Ref Bob');
+
+    event = await db.getEventBySku(sku);
+    expect(event, isNotNull);
+    expect(event!.adminRefereeName, 'Head Ref Bob');
+  });
+
+  test('updateAdminRefereeName does nothing and does not throw for non-existent SKU', () async {
+    const sku = 'RE-V5RC-24-EXISTING';
+    const nonExistentSku = 'RE-V5RC-24-NONEXISTENT';
+
+    await db.upsertEvent(
+      EventsCompanion(
+        sku: const Value(sku),
+        name: const Value('Existing Tournament'),
+        program: const Value('V5RC'),
+        season: const Value('2024-2025'),
+        startDate: const Value('2024-11-01'),
+        endDate: const Value('2024-11-02'),
+        adminRefereeName: const Value('Original Ref'),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+
+    // Update non-existent SKU
+    await db.updateAdminRefereeName(nonExistentSku, 'New Ref');
+
+    // Verify existing event was unchanged
+    final existingEvent = await db.getEventBySku(sku);
+    expect(existingEvent, isNotNull);
+    expect(existingEvent!.adminRefereeName, 'Original Ref');
+
+    // Verify non-existent event is still null
+    final nonExistentEvent = await db.getEventBySku(nonExistentSku);
+    expect(nonExistentEvent, isNull);
+  });
+
   test('clearTournamentData deletes matches and teams for specified sku, preserving other skus and tables', () async {
     const targetSku = 'RE-V5RC-24-TARGET';
     const otherSku = 'RE-V5RC-24-OTHER';
