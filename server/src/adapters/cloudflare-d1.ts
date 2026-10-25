@@ -261,9 +261,10 @@ export class CloudflareD1Adapter implements StorageAdapter {
       if (s) targetSessions.push(s);
     } else {
       // Optimize session lookup in D1 by filtering on adminDeviceId or deviceId in participantsJson
+      const escapedDeviceId = JSON.stringify(deviceId).slice(1, -1).replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
       const { results } = await this.db.prepare(
-        "SELECT * FROM share_sessions WHERE adminDeviceId = ? OR participantsJson LIKE ?"
-      ).bind(deviceId, `%"deviceId":"${deviceId}"%`).all<any>();
+        "SELECT * FROM share_sessions WHERE adminDeviceId = ? OR participantsJson LIKE ? ESCAPE '\\'"
+      ).bind(deviceId, `%"deviceId":"${escapedDeviceId}"%`).all<any>();
       targetSessions = (results || [])
         .map((r) => this.mapShareRow(r))
         .filter((s) => s.participants.some((p) => p.deviceId === deviceId) || s.adminDeviceId === deviceId);
