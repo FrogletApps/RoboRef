@@ -251,6 +251,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
+                                  tooltip: 'Delete Note',
                                   onPressed: () => _confirmDelete(context, ref, note.id),
                                 ),
                               ],
