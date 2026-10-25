@@ -17,16 +17,16 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",
-    "dotenv": "^18.0.8",
-    "hono": "^4.13.13",
+    "dotenv": "^18.0.9",
+    "hono": "^4.13.14",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261019.1",
+    "@cloudflare/workers-types": "^5.20261025.1",
     "@types/node": "^26.6.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "wrangler": "^4.151.3"
+    "wrangler": "^4.152.0"
   },
   "allowScripts": {
     "better-sqlite3@11.10.0": true,
