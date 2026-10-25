@@ -24,6 +24,44 @@ class MatchScheduleScreen extends StatefulWidget {
 class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
   String _searchQuery = '';
 
+  Future<void> _handleRefreshMatches(
+    BuildContext context,
+    WidgetRef ref, {
+    bool showCheckingSnackBar = true,
+  }) async {
+    if (showCheckingSnackBar) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Checking for match schedule updates...'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+    final result = await ref.read(matchScheduleControllerProvider.notifier).refreshMatches();
+    if (context.mounted) {
+      if (result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.matchesCount > 0
+                  ? 'Updated ${result.matchesCount} match(es)'
+                  : 'Match schedule is up to date',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.errorMessage ?? 'Failed to update matches'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer(
@@ -56,37 +94,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                       tooltip: 'Refresh Matches',
                       onPressed: isReloading
                           ? null
-                          : () async {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Checking for match schedule updates...'),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
-                              final result = await ref.read(matchScheduleControllerProvider.notifier).refreshMatches();
-                              if (context.mounted) {
-                                if (result.success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        result.matchesCount > 0
-                                            ? 'Updated ${result.matchesCount} match(es)'
-                                            : 'Match schedule is up to date',
-                                      ),
-                                      duration: const Duration(seconds: 2),
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(result.errorMessage ?? 'Failed to update matches'),
-                                      backgroundColor: Theme.of(context).colorScheme.error,
-                                      duration: const Duration(seconds: 3),
-                                    ),
-                                  );
-                                }
-                              }
-                            },
+                          : () => _handleRefreshMatches(context, ref),
                     ),
                     if (settings.experimentalFeaturesEnabled)
                       IconButton(
@@ -121,31 +129,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               // Match List
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () async {
-                    final result = await ref.read(matchScheduleControllerProvider.notifier).refreshMatches();
-                    if (context.mounted) {
-                      if (result.success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              result.matchesCount > 0
-                                  ? 'Updated ${result.matchesCount} match(es)'
-                                  : 'Match schedule is up to date',
-                            ),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(result.errorMessage ?? 'Failed to update matches'),
-                            backgroundColor: Theme.of(context).colorScheme.error,
-                            duration: const Duration(seconds: 3),
-                          ),
-                        );
-                      }
-                    }
-                  },
+                  onRefresh: () => _handleRefreshMatches(context, ref, showCheckingSnackBar: false),
                   child: matchesAsync.when(
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (err, _) => LayoutBuilder(
@@ -190,8 +174,28 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                           : 'No matches found matching "$_searchQuery"',
                                       style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                                     ),
-                                    if (settings.experimentalFeaturesEnabled) ...[
+                                    if (matches.isEmpty) ...[
                                       const SizedBox(height: 16),
+                                      FilledButton.tonalIcon(
+                                        onPressed: isReloading
+                                            ? null
+                                            : () => _handleRefreshMatches(context, ref),
+                                        style: FilledButton.styleFrom(
+                                          minimumSize: const Size(0, 44),
+                                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                        ),
+                                        icon: isReloading
+                                            ? const SizedBox(
+                                                width: 18,
+                                                height: 18,
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              )
+                                            : const Icon(Icons.refresh),
+                                        label: Text(isReloading ? 'Checking...' : 'Check for Schedule'),
+                                      ),
+                                    ],
+                                    if (settings.experimentalFeaturesEnabled) ...[
+                                      const SizedBox(height: 12),
                                       ElevatedButton.icon(
                                         onPressed: () => _showImportSheet(context),
                                         icon: const Icon(Icons.cloud_download),

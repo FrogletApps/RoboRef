@@ -185,6 +185,66 @@ void main() {
       expect(events.first.sku, equals('RE-V5RC-26-1234'));
     });
 
+    test('searchEvents throws VexApiException when response body is malformed JSON', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response('{ invalid json structure ', 200);
+      });
+
+      final client = VexEventsClient(client: mockClient);
+
+      expect(
+        () async => await client.searchEvents(),
+        throwsA(
+          isA<VexApiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Failed to search events via sync server:'),
+          ),
+        ),
+      );
+    });
+
+    test('searchEvents throws VexApiException when items in data array have unexpected schema', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'data': ['not a map item']
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+
+      expect(
+        () async => await client.searchEvents(),
+        throwsA(
+          isA<VexApiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Failed to search events via sync server:'),
+          ),
+        ),
+      );
+    });
+
+    test('searchEvents returns empty list when data is not a List', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'data': 'not a list',
+            'status': 'ok',
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+
+      final events = await client.searchEvents();
+      expect(events, isEmpty);
+    });
+
     test('searchEvents falls back to cloud proxy if primary serverUrl fails', () async {
       int attempt = 0;
       final mockClient = MockClient((request) async {
@@ -322,6 +382,147 @@ void main() {
       expect(matches.first.redScore, equals(50));
       expect(matches.first.blueScore, equals(45));
     });
+
+    test('fetchTournamentData returns failure result when a top-level exception occurs', () async {
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/vexevents/events') {
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 12345,
+                  'sku': 'RE-VRC-18-6495',
+                  'name': 'Test Event',
+                }
+              ]
+            }),
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final failingDb = _FailingAppDatabase(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+
+      final client = VexEventsClient(
+        client: mockClient,
+        serverUrl: 'http://127.0.0.1:8080',
+      );
+
+      final result = await client.fetchTournamentData(
+        sku: 'RE-VRC-18-6495',
+        db: failingDb,
+      );
+
+      expect(result.success, isFalse);
+      expect(
+        result.errorMessage,
+        contains('Failed to fetch tournament data from sync server: Exception: Database failure'),
+      );
+
+      await failingDb.close();
+    });
+
+    test('fetchTournamentData fetches matches when fetchTeams is false (refreshMatches regression)', () async {
+      bool teamsEndpointCalled = false;
+      bool matchesEndpointCalled = false;
+      bool hasRefreshParam = false;
+
+      final mockClient = MockClient((request) async {
+        if (request.url.queryParameters.containsKey('refresh')) {
+          hasRefreshParam = true;
+        }
+        if (request.url.path == '/api/vexevents/events') {
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 36495,
+                  'sku': 'RE-VRC-18-6495',
+                  'name': 'Torneo Internacional VEX Robotics',
+                  'program': {'code': 'V5RC'},
+                  'season': {'name': '2026-2027'},
+                  'divisions': [
+                    {'id': 2, 'name': 'Science Division'}
+                  ]
+                }
+              ]
+            }),
+            200,
+          );
+        } else if (request.url.path.contains('/teams')) {
+          teamsEndpointCalled = true;
+          return http.Response(jsonEncode({'data': []}), 200);
+        } else if (request.url.path == '/api/vexevents/events/36495/divisions/2/matches') {
+          matchesEndpointCalled = true;
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 501,
+                  'name': 'Q1',
+                  'field': 'Field 1',
+                  'scheduled': '2026-11-21T09:00:00Z',
+                  'alliances': [
+                    {
+                      'color': 'red',
+                      'score': 0,
+                      'teams': [
+                        {'team': {'name': '1234A'}}
+                      ]
+                    },
+                    {
+                      'color': 'blue',
+                      'score': 0,
+                      'teams': [
+                        {'team': {'name': '5678B'}}
+                      ]
+                    }
+                  ]
+                }
+              ],
+              'meta': {'last_page': 1}
+            }),
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final client = VexEventsClient(
+        client: mockClient,
+        serverUrl: 'http://127.0.0.1:8080',
+      );
+
+      final result = await client.fetchTournamentData(
+        sku: 'RE-VRC-18-6495',
+        db: db,
+        fetchTeams: false,
+        fetchMatches: true,
+        forceRefresh: true,
+      );
+
+      expect(result.success, isTrue);
+      expect(teamsEndpointCalled, isFalse);
+      expect(matchesEndpointCalled, isTrue);
+      expect(hasRefreshParam, isTrue);
+      expect(result.matchesCount, equals(1));
+
+      final matches = await db.getMatchesForSku('RE-VRC-18-6495');
+      expect(matches.length, equals(1));
+      expect(matches.first.divisionId, equals(2));
+      expect(matches.first.name, equals('Qualification 1'));
+    });
   });
 }
 
+class _FailingAppDatabase extends AppDatabase {
+  _FailingAppDatabase(super.connection) : super.forTesting();
+
+  @override
+  Future<void> upsertEvent(EventsCompanion entry) {
+    throw Exception('Database failure');
+  }
+}

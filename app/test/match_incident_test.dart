@@ -6,11 +6,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:roboref/database/app_database.dart';
+import 'package:roboref/features/event_data/services/vex_events_client.dart';
+import 'package:roboref/features/event_selection/state/event_controller.dart';
+import 'package:roboref/features/event_workspace/screens/event_workspace_screen.dart';
 import 'package:roboref/features/incidents/screens/incident_logger_screen.dart';
 import 'package:roboref/features/incidents/state/incident_controller.dart';
 import 'package:roboref/features/matches/screens/match_schedule_screen.dart';
 import 'package:roboref/core/utils/match_utils.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -519,6 +524,200 @@ void main() {
     final matchBottom = tester.getBottomLeft(find.text('Q 15')).dy;
     final redTop = tester.getTopLeft(find.text('RED').last).dy;
     expect(redTop - matchBottom, lessThanOrEqualTo(12.0), reason: 'Gap between match number and alliances should be compact');
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('MatchScheduleScreen empty state Check for Schedule button fetches newly generated matches', (WidgetTester tester) async {
+    await testDb.clearTournamentData('RE-V5RC-26-4487');
+
+    final mockHttpClient = MockClient((request) async {
+      if (request.url.path == '/api/vexevents/events') {
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 4487,
+                'sku': 'RE-V5RC-26-4487',
+                'name': 'Regional Championship',
+                'program': {'code': 'V5RC'},
+                'divisions': [
+                  {'id': 1, 'name': 'Default Division'}
+                ]
+              }
+            ]
+          }),
+          200,
+        );
+      } else if (request.url.path.contains('/matches')) {
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 9001,
+                'name': 'Q1',
+                'field': 'Field 2',
+                'alliances': [
+                  {
+                    'color': 'red',
+                    'teams': [
+                      {'team': {'name': '1114A'}}
+                    ]
+                  },
+                  {
+                    'color': 'blue',
+                    'teams': [
+                      {'team': {'name': '2056A'}}
+                    ]
+                  }
+                ]
+              }
+            ],
+            'meta': {'last_page': 1}
+          }),
+          200,
+        );
+      }
+      return http.Response('Not Found', 404);
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(testDb),
+          vexEventsClientProvider.overrideWithValue(
+            VexEventsClient(
+              client: mockHttpClient,
+              serverUrl: 'http://127.0.0.1:8080',
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          home: MatchScheduleScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('No match schedule has been loaded yet.'), findsOneWidget);
+    expect(find.text('Check for Schedule'), findsOneWidget);
+
+    await tester.tap(find.text('Check for Schedule'));
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.text('Q 1'), findsOneWidget);
+    expect(find.text('Field 2'), findsOneWidget);
+    expect(find.text('No match schedule has been loaded yet.'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('EventWorkspaceScreen auto-fetches newly generated schedule when opening event with zero matches', (WidgetTester tester) async {
+    await testDb.clearTournamentData('RE-V5RC-26-4487');
+    await testDb.upsertEvent(
+      EventsCompanion.insert(
+        sku: 'RE-V5RC-26-4487',
+        name: 'Pre-Schedule Event',
+        program: 'V5RC',
+        season: '2026-2027',
+        startDate: '2026-10-24T08:00:00Z',
+        endDate: '2026-10-25T17:00:00Z',
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+
+    final mockHttpClient = MockClient((request) async {
+      if (request.url.path == '/api/vexevents/events') {
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 4487,
+                'sku': 'RE-V5RC-26-4487',
+                'name': 'Pre-Schedule Event',
+                'program': {'code': 'V5RC'},
+                'divisions': [
+                  {'id': 1, 'name': 'Default Division'}
+                ]
+              }
+            ]
+          }),
+          200,
+        );
+      } else if (request.url.path.contains('/teams')) {
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {'number': '1114A', 'team_name': 'Simbotics'}
+            ],
+            'meta': {'last_page': 1}
+          }),
+          200,
+        );
+      } else if (request.url.path.contains('/matches')) {
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 9002,
+                'name': 'Q2',
+                'field': 'Main Field',
+                'alliances': [
+                  {
+                    'color': 'red',
+                    'teams': [
+                      {'team': {'name': '1114A'}}
+                    ]
+                  },
+                  {
+                    'color': 'blue',
+                    'teams': [
+                      {'team': {'name': '2056A'}}
+                    ]
+                  }
+                ]
+              }
+            ],
+            'meta': {'last_page': 1}
+          }),
+          200,
+        );
+      }
+      return http.Response(jsonEncode({'data': []}), 200);
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(testDb),
+          vexEventsClientProvider.overrideWithValue(
+            VexEventsClient(
+              client: mockHttpClient,
+              serverUrl: 'http://127.0.0.1:8080',
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          home: EventWorkspaceScreen(),
+        ),
+      ),
+    );
+
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.text('Q 2'), findsOneWidget);
+    expect(find.text('Main Field'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

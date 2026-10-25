@@ -89,16 +89,25 @@ class VexEventsClient {
     Map<String, List<String>>? queryParams,
     Duration timeout = const Duration(seconds: 10),
     String? serverUrl,
+    bool forceRefresh = false,
   }) async {
     final candidateBases = _getCandidateBaseUrls(serverUrl);
     Exception? lastException;
     http.Response? lastResponse;
 
+    Map<String, List<String>>? effectiveParams = queryParams;
+    if (forceRefresh) {
+      effectiveParams = {
+        if (queryParams != null) ...queryParams,
+        'refresh': [DateTime.now().millisecondsSinceEpoch.toString()],
+      };
+    }
+
     for (final base in candidateBases) {
       try {
         final cleanPath = path.startsWith('/') ? path : '/$path';
         final baseUri = Uri.parse('$base$cleanPath');
-        final uri = queryParams != null ? baseUri.replace(queryParameters: queryParams) : baseUri;
+        final uri = effectiveParams != null ? baseUri.replace(queryParameters: effectiveParams) : baseUri;
 
         final response = await _client.get(uri, headers: _headers).timeout(timeout);
         if (response.statusCode == 200) {
@@ -198,6 +207,7 @@ class VexEventsClient {
     int page = 1,
     int perPage = 30,
     String? serverUrl,
+    bool forceRefresh = false,
   }) async {
     final queryParams = <String, List<String>>{
       'page': [page.toString()],
@@ -253,6 +263,7 @@ class VexEventsClient {
         queryParams: queryParams,
         timeout: const Duration(seconds: 12),
         serverUrl: serverUrl,
+        forceRefresh: forceRefresh,
       );
 
       final data = jsonDecode(response.body);
@@ -278,6 +289,7 @@ class VexEventsClient {
     String? serverUrl,
     bool fetchTeams = true,
     bool fetchMatches = true,
+    bool forceRefresh = false,
   }) async {
     final cleanSku = sku.trim().toUpperCase();
     if (cleanSku.isEmpty) {
@@ -309,6 +321,7 @@ class VexEventsClient {
           },
           timeout: const Duration(seconds: 10),
           serverUrl: serverUrl,
+          forceRefresh: forceRefresh,
         );
 
         final data = jsonDecode(eventResponse.body);
@@ -391,6 +404,7 @@ class VexEventsClient {
                 },
                 timeout: const Duration(seconds: 12),
                 serverUrl: serverUrl,
+                forceRefresh: forceRefresh,
               );
 
               final rankData = jsonDecode(rankResponse.body);
@@ -434,6 +448,7 @@ class VexEventsClient {
               },
               timeout: const Duration(seconds: 12),
               serverUrl: serverUrl,
+              forceRefresh: forceRefresh,
             );
 
             final teamsData = jsonDecode(teamsResponse.body);
@@ -491,100 +506,101 @@ class VexEventsClient {
           await db.upsertTeams(allTeamCompanions);
           teamsCount = allTeamCompanions.length;
         }
+      }
 
-        // 3. Fetch Matches for each division
-        if (fetchMatches) {
-          if (divisionIds.isEmpty) {
-            divisionIds = [1];
-          }
+      // 3. Fetch Matches for each division
+      if (resolvedId != null && fetchMatches) {
+        if (divisionIds.isEmpty) {
+          divisionIds = [1];
+        }
 
-          final List<MatchesCompanion> allMatchCompanions = [];
-          for (final divId in divisionIds) {
-            int matchPage = 1;
-            bool hasMoreMatches = true;
+        final List<MatchesCompanion> allMatchCompanions = [];
+        for (final divId in divisionIds) {
+          int matchPage = 1;
+          bool hasMoreMatches = true;
 
-            while (hasMoreMatches && matchPage <= 5) {
-              try {
-                final matchesResponse = await _getWithFallback(
-                  '/events/$resolvedId/divisions/$divId/matches',
-                  queryParams: {
-                    'page': [matchPage.toString()],
-                    'per_page': ['250'],
-                  },
-                  timeout: const Duration(seconds: 12),
-                  serverUrl: serverUrl,
-                );
+          while (hasMoreMatches && matchPage <= 5) {
+            try {
+              final matchesResponse = await _getWithFallback(
+                '/events/$resolvedId/divisions/$divId/matches',
+                queryParams: {
+                  'page': [matchPage.toString()],
+                  'per_page': ['250'],
+                },
+                timeout: const Duration(seconds: 12),
+                serverUrl: serverUrl,
+                forceRefresh: forceRefresh,
+              );
 
-                final matchesData = jsonDecode(matchesResponse.body);
-                if (matchesData['data'] is List) {
-                  final list = matchesData['data'] as List;
-                  for (final m in list) {
-                    final matchId = m['id']?.toString() ?? m['name']?.toString() ?? '';
-                    final rawName = m['name']?.toString();
-                    final round = m['round'] as int?;
-                    final instance = m['instance'] as int?;
-                    final matchnum = m['matchnum'] as int?;
-                    final name = normalizeMatchName(rawName, round: round, instance: instance, matchnum: matchnum);
-                    final field = m['field']?.toString();
-                    final scheduledTime = m['scheduled']?.toString();
+              final matchesData = jsonDecode(matchesResponse.body);
+              if (matchesData['data'] is List) {
+                final list = matchesData['data'] as List;
+                for (final m in list) {
+                  final matchId = m['id']?.toString() ?? m['name']?.toString() ?? '';
+                  final rawName = m['name']?.toString();
+                  final round = m['round'] as int?;
+                  final instance = m['instance'] as int?;
+                  final matchnum = m['matchnum'] as int?;
+                  final name = normalizeMatchName(rawName, round: round, instance: instance, matchnum: matchnum);
+                  final field = m['field']?.toString();
+                  final scheduledTime = m['scheduled']?.toString();
 
-                    List<String> redTeams = [];
-                    List<String> blueTeams = [];
+                  List<String> redTeams = [];
+                  List<String> blueTeams = [];
 
-                    if (m['alliances'] is List) {
-                      for (final alliance in m['alliances']) {
-                        final color = alliance['color']?.toString().toLowerCase();
-                        final teamsList = alliance['teams'] as List? ?? [];
-                        final numbers = teamsList
-                            .map((t) => t['team']?['name']?.toString() ?? '')
-                            .where((s) => s.isNotEmpty)
-                            .toList();
-                        if (color == 'red') {
-                          redTeams = numbers;
-                        } else if (color == 'blue') {
-                          blueTeams = numbers;
-                        }
+                  if (m['alliances'] is List) {
+                    for (final alliance in m['alliances']) {
+                      final color = alliance['color']?.toString().toLowerCase();
+                      final teamsList = alliance['teams'] as List? ?? [];
+                      final numbers = teamsList
+                          .map((t) => t['team']?['name']?.toString() ?? '')
+                          .where((s) => s.isNotEmpty)
+                          .toList();
+                      if (color == 'red') {
+                        redTeams = numbers;
+                      } else if (color == 'blue') {
+                        blueTeams = numbers;
                       }
                     }
-
-                    if (matchId.isNotEmpty) {
-                      allMatchCompanions.add(
-                        MatchesCompanion(
-                          matchId: Value(matchId),
-                          sku: Value(cleanSku),
-                          divisionId: Value(divId),
-                          name: Value(name),
-                          field: Value(field),
-                          scheduledTime: Value(scheduledTime),
-                          redTeamsJson: Value(jsonEncode(redTeams)),
-                          blueTeamsJson: Value(jsonEncode(blueTeams)),
-                          redScore: Value(m['alliances']?[0]?['score'] as int?),
-                          blueScore: Value(m['alliances']?[1]?['score'] as int?),
-                        ),
-                      );
-                    }
                   }
 
-                  final meta = matchesData['meta'];
-                  final lastPage = meta?['last_page'] as int? ?? 1;
-                  if (matchPage >= lastPage || list.isEmpty) {
-                    hasMoreMatches = false;
-                  } else {
-                    matchPage++;
+                  if (matchId.isNotEmpty) {
+                    allMatchCompanions.add(
+                      MatchesCompanion(
+                        matchId: Value(matchId),
+                        sku: Value(cleanSku),
+                        divisionId: Value(divId),
+                        name: Value(name),
+                        field: Value(field),
+                        scheduledTime: Value(scheduledTime),
+                        redTeamsJson: Value(jsonEncode(redTeams)),
+                        blueTeamsJson: Value(jsonEncode(blueTeams)),
+                        redScore: Value(m['alliances']?[0]?['score'] as int?),
+                        blueScore: Value(m['alliances']?[1]?['score'] as int?),
+                      ),
+                    );
                   }
-                } else {
-                  hasMoreMatches = false;
                 }
-              } catch (_) {
+
+                final meta = matchesData['meta'];
+                final lastPage = meta?['last_page'] as int? ?? 1;
+                if (matchPage >= lastPage || list.isEmpty) {
+                  hasMoreMatches = false;
+                } else {
+                  matchPage++;
+                }
+              } else {
                 hasMoreMatches = false;
               }
+            } catch (_) {
+              hasMoreMatches = false;
             }
           }
+        }
 
-          if (allMatchCompanions.isNotEmpty) {
-            await db.upsertMatches(allMatchCompanions);
-            matchesCount = allMatchCompanions.length;
-          }
+        if (allMatchCompanions.isNotEmpty) {
+          await db.upsertMatches(allMatchCompanions);
+          matchesCount = allMatchCompanions.length;
         }
       }
 

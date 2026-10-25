@@ -112,6 +112,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
         start: isSkuQuery(cleanQuery) ? null : _startDate,
         end: isSkuQuery(cleanQuery) ? null : _endDate,
         perPage: 50,
+        forceRefresh: isExplicitReload,
       );
 
       if (!mounted) return;
