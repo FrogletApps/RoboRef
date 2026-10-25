@@ -2,6 +2,7 @@
 
 ## 2026.10.24+228
 
+- **Team Search Clear Button**: Added a clear button with tooltip to quick-clear search queries in the team list screen.
 - **Web Loading Screen**: Removed initial "Starting referee assistant..." text when loading the PWA.
 - **Match Schedule Reloading**: Fixed match schedule refresh when an event was initially loaded before schedule generation, auto-fetch missing schedules on event open, and added a "Check for Schedule" button to the empty schedule screen.
 

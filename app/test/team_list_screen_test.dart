@@ -130,4 +130,46 @@ void main() {
     expect(find.text('th'), findsNWidgets(2)); // 14th and 105th
     expect(find.text('-'), findsOneWidget);
   });
+
+  testWidgets('TeamListScreen search field shows clear button when typed and clears search query on tap', (tester) async {
+    const teams = [
+      Team(sku: 'RE-V5RC-26-4487', teamNumber: '1A', teamName: 'One A'),
+      Team(sku: 'RE-V5RC-26-4487', teamNumber: '96F', teamName: 'Ninety Six'),
+    ];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeTournamentTeamsProvider.overrideWith((ref) => Stream.value(teams)),
+          activeTournamentNotesProvider.overrideWith((ref) => Stream.value([])),
+        ],
+        child: const MaterialApp(
+          home: TeamListScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Initially clear button should not be present
+    expect(find.byTooltip('Clear search'), findsNothing);
+
+    // Enter search query
+    await tester.enterText(find.byType(TextField), '96');
+    await tester.pumpAndSettle();
+
+    // Verify clear button appears and search filters list
+    expect(find.byTooltip('Clear search'), findsOneWidget);
+    expect(find.text('96F'), findsWidgets);
+    expect(find.text('1A'), findsNothing);
+
+    // Tap clear button
+    await tester.tap(find.byTooltip('Clear search'));
+    await tester.pumpAndSettle();
+
+    // Verify search is cleared and all items return
+    expect(find.byTooltip('Clear search'), findsNothing);
+    expect(find.text('1A'), findsWidgets);
+    expect(find.text('96F'), findsWidgets);
+  });
 }
