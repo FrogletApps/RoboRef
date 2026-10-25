@@ -581,4 +581,68 @@ describe("Secure Share Server Endpoints", () => {
     const json = await res.json();
     assert.strictEqual(json.error, "Failed to leave share session");
   });
+
+  it("POST /api/share/remove-participant handles storage error and returns 500 with message or default fallback", async () => {
+    const storage = new MockShareStorageAdapter();
+    const app = createSyncApp(storage);
+
+    const createRes = await app.request("/api/share/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sku: "RE-VRC-24-1234",
+        adminDeviceId: "dev-admin-1",
+        adminRefereeName: "Alice Head Ref",
+      }),
+    });
+    const { session } = await createRes.json();
+
+    await app.request("/api/share/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shareId: session.id,
+        deviceId: "dev-referee-2",
+        refereeName: "Bob Field Ref",
+      }),
+    });
+
+    // Case 1: storage.removeParticipant throws Error with a specific message
+    storage.removeParticipant = async () => {
+      throw new Error("Database error removing participant");
+    };
+
+    const errRes1 = await app.request("/api/share/remove-participant", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shareId: session.id,
+        adminDeviceId: "dev-admin-1",
+        targetDeviceId: "dev-referee-2",
+      }),
+    });
+
+    assert.strictEqual(errRes1.status, 500);
+    const errJson1 = await errRes1.json();
+    assert.strictEqual(errJson1.error, "Database error removing participant");
+
+    // Case 2: storage.removeParticipant throws an exception without a message property
+    storage.removeParticipant = async () => {
+      throw "unexpected non-error object";
+    };
+
+    const errRes2 = await app.request("/api/share/remove-participant", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shareId: session.id,
+        adminDeviceId: "dev-admin-1",
+        targetDeviceId: "dev-referee-2",
+      }),
+    });
+
+    assert.strictEqual(errRes2.status, 500);
+    const errJson2 = await errRes2.json();
+    assert.strictEqual(errJson2.error, "Failed to remove participant");
+  });
 });
