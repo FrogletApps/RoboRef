@@ -136,3 +136,52 @@ describe("CloudflareD1Adapter - applyNoteChanges batching test & benchmark", () 
     assert.strictEqual(result.latestVersion, 260); // maxVer (10) + 250 changes
   });
 });
+
+describe("CloudflareD1Adapter - updateParticipantName escaping test", () => {
+  it("should escape wildcard characters and include ESCAPE clause in query", async () => {
+    const preparedQueries: { query: string; params: any[] }[] = [];
+    const mockDb = {
+      prepare(query: string) {
+        const boundParams: any[] = [];
+        const statement = {
+          bind(...params: any[]) {
+            boundParams.push(...params);
+            return this;
+          },
+          async first<T = any>(): Promise<T | null> {
+            return null;
+          },
+          async all<T = any>(): Promise<{ results: T[] }> {
+            preparedQueries.push({ query, params: [...boundParams] });
+            return {
+              results: [
+                {
+                  id: "s-1",
+                  sku: "RE-VRC-24-1000",
+                  adminDeviceId: "dev%123",
+                  adminRefereeName: "Old Name",
+                  createdAt: 1000,
+                  updatedAt: 1000,
+                  participantsJson: JSON.stringify([{ deviceId: "dev%123", refereeName: "Old Name" }]),
+                },
+              ],
+            };
+          },
+          async run(): Promise<any> {
+            return { success: true };
+          },
+        };
+        return statement;
+      },
+    };
+
+    const adapter = new CloudflareD1Adapter(mockDb as any);
+    const updated = await adapter.updateParticipantName("dev%123", "New Name");
+
+    assert.strictEqual(updated.length, 1);
+    assert.strictEqual(preparedQueries.length, 1);
+    assert.ok(preparedQueries[0].query.includes("ESCAPE '\\'"));
+    assert.strictEqual(preparedQueries[0].params[0], "dev%123");
+    assert.strictEqual(preparedQueries[0].params[1], '%"deviceId":"dev\\%123"%');
+  });
+});

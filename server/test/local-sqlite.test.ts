@@ -168,4 +168,53 @@ describe("LocalSqliteAdapter", () => {
     assert.strictEqual(notes.length, 1);
     assert.strictEqual(notes[0].id, "note-1");
   });
+
+  it("should handle deviceId with LIKE wildcard characters safely in updateParticipantName", async () => {
+    const adapter = new LocalSqliteAdapter(":memory:");
+    await adapter.init();
+
+    const targetDeviceId = "dev%123_test\\1";
+    const otherDeviceId = "devX123YtestZ1";
+
+    await adapter.createShareSession({
+      id: "share-wildcard-1",
+      sku: "RE-VRC-23-1000",
+      adminDeviceId: targetDeviceId,
+      adminRefereeName: "Ref Wildcard",
+      createdAt: 1000,
+      updatedAt: 1000,
+      participants: [
+        {
+          deviceId: targetDeviceId,
+          refereeName: "Ref Wildcard",
+          joinedAt: 1000,
+        },
+      ],
+    });
+
+    await adapter.createShareSession({
+      id: "share-wildcard-2",
+      sku: "RE-VRC-23-1000",
+      adminDeviceId: otherDeviceId,
+      adminRefereeName: "Ref Other",
+      createdAt: 1000,
+      updatedAt: 1000,
+      participants: [
+        {
+          deviceId: otherDeviceId,
+          refereeName: "Ref Other",
+          joinedAt: 1000,
+        },
+      ],
+    });
+
+    const updatedSessions = await adapter.updateParticipantName(targetDeviceId, "Ref Wildcard Updated");
+    assert.strictEqual(updatedSessions.length, 1);
+    assert.strictEqual(updatedSessions[0].id, "share-wildcard-1");
+    assert.strictEqual(updatedSessions[0].adminRefereeName, "Ref Wildcard Updated");
+
+    // Ensure session 2 was unaffected
+    const session2 = await adapter.getShareSession("share-wildcard-2");
+    assert.strictEqual(session2?.adminRefereeName, "Ref Other");
+  });
 });
