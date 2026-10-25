@@ -196,7 +196,23 @@ export function createSyncApp(storageProvider: StorageAdapter) {
 
   // Proxy endpoint for VEX Events API v2
   app.get("/api/vexevents/*", async (c) => {
-    const rawPath = c.req.path.replace(/^\/api\/vexevents\/?/, "");
+    let rawPath = c.req.path.replace(/^\/api\/vexevents\/?/, "");
+
+    // Decode double-encoded or encoded traversal components to inspect actual path
+    try {
+      let decoded = decodeURIComponent(rawPath);
+      while (decoded !== rawPath) {
+        rawPath = decoded;
+        decoded = decodeURIComponent(rawPath);
+      }
+    } catch {
+      return c.json({ error: "Invalid path encoding" }, 400);
+    }
+
+    // Sanitize path to prevent path traversal / request redirection vulnerabilities
+    if (rawPath.includes("..") || rawPath.startsWith("/")) {
+      return c.json({ error: "Invalid path specified" }, 400);
+    }
     const url = new URL(c.req.url);
     const refreshParam = url.searchParams.get("refresh");
     const forceRefresh =
