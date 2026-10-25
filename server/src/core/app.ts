@@ -197,6 +197,22 @@ export function createSyncApp(storageProvider: StorageAdapter) {
   // Proxy endpoint for VEX Events API v2
   app.get("/api/vexevents/*", async (c) => {
     const rawPath = c.req.path.replace(/^\/api\/vexevents\/?/, "");
+
+    // Security: Sanitize path to prevent path traversal & URL/host injection attacks
+    let decodedPath = rawPath;
+    try {
+      decodedPath = decodeURIComponent(rawPath);
+    } catch {
+      // Ignore URI decode error and use raw path
+    }
+
+    const cleanSegments = decodedPath
+      .replace(/\\/g, "/")
+      .split("/")
+      .filter((part) => part !== "" && part !== "." && part !== "..");
+
+    const sanitizedPath = cleanSegments.join("/");
+
     const url = new URL(c.req.url);
     const refreshParam = url.searchParams.get("refresh");
     const forceRefresh =
@@ -207,7 +223,7 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     cleanSearchParams.delete("refresh");
     const cleanSearchStr = cleanSearchParams.toString();
     const cleanSearch = cleanSearchStr ? `?${cleanSearchStr}` : "";
-    const cacheKey = `${rawPath}${cleanSearch}`;
+    const cacheKey = `${sanitizedPath}${cleanSearch}`;
 
     const now = Date.now();
     const cached = !forceRefresh ? cacheMap.get(cacheKey) : undefined;
@@ -238,10 +254,17 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     }
 
     const isDirectVex = Boolean(authHeader);
-    const upstreamUrl = isDirectVex
-      ? new URL(`https://events.vex.com/api/v2/${rawPath}`)
-      : new URL(`https://roboref.app/api/vexevents/${rawPath}`);
+    const baseUrl = isDirectVex
+      ? new URL("https://events.vex.com/api/v2/")
+      : new URL("https://roboref.app/api/vexevents/");
+
+    const upstreamUrl = new URL(sanitizedPath, baseUrl);
     upstreamUrl.search = isDirectVex ? cleanSearch : url.search;
+
+    // Security guardrail: Ensure constructed upstream URL does not break out of expected base path
+    if (!upstreamUrl.href.startsWith(baseUrl.href)) {
+      return c.json({ error: "Invalid path parameter: Path traversal detected" }, 400);
+    }
 
     const headers: Record<string, string> = {
       Accept: "application/json",
@@ -258,11 +281,14 @@ export function createSyncApp(storageProvider: StorageAdapter) {
       });
 
       if (!response.ok && !isDirectVex) {
-        const testFallbackUrl = new URL(`https://test.roboref.app/api/vexevents/${rawPath}`);
+        const testBaseUrl = new URL("https://test.roboref.app/api/vexevents/");
+        const testFallbackUrl = new URL(sanitizedPath, testBaseUrl);
         testFallbackUrl.search = url.search;
-        const testResp = await fetch(testFallbackUrl.toString(), { method: "GET", headers });
-        if (testResp.ok) {
-          response = testResp;
+        if (testFallbackUrl.href.startsWith(testBaseUrl.href)) {
+          const testResp = await fetch(testFallbackUrl.toString(), { method: "GET", headers });
+          if (testResp.ok) {
+            response = testResp;
+          }
         }
       }
 
@@ -271,7 +297,7 @@ export function createSyncApp(storageProvider: StorageAdapter) {
       const contentType = response.headers.get("content-type") || "application/json";
 
       if (response.ok) {
-        const ttlSecs = cacheDurationSeconds(rawPath, bodyText);
+        const ttlSecs = cacheDurationSeconds(sanitizedPath, bodyText);
         cacheMap.set(cacheKey, {
           body: bodyText,
           status,

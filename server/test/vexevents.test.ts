@@ -176,4 +176,24 @@ describe("Proxy VEX Events API Endpoints (/api/vexevents/*)", () => {
     assert.strictEqual(body4.data[0].divisions.length, 1);
     assert.strictEqual(fetchCalls, 2);
   });
+
+  it("sanitizes path traversal attempts and strips dot-segments", async () => {
+    const fetchedUrls: string[] = [];
+    globalThis.fetch = async (input: RequestInfo | URL) => {
+      fetchedUrls.push(input.toString());
+      return new Response(JSON.stringify({ status: "ok" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    };
+
+    const app = createSyncApp(new DummyStorageAdapter());
+    const env = { VEX_EVENTS_TOKEN: "test-token" };
+
+    // Request with encoded path traversal dot segments (e.g., ..%2f..%2fevents/RE-VRC-23-1234)
+    const res = await app.request("/api/vexevents/..%2f..%2fevents/RE-VRC-23-1234", {}, env as any);
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(fetchedUrls.length, 1);
+    assert.strictEqual(fetchedUrls[0], "https://events.vex.com/api/v2/events/RE-VRC-23-1234");
+  });
 });
