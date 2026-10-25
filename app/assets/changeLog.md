@@ -2,7 +2,8 @@
 
 ## 2026.10.25+237
 
-- **Accessibility Improvements**: Added descriptive tooltip labels to the incident note delete button, event share modal close button, and search bar clear buttons.
+- **Search Clear Buttons**: Added clear buttons to some search bars.
+- **Accessibility Improvements**: Added descriptive tooltip labels some buttons.
 - **Update Dependencies**
 
 ## 2026.10.24+228
