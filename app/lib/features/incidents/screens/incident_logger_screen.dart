@@ -29,7 +29,14 @@ class IncidentLoggerScreen extends StatefulWidget {
 }
 
 class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,9 +89,20 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
+              controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search by team number, rule, or notes...',
                 prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        tooltip: 'Clear search',
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
                 isDense: true,
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),

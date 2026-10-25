@@ -22,7 +22,14 @@ class MatchScheduleScreen extends StatefulWidget {
 }
 
 class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleRefreshMatches(
     BuildContext context,
@@ -111,9 +118,20 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: TextField(
+                  controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Search by match (e.g. Q12) or team...',
                     prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            tooltip: 'Clear search',
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
                     isDense: true,
                     filled: true,
                     fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
