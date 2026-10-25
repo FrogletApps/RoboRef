@@ -98,4 +98,82 @@ describe("Proxy VEX Events API Endpoints (/api/vexevents/*)", () => {
     assert.ok(fetchedUrls[0].startsWith("https://roboref.app/"));
     assert.ok(fetchedUrls[1].startsWith("https://test.roboref.app/"));
   });
+
+  it("uses 10-minute TTL for events/:id/teams and short 1-minute TTL for events with empty divisions", async () => {
+    globalThis.fetch = async (input: RequestInfo | URL) => {
+      const urlStr = input.toString();
+      if (urlStr.includes("/teams")) {
+        return new Response(JSON.stringify({ data: [] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (urlStr.includes("EMPTY-DIVS")) {
+        return new Response(JSON.stringify({ data: [{ id: 100, sku: "EMPTY-DIVS", divisions: [] }] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ data: [{ id: 101, sku: "WITH-DIVS", divisions: [{ id: 1, name: "Default" }] }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    };
+
+    const app = createSyncApp(new DummyStorageAdapter());
+
+    const teamsRes = await app.request("/api/vexevents/events/100/teams");
+    assert.strictEqual(teamsRes.headers.get("Cache-Control"), "public, max-age=600");
+
+    const emptyDivsRes = await app.request("/api/vexevents/events?sku[]=EMPTY-DIVS");
+    assert.strictEqual(emptyDivsRes.headers.get("Cache-Control"), "public, max-age=60");
+
+    const withDivsRes = await app.request("/api/vexevents/events?sku[]=WITH-DIVS");
+    assert.strictEqual(withDivsRes.headers.get("Cache-Control"), "public, max-age=300");
+  });
+
+  it("bypasses cache and updates canonical cache entry when refresh query param is provided", async () => {
+    let fetchCalls = 0;
+    const fetchedUrls: string[] = [];
+    globalThis.fetch = async (input: RequestInfo | URL) => {
+      fetchCalls++;
+      fetchedUrls.push(input.toString());
+      const divisions = fetchCalls === 1 ? [] : [{ id: 1, name: "Default Division" }];
+      return new Response(JSON.stringify({ data: [{ id: 42, sku: "RE-V5RC-26-0042", divisions }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    };
+
+    const app = createSyncApp(new DummyStorageAdapter());
+    const env = { VEX_EVENTS_TOKEN: "test-token" };
+
+    // 1. Initial load before schedule/divisions exist -> MISS
+    const res1 = await app.request("/api/vexevents/events?sku[]=RE-V5RC-26-0042", {}, env as any);
+    assert.strictEqual(res1.headers.get("X-RoboRef-Cache"), "MISS");
+    const body1 = (await res1.json()) as any;
+    assert.strictEqual(body1.data[0].divisions.length, 0);
+    assert.strictEqual(fetchCalls, 1);
+
+    // 2. Normal repeat request -> HIT (still empty divisions)
+    const res2 = await app.request("/api/vexevents/events?sku[]=RE-V5RC-26-0042", {}, env as any);
+    assert.strictEqual(res2.headers.get("X-RoboRef-Cache"), "HIT");
+    assert.strictEqual(fetchCalls, 1);
+
+    // 3. Explicit refresh -> bypasses cache, strips 'refresh' for upstream VEX API, returns fresh divisions
+    const res3 = await app.request("/api/vexevents/events?sku[]=RE-V5RC-26-0042&refresh=1700000000", {}, env as any);
+    assert.strictEqual(res3.headers.get("X-RoboRef-Cache"), "MISS");
+    assert.strictEqual(res3.headers.get("Cache-Control"), "no-cache, no-store, must-revalidate");
+    const body3 = (await res3.json()) as any;
+    assert.strictEqual(body3.data[0].divisions.length, 1);
+    assert.strictEqual(fetchCalls, 2);
+    assert.ok(!fetchedUrls[1].includes("refresh="), "Upstream direct VEX URL should strip refresh parameter");
+
+    // 4. Subsequent normal request -> HIT with the newly updated divisions!
+    const res4 = await app.request("/api/vexevents/events?sku[]=RE-V5RC-26-0042", {}, env as any);
+    assert.strictEqual(res4.headers.get("X-RoboRef-Cache"), "HIT");
+    const body4 = (await res4.json()) as any;
+    assert.strictEqual(body4.data[0].divisions.length, 1);
+    assert.strictEqual(fetchCalls, 2);
+  });
 });

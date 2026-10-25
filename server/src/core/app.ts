@@ -65,10 +65,25 @@ export function createSyncApp(storageProvider: StorageAdapter) {
   // In-memory cache for vexevents proxy
   const cacheMap = new Map<string, { body: string; status: number; contentType: string; expires: number }>();
 
-  function cacheDurationSeconds(path: string): number {
-    if (/(^|\/)(matches|rankings|skills)(\/|$)/.test(path)) return 60; // 1 min
-    if (path.startsWith("events") || path.startsWith("seasons") || path.startsWith("programs")) return 3600 * 24; // 1 day
-    if (path.startsWith("teams")) return 600; // 10 mins
+  function cacheDurationSeconds(path: string, bodyText?: string): number {
+    if (/(^|\/)(matches|rankings|skills|awards)(\/|$)/.test(path)) return 60; // 1 min
+    if (/(^|\/)teams(\/|$)/.test(path)) return 600; // 10 mins
+    if (path.startsWith("seasons") || path.startsWith("programs")) return 3600 * 24; // 1 day
+    if (path.startsWith("events")) {
+      // If an event has no divisions uploaded yet, keep TTL very short so newly generated schedules are discovered quickly
+      if (bodyText) {
+        try {
+          const parsed = JSON.parse(bodyText);
+          const items = Array.isArray(parsed?.data) ? parsed.data : parsed && typeof parsed === "object" && "sku" in parsed ? [parsed] : [];
+          if (items.length === 1 && (!Array.isArray(items[0]?.divisions) || items[0].divisions.length === 0)) {
+            return 60; // 1 min
+          }
+        } catch {
+          // Ignore parse errors and fall back to default events TTL
+        }
+      }
+      return 300; // 5 mins
+    }
     return 60;
   }
 
@@ -90,7 +105,7 @@ export function createSyncApp(storageProvider: StorageAdapter) {
         return isAllowedOrigin(origin, envOrigins) ? origin : undefined;
       },
       allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowHeaders: ["Content-Type", "Authorization", "X-Device-ID"],
+      allowHeaders: ["Content-Type", "Authorization", "X-Device-ID", "Cache-Control", "Pragma"],
     });
     return corsHandler(c, next);
   });
@@ -183,10 +198,19 @@ export function createSyncApp(storageProvider: StorageAdapter) {
   app.get("/api/vexevents/*", async (c) => {
     const rawPath = c.req.path.replace(/^\/api\/vexevents\/?/, "");
     const url = new URL(c.req.url);
-    const cacheKey = `${rawPath}${url.search}`;
+    const refreshParam = url.searchParams.get("refresh");
+    const forceRefresh =
+      (refreshParam !== null && refreshParam !== "0" && refreshParam !== "false") ||
+      Boolean(c.req.header("Cache-Control")?.includes("no-cache"));
+
+    const cleanSearchParams = new URLSearchParams(url.searchParams);
+    cleanSearchParams.delete("refresh");
+    const cleanSearchStr = cleanSearchParams.toString();
+    const cleanSearch = cleanSearchStr ? `?${cleanSearchStr}` : "";
+    const cacheKey = `${rawPath}${cleanSearch}`;
 
     const now = Date.now();
-    const cached = cacheMap.get(cacheKey);
+    const cached = !forceRefresh ? cacheMap.get(cacheKey) : undefined;
     if (cached && cached.expires > now) {
       c.header("Content-Type", cached.contentType);
       c.header("Cache-Control", `public, max-age=${Math.floor((cached.expires - now) / 1000)}`);
@@ -217,7 +241,7 @@ export function createSyncApp(storageProvider: StorageAdapter) {
     const upstreamUrl = isDirectVex
       ? new URL(`https://events.vex.com/api/v2/${rawPath}`)
       : new URL(`https://roboref.app/api/vexevents/${rawPath}`);
-    upstreamUrl.search = url.search;
+    upstreamUrl.search = isDirectVex ? cleanSearch : url.search;
 
     const headers: Record<string, string> = {
       Accept: "application/json",
@@ -247,14 +271,18 @@ export function createSyncApp(storageProvider: StorageAdapter) {
       const contentType = response.headers.get("content-type") || "application/json";
 
       if (response.ok) {
-        const ttlSecs = cacheDurationSeconds(rawPath);
+        const ttlSecs = cacheDurationSeconds(rawPath, bodyText);
         cacheMap.set(cacheKey, {
           body: bodyText,
           status,
           contentType,
           expires: now + ttlSecs * 1000,
         });
-        c.header("Cache-Control", `public, max-age=${ttlSecs}`);
+        if (forceRefresh) {
+          c.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        } else {
+          c.header("Cache-Control", `public, max-age=${ttlSecs}`);
+        }
       }
 
       c.header("Content-Type", contentType);

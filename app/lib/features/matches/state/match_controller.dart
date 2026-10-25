@@ -24,7 +24,11 @@ class MatchScheduleController extends Notifier<bool> {
   VexEventsClient get _client => ref.read(vexEventsClientProvider);
 
   /// Look for updates to the matches list for the active SKU
-  Future<VexEventsFetchResult> refreshMatches({String? sku}) async {
+  Future<VexEventsFetchResult> refreshMatches({
+    String? sku,
+    bool fetchTeams = false,
+    bool forceRefresh = true,
+  }) async {
     if (state) {
       return VexEventsFetchResult(
         success: false,
@@ -39,8 +43,9 @@ class MatchScheduleController extends Notifier<bool> {
       final result = await _client.fetchTournamentData(
         sku: currentSku,
         db: _db,
-        fetchTeams: false,
+        fetchTeams: fetchTeams,
         fetchMatches: true,
+        forceRefresh: forceRefresh,
       );
       return result;
     } catch (e) {

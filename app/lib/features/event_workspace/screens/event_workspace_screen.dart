@@ -45,6 +45,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
       if (mounted) {
         final currentSku = ref.read(syncSettingsProvider).currentSku;
         ref.read(shareControllerProvider.notifier).loadEventShareState(currentSku);
+        _autoFetchMissingTournamentData(currentSku);
       }
     });
 
@@ -55,6 +56,50 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
         _checkSyncIfShared(quiet: true);
       },
     );
+  }
+
+  Future<void> _autoFetchMissingTournamentData(String rawSku) async {
+    final sku = rawSku.trim().toUpperCase();
+    if (sku.isEmpty || !mounted) return;
+
+    // Skip if EventSelectionScreen already initiated a full tournament import
+    if (ref.read(eventControllerProvider).isLoading) return;
+
+    try {
+      final db = ref.read(databaseProvider);
+      final eventRecord = await db.getEventBySku(sku);
+      if (eventRecord == null || !mounted) return;
+
+      if (ref.read(eventControllerProvider).isLoading) return;
+      if (ref.read(syncSettingsProvider).currentSku.trim().toUpperCase() != sku) return;
+
+      final existingMatches = await db.getMatchesForSku(sku);
+      final existingTeams = await db.getTeamsForSku(sku);
+      if (!mounted) return;
+
+      if (existingMatches.isEmpty) {
+        final result = await ref.read(matchScheduleControllerProvider.notifier).refreshMatches(
+              sku: sku,
+              fetchTeams: existingTeams.isEmpty,
+              forceRefresh: true,
+            );
+        if (mounted && result.success && result.matchesCount > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Loaded ${result.matchesCount} match(es) for $sku'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else if (existingTeams.isEmpty) {
+        await ref.read(teamListControllerProvider.notifier).refreshTeams(
+              sku: sku,
+              forceRefresh: true,
+            );
+      }
+    } catch (_) {
+      // Fail silently when offline so local workflow is uninterrupted
+    }
   }
 
   void _startPollingTimer() {

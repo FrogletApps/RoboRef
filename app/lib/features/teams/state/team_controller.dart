@@ -28,7 +28,10 @@ class TeamListController extends Notifier<bool> {
   VexEventsClient get _client => ref.read(vexEventsClientProvider);
 
   /// Look for updates to the teams list and rankings for the active SKU
-  Future<VexEventsFetchResult> refreshTeams({String? sku}) async {
+  Future<VexEventsFetchResult> refreshTeams({
+    String? sku,
+    bool forceRefresh = true,
+  }) async {
     if (state) {
       return VexEventsFetchResult(
         success: false,
@@ -45,6 +48,7 @@ class TeamListController extends Notifier<bool> {
         db: _db,
         fetchTeams: true,
         fetchMatches: false,
+        forceRefresh: forceRefresh,
       );
       return result;
     } catch (e) {

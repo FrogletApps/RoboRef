@@ -96,6 +96,7 @@ class EventController extends Notifier<AsyncValue<void>> {
         eventId: event.id,
         defaultEventName: event.name,
         defaultProgram: event.program,
+        forceRefresh: true,
       );
 
       if (result.success) {
