@@ -1,3 +1,7 @@
+// Pre-compiled regular expression constant to avoid repeated regex compilation
+// when stripping rule bracket formatting across rule lookups and UI lists.
+final _bracketsRegex = RegExp(r'[<>]');
+
 class RuleModel {
   final String code;
   final String title;
@@ -16,7 +20,7 @@ class RuleModel {
   });
 
   /// Clean alphanumeric rule code without brackets, e.g. "SG1", "GG2", "G1".
-  String get cleanCode => code.replaceAll(RegExp(r'[<>]'), '');
+  String get cleanCode => code.replaceAll(_bracketsRegex, '');
 
   /// Formatted code with angle brackets, e.g. `<SG1>`.
   String get formattedCode => code.startsWith('<') && code.endsWith('>') ? code : '<$code>';
@@ -49,7 +53,7 @@ class GameRuleset {
 
   /// Look up a rule by code (e.g. `<SG1>`, `SG1`, `sg1`, or `<GG2>`).
   RuleModel? findRule(String ruleCode) {
-    final clean = ruleCode.replaceAll(RegExp(r'[<>]'), '').trim().toUpperCase();
+    final clean = ruleCode.replaceAll(_bracketsRegex, '').trim().toUpperCase();
     if (clean.isEmpty) return null;
     for (final r in rules) {
       if (r.cleanCode.toUpperCase() == clean) {
@@ -64,4 +68,3 @@ class GameRuleset {
     return findRule(ruleCode)?.summary;
   }
 }
-

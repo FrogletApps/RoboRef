@@ -1,5 +1,10 @@
 import '../../database/app_database.dart';
 
+// Pre-compiled regular expression constant to optimize team number sorting performance.
+// Reusing a single compiled RegExp instance eliminates repeated compilation overhead
+// during natural team ordering comparisons (O(N log N)).
+final _chunksRegex = RegExp(r'(\d+|\D+)');
+
 /// Returns the English ordinal suffix ('st', 'nd', 'rd', 'th') for a given integer rank.
 String getOrdinalSuffix(int number) {
   final abs = number.abs();
@@ -81,7 +86,7 @@ class _Chunk {
 
 List<_Chunk> _splitIntoChunks(String str) {
   final List<_Chunk> chunks = [];
-  final matches = RegExp(r'(\d+|\D+)').allMatches(str);
+  final matches = _chunksRegex.allMatches(str);
   for (final m in matches) {
     final s = m.group(0)!;
     final b = BigInt.tryParse(s);
