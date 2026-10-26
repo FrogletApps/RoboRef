@@ -1,7 +1,8 @@
 # Change Log
 
-## 2026.10.26+258
+## 2026.10.26+259
 
+- **Event Sharing Fix**: Fixed a "Null check operator used on a null value" error when sharing an event on devices with an older local database schema.
 - **Search Clear Buttons**: Added clear buttons to some search bars.
 - **Accessibility Improvements**: Added descriptive tooltip labels some buttons.
 - **Update Dependencies**
