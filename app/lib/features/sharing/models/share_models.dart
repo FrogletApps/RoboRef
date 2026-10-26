@@ -24,15 +24,18 @@ class ShareParticipantModel {
   });
 
   factory ShareParticipantModel.fromJson(Map<String, dynamic> json) {
+    final rawPrevious = json['previousNames'];
+    final prevNames = rawPrevious is List
+        ? rawPrevious.where((e) => e != null).map((e) => e.toString()).toList()
+        : const <String>[];
     return ShareParticipantModel(
-      deviceId: json['deviceId'] as String? ?? '',
-      refereeName: json['refereeName'] as String? ?? 'Referee',
-      role: ShareRole.fromString(json['role'] as String?),
-      joinedAt: json['joinedAt'] as int? ?? DateTime.now().millisecondsSinceEpoch,
-      previousNames: (json['previousNames'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          const [],
+      deviceId: json['deviceId']?.toString() ?? '',
+      refereeName: json['refereeName']?.toString() ?? 'Referee',
+      role: ShareRole.fromString(json['role']?.toString()),
+      joinedAt: (json['joinedAt'] is num)
+          ? (json['joinedAt'] as num).toInt()
+          : DateTime.now().millisecondsSinceEpoch,
+      previousNames: prevNames,
     );
   }
 
@@ -65,18 +68,21 @@ class ShareSessionModel {
   });
 
   factory ShareSessionModel.fromJson(Map<String, dynamic> json) {
-    final participantsList = (json['participants'] as List<dynamic>?)
-            ?.map((p) => ShareParticipantModel.fromJson(p as Map<String, dynamic>))
-            .toList() ??
-        [];
+    final rawParticipants = json['participants'];
+    final participantsList = rawParticipants is List
+        ? rawParticipants
+            .whereType<Map>()
+            .map((p) => ShareParticipantModel.fromJson(Map<String, dynamic>.from(p)))
+            .toList()
+        : <ShareParticipantModel>[];
 
     return ShareSessionModel(
-      id: json['id'] as String? ?? '',
-      sku: json['sku'] as String? ?? '',
-      adminDeviceId: json['adminDeviceId'] as String? ?? '',
-      adminRefereeName: json['adminRefereeName'] as String? ?? 'Head Referee',
-      createdAt: json['createdAt'] as int? ?? 0,
-      updatedAt: json['updatedAt'] as int? ?? 0,
+      id: json['id']?.toString() ?? '',
+      sku: json['sku']?.toString() ?? '',
+      adminDeviceId: json['adminDeviceId']?.toString() ?? '',
+      adminRefereeName: json['adminRefereeName']?.toString() ?? 'Head Referee',
+      createdAt: (json['createdAt'] is num) ? (json['createdAt'] as num).toInt() : 0,
+      updatedAt: (json['updatedAt'] is num) ? (json['updatedAt'] as num).toInt() : 0,
       participants: participantsList,
     );
   }
@@ -99,11 +105,13 @@ class ActiveShareSummary {
 
   factory ActiveShareSummary.fromJson(Map<String, dynamic> json) {
     return ActiveShareSummary(
-      id: json['id'] as String? ?? '',
-      sku: json['sku'] as String? ?? '',
-      adminRefereeName: json['adminRefereeName'] as String? ?? 'Head Referee',
-      participantCount: json['participantCount'] as int? ?? 1,
-      createdAt: json['createdAt'] as int? ?? 0,
+      id: json['id']?.toString() ?? '',
+      sku: json['sku']?.toString() ?? '',
+      adminRefereeName: json['adminRefereeName']?.toString() ?? 'Head Referee',
+      participantCount: (json['participantCount'] is num)
+          ? (json['participantCount'] as num).toInt()
+          : 1,
+      createdAt: (json['createdAt'] is num) ? (json['createdAt'] as num).toInt() : 0,
     );
   }
 }

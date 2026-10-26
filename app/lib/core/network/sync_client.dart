@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../database/app_database.dart';
+import '../../features/settings/state/sync_settings_controller.dart';
 
 class SyncResult {
   final bool success;
@@ -21,23 +22,32 @@ class SyncClient {
   final String deviceId;
 
   SyncClient({
-    required this.baseUrl,
+    required String baseUrl,
     required this.deviceId,
-  });
+  }) : baseUrl = normalizeServerBaseUrl(baseUrl);
 
   // Pull new notes updated on server since localVersion
   Future<List<Map<String, dynamic>>> pullChanges({
     required String sku,
     required int sinceVersion,
   }) async {
+    if (baseUrl.isEmpty) return [];
     try {
-      final uri = Uri.parse('$baseUrl/api/sync/pull?sku=$sku&since=$sinceVersion');
+      final uri = Uri.parse('$baseUrl/api/sync/pull').replace(
+        queryParameters: {
+          'sku': sku,
+          'since': sinceVersion.toString(),
+        },
+      );
       final response = await http.get(uri).timeout(const Duration(seconds: 8));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['changes'] is List) {
-          return List<Map<String, dynamic>>.from(data['changes']);
+        if (data is Map && data['changes'] is List) {
+          return (data['changes'] as List)
+              .whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
         }
       }
     } catch (e) {
@@ -53,6 +63,14 @@ class SyncClient {
   }) async {
     if (localNotes.isEmpty) {
       return SyncResult(success: true, latestVersion: 0, syncedCount: 0);
+    }
+    if (baseUrl.isEmpty) {
+      return SyncResult(
+        success: false,
+        latestVersion: 0,
+        syncedCount: 0,
+        errorMessage: 'Sync server URL is not configured',
+      );
     }
 
     try {
@@ -85,10 +103,11 @@ class SyncClient {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        final map = data is Map ? data : const {};
         return SyncResult(
           success: true,
-          latestVersion: data['latestVersion'] ?? 0,
-          syncedCount: data['appliedCount'] ?? localNotes.length,
+          latestVersion: (map['latestVersion'] is num) ? (map['latestVersion'] as num).toInt() : 0,
+          syncedCount: (map['appliedCount'] is num) ? (map['appliedCount'] as num).toInt() : localNotes.length,
         );
       } else {
         return SyncResult(

@@ -70,10 +70,24 @@ class ShareController extends Notifier<EventShareState> {
   AppDatabase get _db => ref.read(databaseProvider);
   SyncSettingsState get _settings => ref.read(syncSettingsProvider);
 
-  ShareClient get _client => ShareClient(
-        baseUrl: _settings.serverUrl,
-        httpClient: ref.read(syncSettingsHttpClientProvider),
-      );
+  ShareClient get _client => _clientForSku(state.sku);
+
+  ShareClient _clientForSku(String sku) {
+    final cleanSku = sku.trim().toUpperCase();
+    final currentSku = _settings.currentSku.trim().toUpperCase();
+    final serverUrl = (cleanSku.isEmpty || cleanSku == currentSku)
+        ? _settings.serverUrl
+        : ref.read(syncSettingsProvider.notifier).getServerUrlForSku(cleanSku);
+    return ShareClient(
+      baseUrl: serverUrl,
+      httpClient: ref.read(syncSettingsHttpClientProvider),
+    );
+  }
+
+  String get _effectiveRefereeName {
+    final trimmed = _settings.refereeName.trim();
+    return trimmed.isNotEmpty ? trimmed : 'Head Referee';
+  }
 
   Timer? _nameDebounceTimer;
   String? _lastCommittedName;
@@ -206,9 +220,11 @@ class ShareController extends Notifier<EventShareState> {
 
     try {
       final event = await _db.getEventBySku(sku);
+      if (!ref.mounted) return;
       if (event != null && event.isShared && event.shareId != null) {
         final role = ShareRole.fromString(event.shareRole);
-        state = state.copyWith(
+        state = EventShareState(
+          sku: sku,
           isShared: true,
           shareId: event.shareId,
           role: role,
@@ -219,76 +235,92 @@ class ShareController extends Notifier<EventShareState> {
         // Refresh live status from server
         refreshShareStatus(sku);
       } else {
-        state = state.copyWith(
+        state = EventShareState(
+          sku: sku,
           isShared: false,
-          shareId: null,
-          role: null,
-          adminRefereeName: null,
-          adminDeviceId: null,
-          participants: [],
           isLoading: false,
         );
       }
     } catch (e) {
+      if (!ref.mounted) return;
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 
   /// Check active shares on server for existing share conflict detection
   Future<List<ActiveShareSummary>> checkActiveShares(String sku) async {
-    return _client.checkActiveShares(sku);
+    return _clientForSku(sku).checkActiveShares(sku);
   }
 
   /// Create a new share session for an event
   Future<CreateShareResult> createShare(String sku, {bool force = false}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null, isConflict: false);
+    if (!ref.mounted) {
+      return CreateShareResult(success: false, errorMessage: 'Controller disposed');
+    }
+    state = state.copyWith(sku: sku, isLoading: true, errorMessage: null, isConflict: false);
 
-    final result = await _client.createShareSession(
-      sku: sku,
-      adminDeviceId: _settings.deviceId,
-      adminRefereeName: _settings.refereeName,
-      force: force,
-    );
-
-    if (result.success && result.session != null) {
-      final session = result.session!;
-      await _db.updateEventShareState(
-        sku,
-        isShared: true,
-        shareId: session.id,
-        shareRole: 'admin',
-        adminRefereeName: session.adminRefereeName,
-        adminDeviceId: session.adminDeviceId,
+    try {
+      final result = await _clientForSku(sku).createShareSession(
+        sku: sku,
+        adminDeviceId: _settings.deviceId,
+        adminRefereeName: _effectiveRefereeName,
+        force: force,
       );
+      if (!ref.mounted) return result;
 
-      state = state.copyWith(
-        isShared: true,
-        shareId: session.id,
-        role: ShareRole.admin,
-        adminRefereeName: session.adminRefereeName,
-        adminDeviceId: session.adminDeviceId,
-        participants: session.participants,
-        isLoading: false,
-        isConflict: false,
-      );
+      final session = result.session;
+      if (result.success && session != null) {
+        await _db.updateEventShareState(
+          sku,
+          isShared: true,
+          shareId: session.id,
+          shareRole: 'admin',
+          adminRefereeName: session.adminRefereeName,
+          adminDeviceId: session.adminDeviceId,
+        );
+        if (!ref.mounted) return result;
 
-      // Trigger initial push to sync server
-      ref.read(incidentControllerProvider.notifier).triggerSync();
-    } else if (result.isConflict) {
-      state = state.copyWith(
-        isLoading: false,
-        isConflict: true,
-        conflictMessage: result.conflictMessage,
-        existingShares: result.existingShares,
-      );
-    } else {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: result.errorMessage ?? 'Failed to create share',
+        state = EventShareState(
+          sku: sku,
+          isShared: true,
+          shareId: session.id,
+          role: ShareRole.admin,
+          adminRefereeName: session.adminRefereeName,
+          adminDeviceId: session.adminDeviceId,
+          participants: session.participants,
+          isLoading: false,
+          isConflict: false,
+        );
+
+        // Trigger initial push to sync server
+        ref.read(incidentControllerProvider.notifier).triggerSync();
+      } else if (result.isConflict) {
+        state = state.copyWith(
+          isLoading: false,
+          isConflict: true,
+          conflictMessage: result.conflictMessage,
+          existingShares: result.existingShares,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: result.errorMessage ?? 'Failed to create share',
+        );
+      }
+
+      return result;
+    } catch (e) {
+      if (ref.mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: e.toString(),
+        );
+      }
+      return CreateShareResult(
+        success: false,
+        errorMessage: e.toString(),
       );
     }
-
-    return result;
   }
 
   /// Join an existing share session
@@ -296,45 +328,59 @@ class ShareController extends Notifier<EventShareState> {
     required String shareId,
     required String sku,
   }) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    if (!ref.mounted) return false;
+    state = state.copyWith(sku: sku, isLoading: true, errorMessage: null);
 
-    final session = await _client.joinShareSession(
-      shareId: shareId.trim().toUpperCase(),
-      sku: sku,
-      deviceId: _settings.deviceId,
-      refereeName: _settings.refereeName,
-    );
-
-    if (session != null) {
-      final role = session.adminDeviceId == _settings.deviceId ? ShareRole.admin : ShareRole.member;
-      await _db.updateEventShareState(
-        sku,
-        isShared: true,
-        shareId: session.id,
-        shareRole: role.name,
-        adminRefereeName: session.adminRefereeName,
-        adminDeviceId: session.adminDeviceId,
+    try {
+      final session = await _clientForSku(sku).joinShareSession(
+        shareId: shareId.trim().toUpperCase(),
+        sku: sku,
+        deviceId: _settings.deviceId,
+        refereeName: _effectiveRefereeName,
       );
+      if (!ref.mounted) return false;
 
-      state = state.copyWith(
-        isShared: true,
-        shareId: session.id,
-        role: role,
-        adminRefereeName: session.adminRefereeName,
-        adminDeviceId: session.adminDeviceId,
-        participants: session.participants,
-        isLoading: false,
-        isConflict: false,
-      );
+      if (session != null) {
+        final role = session.adminDeviceId == _settings.deviceId ? ShareRole.admin : ShareRole.member;
+        await _db.updateEventShareState(
+          sku,
+          isShared: true,
+          shareId: session.id,
+          shareRole: role.name,
+          adminRefereeName: session.adminRefereeName,
+          adminDeviceId: session.adminDeviceId,
+        );
+        if (!ref.mounted) return false;
 
-      // Sync notes from server
-      ref.read(incidentControllerProvider.notifier).triggerSync();
-      return true;
-    } else {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Could not join share session. Check code or connection.',
-      );
+        state = EventShareState(
+          sku: sku,
+          isShared: true,
+          shareId: session.id,
+          role: role,
+          adminRefereeName: session.adminRefereeName,
+          adminDeviceId: session.adminDeviceId,
+          participants: session.participants,
+          isLoading: false,
+          isConflict: false,
+        );
+
+        // Sync notes from server
+        ref.read(incidentControllerProvider.notifier).triggerSync();
+        return true;
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Could not join share session. Check code or connection.',
+        );
+        return false;
+      }
+    } catch (e) {
+      if (ref.mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: e.toString(),
+        );
+      }
       return false;
     }
   }
@@ -348,38 +394,49 @@ class ShareController extends Notifier<EventShareState> {
 
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final result = await _client.leaveShareSession(
-      shareId: shareId,
-      deviceId: _settings.deviceId,
-    );
-
-    if (result.success) {
-      await _db.updateEventShareState(
-        sku,
-        isShared: false,
-        shareId: null,
-        shareRole: null,
-        adminRefereeName: null,
-        adminDeviceId: null,
+    try {
+      final result = await _clientForSku(sku).leaveShareSession(
+        shareId: shareId,
+        deviceId: _settings.deviceId,
       );
+      if (!ref.mounted) return result;
 
-      state = state.copyWith(
-        isShared: false,
-        shareId: null,
-        role: null,
-        adminRefereeName: null,
-        adminDeviceId: null,
-        participants: [],
-        isLoading: false,
-      );
-    } else {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: result.errorMessage,
+      if (result.success) {
+        await _db.updateEventShareState(
+          sku,
+          isShared: false,
+          shareId: null,
+          shareRole: null,
+          adminRefereeName: null,
+          adminDeviceId: null,
+        );
+        if (!ref.mounted) return result;
+
+        state = EventShareState(
+          sku: sku,
+          isShared: false,
+          isLoading: false,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: result.errorMessage,
+        );
+      }
+
+      return result;
+    } catch (e) {
+      if (ref.mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: e.toString(),
+        );
+      }
+      return LeaveShareResult(
+        success: false,
+        errorMessage: e.toString(),
       );
     }
-
-    return result;
   }
 
   /// Admin removes/kicks a participant from the share session
@@ -392,65 +449,77 @@ class ShareController extends Notifier<EventShareState> {
 
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final session = await _client.removeParticipant(
-      shareId: shareId,
-      adminDeviceId: _settings.deviceId,
-      targetDeviceId: targetDeviceId,
-    );
+    try {
+      final session = await _clientForSku(sku).removeParticipant(
+        shareId: shareId,
+        adminDeviceId: _settings.deviceId,
+        targetDeviceId: targetDeviceId,
+      );
+      if (!ref.mounted) return false;
 
-    if (session != null) {
-      state = state.copyWith(
-        participants: session.participants,
-        isLoading: false,
-      );
-      return true;
-    } else {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Failed to remove participant',
-      );
+      if (session != null) {
+        state = state.copyWith(
+          participants: session.participants,
+          isLoading: false,
+        );
+        return true;
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Failed to remove participant',
+        );
+        return false;
+      }
+    } catch (e) {
+      if (ref.mounted) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: e.toString(),
+        );
+      }
       return false;
     }
   }
 
   /// Refresh share status and participants list from server
   Future<void> refreshShareStatus(String sku) async {
+    if (!ref.mounted) return;
     final shareId = state.shareId;
     if (shareId == null || !state.isShared) return;
 
-    final session = await _client.getShareStatus(shareId, deviceId: _settings.deviceId);
+    try {
+      final session = await _clientForSku(sku).getShareStatus(shareId, deviceId: _settings.deviceId);
+      if (!ref.mounted) return;
 
-    if (session != null) {
-      final isStillMember = session.participants.any((p) => p.deviceId == _settings.deviceId);
+      if (session != null) {
+        final isStillMember = session.participants.any((p) => p.deviceId == _settings.deviceId);
 
-      if (!isStillMember) {
-        // Device was removed / kicked by admin
-        await _db.updateEventShareState(
-          sku,
-          isShared: false,
-          shareId: null,
-          shareRole: null,
-          adminRefereeName: null,
-          adminDeviceId: null,
-        );
+        if (!isStillMember) {
+          // Device was removed / kicked by admin
+          await _db.updateEventShareState(
+            sku,
+            isShared: false,
+            shareId: null,
+            shareRole: null,
+            adminRefereeName: null,
+            adminDeviceId: null,
+          );
+          if (!ref.mounted) return;
 
-        state = state.copyWith(
-          isShared: false,
-          shareId: null,
-          role: null,
-          adminRefereeName: null,
-          adminDeviceId: null,
-          participants: [],
-          errorMessage: 'You were removed from this shared event session.',
-        );
-      } else {
-        state = state.copyWith(
-          participants: session.participants,
-          adminRefereeName: session.adminRefereeName,
-          adminDeviceId: session.adminDeviceId,
-        );
+          state = EventShareState(
+            sku: sku,
+            isShared: false,
+            errorMessage: 'You were removed from this shared event session.',
+          );
+        } else {
+          state = state.copyWith(
+            participants: session.participants,
+            adminRefereeName: session.adminRefereeName,
+            adminDeviceId: session.adminDeviceId,
+          );
+        }
       }
-    }
+    } catch (_) {}
   }
 }
 

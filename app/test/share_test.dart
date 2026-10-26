@@ -336,6 +336,97 @@ void main() {
       expect(session!.adminRefereeName, equals('New Ref Name'));
       expect(session.participants.first.previousNames, equals(['Old Ref Name']));
     });
+
+    test('ShareClient normalizes trailing slashes and missing scheme in baseUrl', () async {
+      Uri? capturedUri;
+      final mockClient = MockClient((request) async {
+        capturedUri = request.url;
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'session': {
+              'id': 'NORM12',
+              'sku': 'RE-VRC-26-1234',
+              'adminDeviceId': 'dev-1',
+              'adminRefereeName': 'Alice',
+              'createdAt': 100,
+              'updatedAt': 100,
+              'participants': [],
+            },
+          }),
+          200,
+        );
+      });
+
+      final trailingSlashClient = ShareClient(
+        baseUrl: 'https://test.roboref.app/',
+        httpClient: mockClient,
+      );
+      final res1 = await trailingSlashClient.createShareSession(
+        sku: 'RE-VRC-26-1234',
+        adminDeviceId: 'dev-1',
+        adminRefereeName: 'Alice',
+      );
+      expect(res1.success, isTrue);
+      expect(capturedUri?.toString(), equals('https://test.roboref.app/api/share/create'));
+
+      final schemeLessClient = ShareClient(
+        baseUrl: 'roboref.local:8080/',
+        httpClient: mockClient,
+      );
+      final res2 = await schemeLessClient.createShareSession(
+        sku: 'RE-VRC-26-1234',
+        adminDeviceId: 'dev-1',
+        adminRefereeName: 'Alice',
+      );
+      expect(res2.success, isTrue);
+      expect(capturedUri?.toString(), equals('http://roboref.local:8080/api/share/create'));
+    });
+
+    test('createShareSession safely handles null, HTML, or missing session payloads without null check errors', () async {
+      // 1. JSON "null" body
+      final nullBodyClient = ShareClient(
+        baseUrl: 'https://test.roboref.app',
+        httpClient: MockClient((_) async => http.Response('null', 200)),
+      );
+      final nullRes = await nullBodyClient.createShareSession(
+        sku: 'SKU1',
+        adminDeviceId: 'dev-1',
+        adminRefereeName: 'Alice',
+      );
+      expect(nullRes.success, isFalse);
+      expect(nullRes.errorMessage, isNot(contains('Null check operator')));
+
+      // 2. 200 response with session: null
+      final nullSessionClient = ShareClient(
+        baseUrl: 'https://test.roboref.app',
+        httpClient: MockClient(
+          (_) async => http.Response(jsonEncode({'success': true, 'session': null}), 200),
+        ),
+      );
+      final nullSessionRes = await nullSessionClient.createShareSession(
+        sku: 'SKU1',
+        adminDeviceId: 'dev-1',
+        adminRefereeName: 'Alice',
+      );
+      expect(nullSessionRes.success, isFalse);
+      expect(nullSessionRes.errorMessage, isNot(contains('Null check operator')));
+
+      // 3. HTML response (e.g. SPA fallback or proxy error)
+      final htmlClient = ShareClient(
+        baseUrl: 'https://test.roboref.app',
+        httpClient: MockClient(
+          (_) async => http.Response('<!DOCTYPE html><html><body>Error</body></html>', 502),
+        ),
+      );
+      final htmlRes = await htmlClient.createShareSession(
+        sku: 'SKU1',
+        adminDeviceId: 'dev-1',
+        adminRefereeName: 'Alice',
+      );
+      expect(htmlRes.success, isFalse);
+      expect(htmlRes.errorMessage, contains('502'));
+    });
   });
 
   group('EventShareSheet Widget Tests', () {
@@ -673,6 +764,330 @@ void main() {
       await tester.pumpAndSettle();
       container.dispose();
       await tester.pump(Duration.zero);
+    });
+
+    testWidgets('Tapping Share Event Online creates share and persists state even if SKU row was not pre-inserted', (tester) async {
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/share/create') {
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'session': {
+                'id': 'NEW777',
+                'sku': body['sku'],
+                'adminDeviceId': body['adminDeviceId'],
+                'adminRefereeName': body['adminRefereeName'],
+                'createdAt': 1000,
+                'updatedAt': 1000,
+                'participants': [
+                  {
+                    'deviceId': body['adminDeviceId'],
+                    'refereeName': body['adminRefereeName'],
+                    'role': 'admin',
+                    'joinedAt': 1000,
+                  }
+                ],
+              },
+            }),
+            200,
+          );
+        }
+        return http.Response('{}', 200);
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(db),
+          activeEventProvider.overrideWith((ref) => Stream.value(null)),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: EventShareSheet(sku: 'DEMO-UNSEEDED-2026'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Null check operator used on a null value'), findsNothing);
+      expect(find.text('Share Event Online'), findsOneWidget);
+
+      await tester.tap(find.text('Share Event Online'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Null check operator used on a null value'), findsNothing);
+      expect(find.text('NEW777'), findsOneWidget);
+      expect(find.byType(QrImageView), findsOneWidget);
+
+      final savedEvent = await db.getEventBySku('DEMO-UNSEEDED-2026');
+      expect(savedEvent, isNotNull);
+      expect(savedEvent!.isShared, isTrue);
+      expect(savedEvent.shareId, equals('NEW777'));
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      container.dispose();
+      await tester.pump(Duration.zero);
+    });
+  });
+
+  group('Legacy Database Schema Migration Regression Tests', () {
+    testWidgets('Upgrades legacy v2 database missing share columns and shares event without null check error', (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'current_sku': 'RE-VRC-26-1001',
+        'referee_name': 'Head Ref Jane',
+        'device_id': 'device-legacy-1',
+        'server_url': 'https://test.roboref.app',
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      // Simulate a local database originally created before share columns were added,
+      // then upgraded to schemaVersion 2 (which previously only added teams.rank).
+      final legacyDb = AppDatabase.forTesting(
+        NativeDatabase.memory(
+          setup: (rawDb) {
+            rawDb.execute('''
+              CREATE TABLE events (
+                sku TEXT NOT NULL PRIMARY KEY,
+                name TEXT NOT NULL,
+                program TEXT NOT NULL,
+                season TEXT NOT NULL,
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
+                venue TEXT,
+                city TEXT,
+                region TEXT,
+                is_hidden INTEGER NOT NULL DEFAULT 0,
+                updated_at INTEGER NOT NULL
+              );
+              CREATE TABLE teams (
+                team_number TEXT NOT NULL,
+                team_name TEXT NOT NULL,
+                sku TEXT NOT NULL,
+                organization TEXT,
+                city TEXT,
+                region TEXT,
+                country TEXT,
+                rank INTEGER,
+                PRIMARY KEY (team_number, sku)
+              );
+              CREATE TABLE matches (
+                match_id TEXT NOT NULL,
+                sku TEXT NOT NULL,
+                division_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                field TEXT,
+                scheduled_time TEXT,
+                red_teams_json TEXT NOT NULL,
+                blue_teams_json TEXT NOT NULL,
+                red_score INTEGER,
+                blue_score INTEGER,
+                PRIMARY KEY (match_id, sku)
+              );
+              CREATE TABLE incident_notes (
+                id TEXT NOT NULL PRIMARY KEY,
+                sku TEXT NOT NULL,
+                team_number TEXT NOT NULL,
+                match_id TEXT,
+                rule_codes_json TEXT NOT NULL,
+                severity TEXT NOT NULL,
+                notes TEXT NOT NULL,
+                referee_name TEXT NOT NULL,
+                device_id TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL,
+                is_deleted INTEGER NOT NULL DEFAULT 0,
+                version INTEGER NOT NULL DEFAULT 0,
+                is_synced INTEGER NOT NULL DEFAULT 0
+              );
+              INSERT INTO events (sku, name, program, season, start_date, end_date, updated_at)
+              VALUES ('RE-VRC-26-1001', 'Legacy Regional Qualifier', 'V5RC', '2026-2027', '2026-10-25', '2026-10-26', 1000);
+              PRAGMA user_version = 2;
+            ''');
+          },
+        ),
+      );
+      addTearDown(() async => legacyDb.close());
+
+      final migratedEvent = await legacyDb.getEventBySku('RE-VRC-26-1001');
+      expect(migratedEvent, isNotNull);
+      expect(migratedEvent!.name, equals('Legacy Regional Qualifier'));
+      expect(migratedEvent.isShared, isFalse);
+      expect(migratedEvent.isHidden, isFalse);
+
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/share/create') {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'session': {
+                'id': 'MIGR88',
+                'sku': 'RE-VRC-26-1001',
+                'adminDeviceId': 'device-legacy-1',
+                'adminRefereeName': 'Head Ref Jane',
+                'createdAt': 2000,
+                'updatedAt': 2000,
+                'participants': [
+                  {
+                    'deviceId': 'device-legacy-1',
+                    'refereeName': 'Head Ref Jane',
+                    'role': 'admin',
+                    'joinedAt': 2000,
+                  }
+                ],
+              },
+            }),
+            200,
+          );
+        }
+        return http.Response('{}', 200);
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(legacyDb),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: EventShareSheet(sku: 'RE-VRC-26-1001'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Null check operator'), findsNothing);
+      expect(find.text('Share Event Online'), findsOneWidget);
+
+      await tester.tap(find.text('Share Event Online'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Null check operator'), findsNothing);
+      expect(find.text('Sharing: RoboRef Cloud Server (Host / Admin)'), findsOneWidget);
+      expect(find.text('MIGR88'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      container.dispose();
+      await tester.pump(Duration.zero);
+    });
+
+    test('Upgrades earliest v1 database (7-column events) and full v2 database idempotently', () async {
+      // 1. Earliest v1 schema (missing venue, city, region, is_hidden, share columns, and teams.rank)
+      final v1Db = AppDatabase.forTesting(
+        NativeDatabase.memory(
+          setup: (rawDb) {
+            rawDb.execute('''
+              CREATE TABLE events (
+                sku TEXT NOT NULL PRIMARY KEY,
+                name TEXT NOT NULL,
+                program TEXT NOT NULL,
+                season TEXT NOT NULL,
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
+                updated_at INTEGER NOT NULL
+              );
+              CREATE TABLE teams (
+                team_number TEXT NOT NULL,
+                team_name TEXT NOT NULL,
+                sku TEXT NOT NULL,
+                organization TEXT,
+                city TEXT,
+                region TEXT,
+                country TEXT,
+                PRIMARY KEY (team_number, sku)
+              );
+              INSERT INTO events (sku, name, program, season, start_date, end_date, updated_at)
+              VALUES ('RE-VRC-26-0001', 'Earliest V1 Event', 'V5RC', '2026-2027', '2026-08-23', '2026-08-23', 500);
+              PRAGMA user_version = 1;
+            ''');
+          },
+        ),
+      );
+      addTearDown(() async => v1Db.close());
+
+      final v1Event = await v1Db.getEventBySku('RE-VRC-26-0001');
+      expect(v1Event, isNotNull);
+      expect(v1Event!.isHidden, isFalse);
+      expect(v1Event.isShared, isFalse);
+
+      // 2. Full v2 schema (all 16 event columns + teams.rank already present)
+      final fullV2Db = AppDatabase.forTesting(
+        NativeDatabase.memory(
+          setup: (rawDb) {
+            rawDb.execute('''
+              CREATE TABLE events (
+                sku TEXT NOT NULL PRIMARY KEY,
+                name TEXT NOT NULL,
+                program TEXT NOT NULL,
+                season TEXT NOT NULL,
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
+                venue TEXT,
+                city TEXT,
+                region TEXT,
+                is_hidden INTEGER NOT NULL DEFAULT 0,
+                is_shared INTEGER NOT NULL DEFAULT 0,
+                share_id TEXT,
+                share_role TEXT,
+                admin_referee_name TEXT,
+                admin_device_id TEXT,
+                updated_at INTEGER NOT NULL
+              );
+              CREATE TABLE teams (
+                team_number TEXT NOT NULL,
+                team_name TEXT NOT NULL,
+                sku TEXT NOT NULL,
+                organization TEXT,
+                city TEXT,
+                region TEXT,
+                country TEXT,
+                rank INTEGER,
+                PRIMARY KEY (team_number, sku)
+              );
+              INSERT INTO events (sku, name, program, season, start_date, end_date, is_shared, share_id, share_role, updated_at)
+              VALUES ('RE-VRC-26-0002', 'Already Shared V2 Event', 'V5RC', '2026-2027', '2026-10-01', '2026-10-01', 1, 'KEEP12', 'admin', 900);
+              PRAGMA user_version = 2;
+            ''');
+          },
+        ),
+      );
+      addTearDown(() async => fullV2Db.close());
+
+      final v2Event = await fullV2Db.getEventBySku('RE-VRC-26-0002');
+      expect(v2Event, isNotNull);
+      expect(v2Event!.isShared, isTrue);
+      expect(v2Event.shareId, equals('KEEP12'));
+      expect(v2Event.shareRole, equals('admin'));
     });
   });
 }

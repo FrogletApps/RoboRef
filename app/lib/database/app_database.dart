@@ -4,6 +4,7 @@ import 'tables/teams_table.dart';
 import 'tables/matches_table.dart';
 import 'tables/incident_notes_table.dart';
 import 'connection/connection.dart' as impl;
+import '../core/utils/sku_utils.dart';
 import '../core/utils/team_utils.dart';
 import '../core/utils/match_utils.dart';
 
@@ -16,7 +17,46 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
+
+  Future<Set<String>> _getTableColumns(String tableName) async {
+    final rows = await customSelect('PRAGMA table_info("$tableName")').get();
+    return rows
+        .map((row) => row.data['name']?.toString().toLowerCase())
+        .whereType<String>()
+        .toSet();
+  }
+
+  Future<void> _migrateAndRepairSchema(Migrator m) async {
+    final teamCols = await _getTableColumns(teams.actualTableName);
+    if (!teamCols.contains('rank')) {
+      await m.addColumn(teams, teams.rank);
+    }
+
+    final eventCols = await _getTableColumns(events.actualTableName);
+    final missingEventColumns = <GeneratedColumn>[
+      if (!eventCols.contains('venue')) events.venue,
+      if (!eventCols.contains('city')) events.city,
+      if (!eventCols.contains('region')) events.region,
+      if (!eventCols.contains('is_hidden')) events.isHidden,
+      if (!eventCols.contains('is_shared')) events.isShared,
+      if (!eventCols.contains('share_id')) events.shareId,
+      if (!eventCols.contains('share_role')) events.shareRole,
+      if (!eventCols.contains('admin_referee_name')) events.adminRefereeName,
+      if (!eventCols.contains('admin_device_id')) events.adminDeviceId,
+    ];
+
+    for (final column in missingEventColumns) {
+      await m.addColumn(events, column);
+    }
+
+    await customStatement(
+      'UPDATE "${events.actualTableName}" SET "is_hidden" = 0 WHERE "is_hidden" IS NULL',
+    );
+    await customStatement(
+      'UPDATE "${events.actualTableName}" SET "is_shared" = 0 WHERE "is_shared" IS NULL',
+    );
+  }
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -24,8 +64,8 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (m, from, to) async {
-          if (from < 2) {
-            await m.addColumn(teams, teams.rank);
+          if (from < 3) {
+            await _migrateAndRepairSchema(m);
           }
         },
       );
@@ -130,16 +170,35 @@ class AppDatabase extends _$AppDatabase {
     String? adminRefereeName,
     String? adminDeviceId,
   }) async {
-    await (update(events)..where((tbl) => tbl.sku.equals(sku))).write(
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final updatedRows = await (update(events)..where((tbl) => tbl.sku.equals(sku))).write(
       EventsCompanion(
         isShared: Value(isShared),
         shareId: Value(shareId),
         shareRole: Value(shareRole),
         adminRefereeName: Value(adminRefereeName),
         adminDeviceId: Value(adminDeviceId),
-        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+        updatedAt: Value(now),
       ),
     );
+    if (updatedRows == 0 && isShared) {
+      await into(events).insertOnConflictUpdate(
+        EventsCompanion.insert(
+          sku: sku,
+          name: sku,
+          program: getSkuProgram(sku),
+          season: '',
+          startDate: '',
+          endDate: '',
+          isShared: Value(isShared),
+          shareId: Value(shareId),
+          shareRole: Value(shareRole),
+          adminRefereeName: Value(adminRefereeName),
+          adminDeviceId: Value(adminDeviceId),
+          updatedAt: now,
+        ),
+      );
+    }
   }
 
   // Check if an event is currently marked as shared

@@ -29,17 +29,23 @@ class ServerHealthResult {
   });
 }
 
-Uri? buildHealthCheckUri(String rawUrl) {
+String normalizeServerBaseUrl(String rawUrl) {
   var url = rawUrl.trim();
-  if (url.isEmpty) return null;
+  if (url.isEmpty) return '';
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     url = 'http://$url';
   }
   url = url.replaceAll(RegExp(r'/+$'), '');
   if (url.endsWith('/api/health')) {
-    return Uri.tryParse(url);
+    url = url.substring(0, url.length - '/api/health'.length);
   }
-  return Uri.tryParse('$url/api/health');
+  return url;
+}
+
+Uri? buildHealthCheckUri(String rawUrl) {
+  final base = normalizeServerBaseUrl(rawUrl);
+  if (base.isEmpty) return null;
+  return Uri.tryParse('$base/api/health');
 }
 
 /// Resolves the default sync server URL based on persistent storage or active environment.

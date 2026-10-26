@@ -48,7 +48,9 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
     final settings = ref.watch(syncSettingsProvider);
     final activeEventAsync = ref.watch(activeEventProvider);
     final event = activeEventAsync.value;
-    final eventName = (event?.name.isNotEmpty ?? false) ? event!.name : widget.sku;
+    final eventName = (event != null && event.sku == widget.sku && event.name.isNotEmpty)
+        ? event.name
+        : widget.sku;
     final skuColor = getSkuColor(widget.sku);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -154,7 +156,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  shareState.errorMessage!,
+                                  shareState.errorMessage ?? '',
                                   style: const TextStyle(color: Colors.red, fontSize: 13),
                                 ),
                               ),
@@ -171,7 +173,8 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                       ],
 
                       // 1. If Local Only:
-                      if (!shareState.isShared && !shareState.isConflict) ...[
+                      if (!shareState.isShared &&
+                          !(shareState.isConflict && shareState.existingShares.isNotEmpty)) ...[
                         _buildLocalOnlyView(context, settings),
                       ],
 
