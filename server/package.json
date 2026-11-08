@@ -16,7 +16,7 @@
     "test": "tsx --test test/**/*.test.ts"
   },
   "dependencies": {
-    "@hono/node-server": "^2.1.5",
+    "@hono/node-server": "^2.1.6",
     "dotenv": "^18.0.9",
     "hono": "^4.13.14",
     "zod": "^4.6.7"
