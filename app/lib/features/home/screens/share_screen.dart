@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/sku_utils.dart';
 
 class ShareScreen extends StatelessWidget {
@@ -20,7 +21,7 @@ class ShareScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Share RoboRef'),
+        title: Text(context.l10n.shareTitle),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -73,10 +74,10 @@ class ShareScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Scan the QR code below or share the link with head referees, alliance referees, and scorekeepers.',
+                Text(
+                  context.l10n.shareDescription,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey, fontSize: 13.5),
+                  style: const TextStyle(color: Colors.grey, fontSize: 13.5),
                 ),
                 const SizedBox(height: 28),
 
@@ -139,14 +140,14 @@ class ShareScreen extends StatelessWidget {
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: url));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('RoboRef link copied to clipboard!'),
-                                duration: Duration(seconds: 2),
+                              SnackBar(
+                                content: Text(context.l10n.shareLinkCopied),
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           },
                           icon: const Icon(Icons.copy, size: 16),
-                          label: const Text('Copy Link'),
+                          label: Text(context.l10n.commonCopyLink),
                         ),
                       ],
                     ),

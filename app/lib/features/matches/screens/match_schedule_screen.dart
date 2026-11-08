@@ -11,6 +11,7 @@ import '../../incidents/state/incident_controller.dart';
 import '../../rules/data/default_rules.dart';
 import '../../rules/models/rule_model.dart';
 import '../../../database/app_database.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/team_utils.dart';
 import '../../../core/utils/match_utils.dart';
 import '../../../core/utils/sku_utils.dart';
@@ -44,9 +45,9 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
   }) async {
     if (showCheckingSnackBar) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Checking for match schedule updates...'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Text(context.l10n.workspaceCheckingScheduleUpdates),
+          duration: const Duration(seconds: 1),
         ),
       );
     }
@@ -57,8 +58,8 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
           SnackBar(
             content: Text(
               result.matchesCount > 0
-                  ? 'Updated ${result.matchesCount} match(es)'
-                  : 'Match schedule is up to date',
+                  ? context.l10n.workspaceUpdatedMatchesCount(result.matchesCount)
+                  : context.l10n.workspaceScheduleUpToDate,
             ),
             duration: const Duration(seconds: 2),
           ),
@@ -66,7 +67,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.errorMessage ?? 'Failed to update matches'),
+            content: Text(result.errorMessage ?? context.l10n.workspaceFailedUpdateMatches),
             backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 3),
           ),
@@ -88,7 +89,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               ? AppBar(
                   title: Column(
                     children: [
-                      const Text('Match Schedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(context.l10n.matchesTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       Text(
                         settings.currentSku,
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
@@ -104,7 +105,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
                           : const Icon(Icons.refresh),
-                      tooltip: 'Refresh Matches',
+                      tooltip: context.l10n.workspaceRefreshMatchesTooltip,
                       onPressed: isReloading
                           ? null
                           : () => _handleRefreshMatches(context, ref),
@@ -112,7 +113,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                     if (settings.experimentalFeaturesEnabled)
                       IconButton(
                         icon: const Icon(Icons.download),
-                        tooltip: 'Load / Import Schedule',
+                        tooltip: context.l10n.workspaceImportScheduleTooltip,
                         onPressed: () => _showImportSheet(context),
                       ),
                   ],
@@ -126,12 +127,12 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search by match (e.g. Q12) or team...',
+                    hintText: context.l10n.matchesSearchHint,
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear),
-                            tooltip: 'Clear search',
+                            tooltip: context.l10n.commonClearSearch,
                             onPressed: () {
                               _searchController.clear();
                               setState(() => _searchQuery = '');
@@ -161,7 +162,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                          child: Center(child: Text('Error loading matches: $err')),
+                          child: Center(child: Text(context.l10n.matchesLoadError('$err'))),
                         ),
                       ),
                     ),
@@ -194,8 +195,8 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                     const SizedBox(height: 12),
                                     Text(
                                       matches.isEmpty
-                                          ? 'No match schedule has been loaded yet.'
-                                          : 'No matches found matching "$_searchQuery"',
+                                          ? context.l10n.matchesEmptySchedule
+                                          : context.l10n.matchesNoMatchesMatching(_searchQuery),
                                       style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                                     ),
                                     if (matches.isEmpty) ...[
@@ -215,7 +216,11 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                                 child: CircularProgressIndicator(strokeWidth: 2),
                                               )
                                             : const Icon(Icons.refresh),
-                                        label: Text(isReloading ? 'Checking...' : 'Check for Schedule'),
+                                        label: Text(
+                                          isReloading
+                                              ? context.l10n.matchesCheckingButton
+                                              : context.l10n.matchesCheckForScheduleButton,
+                                        ),
                                       ),
                                     ],
                                     if (settings.experimentalFeaturesEnabled) ...[
@@ -223,7 +228,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                       ElevatedButton.icon(
                                         onPressed: () => _showImportSheet(context),
                                         icon: const Icon(Icons.cloud_download),
-                                        label: const Text('Fetch or Import Schedule'),
+                                        label: Text(context.l10n.matchesFetchOrImportButton),
                                       ),
                                     ],
                                   ],
@@ -280,7 +285,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                               Row(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  _buildAllianceLabel('TEAMS', Theme.of(context).colorScheme.primary, width: 50),
+                                                  _buildAllianceLabel(context.l10n.matchesAllianceTeams, Theme.of(context).colorScheme.primary, width: 50),
                                                   const SizedBox(width: 6),
                                                   Expanded(
                                                     child: Wrap(
@@ -298,7 +303,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                               Row(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  _buildAllianceLabel('RED', Colors.red.shade700),
+                                                  _buildAllianceLabel(context.l10n.matchesAllianceRed, Colors.red.shade700),
                                                   const SizedBox(width: 6),
                                                   Expanded(
                                                     child: Wrap(
@@ -317,7 +322,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                               Row(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  _buildAllianceLabel('BLUE', Colors.blue.shade700),
+                                                  _buildAllianceLabel(context.l10n.matchesAllianceBlue, Colors.blue.shade700),
                                                   const SizedBox(width: 6),
                                                   Expanded(
                                                     child: Wrap(
@@ -458,7 +463,6 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
   }
 
   void _showMatchActions(BuildContext context, String matchName, List<dynamic> redTeams, List<dynamic> blueTeams) {
-    final fullMatchName = normalizeMatchName(matchName);
     final displayMatchName = formatMatchShortName(matchName);
     final sortedRedTeams = List<String>.from(redTeams.map((e) => e.toString()))..sort(compareTeamNumbers);
     final sortedBlueTeams = List<String>.from(blueTeams.map((e) => e.toString()))..sort(compareTeamNumbers);
@@ -478,7 +482,12 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
             final activeEventAsync = ref.watch(activeEventProvider);
             final program = activeEventAsync.value?.program ?? getSkuProgram(settings.currentSku);
             final season = activeEventAsync.value?.season ?? '2026-2027';
-            final ruleset = getGameRuleset(program, season);
+            final ruleset = getGameRuleset(
+              program,
+              season,
+              locale: Localizations.maybeLocaleOf(context),
+            );
+            final fullMatchName = localizeMatchName(context, matchName);
 
             return ConstrainedBox(
               constraints: BoxConstraints(
@@ -508,7 +517,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                     const SizedBox(height: 16),
                     if (sortedRedTeams.isEmpty && sortedBlueTeams.isEmpty)
                       Text(
-                        'No teams assigned to this match.',
+                        context.l10n.matchesNoTeamsAssigned,
                         style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       )
                     else
@@ -645,7 +654,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                   );
                 },
                 icon: const Icon(Symbols.note_stack_add, size: 16),
-                label: const Text('Add Note'),
+                label: Text(context.l10n.commonAddNote),
                 style: FilledButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   minimumSize: const Size(0, 34),
@@ -658,7 +667,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
           const SizedBox(height: 8),
           if (teamNotes.isEmpty)
             Text(
-              'No notes logged',
+              context.l10n.commonNoNotesLogged,
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -670,6 +679,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               runSpacing: 4,
               children: violationEntries
                   .map((entry) => _buildViolationPill(
+                        context: context,
                         ruleset: ruleset,
                         severity: entry.key.severity,
                         ruleCode: entry.key.ruleCode,
@@ -683,6 +693,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
   }
 
   Widget _buildViolationPill({
+    required BuildContext context,
     required GameRuleset ruleset,
     required String severity,
     required String? ruleCode,
@@ -690,34 +701,29 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
   }) {
     Color bg;
     Color fg;
-    String typeLabel;
+    final String typeLabel = localizeSeverity(context, severity);
 
     switch (severity.toLowerCase()) {
       case 'major':
         bg = Colors.red.shade900;
         fg = Colors.white;
-        typeLabel = 'Major';
         break;
       case 'minor':
         bg = Colors.yellow.shade600;
         fg = Colors.black87;
-        typeLabel = 'Minor';
         break;
       case 'disabled':
         bg = Colors.purple.shade700;
         fg = Colors.white;
-        typeLabel = 'Disabled';
         break;
       case 'inspection':
         bg = Colors.teal.shade700;
         fg = Colors.white;
-        typeLabel = 'Inspection';
         break;
       case 'general':
       default:
         bg = Colors.blueGrey.shade100;
         fg = Colors.blueGrey.shade900;
-        typeLabel = 'General';
         break;
     }
 

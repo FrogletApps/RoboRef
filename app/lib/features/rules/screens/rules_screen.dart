@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../../event_selection/state/event_controller.dart';
 import '../../settings/state/sync_settings_controller.dart';
@@ -38,14 +39,14 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
       final success = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open link: $urlString')),
+          SnackBar(content: Text(context.l10n.commonCannotOpenLink(urlString))),
         );
       }
     } catch (_) {
       if (context.mounted) {
         Clipboard.setData(ClipboardData(text: urlString));
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Link copied to clipboard: $urlString')),
+          SnackBar(content: Text(context.l10n.commonLinkCopiedToClipboard(urlString))),
         );
       }
     }
@@ -109,7 +110,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      rule.group,
+                      localizeRuleGroup(ctx, rule.group),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey),
                     ),
                   ),
@@ -151,7 +152,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                           _launchExternalUrl(context, rule.link!);
                         },
                         icon: const Icon(Icons.menu_book, size: 18),
-                        label: const Text('View in Manual'),
+                        label: Text(ctx.l10n.rulesViewInManualButton),
                       ),
                     ),
                   if (rule.link != null) const SizedBox(width: 10),
@@ -162,7 +163,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                         _launchExternalUrl(context, specificQaUrl);
                       },
                       icon: const Icon(Icons.search, size: 18),
-                      label: const Text('Search Q&A'),
+                      label: Text(ctx.l10n.rulesSearchQaButton),
                     ),
                   ),
                 ],
@@ -189,7 +190,11 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
 
     final program = activeEventAsync.value?.program ?? getSkuProgram(settings.currentSku);
     final season = activeEventAsync.value?.season ?? '2026-2027';
-    final ruleset = getGameRuleset(program, season);
+    final ruleset = getGameRuleset(
+      program,
+      season,
+      locale: Localizations.maybeLocaleOf(context),
+    );
 
     final groups = ['All', ...ruleset.rules.map((r) => r.group).toSet()];
 
@@ -211,9 +216,9 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
           ? AppBar(
               title: Column(
                 children: [
-                  const Text(
-                    'Game Rules Summary',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  Text(
+                    context.l10n.rulesTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                   ),
                   Text(
                     ruleset.version,
@@ -249,7 +254,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                         onPressed: () => _launchExternalUrl(context, ruleset.manualUrl),
                         icon: const Icon(Icons.menu_book, size: 16),
                         label: Text(
-                          '${ruleset.program} Manual',
+                          context.l10n.rulesManualButton(ruleset.program),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -260,7 +265,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () => _launchExternalUrl(context, ruleset.qaUrl),
                         icon: const Icon(Icons.help_outline, size: 16),
-                        label: const Text('Official Q&A', maxLines: 1, overflow: TextOverflow.ellipsis),
+                        label: Text(context.l10n.rulesOfficialQaButton, maxLines: 1, overflow: TextOverflow.ellipsis),
                       ),
                     ),
                   ],
@@ -270,12 +275,12 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search rules (e.g. G12, SG6, Pinning, Autonomous)',
+                    hintText: context.l10n.rulesSearchHint,
                     prefixIcon: const Icon(Icons.search, size: 20),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear, size: 18),
-                            tooltip: 'Clear search',
+                            tooltip: context.l10n.commonClearSearch,
                             onPressed: () {
                               _searchController.clear();
                               setState(() => _searchQuery = '');
@@ -302,7 +307,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(right: 6.0),
                         child: FilterChip(
-                          label: Text(g),
+                          label: Text(localizeRuleGroup(context, g)),
                           selected: isSelected,
                           onSelected: (selected) {
                             setState(() {
@@ -334,14 +339,14 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                         children: [
                           Icon(Icons.search_off, size: 48, color: Colors.grey.shade400),
                           const SizedBox(height: 12),
-                          const Text(
-                            'No matching rules found.',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          Text(
+                            context.l10n.rulesNoMatchingTitle,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 6),
-                          const Text(
-                            'Try searching with a different rule code or keyword.',
-                            style: TextStyle(color: Colors.grey, fontSize: 13),
+                          Text(
+                            context.l10n.rulesNoMatchingHint,
+                            style: const TextStyle(color: Colors.grey, fontSize: 13),
                           ),
                         ],
                       ),
@@ -396,7 +401,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        rule.group,
+                                        localizeRuleGroup(context, rule.group),
                                         style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -430,10 +435,10 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                 top: false,
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'DISCLAIMER:  These are a summary of the official rules and are only for reference - check the game manual before you make a ruling.',
-                        style: TextStyle(
+                        context.l10n.rulesDisclaimerText,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -444,7 +449,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                     const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.white, size: 20),
-                      tooltip: 'Dismiss disclaimer',
+                      tooltip: context.l10n.rulesDismissDisclaimerTooltip,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                       onPressed: () {

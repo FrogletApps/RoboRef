@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../database/app_database.dart';
 import '../../../core/utils/match_utils.dart';
 
@@ -24,15 +25,16 @@ class CsvImportService {
     required String sku,
     required AppDatabase db,
   }) async {
+    final l10n = lookupL10n();
     final cleanSku = sku.trim().toUpperCase();
     if (cleanSku.isEmpty) {
-      return CsvImportResult(success: false, errorMessage: 'SKU cannot be empty');
+      return CsvImportResult(success: false, errorMessage: l10n.errorSkuCannotBeEmpty);
     }
 
     try {
       final lines = const LineSplitter().convert(csvContent.trim());
       if (lines.isEmpty) {
-        return CsvImportResult(success: false, errorMessage: 'CSV is empty');
+        return CsvImportResult(success: false, errorMessage: l10n.errorCsvIsEmpty);
       }
 
       // Parse headers
@@ -66,7 +68,7 @@ class CsvImportService {
         final teamNumber = cols[numberIdx].trim().toUpperCase();
         if (teamNumber.isEmpty) continue;
 
-        final teamName = (nameIdx != -1 && cols.length > nameIdx) ? cols[nameIdx].trim() : 'Team $teamNumber';
+        final teamName = (nameIdx != -1 && cols.length > nameIdx) ? cols[nameIdx].trim() : l10n.teamFallbackName(teamNumber);
         final rank = (rankIdx != -1 && cols.length > rankIdx) ? int.tryParse(cols[rankIdx].trim()) : null;
         final org = (orgIdx != -1 && cols.length > orgIdx) ? cols[orgIdx].trim() : null;
         final city = (cityIdx != -1 && cols.length > cityIdx) ? cols[cityIdx].trim() : null;
@@ -98,7 +100,7 @@ class CsvImportService {
     } catch (e) {
       return CsvImportResult(
         success: false,
-        errorMessage: 'Failed to parse Teams CSV: ${e.toString()}',
+        errorMessage: l10n.errorFailedToParseTeamsCsv(e.toString()),
       );
     }
   }
@@ -109,15 +111,16 @@ class CsvImportService {
     required String sku,
     required AppDatabase db,
   }) async {
+    final l10n = lookupL10n();
     final cleanSku = sku.trim().toUpperCase();
     if (cleanSku.isEmpty) {
-      return CsvImportResult(success: false, errorMessage: 'SKU cannot be empty');
+      return CsvImportResult(success: false, errorMessage: l10n.errorSkuCannotBeEmpty);
     }
 
     try {
       final lines = const LineSplitter().convert(csvContent.trim());
       if (lines.isEmpty) {
-        return CsvImportResult(success: false, errorMessage: 'CSV is empty');
+        return CsvImportResult(success: false, errorMessage: l10n.errorCsvIsEmpty);
       }
 
       final headerLine = lines.first;
@@ -200,7 +203,7 @@ class CsvImportService {
     } catch (e) {
       return CsvImportResult(
         success: false,
-        errorMessage: 'Failed to parse Matches CSV: ${e.toString()}',
+        errorMessage: l10n.errorFailedToParseMatchesCsv(e.toString()),
       );
     }
   }

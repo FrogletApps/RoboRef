@@ -1,3 +1,6 @@
+import 'package:flutter/widgets.dart';
+import '../l10n/l10n.dart';
+
 /// Configuration for a region's administrative divisions (e.g. States, Provinces)
 class RegionDivisionConfig {
   final String singularLabel; // e.g. "State", "Province"
@@ -9,6 +12,69 @@ class RegionDivisionConfig {
     required this.pluralLabel,
     required this.divisions,
   });
+
+  String allLabel(BuildContext context) {
+    final l10n = context.l10n;
+    switch (singularLabel) {
+      case 'State':
+        return l10n.eventSelectionAllStates;
+      case 'Province':
+        return l10n.eventSelectionAllProvinces;
+      default:
+        return l10n.eventSelectionAllDivisions(pluralLabel);
+    }
+  }
+
+  String selectedLabel(BuildContext context, String division) {
+    final l10n = context.l10n;
+    switch (singularLabel) {
+      case 'State':
+        return l10n.eventSelectionStateLabel(division);
+      case 'Province':
+        return l10n.eventSelectionProvinceLabel(division);
+      default:
+        return l10n.eventSelectionDivisionLabel(singularLabel, division);
+    }
+  }
+
+  String filterByTitle(BuildContext context) {
+    final l10n = context.l10n;
+    switch (singularLabel) {
+      case 'State':
+        return l10n.eventSelectionFilterByState;
+      case 'Province':
+        return l10n.eventSelectionFilterByProvince;
+      default:
+        return l10n.eventSelectionFilterByDivision(singularLabel);
+    }
+  }
+
+  String searchHint(BuildContext context) {
+    final l10n = context.l10n;
+    switch (singularLabel) {
+      case 'State':
+        return l10n.eventSelectionSearchStatesHint;
+      case 'Province':
+        return l10n.eventSelectionSearchProvincesHint;
+      default:
+        return l10n.eventSelectionSearchDivisionsHint(pluralLabel.toLowerCase());
+    }
+  }
+
+  String noMatchingLabel(BuildContext context, String query) {
+    final l10n = context.l10n;
+    switch (singularLabel) {
+      case 'State':
+        return l10n.eventSelectionNoMatchingStates(query);
+      case 'Province':
+        return l10n.eventSelectionNoMatchingProvinces(query);
+      default:
+        return l10n.eventSelectionNoMatchingDivisions(
+          pluralLabel.toLowerCase(),
+          query,
+        );
+    }
+  }
 }
 
 // Backwards compatibility alias

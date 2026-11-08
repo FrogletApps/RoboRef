@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../l10n/l10n.dart';
 import '../../database/app_database.dart';
 import '../../features/settings/state/sync_settings_controller.dart';
 
@@ -69,7 +70,7 @@ class SyncClient {
         success: false,
         latestVersion: 0,
         syncedCount: 0,
-        errorMessage: 'Sync server URL is not configured',
+        errorMessage: lookupL10n().errorSyncServerUrlNotConfigured,
       );
     }
 
@@ -114,7 +115,7 @@ class SyncClient {
           success: false,
           latestVersion: 0,
           syncedCount: 0,
-          errorMessage: 'Server responded with status ${response.statusCode}',
+          errorMessage: lookupL10n().errorServerRespondedWithStatus(response.statusCode),
         );
       }
     } catch (e) {

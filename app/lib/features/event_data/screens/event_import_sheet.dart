@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/l10n/l10n.dart';
 import '../services/csv_import_service.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../settings/state/sync_settings_controller.dart';
@@ -53,14 +54,14 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Load Tournament Data',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              context.l10n.csvImportTitle,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
-            const Text(
-              'Paste Tournament Manager (TM) export data below.',
-              style: TextStyle(color: Colors.grey, fontSize: 13),
+            Text(
+              context.l10n.csvImportSubtitle,
+              style: const TextStyle(color: Colors.grey, fontSize: 13),
             ),
             const SizedBox(height: 16),
             if (_statusMessage != null) ...[
@@ -94,9 +95,9 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
               ),
             ],
             SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'teams', label: Text('Teams CSV')),
-                ButtonSegment(value: 'matches', label: Text('Match Schedule CSV')),
+              segments: [
+                ButtonSegment(value: 'teams', label: Text(context.l10n.csvImportSegmentTeams)),
+                ButtonSegment(value: 'matches', label: Text(context.l10n.csvImportSegmentMatches)),
               ],
               selected: {_csvType},
               onSelectionChanged: (val) => setState(() => _csvType = val.first),
@@ -106,10 +107,12 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
               controller: _csvController,
               maxLines: 6,
               decoration: InputDecoration(
-                labelText: _csvType == 'teams' ? 'Paste Teams CSV Text' : 'Paste Matches CSV Text',
+                labelText: _csvType == 'teams'
+                    ? context.l10n.csvImportPasteTeamsLabel
+                    : context.l10n.csvImportPasteMatchesLabel,
                 hintText: _csvType == 'teams'
-                    ? 'Number, Name, City, State, Country\n1234A, RoboKnights, Austin, TX, USA'
-                    : 'Match, Field, Time, Red 1, Red 2, Blue 1, Blue 2\nQ1, Field 1, 09:00, 1234A, 5678B, 9012C, 3456D',
+                    ? context.l10n.csvImportPasteTeamsHint
+                    : context.l10n.csvImportPasteMatchesHint,
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -130,7 +133,13 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                       )
                     : const Icon(Icons.file_upload_outlined),
-                label: Text(_isLoading ? 'Importing...' : 'Import ${_csvType == "teams" ? "Teams" : "Matches"} CSV'),
+                label: Text(
+                  _isLoading
+                      ? context.l10n.csvImportImportingButton
+                      : (_csvType == 'teams'
+                          ? context.l10n.csvImportImportTeamsButton
+                          : context.l10n.csvImportImportMatchesButton),
+                ),
               ),
             ),
           ],
@@ -146,7 +155,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
     if (sku.isEmpty) {
       setState(() {
         _isError = true;
-        _statusMessage = 'No tournament SKU selected.';
+        _statusMessage = context.l10n.csvImportNoSkuSelected;
       });
       return;
     }
@@ -154,7 +163,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
     if (csv.isEmpty) {
       setState(() {
         _isError = true;
-        _statusMessage = 'Please paste CSV content to import.';
+        _statusMessage = context.l10n.csvImportEmptyContent;
       });
       return;
     }
@@ -173,7 +182,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
           _isLoading = false;
           _isError = !result.success;
           _statusMessage = result.success
-              ? 'Successfully imported ${result.teamsImported} teams!'
+              ? context.l10n.csvImportTeamsSuccess(result.teamsImported)
               : result.errorMessage;
         });
       }
@@ -184,7 +193,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
           _isLoading = false;
           _isError = !result.success;
           _statusMessage = result.success
-              ? 'Successfully imported ${result.matchesImported} matches!'
+              ? context.l10n.csvImportMatchesSuccess(result.matchesImported)
               : result.errorMessage;
         });
       }

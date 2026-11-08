@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../../event_selection/screens/event_selection_screen.dart';
@@ -125,9 +126,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Recent Tournaments',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.homeRecentTournaments,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.2,
@@ -136,7 +137,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const SizedBox(height: 8),
                       ...events.map((event) {
                       final isShared = event.isShared;
-                      final serverType = getServerTypeDisplayName(settings.serverUrl);
+                      final serverType = getLocalizedServerTypeDisplayName(context, settings.serverUrl);
                       final color = getSkuColor(event.sku);
                       final dateRange = formatEventDateRange(
                         event.startDate,
@@ -219,7 +220,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             const Icon(Icons.share, size: 12, color: Colors.green),
                                             const SizedBox(width: 4),
                                             Text(
-                                              'Sharing: $serverType',
+                                              context.l10n.homeSharingBadge(serverType),
                                               style: const TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
@@ -247,28 +248,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         } else if (action == 'hide') {
                                           ref.read(eventControllerProvider.notifier).hideEvent(event.sku);
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Removed ${event.sku} from recent list')),
+                                            SnackBar(content: Text(context.l10n.homeRemovedFromRecent(event.sku))),
                                           );
                                         }
                                       },
                                       itemBuilder: (context) => [
-                                        const PopupMenuItem(
+                                        PopupMenuItem(
                                           value: 'share',
                                           child: Row(
                                             children: [
-                                              Icon(Icons.share_outlined, size: 16),
-                                              SizedBox(width: 8),
-                                              Text('Share Event Online'),
+                                              const Icon(Icons.share_outlined, size: 16),
+                                              const SizedBox(width: 8),
+                                              Text(context.l10n.commonShareEventOnline),
                                             ],
                                           ),
                                         ),
-                                        const PopupMenuItem(
+                                        PopupMenuItem(
                                           value: 'hide',
                                           child: Row(
                                             children: [
-                                              Icon(Icons.visibility_off, size: 16),
-                                              SizedBox(width: 8),
-                                              Text('Remove from recent'),
+                                              const Icon(Icons.visibility_off, size: 16),
+                                              const SizedBox(width: 8),
+                                              Text(context.l10n.homeRemoveFromRecent),
                                             ],
                                           ),
                                         ),
@@ -395,9 +396,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: const Color(0xFFDC2626), // Red-600
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
-                'LOCAL',
-                style: TextStyle(
+              child: Text(
+                context.l10n.homeEnvLocal,
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 11,
@@ -412,9 +413,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: const Color(0xFFFACC15), // Yellow-400
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
-                'TEST',
-                style: TextStyle(
+              child: Text(
+                context.l10n.homeEnvTest,
+                style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 11,
@@ -438,7 +439,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: _buildQuickActionButton(
             context,
             icon: Icons.qr_code_2_rounded,
-            label: 'Share RoboRef',
+            label: context.l10n.homeShareRoboRef,
             isDark: isDark,
             onTap: () {
               Navigator.of(context).push(
@@ -454,7 +455,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: _buildQuickActionButton(
             context,
             icon: Icons.settings_outlined,
-            label: 'Settings',
+            label: context.l10n.commonSettings,
             isDark: isDark,
             onTap: () {
               Navigator.of(context).push(
@@ -524,9 +525,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         );
       },
       icon: const Icon(Icons.add, size: 24),
-      label: const Text(
-        'Add a new event',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      label: Text(
+        context.l10n.homeAddEvent,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -552,7 +553,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary, size: 22),
               const SizedBox(width: 8),
               Text(
-                'Welcome to RoboRef!',
+                context.l10n.homeWelcomeTitle,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -563,7 +564,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'This is an anomaly log for Head Referees at VEX robotics competitions.',
+            context.l10n.homeWelcomeDescription,
             style: TextStyle(
               fontSize: 13.5,
               color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF52525B),
@@ -571,7 +572,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'To get started, tap the "Add a new event" button above.',
+            context.l10n.homeWelcomeInstruction,
             style: TextStyle(
               fontSize: 13.5,
               color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF52525B),

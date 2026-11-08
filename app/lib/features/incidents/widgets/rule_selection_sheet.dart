@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../rules/models/rule_model.dart';
 
 /// Material 3 modal bottom sheet for searching and selecting multiple rule violations
@@ -122,12 +123,16 @@ class _RuleSelectionSheetState extends State<RuleSelectionSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Select Rule Violations',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        Text(
+                          context.l10n.ruleSelectionTitle,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          '${widget.ruleset.program} ${widget.ruleset.gameTitle} (${widget.ruleset.rules.length} rules)',
+                          context.l10n.ruleSelectionSubtitle(
+                            widget.ruleset.program,
+                            widget.ruleset.gameTitle,
+                            widget.ruleset.rules.length,
+                          ),
                           style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                         ),
                       ],
@@ -136,7 +141,7 @@ class _RuleSelectionSheetState extends State<RuleSelectionSheet> {
                   if (_selectedRules.isNotEmpty)
                     TextButton(
                       onPressed: () => setState(() => _selectedRules.clear()),
-                      child: const Text('Clear All', style: TextStyle(color: Colors.redAccent)),
+                      child: Text(context.l10n.commonClearAll, style: const TextStyle(color: Colors.redAccent)),
                     ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -145,7 +150,7 @@ class _RuleSelectionSheetState extends State<RuleSelectionSheet> {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
                     onPressed: () => Navigator.pop(context, _selectedRules),
-                    child: Text('Done (${_selectedRules.length})'),
+                    child: Text(context.l10n.ruleSelectionDoneButton(_selectedRules.length)),
                   ),
                 ],
               ),
@@ -160,12 +165,12 @@ class _RuleSelectionSheetState extends State<RuleSelectionSheet> {
                 controller: _searchController,
                 autofocus: false,
                 decoration: InputDecoration(
-                  hintText: 'Search by rule code (SG1, GG2...) or summary...',
+                  hintText: context.l10n.ruleSelectionSearchHint,
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, size: 18),
-                          tooltip: 'Clear search',
+                          tooltip: context.l10n.commonClearSearch,
                           onPressed: () {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
@@ -195,7 +200,7 @@ class _RuleSelectionSheetState extends State<RuleSelectionSheet> {
                     return Padding(
                       padding: const EdgeInsets.only(right: 6.0),
                       child: FilterChip(
-                        label: Text(g),
+                        label: Text(localizeRuleGroup(context, g)),
                         selected: isSelected,
                         onSelected: (selected) {
                           setState(() {
@@ -228,13 +233,13 @@ class _RuleSelectionSheetState extends State<RuleSelectionSheet> {
                           children: [
                             Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
                             const SizedBox(height: 8),
-                            const Text(
-                              'No matching rules found',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                            Text(
+                              context.l10n.ruleSelectionNoMatchingTitle,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Try searching for another rule code or keyword.',
+                              context.l10n.ruleSelectionNoMatchingHint,
                               style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                             ),
                           ],
@@ -332,7 +337,7 @@ class _RuleSelectionSheetState extends State<RuleSelectionSheet> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          rule.group,
+                                          localizeRuleGroup(context, rule.group),
                                           style: TextStyle(
                                             fontSize: 11,
                                             color: Colors.grey.shade600,

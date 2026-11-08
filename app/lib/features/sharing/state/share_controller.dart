@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../incidents/state/incident_controller.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../database/app_database.dart';
 import '../models/share_models.dart';
 import '../services/share_client.dart';
@@ -86,7 +87,7 @@ class ShareController extends Notifier<EventShareState> {
 
   String get _effectiveRefereeName {
     final trimmed = _settings.refereeName.trim();
-    return trimmed.isNotEmpty ? trimmed : 'Head Referee';
+    return trimmed.isNotEmpty ? trimmed : lookupL10n().commonHeadReferee;
   }
 
   Timer? _nameDebounceTimer;
@@ -255,7 +256,7 @@ class ShareController extends Notifier<EventShareState> {
   /// Create a new share session for an event
   Future<CreateShareResult> createShare(String sku, {bool force = false}) async {
     if (!ref.mounted) {
-      return CreateShareResult(success: false, errorMessage: 'Controller disposed');
+      return CreateShareResult(success: false, errorMessage: lookupL10n().errorControllerDisposed);
     }
     state = state.copyWith(sku: sku, isLoading: true, errorMessage: null, isConflict: false);
 
@@ -304,7 +305,7 @@ class ShareController extends Notifier<EventShareState> {
       } else {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: result.errorMessage ?? 'Failed to create share',
+          errorMessage: result.errorMessage ?? lookupL10n().errorFailedToCreateShare,
         );
       }
 
@@ -370,7 +371,7 @@ class ShareController extends Notifier<EventShareState> {
       } else {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: 'Could not join share session. Check code or connection.',
+          errorMessage: lookupL10n().errorCouldNotJoinShareSession,
         );
         return false;
       }
@@ -466,7 +467,7 @@ class ShareController extends Notifier<EventShareState> {
       } else {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: 'Failed to remove participant',
+          errorMessage: lookupL10n().errorFailedToRemoveParticipant,
         );
         return false;
       }
@@ -509,7 +510,7 @@ class ShareController extends Notifier<EventShareState> {
           state = EventShareState(
             sku: sku,
             isShared: false,
-            errorMessage: 'You were removed from this shared event session.',
+            errorMessage: lookupL10n().errorRemovedFromSharedSession,
           );
         } else {
           state = state.copyWith(

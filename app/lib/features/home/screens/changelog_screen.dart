@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Data model representing a release section in the changelog.
 class ChangeLogRelease {
@@ -65,7 +66,7 @@ List<ChangeLogRelease> parseChangeLogReleases(String markdown) {
   if (releases.isEmpty && markdown.trim().isNotEmpty) {
     releases.add(
       ChangeLogRelease(
-        title: 'Release Notes',
+        title: lookupL10n().changelogReleaseNotes,
         markdownContent: markdown.trim(),
         itemCount: 1,
       ),
@@ -75,10 +76,10 @@ List<ChangeLogRelease> parseChangeLogReleases(String markdown) {
   return releases;
 }
 
-/// Loads changelog content from `assets/changeLog.md`.
-Future<String> loadChangeLogMarkdown({String? overridePath}) async {
+/// Loads changelog content from `assets/changeLog.md` (with localized asset lookup fallback).
+Future<String> loadChangeLogMarkdown({String? overridePath, Locale? locale}) async {
   final path = overridePath ?? 'assets/changeLog.md';
-  return await rootBundle.loadString(path);
+  return await loadLocalizedAssetString(path, locale: locale);
 }
 
 class ChangeLogScreen extends StatefulWidget {
@@ -127,11 +128,11 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Change Log'),
+        title: Text(context.l10n.changelogTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Reload Changelog',
+            tooltip: context.l10n.changelogReloadTooltip,
             onPressed: _loadChangeLog,
           ),
         ],
@@ -145,15 +146,15 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
           future: _changelogFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
+              return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32.0),
+                  padding: const EdgeInsets.all(32.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading changelog...', style: TextStyle(color: Colors.grey)),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(context.l10n.changelogLoading, style: const TextStyle(color: Colors.grey)),
                     ],
                   ),
                 ),
@@ -176,9 +177,9 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                         children: [
                           const Icon(Icons.error_outline, color: Colors.redAccent, size: 36),
                           const SizedBox(height: 12),
-                          const Text(
-                            'Unable to load change log',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          Text(
+                            context.l10n.changelogLoadErrorTitle,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -190,7 +191,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                           ElevatedButton.icon(
                             onPressed: _loadChangeLog,
                             icon: const Icon(Icons.refresh, size: 18),
-                            label: const Text('Retry'),
+                            label: Text(context.l10n.commonRetry),
                           ),
                         ],
                       ),
@@ -213,9 +214,9 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                 ],
 
                 // 2. Release History Header
-                const Text(
-                  'Release History',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  context.l10n.changelogReleaseHistory,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
 
@@ -263,12 +264,12 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
     return TextField(
       controller: _searchController,
       decoration: InputDecoration(
-        hintText: 'Search release notes...',
+        hintText: context.l10n.changelogSearchHint,
         prefixIcon: const Icon(Icons.search, size: 20),
         suffixIcon: _searchQuery.isNotEmpty
             ? IconButton(
                 icon: const Icon(Icons.clear, size: 18),
-                tooltip: 'Clear search',
+                tooltip: context.l10n.commonClearSearch,
                 onPressed: () {
                   _searchController.clear();
                   setState(() {
@@ -313,7 +314,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
               const Icon(Icons.search_off_rounded, size: 40, color: Colors.grey),
               const SizedBox(height: 12),
               Text(
-                'No changelog entries found matching "$_searchQuery"',
+                context.l10n.changelogNoEntriesFound(_searchQuery),
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
@@ -325,7 +326,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                     _searchQuery = '';
                   });
                 },
-                child: const Text('Clear search'),
+                child: Text(context.l10n.commonClearSearch),
               ),
             ],
           ),
@@ -414,7 +415,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                   Clipboard.setData(ClipboardData(text: href));
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Link copied: $href'),
+                      content: Text(context.l10n.commonLinkCopied(href)),
                       duration: const Duration(seconds: 2),
                     ),
                   );

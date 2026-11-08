@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/event_regions.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../../event_workspace/screens/event_workspace_screen.dart';
@@ -196,9 +197,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
         if (isExplicitReload && _apiEvents.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not reach server. Showing cached events.'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(context.l10n.eventSelectionServerUnreachableShowingCached),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -217,6 +218,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   Future<void> _handleEventSelection(EventModel event) async {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+    final l10n = context.l10n;
 
     // 1. Instantly select event and store metadata in SQLite and Riverpod
     try {
@@ -251,7 +253,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Loading teams and match schedule for ${event.sku}...',
+                l10n.eventSelectionLoadingScheduleFor(event.sku),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -268,7 +270,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              'Loaded "${result.eventName ?? event.sku}" (${result.teamsCount} teams, ${result.matchesCount} matches)',
+              l10n.eventSelectionLoadedSummary(
+                result.eventName ?? event.sku,
+                result.teamsCount,
+                result.matchesCount,
+              ),
             ),
             backgroundColor: Colors.green.shade800,
             duration: const Duration(seconds: 3),
@@ -278,7 +284,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
         messenger.hideCurrentSnackBar();
         messenger.showSnackBar(
           SnackBar(
-            content: Text('Note: ${result.errorMessage}'),
+            content: Text(l10n.eventSelectionNotePrefix(result.errorMessage!)),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -436,7 +442,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     final locale = getUserLocale(context);
     final yDateStr = formatEventDate(firstDate.toIso8601String(), locale);
     final zDateStr = formatEventDate(lastDate.toIso8601String(), locale);
-    final searchSummary = 'Found ${displayEvents.length} events between $yDateStr and $zDateStr';
+    final searchSummary = context.l10n.eventSelectionSearchSummary(
+      displayEvents.length,
+      yDateStr,
+      zDateStr,
+    );
 
     final divisionConfig = getRegionDivisionConfig(selectedRegion);
     final hasActiveFilters = selectedProgram != 'All' ||
@@ -445,11 +455,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pick An Event'),
+        title: Text(context.l10n.eventSelectionTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Reload Events',
+            tooltip: context.l10n.eventSelectionReloadTooltip,
             onPressed: () => _fetchEvents(isExplicitReload: true),
           ),
         ],
@@ -477,12 +487,12 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                   controller: _searchController,
                   autofocus: false,
                   decoration: InputDecoration(
-                    hintText: 'Search by SKU (RE-... / VE-...) or event name',
+                    hintText: context.l10n.eventSelectionSearchHint,
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear),
-                            tooltip: 'Clear search',
+                            tooltip: context.l10n.commonClearSearch,
                             onPressed: () {
                               _searchController.clear();
                               _onSearchChanged('');
@@ -509,10 +519,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: _programs.map((program) {
                         final isSelected = selectedProgram == program;
+                        final displayLabel = program == 'All' ? context.l10n.commonAll : program;
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4.0),
                           child: FilterChip(
-                            label: Text(program),
+                            label: Text(displayLabel),
                             selected: isSelected,
                             onSelected: (selected) {
                               ref.read(eventFiltersProvider.notifier).setProgram(
@@ -563,7 +574,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                       : Theme.of(context).colorScheme.primary,
                                 ),
                                 label: Text(
-                                  selectedRegion == 'All' ? 'All Regions' : 'Region: $selectedRegion',
+                                  selectedRegion == 'All'
+                                      ? context.l10n.eventSelectionAllRegions
+                                      : context.l10n.eventSelectionRegionLabel(selectedRegion),
                                 ),
                                 selected: selectedRegion != 'All',
                                 showCheckmark: false,
@@ -602,8 +615,8 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                   ),
                                   label: Text(
                                     selectedDivision == 'All'
-                                        ? 'All ${divisionConfig.pluralLabel}'
-                                        : '${divisionConfig.singularLabel}: $selectedDivision',
+                                        ? divisionConfig.allLabel(context)
+                                        : divisionConfig.selectedLabel(context, selectedDivision),
                                   ),
                                   selected: selectedDivision != 'All',
                                   showCheckmark: false,
@@ -644,7 +657,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                               _fetchEvents();
                             },
                             icon: const Icon(Icons.clear_all, size: 16),
-                            label: const Text('Reset Filters', style: TextStyle(fontSize: 12)),
+                            label: Text(context.l10n.eventSelectionResetFilters, style: const TextStyle(fontSize: 12)),
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               minimumSize: Size.zero,
@@ -684,21 +697,22 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                           cleanQuery,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'monospace'),
                         ),
-                        subtitle: Text('Add & fetch custom ${getSkuProgram(cleanQuery)} tournament schedule'),
+                        subtitle: Text(context.l10n.eventSelectionAddCustomSkuSubtitle(getSkuProgram(cleanQuery))),
                         trailing: ElevatedButton(
                           onPressed: () async {
+                            final prog = getSkuProgram(cleanQuery);
                             await _handleEventSelection(
                               EventModel(
                                 sku: cleanQuery,
-                                name: '${getSkuProgram(cleanQuery)} Tournament ($cleanQuery)',
-                                program: getSkuProgram(cleanQuery),
+                                name: context.l10n.eventSelectionDefaultTournamentName(prog, cleanQuery),
+                                program: prog,
                                 season: '2026-2027',
                                 startDate: DateTime.now().toIso8601String(),
                                 endDate: DateTime.now().toIso8601String(),
                               ),
                             );
                           },
-                          child: const Text('Add & Select'),
+                          child: Text(context.l10n.eventSelectionAddAndSelect),
                         ),
                       ),
                     ),
@@ -711,9 +725,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      const Text(
-                        'Events',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      Text(
+                        context.l10n.eventSelectionSectionTitle,
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -737,14 +751,14 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
                   // Loading indicator or empty state
                   if (_isLoading && displayEvents.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40.0),
                       child: Center(
                         child: Column(
                           children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 16),
-                            Text('Loading live events from VEX Events...', style: TextStyle(color: Colors.grey)),
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 16),
+                            Text(context.l10n.eventSelectionLoadingLiveEvents, style: const TextStyle(color: Colors.grey)),
                           ],
                         ),
                       ),
@@ -759,15 +773,15 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                             const SizedBox(height: 12),
                             Text(
                               _errorMessage != null
-                                  ? 'Could not connect to VEX Events proxy.'
-                                  : 'No events found in this date window.',
+                                  ? context.l10n.eventSelectionCannotConnectProxy
+                                  : context.l10n.eventSelectionNoEventsFound,
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'Try loading a wider date range or entering a SKU directly.',
-                              style: TextStyle(color: Colors.grey, fontSize: 13),
+                            Text(
+                              context.l10n.eventSelectionEmptyHint,
+                              style: const TextStyle(color: Colors.grey, fontSize: 13),
                             ),
                             const SizedBox(height: 16),
                             Wrap(
@@ -776,13 +790,13 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                 OutlinedButton.icon(
                                   onPressed: _loadMoreEvents,
                                   icon: const Icon(Icons.date_range, size: 16),
-                                  label: const Text('Search Next 30 Days'),
+                                  label: Text(context.l10n.eventSelectionSearchNext30Days),
                                 ),
                                 if (_errorMessage != null)
                                   OutlinedButton.icon(
                                     onPressed: () => _fetchEvents(),
                                     icon: const Icon(Icons.refresh, size: 16),
-                                    label: const Text('Retry'),
+                                    label: Text(context.l10n.commonRetry),
                                   ),
                               ],
                             ),
@@ -880,7 +894,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.expand_more, size: 18),
-                        label: Text(_isLoadingMore ? 'Loading More Events...' : 'Load More Events'),
+                        label: Text(
+                          _isLoadingMore
+                              ? context.l10n.eventSelectionLoadingMoreEvents
+                              : context.l10n.eventSelectionLoadMoreEvents,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -994,14 +1012,14 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Filter by Region',
+                    context.l10n.eventSelectionFilterByRegion,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    tooltip: 'Close',
+                    tooltip: context.l10n.commonClose,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -1013,12 +1031,12 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                 controller: _filterController,
                 autofocus: false,
                 decoration: InputDecoration(
-                  hintText: 'Search region (e.g. United States, UK, Australia)...',
+                  hintText: context.l10n.eventSelectionSearchRegionHint,
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: _filterText.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, size: 18),
-                          tooltip: 'Clear search',
+                          tooltip: context.l10n.commonClearSearch,
                           onPressed: () {
                             _filterController.clear();
                             setState(() {
@@ -1054,7 +1072,7 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                             Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
                             const SizedBox(height: 8),
                             Text(
-                              'No regions matching "$_filterText"',
+                              context.l10n.eventSelectionNoMatchingRegions(_filterText),
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -1073,7 +1091,7 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                               color: isSelected ? theme.colorScheme.primary : Colors.grey,
                             ),
                             title: Text(
-                              'All Regions',
+                              context.l10n.eventSelectionAllRegions,
                               style: TextStyle(
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                 color: isSelected ? theme.colorScheme.primary : null,
@@ -1104,7 +1122,9 @@ class _RegionPickerSheetState extends State<_RegionPickerSheet> {
                           ),
                           subtitle: (matchingDivisions.isNotEmpty && !region.toUpperCase().contains(query))
                               ? Text(
-                                  'Includes: ${matchingDivisions.take(3).join(', ')}${matchingDivisions.length > 3 ? '...' : ''}',
+                                  context.l10n.eventSelectionRegionIncludes(
+                                    '${matchingDivisions.take(3).join(', ')}${matchingDivisions.length > 3 ? '...' : ''}',
+                                  ),
                                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                                 )
                               : null,
@@ -1193,14 +1213,14 @@ class _DivisionPickerSheetState extends State<_DivisionPickerSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Filter by ${widget.config.singularLabel}',
+                    widget.config.filterByTitle(context),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    tooltip: 'Close',
+                    tooltip: context.l10n.commonClose,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -1212,12 +1232,12 @@ class _DivisionPickerSheetState extends State<_DivisionPickerSheet> {
                 controller: _filterController,
                 autofocus: false,
                 decoration: InputDecoration(
-                  hintText: 'Search ${widget.config.pluralLabel.toLowerCase()} (e.g. Texas, TX)...',
+                  hintText: widget.config.searchHint(context),
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: _filterText.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear, size: 18),
-                          tooltip: 'Clear search',
+                          tooltip: context.l10n.commonClearSearch,
                           onPressed: () {
                             _filterController.clear();
                             setState(() {
@@ -1253,7 +1273,7 @@ class _DivisionPickerSheetState extends State<_DivisionPickerSheet> {
                             Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
                             const SizedBox(height: 8),
                             Text(
-                              'No ${widget.config.pluralLabel.toLowerCase()} matching "$_filterText"',
+                              widget.config.noMatchingLabel(context, _filterText),
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -1272,7 +1292,7 @@ class _DivisionPickerSheetState extends State<_DivisionPickerSheet> {
                               color: isSelected ? theme.colorScheme.primary : Colors.grey,
                             ),
                             title: Text(
-                              'All ${widget.config.pluralLabel}',
+                              widget.config.allLabel(context),
                               style: TextStyle(
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                 color: isSelected ? theme.colorScheme.primary : null,

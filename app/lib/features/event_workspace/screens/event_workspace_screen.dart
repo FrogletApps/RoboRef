@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 import '../../event_selection/state/event_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
@@ -86,7 +87,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
         if (mounted && result.success && result.matchesCount > 0) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Loaded ${result.matchesCount} match(es) for $sku'),
+              content: Text(context.l10n.workspaceLoadedMatchesForSku(result.matchesCount, sku)),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -166,11 +167,11 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
     ];
 
     final titles = [
-      'Match Schedule',
-      'Team Histories',
-      'RoboRef',
-      'Game Rules Summary',
-      'Manage & Sync',
+      context.l10n.workspaceTabMatchScheduleTitle,
+      context.l10n.workspaceTabTeamHistoriesTitle,
+      context.l10n.appTitle,
+      context.l10n.workspaceTabRulesSummaryTitle,
+      context.l10n.workspaceTabManageSyncTitle,
     ];
 
     final isReloadingMatches = ref.watch(matchScheduleControllerProvider);
@@ -190,14 +191,14 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
                   : const Icon(Icons.refresh),
-              tooltip: 'Refresh Matches',
+              tooltip: context.l10n.workspaceRefreshMatchesTooltip,
               onPressed: isReloadingMatches
                   ? null
                   : () async {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Checking for match schedule updates...'),
-                          duration: Duration(seconds: 1),
+                        SnackBar(
+                          content: Text(context.l10n.workspaceCheckingScheduleUpdates),
+                          duration: const Duration(seconds: 1),
                         ),
                       );
                       final result = await ref.read(matchScheduleControllerProvider.notifier).refreshMatches();
@@ -207,8 +208,8 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                             SnackBar(
                               content: Text(
                                 result.matchesCount > 0
-                                    ? 'Updated ${result.matchesCount} match(es)'
-                                    : 'Match schedule is up to date',
+                                    ? context.l10n.workspaceUpdatedMatchesCount(result.matchesCount)
+                                    : context.l10n.workspaceScheduleUpToDate,
                               ),
                               duration: const Duration(seconds: 2),
                             ),
@@ -216,7 +217,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(result.errorMessage ?? 'Failed to update matches'),
+                              content: Text(result.errorMessage ?? context.l10n.workspaceFailedUpdateMatches),
                               backgroundColor: Theme.of(context).colorScheme.error,
                               duration: const Duration(seconds: 3),
                             ),
@@ -230,7 +231,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
             list.add(
               IconButton(
                 icon: const Icon(Icons.download),
-                tooltip: 'Load / Import Schedule',
+                tooltip: context.l10n.workspaceImportScheduleTooltip,
                 onPressed: () => _showImportSheet(context),
               ),
             );
@@ -246,14 +247,14 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
                   : const Icon(Icons.refresh),
-              tooltip: 'Refresh Teams',
+              tooltip: context.l10n.workspaceRefreshTeamsTooltip,
               onPressed: isReloadingTeams
                   ? null
                   : () async {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Checking for team roster updates...'),
-                          duration: Duration(seconds: 1),
+                        SnackBar(
+                          content: Text(context.l10n.workspaceCheckingTeamUpdates),
+                          duration: const Duration(seconds: 1),
                         ),
                       );
                       final result = await ref.read(teamListControllerProvider.notifier).refreshTeams();
@@ -263,8 +264,8 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                             SnackBar(
                               content: Text(
                                 result.teamsCount > 0
-                                    ? 'Updated ${result.teamsCount} team(s)'
-                                    : 'Team list is up to date',
+                                    ? context.l10n.workspaceUpdatedTeamsCount(result.teamsCount)
+                                    : context.l10n.workspaceTeamsUpToDate,
                               ),
                               duration: const Duration(seconds: 2),
                             ),
@@ -272,7 +273,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(result.errorMessage ?? 'Failed to update teams'),
+                              content: Text(result.errorMessage ?? context.l10n.workspaceFailedUpdateTeams),
                               backgroundColor: Theme.of(context).colorScheme.error,
                               duration: const Duration(seconds: 3),
                             ),
@@ -286,7 +287,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
             list.add(
               IconButton(
                 icon: const Icon(Icons.download),
-                tooltip: 'Load / Import Teams',
+                tooltip: context.l10n.workspaceImportTeamsTooltip,
                 onPressed: () => _showImportSheet(context),
               ),
             );
@@ -302,15 +303,15 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
                   : const Icon(Icons.sync),
-              tooltip: 'Sync Notes',
+              tooltip: context.l10n.workspaceSyncNotesTooltip,
               onPressed: settings.isSyncing
                   ? null
                   : () {
                       ref.read(incidentControllerProvider.notifier).triggerSync();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Syncing notes...'),
-                          duration: Duration(seconds: 1),
+                        SnackBar(
+                          content: Text(context.l10n.workspaceSyncingNotesSnackbar),
+                          duration: const Duration(seconds: 1),
                         ),
                       );
                     },
@@ -348,14 +349,15 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
         }
       }
 
+      final connectedCount = participantCount > 0 ? participantCount : 1;
       list.add(
         IconButton(
           icon: shareIcon,
           tooltip: isEventShared
               ? (role == ShareRole.admin
-                  ? 'Hosting Online (${participantCount > 0 ? participantCount : 1} connected)'
-                  : 'Connected Online (${participantCount > 0 ? participantCount : 1} connected)')
-              : 'Share Event Online',
+                  ? context.l10n.workspaceHostingOnlineTooltip(connectedCount)
+                  : context.l10n.workspaceConnectedOnlineTooltip(connectedCount))
+              : context.l10n.commonShareEventOnline,
           onPressed: () => _showShareSheet(context, settings.currentSku),
         ),
       );
@@ -366,7 +368,11 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
 
     final program = event?.program ?? getSkuProgram(settings.currentSku);
     final season = event?.season ?? '2026-2027';
-    final ruleset = getGameRuleset(program, season);
+    final ruleset = getGameRuleset(
+      program,
+      season,
+      locale: Localizations.maybeLocaleOf(context),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -398,31 +404,31 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
             _checkSyncIfShared(quiet: true);
           }
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Symbols.format_list_numbered),
-            selectedIcon: Icon(Symbols.format_list_numbered, fill: 1),
-            label: 'Matches',
+            icon: const Icon(Symbols.format_list_numbered),
+            selectedIcon: const Icon(Symbols.format_list_numbered, fill: 1),
+            label: context.l10n.workspaceBottomNavMatches,
           ),
           NavigationDestination(
-            icon: Icon(Symbols.groups),
-            selectedIcon: Icon(Symbols.groups, fill: 1),
-            label: 'Teams',
+            icon: const Icon(Symbols.groups),
+            selectedIcon: const Icon(Symbols.groups, fill: 1),
+            label: context.l10n.workspaceBottomNavTeams,
           ),
           NavigationDestination(
-            icon: Icon(Symbols.note_stack),
-            selectedIcon: Icon(Symbols.note_stack, fill: 1),
-            label: 'Notes',
+            icon: const Icon(Symbols.note_stack),
+            selectedIcon: const Icon(Symbols.note_stack, fill: 1),
+            label: context.l10n.workspaceBottomNavNotes,
           ),
           NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Rules',
+            icon: const Icon(Icons.menu_book_outlined),
+            selectedIcon: const Icon(Icons.menu_book),
+            label: context.l10n.workspaceBottomNavRules,
           ),
           NavigationDestination(
-            icon: Icon(Icons.cloud_outlined),
-            selectedIcon: Icon(Icons.cloud),
-            label: 'Manage',
+            icon: const Icon(Icons.cloud_outlined),
+            selectedIcon: const Icon(Icons.cloud),
+            label: context.l10n.workspaceBottomNavManage,
           ),
         ],
       ),

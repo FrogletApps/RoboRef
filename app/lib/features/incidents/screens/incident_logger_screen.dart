@@ -12,6 +12,7 @@ import '../../rules/data/default_rules.dart';
 import '../../rules/models/rule_model.dart';
 import '../../teams/state/team_controller.dart';
 import '../../matches/state/match_controller.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/team_utils.dart';
 import '../../../core/utils/match_utils.dart';
 import '../../../core/utils/sku_utils.dart';
@@ -47,14 +48,18 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
         final activeEventAsync = ref.watch(activeEventProvider);
         final program = activeEventAsync.value?.program ?? getSkuProgram(settings.currentSku);
         final season = activeEventAsync.value?.season ?? '2026-2027';
-        final ruleset = getGameRuleset(program, season);
+        final ruleset = getGameRuleset(
+          program,
+          season,
+          locale: Localizations.maybeLocaleOf(context),
+        );
 
         return Scaffold(
           appBar: widget.showAppBar
               ? AppBar(
                   title: Column(
                     children: [
-                      const Text('RoboRef', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(context.l10n.appTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       Text(
                         settings.currentSku,
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
@@ -70,13 +75,13 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
                           : const Icon(Icons.sync),
-                      tooltip: 'Sync Notes',
+                      tooltip: context.l10n.workspaceSyncNotesTooltip,
                       onPressed: settings.isSyncing
                           ? null
                           : () {
                               ref.read(incidentControllerProvider.notifier).triggerSync();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Syncing with referee network...'), duration: Duration(seconds: 1)),
+                                SnackBar(content: Text(context.l10n.incidentsSyncingWithNetwork), duration: const Duration(seconds: 1)),
                               );
                             },
                     ),
@@ -91,12 +96,12 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search by team number, rule, or notes...',
+                hintText: context.l10n.incidentsSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
-                        tooltip: 'Clear search',
+                        tooltip: context.l10n.commonClearSearch,
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _searchQuery = '');
@@ -128,7 +133,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                      child: Center(child: Text('Error loading notes: $err')),
+                      child: Center(child: Text(context.l10n.incidentsLoadError('$err'))),
                     ),
                   ),
                 ),
@@ -156,8 +161,8 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                                 const SizedBox(height: 12),
                                 Text(
                                   _searchQuery.isEmpty
-                                      ? 'No notes logged yet for this tournament.'
-                                      : 'No matching notes found.',
+                                      ? context.l10n.incidentsEmptyTournament
+                                      : context.l10n.incidentsNoMatchingNotes,
                                   style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                                 ),
                               ],
@@ -264,12 +269,12 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Logged by ${note.refereeName} at $formattedDate',
+                                  context.l10n.incidentsLoggedByAt(note.refereeName, formattedDate),
                                   style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
-                                  tooltip: 'Delete Note',
+                                  tooltip: context.l10n.incidentsDeleteNoteTooltip,
                                   onPressed: () => _confirmDelete(context, ref, note.id),
                                 ),
                               ],
@@ -289,7 +294,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddIncidentDialog(context),
         icon: const Icon(Symbols.note_stack_add),
-        label: const Text('Add Note'),
+        label: Text(context.l10n.commonAddNote),
       ),
     );
       },
@@ -300,16 +305,16 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Note?'),
-        content: const Text('Are you sure you want to remove this note?'),
+        title: Text(ctx.l10n.incidentsDeleteDialogTitle),
+        content: Text(ctx.l10n.incidentsDeleteDialogBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(ctx.l10n.commonCancel)),
           TextButton(
             onPressed: () {
               ref.read(incidentControllerProvider.notifier).deleteNote(id);
               Navigator.pop(ctx);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(ctx.l10n.commonDelete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -377,7 +382,11 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
 
         final program = activeEventAsync.value?.program ?? getSkuProgram(settings.currentSku);
         final season = activeEventAsync.value?.season ?? '2026-2027';
-        final ruleset = getGameRuleset(program, season);
+        final ruleset = getGameRuleset(
+          program,
+          season,
+          locale: Localizations.maybeLocaleOf(context),
+        );
 
         final teamNumbers = registeredTeams.map((t) => t.teamNumber).toList()..sort(compareTeamNumbers);
         final matchNames = tournamentMatches.map((m) => formatMatchShortName(m.name)).toList();
@@ -506,9 +515,9 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'New Note',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  context.l10n.addIncidentTitle,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -552,10 +561,10 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                             controller: controller,
                             focusNode: focusNode,
                             textCapitalization: TextCapitalization.characters,
-                            decoration: const InputDecoration(
-                              labelText: 'Team Number *',
-                              hintText: 'e.g. 1234A',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: context.l10n.addIncidentTeamNumberLabel,
+                              hintText: context.l10n.addIncidentTeamNumberHint,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             onChanged: (v) => _teamController.text = v,
@@ -593,10 +602,10 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                             controller: controller,
                             focusNode: focusNode,
                             textCapitalization: TextCapitalization.characters,
-                            decoration: const InputDecoration(
-                              labelText: 'Match (Optional)',
-                              hintText: 'e.g. Q42',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: context.l10n.addIncidentMatchOptionalLabel,
+                              hintText: context.l10n.addIncidentMatchHint,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             onChanged: (v) {
@@ -616,7 +625,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        'Teams in match:',
+                        context.l10n.addIncidentTeamsInMatchLabel,
                         style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
                       ),
                       ...matchTeams.map((team) {
@@ -636,7 +645,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                const Text('Note Type', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text(context.l10n.addIncidentNoteTypeLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 SegmentedButton<String>(
                   expandedInsets: EdgeInsets.zero,
@@ -645,18 +654,18 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                     visualDensity: VisualDensity.compact,
                     padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 2)),
                   ),
-                  segments: const [
-                    ButtonSegment(value: 'general', label: FittedBox(fit: BoxFit.scaleDown, child: Text('General'))),
-                    ButtonSegment(value: 'minor', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Minor'))),
-                    ButtonSegment(value: 'major', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Major'))),
-                    ButtonSegment(value: 'inspection', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Inspection'))),
-                    ButtonSegment(value: 'disabled', label: FittedBox(fit: BoxFit.scaleDown, child: Text('Disabled'))),
+                  segments: [
+                    ButtonSegment(value: 'general', label: FittedBox(fit: BoxFit.scaleDown, child: Text(context.l10n.severityGeneral))),
+                    ButtonSegment(value: 'minor', label: FittedBox(fit: BoxFit.scaleDown, child: Text(context.l10n.severityMinor))),
+                    ButtonSegment(value: 'major', label: FittedBox(fit: BoxFit.scaleDown, child: Text(context.l10n.severityMajor))),
+                    ButtonSegment(value: 'inspection', label: FittedBox(fit: BoxFit.scaleDown, child: Text(context.l10n.severityInspection))),
+                    ButtonSegment(value: 'disabled', label: FittedBox(fit: BoxFit.scaleDown, child: Text(context.l10n.severityDisabled))),
                   ],
                   selected: {_severity},
                   onSelectionChanged: (val) => setState(() => _severity = val.first),
                 ),
                 const SizedBox(height: 16),
-                const Text('Rule Violations', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text(context.l10n.addIncidentRuleViolationsLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
 
                 // Consistent Rule Chips (all selected rules with no limit + up to (6 - selected.length) unselected candidate rules)
@@ -700,7 +709,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Show More Rules'),
+                    label: Text(context.l10n.addIncidentShowMoreRulesButton),
                     onPressed: () async {
                       final updated = await RuleSelectionSheet.show(
                         context,
@@ -721,10 +730,10 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                 TextField(
                   controller: _notesController,
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Referee Notes',
-                    hintText: 'Describe details, warnings given, or match conditions...',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: context.l10n.addIncidentRefereeNotesLabel,
+                    hintText: context.l10n.addIncidentRefereeNotesHint,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -740,7 +749,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                       final team = _teamController.text.trim();
                       if (team.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter a team number')),
+                          SnackBar(content: Text(context.l10n.addIncidentMissingTeamError)),
                         );
                         return;
                       }
@@ -755,7 +764,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
 
                       Navigator.pop(context);
                     },
-                    child: const Text('Save Note', style: TextStyle(fontSize: 16)),
+                    child: Text(context.l10n.addIncidentSaveButton, style: const TextStyle(fontSize: 16)),
                   ),
                 ),
               ],

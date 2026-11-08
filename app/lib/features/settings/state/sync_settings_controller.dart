@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/sku_utils.dart';
 
 enum ServerConnectionStatus {
@@ -182,9 +183,10 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
     } catch (_) {}
     final env = _customEnvironment ?? ref.watch(syncSettingsEnvironmentProvider);
     final currentSku = prefs?.getString('current_sku') ?? 'DEMO-EVENT-2026';
+    final l10n = lookupL10n();
     final initialState = SyncSettingsState(
       currentSku: currentSku,
-      refereeName: prefs?.getString('referee_name') ?? 'Head Referee',
+      refereeName: prefs?.getString('referee_name') ?? l10n.commonHeadReferee,
       deviceId: prefs?.getString('device_id') ?? const Uuid().v4(),
       serverUrl: resolveDefaultServerUrl(prefs: prefs, environment: env, sku: currentSku),
       experimentalFeaturesEnabled: prefs?.getBool('experimental_features_enabled') ?? false,
@@ -253,25 +255,26 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
   }
 
   Future<ServerHealthResult> checkServerHealth([String? testUrl]) async {
+    final l10n = lookupL10n();
     if (!ref.mounted) {
-      return const ServerHealthResult(
+      return ServerHealthResult(
         isSuccess: false,
         status: ServerConnectionStatus.unreachable,
-        message: 'Provider not mounted',
+        message: l10n.errorProviderNotMounted,
       );
     }
     final targetUrl = testUrl != null ? testUrl.trim() : state.serverUrl.trim();
 
     if (targetUrl.isEmpty) {
-      const result = ServerHealthResult(
+      final result = ServerHealthResult(
         isSuccess: false,
         status: ServerConnectionStatus.unreachable,
-        message: 'Server URL is empty',
+        message: l10n.errorServerUrlIsEmpty,
       );
       if (ref.mounted) {
         state = state.copyWith(
           connectionStatus: ServerConnectionStatus.unreachable,
-          lastConnectionMessage: 'Server URL is empty',
+          lastConnectionMessage: l10n.errorServerUrlIsEmpty,
           lastConnectionSuccess: false,
         );
       }
@@ -280,14 +283,14 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
 
     final uri = buildHealthCheckUri(targetUrl);
     if (uri == null) {
-      const result = ServerHealthResult(
+      final result = ServerHealthResult(
         isSuccess: false,
         status: ServerConnectionStatus.unreachable,
-        message: 'Invalid server URL format',
+        message: l10n.errorInvalidServerUrlFormat,
       );
       state = state.copyWith(
         connectionStatus: ServerConnectionStatus.unreachable,
-        lastConnectionMessage: 'Invalid server URL format',
+        lastConnectionMessage: l10n.errorInvalidServerUrlFormat,
         lastConnectionSuccess: false,
       );
       return result;
@@ -312,10 +315,10 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
             : ServerConnectionStatus.connectedCloud;
         final isLocalhost = hostLower == 'localhost' || hostLower == '127.0.0.1';
         final serverType = isLocalhost
-            ? 'Local Server'
-            : (isLocal ? 'Venue LAN' : 'Cloud Server');
+            ? l10n.statusServerTypeLocal
+            : (isLocal ? l10n.statusServerTypeVenueLan : l10n.statusServerTypeCloud);
         final latencyMs = stopwatch.elapsedMilliseconds;
-        final msg = 'Connected to $serverType ($latencyMs ms)';
+        final msg = l10n.statusConnectedToServer(serverType, latencyMs);
 
         if (ref.mounted) {
           state = state.copyWith(
@@ -333,7 +336,7 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
           latency: stopwatch.elapsed,
         );
       } else {
-        final msg = 'Server reachable but returned HTTP ${res.statusCode}';
+        final msg = l10n.errorServerReachableHttpStatus(res.statusCode);
         if (ref.mounted) {
           state = state.copyWith(
             connectionStatus: ServerConnectionStatus.unreachable,
@@ -351,18 +354,18 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
       }
     } catch (e) {
       stopwatch.stop();
-      String errorMsg = 'Could not reach server';
+      String errorMsg = l10n.errorCouldNotReachServer;
       final eStr = e.toString().toLowerCase();
       if (eStr.contains('timeoutexception') || eStr.contains('timed out')) {
-        errorMsg = 'Connection timed out (server unreachable)';
+        errorMsg = l10n.errorConnectionTimedOut;
       } else if (eStr.contains('socketexception') ||
           eStr.contains('failed host lookup') ||
           eStr.contains('connection refused')) {
-        errorMsg = 'Connection refused / host unreachable';
+        errorMsg = l10n.errorConnectionRefused;
       } else if (eStr.contains('clientexception')) {
-        errorMsg = 'Network or CORS error connecting to server';
+        errorMsg = l10n.errorNetworkOrCors;
       } else if (eStr.contains('formatexception')) {
-        errorMsg = 'Invalid server URL format';
+        errorMsg = l10n.errorInvalidServerUrlFormat;
       }
 
       if (ref.mounted) {

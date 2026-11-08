@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../../core/l10n/l10n.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../models/share_models.dart';
 
@@ -92,7 +93,7 @@ class ShareClient {
     if (baseUrl.isEmpty) {
       return CreateShareResult(
         success: false,
-        errorMessage: 'Sync server URL is not configured',
+        errorMessage: lookupL10n().errorSyncServerUrlNotConfigured,
       );
     }
     try {
@@ -143,7 +144,7 @@ class ShareClient {
           success: false,
           errorMessage: (serverError != null && serverError.isNotEmpty)
               ? serverError
-              : 'Failed to create share session (HTTP ${response.statusCode})',
+              : lookupL10n().errorFailedToCreateShareHttp(response.statusCode),
         );
       }
     } catch (e) {
@@ -219,7 +220,7 @@ class ShareClient {
     if (baseUrl.isEmpty) {
       return LeaveShareResult(
         success: false,
-        errorMessage: 'Sync server URL is not configured',
+        errorMessage: lookupL10n().errorSyncServerUrlNotConfigured,
       );
     }
     try {
@@ -252,7 +253,7 @@ class ShareClient {
           success: false,
           isAdminBlocked: true,
           errorMessage: data['message']?.toString() ??
-              'The admin cannot leave while other referees are in the session.',
+              lookupL10n().errorAdminCannotLeaveWithActiveParticipants,
         );
       } else {
         final serverError = data?['error']?.toString();
@@ -260,7 +261,7 @@ class ShareClient {
           success: false,
           errorMessage: (serverError != null && serverError.isNotEmpty)
               ? serverError
-              : 'Failed to leave share session',
+              : lookupL10n().errorFailedToLeaveShare,
         );
       }
     } catch (e) {

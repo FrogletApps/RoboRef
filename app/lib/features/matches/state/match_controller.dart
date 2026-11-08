@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../database/app_database.dart';
 import '../../event_data/services/vex_events_client.dart';
 import '../../event_selection/state/event_controller.dart';
@@ -32,7 +33,7 @@ class MatchScheduleController extends Notifier<bool> {
     if (state) {
       return VexEventsFetchResult(
         success: false,
-        errorMessage: 'Refresh already in progress',
+        errorMessage: lookupL10n().errorRefreshAlreadyInProgress,
       );
     }
 

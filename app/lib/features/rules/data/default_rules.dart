@@ -1,4 +1,5 @@
 // Generated Game Rules with summaries from official Game Manual Quick Reference Guides
+import 'dart:ui';
 import '../models/rule_model.dart';
 
 const List<RuleModel> _v5rc20262027Rules = [
@@ -1074,10 +1075,54 @@ GameRuleset _getViqrcRuleset(String? season) {
   }
 }
 
+/// Registry for localized official VEX game rulesets keyed by
+/// `"${languageCode}_${program}_${season}"` or `"${languageCode}_${countryCode}_${program}_${season}"`.
+/// Official translated VEX rulesets can be registered here as they are imported.
+final Map<String, GameRuleset> _localizedRulesetRegistry = {};
+
+/// Registers a translated official VEX [GameRuleset] for a given [locale], [program], and [season].
+void registerLocalizedRuleset({
+  required Locale locale,
+  required String program,
+  required String season,
+  required GameRuleset ruleset,
+}) {
+  final normProg = _normalizeProgramKey(program);
+  if (locale.countryCode != null && locale.countryCode!.isNotEmpty) {
+    _localizedRulesetRegistry[
+        '${locale.languageCode}_${locale.countryCode}_${normProg}_$season'] = ruleset;
+  } else {
+    _localizedRulesetRegistry['${locale.languageCode}_${normProg}_$season'] = ruleset;
+  }
+}
+
+String _normalizeProgramKey(String? program) {
+  final prog = (program ?? 'V5RC').toUpperCase();
+  if (prog.contains('IQ') || prog == 'VIQRC') return 'VIQRC';
+  if (prog.contains('U') || prog == 'VEX U' || prog == 'VURC') return 'VEXU';
+  if (prog.contains('AI') || prog == 'VEX AI' || prog == 'VAIRC') return 'VEXAI';
+  return 'V5RC';
+}
+
 /// Retrieve the active [GameRuleset] for the current tournament program and season.
-GameRuleset getGameRuleset(String? program, String? season) {
+/// If a localized ruleset is registered for [locale], it is returned; otherwise
+/// falls back to the canonical English VEX Game Manual ruleset.
+GameRuleset getGameRuleset(String? program, String? season, {Locale? locale}) {
   final prog = (program ?? 'V5RC').toUpperCase();
   final normalizedSeason = season ?? '2026-2027';
+  final normProg = _normalizeProgramKey(prog);
+
+  if (locale != null) {
+    if (locale.countryCode != null && locale.countryCode!.isNotEmpty) {
+      final fullKey =
+          '${locale.languageCode}_${locale.countryCode}_${normProg}_$normalizedSeason';
+      final match = _localizedRulesetRegistry[fullKey];
+      if (match != null) return match;
+    }
+    final langKey = '${locale.languageCode}_${normProg}_$normalizedSeason';
+    final langMatch = _localizedRulesetRegistry[langKey];
+    if (langMatch != null) return langMatch;
+  }
 
   if (prog.contains('IQ') || prog == 'VIQRC') {
     return _getViqrcRuleset(normalizedSeason);

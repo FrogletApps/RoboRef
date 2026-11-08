@@ -1,8 +1,9 @@
 # Change Log
 
-## 2026.11.8+260
+## 2026.11.8+261
 
 - **Match Details Sheet**: Tapping a match now displays the full match name, per-team note type and rule violation counts, and direct "Add Note" buttons for each team in the match.
+- **Internationalization (i18n) Support**: Extracted all user-facing strings into localization catalogs (`ARB`), added a Language selector in Settings, and added localization hooks for VEX game manuals and documentation assets.
 
 ## 2026.10.26+259
 

@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../../core/l10n/l10n.dart';
+import '../../../core/l10n/locale_controller.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
@@ -84,7 +86,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (!success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not open link: $urlString'),
+            content: Text(context.l10n.commonCannotOpenLink(urlString)),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -94,7 +96,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Clipboard.setData(ClipboardData(text: urlString));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Link copied to clipboard: $urlString'),
+            content: Text(context.l10n.commonLinkCopiedToClipboard(urlString)),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -141,6 +143,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (context, ref, child) {
         final settings = ref.watch(syncSettingsProvider);
         final themeMode = ref.watch(themeModeProvider);
+        final selectedLocale = ref.watch(localeProvider);
+        final selectedLocaleCode = localeToOptionCode(selectedLocale);
         final currentSku = (widget.eventSku ?? settings.currentSku).trim().toUpperCase();
         final shareState = ref.watch(shareControllerProvider);
         final activeEventAsync = ref.watch(activeEventProvider);
@@ -156,7 +160,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
         final adminName = (event?.adminRefereeName?.isNotEmpty ?? false)
             ? event!.adminRefereeName!
-            : (shareState.adminRefereeName ?? 'Head Referee');
+            : (shareState.adminRefereeName ?? context.l10n.commonHeadReferee);
 
         final vexEventsUrl = currentSku.isNotEmpty
             ? 'https://events.vex.com/$currentSku.html'
@@ -180,41 +184,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return Scaffold(
           appBar: widget.showAppBar
               ? AppBar(
-                  title: const Text('Settings'),
+                  title: Text(context.l10n.settingsTitle),
                 )
               : null,
           body: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
               // Appearance Section
-              const Text(
-                'Appearance',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              Text(
+                context.l10n.settingsAppearanceTitle,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Select theme mode. Device mode automatically follows your operating system light or dark setting.',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+              Text(
+                context.l10n.settingsAppearanceDescription,
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: SegmentedButton<ThemeMode>(
-                  segments: const [
+                  segments: [
                     ButtonSegment<ThemeMode>(
                       value: ThemeMode.system,
-                      label: Text('Device'),
-                      icon: Icon(Icons.brightness_auto),
+                      label: Text(context.l10n.settingsThemeDevice),
+                      icon: const Icon(Icons.brightness_auto),
                     ),
                     ButtonSegment<ThemeMode>(
                       value: ThemeMode.light,
-                      label: Text('Light'),
-                      icon: Icon(Icons.light_mode_outlined),
+                      label: Text(context.l10n.settingsThemeLight),
+                      icon: const Icon(Icons.light_mode_outlined),
                     ),
                     ButtonSegment<ThemeMode>(
                       value: ThemeMode.dark,
-                      label: Text('Dark'),
-                      icon: Icon(Icons.dark_mode_outlined),
+                      label: Text(context.l10n.settingsThemeDark),
+                      icon: const Icon(Icons.dark_mode_outlined),
                     ),
                   ],
                   selected: {themeMode},
@@ -223,22 +227,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                 ),
               ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                key: ValueKey('language_dropdown_$selectedLocaleCode'),
+                initialValue: selectedLocaleCode,
+                decoration: InputDecoration(
+                  labelText: context.l10n.settingsLanguageLabel,
+                  helperText: context.l10n.settingsLanguageDescription,
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                  prefixIcon: const Icon(Icons.language_outlined),
+                ),
+                items: [
+                  DropdownMenuItem<String>(
+                    value: 'system',
+                    child: Text(context.l10n.settingsLanguageSystem),
+                  ),
+                  ...supportedLocaleOptions.map(
+                    (option) => DropdownMenuItem<String>(
+                      value: option.code,
+                      child: Text(option.displayName),
+                    ),
+                  ),
+                ],
+                onChanged: (newCode) {
+                  if (newCode == null) return;
+                  ref.read(localeProvider.notifier).setLocaleByCode(newCode);
+                },
+              ),
               const SizedBox(height: 24),
               const Divider(),
               const SizedBox(height: 24),
 
               // Referee Setup Section
-              const Text(
-                'Referee Setup',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              Text(
+                context.l10n.settingsRefereeSetupTitle,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Referee Display Name',
-                  hintText: 'e.g. Field 1 Head Referee',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.l10n.settingsRefereeDisplayNameLabel,
+                  hintText: context.l10n.settingsRefereeDisplayNameHint,
+                  border: const OutlineInputBorder(),
                   isDense: true,
                 ),
                 onChanged: (val) => ref.read(syncSettingsProvider.notifier).setRefereeName(val.trim()),
@@ -250,9 +282,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // Sync & Sharing Section (on Event Manage Page when sharing is NOT enabled)
               if (_isEventManagePage && !isEventShared) ...[
-                const Text(
-                  'Sync & Sharing',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  context.l10n.settingsSyncSharingTitle,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 Card(
@@ -272,16 +304,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           children: [
                             Icon(Icons.cloud_off_outlined, color: Colors.grey.shade600, size: 22),
                             const SizedBox(width: 8),
-                            const Text(
-                              'Sharing Not Enabled',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            Text(
+                              context.l10n.settingsSharingNotEnabledTitle,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Notes are stored locally on this device. Once sharing is enabled for this event, the share admin can configure and manage the sync server.',
-                          style: TextStyle(fontSize: 13, color: Colors.grey),
+                        Text(
+                          context.l10n.settingsSharingNotEnabledDescription,
+                          style: const TextStyle(fontSize: 13, color: Colors.grey),
                         ),
                         const SizedBox(height: 14),
                         ElevatedButton.icon(
@@ -296,7 +328,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             );
                           },
                           icon: const Icon(Icons.share, size: 18),
-                          label: const Text('Share Event Online'),
+                          label: Text(context.l10n.commonShareEventOnline),
                         ),
                       ],
                     ),
@@ -309,15 +341,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // Sync Server Configuration (ONLY visible when on event manage page AND sharing is enabled)
               if (_isEventManagePage && isEventShared) ...[
-                const Text(
-                  'Sync Server Configuration',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  context.l10n.settingsSyncServerConfigTitle,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   isShareAdmin
-                      ? 'Connect to the cloud server or a server on your local network'
-                      : 'Sync server is configured by the share admin for this event',
+                      ? context.l10n.settingsSyncServerAdminSubtitle
+                      : context.l10n.settingsSyncServerMemberSubtitle,
                   style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 12),
@@ -337,7 +369,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Managed by Host ($adminName). Only the share admin can configure the sync server for this event.',
+                            context.l10n.settingsManagedByHostNotice(adminName),
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.blue),
                           ),
                         ),
@@ -361,7 +393,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(
-                        getServerTypeDisplayName(settings.serverUrl),
+                        getLocalizedServerTypeDisplayName(context, settings.serverUrl),
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ),
@@ -370,30 +402,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   // Admin View: Sync Server Mode Dropdown
                   DropdownButtonFormField<String>(
                     initialValue: _selectedServerOption,
-                    decoration: const InputDecoration(
-                      labelText: 'Sync Server Mode',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.settingsSyncServerModeLabel,
+                      border: const OutlineInputBorder(),
                       isDense: true,
-                      prefixIcon: Icon(Icons.dns_outlined),
+                      prefixIcon: const Icon(Icons.dns_outlined),
                     ),
                     items: [
                       DropdownMenuItem(
                         value: 'cloud',
                         child: Text(
-                          'Cloud Server ($cloudUrl)',
+                          context.l10n.settingsServerModeCloudOption(cloudUrl),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: 'lan',
                         child: Text(
-                          'Local Server (http://roboref.local:8080)',
+                          context.l10n.settingsServerModeLanOption,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: 'custom',
-                        child: Text('Custom Server URL'),
+                        child: Text(context.l10n.settingsServerModeCustomOption),
                       ),
                     ],
                     onChanged: (newOption) {
@@ -423,12 +455,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: _serverController,
-                      decoration: const InputDecoration(
-                        labelText: 'Custom Server URL',
-                        hintText: 'e.g. http://localhost:8080 or https://sync.roboref.app',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.settingsCustomServerUrlLabel,
+                        hintText: context.l10n.settingsCustomServerUrlHint,
+                        border: const OutlineInputBorder(),
                         isDense: true,
-                        prefixIcon: Icon(Icons.link),
+                        prefixIcon: const Icon(Icons.link),
                       ),
                       onChanged: (val) => ref.read(syncSettingsProvider.notifier).setServerUrl(val.trim(), sku: currentSku),
                     ),
@@ -446,8 +478,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Server Status:', style: TextStyle(fontWeight: FontWeight.bold)),
-                            _buildConnectionBadge(settings.connectionStatus, settings.serverUrl),
+                            Text(context.l10n.settingsServerStatusLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            _buildConnectionBadge(context, settings.connectionStatus, settings.serverUrl),
                           ],
                         ),
                         if (settings.lastConnectionMessage != null) ...[
@@ -483,28 +515,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Sync Status:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(context.l10n.settingsSyncStatusLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
                             if (settings.isSyncing)
-                              const Row(
+                              Row(
                                 children: [
-                                  SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
-                                  SizedBox(width: 6),
-                                  Text('Syncing...', style: TextStyle(color: Colors.blue)),
+                                  const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                                  const SizedBox(width: 6),
+                                  Text(context.l10n.settingsSyncStatusSyncing, style: const TextStyle(color: Colors.blue)),
                                 ],
                               )
                             else
-                              const Text('Idle / Ready', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                              Text(context.l10n.settingsSyncStatusIdle, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Text('Device UUID: ${settings.deviceId}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                        Text(context.l10n.settingsDeviceUuid(settings.deviceId), style: const TextStyle(fontSize: 11, color: Colors.grey)),
                         if (settings.lastSyncTime != null) ...[
                           const SizedBox(height: 4),
-                          Text('Last sync: ${settings.lastSyncTime}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          Text(context.l10n.settingsLastSync(settings.lastSyncTime!), style: const TextStyle(fontSize: 11, color: Colors.grey)),
                         ],
                         if (settings.lastError != null) ...[
                           const SizedBox(height: 6),
-                          Text('Error: ${settings.lastError}', style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
+                          Text(context.l10n.settingsSyncError(settings.lastError!), style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
                         ],
                       ],
                     ),
@@ -520,11 +552,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             : () {
                                 ref.read(incidentControllerProvider.notifier).triggerSync();
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Triggered background sync...')),
+                                  SnackBar(content: Text(context.l10n.settingsTriggeredSyncSnackbar)),
                                 );
                               },
                         icon: const Icon(Icons.sync),
-                        label: const Text('Sync Now'),
+                        label: Text(context.l10n.settingsSyncNowButton),
                       ),
                     ),
                     if (isShareAdmin) ...[
@@ -539,6 +571,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 setState(() => _isTestingConnection = true);
 
                                 final messenger = ScaffoldMessenger.of(context);
+                                final testingMsg = context.l10n.settingsTestingConnectionSnackbar(
+                                  targetUrl.isEmpty ? context.l10n.commonServer : targetUrl,
+                                );
                                 messenger.hideCurrentSnackBar();
                                 messenger.showSnackBar(
                                   SnackBar(
@@ -554,7 +589,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Text(
-                                            'Testing connection to ${targetUrl.isEmpty ? 'server' : targetUrl}...',
+                                            testingMsg,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -567,7 +602,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     .read(syncSettingsProvider.notifier)
                                     .checkServerHealth(targetUrl);
 
-                                if (!mounted) return;
+                                if (!context.mounted) return;
                                 setState(() => _isTestingConnection = false);
 
                                 messenger.hideCurrentSnackBar();
@@ -586,8 +621,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         Expanded(
                                           child: Text(
                                             result.isSuccess
-                                                ? 'Connection successful: ${result.message}'
-                                                : 'Connection failed: ${result.message}',
+                                                ? context.l10n.settingsConnectionSuccessfulSnackbar(result.message)
+                                                : context.l10n.settingsConnectionFailedSnackbar(result.message),
                                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                           ),
                                         ),
@@ -603,7 +638,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.wifi_find),
-                        label: Text(_isTestingConnection ? 'Testing...' : 'Test Connection'),
+                        label: Text(_isTestingConnection ? context.l10n.settingsTestingButton : context.l10n.settingsTestConnectionButton),
                       ),
                     ],
                   ],
@@ -615,9 +650,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // Event Information Section (if on the manage page for the event)
               if (_isEventManagePage) ...[
-                const Text(
-                  'Event Information',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  context.l10n.settingsEventInformationTitle,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 Card(
@@ -633,9 +668,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       Icons.public,
                       color: Theme.of(context).colorScheme.primary,
                     ),
-                    title: const Text(
-                      'VEX Events Page',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    title: Text(
+                      context.l10n.settingsVexEventsPage,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     trailing: const Icon(Icons.chevron_right, size: 20),
                     onTap: () => _openExternalUrl(context, vexEventsUrl),
@@ -647,9 +682,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ],
 
               // About RoboRef Section
-              const Text(
-                'About RoboRef',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              Text(
+                context.l10n.settingsAboutRoboRefTitle,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               _buildVersionCard(context, Theme.of(context).brightness == Brightness.dark),
@@ -667,9 +702,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     Icons.history_rounded,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  title: const Text(
-                    'Change Log',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  title: Text(
+                    context.l10n.changelogTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 20),
                   onTap: () {
@@ -695,9 +730,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     Icons.code_rounded,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  title: const Text(
-                    'View Source',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  title: Text(
+                    context.l10n.settingsViewSource,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 20),
                   onTap: () => _openExternalUrl(context, 'https://github.com/FrogletApps/RoboRef'),
@@ -717,9 +752,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     Icons.shield_outlined,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  title: const Text(
-                    'Privacy Policy',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  title: Text(
+                    context.l10n.privacyPolicyTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 20),
                   onTap: () {
@@ -736,9 +771,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 24),
                 const Divider(),
                 const SizedBox(height: 24),
-                const Text(
-                  'Experimental Features',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  context.l10n.settingsExperimentalFeaturesTitle,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 Card(
@@ -750,8 +785,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                   child: CheckboxListTile(
-                    title: const Text(
-                      'Enable extra features that may not work as intended',
+                    title: Text(
+                      context.l10n.settingsExperimentalCheckboxLabel,
                     ),
                     value: settings.experimentalFeaturesEnabled,
                     onChanged: (val) async {
@@ -759,18 +794,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         final confirmed = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('Warning!  Experimental Features!'),
-                            content: const Text(
-                              'Ticking this will enable extra features that may not work as intended',
+                            title: Text(ctx.l10n.settingsExperimentalWarningTitle),
+                            content: Text(
+                              ctx.l10n.settingsExperimentalWarningBody,
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(ctx).pop(false),
-                                child: const Text('Cancel'),
+                                child: Text(ctx.l10n.commonCancel),
                               ),
                               FilledButton(
                                 onPressed: () => Navigator.of(ctx).pop(true),
-                                child: const Text('Enable'),
+                                child: Text(ctx.l10n.commonEnable),
                               ),
                             ],
                           ),
@@ -789,14 +824,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 24),
                   const Divider(),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Import Event Data',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    context.l10n.settingsImportEventDataTitle,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'This feature is experimental and may not work as intended',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  Text(
+                    context.l10n.settingsImportEventDataDisclaimer,
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
@@ -811,7 +846,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       );
                     },
                     icon: const Icon(Icons.file_upload_outlined),
-                    label: const Text('Import Event Data (TM CSV)'),
+                    label: Text(context.l10n.settingsImportEventDataButton),
                   ),
                 ],
                 const SizedBox(height: 24),
@@ -824,7 +859,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildConnectionBadge(ServerConnectionStatus status, [String? serverUrl]) {
+  Widget _buildConnectionBadge(BuildContext context, ServerConnectionStatus status, [String? serverUrl]) {
     switch (status) {
       case ServerConnectionStatus.connectedLocal:
         final urlLower = (serverUrl ?? '').toLowerCase();
@@ -841,7 +876,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Icon(Icons.wifi, size: 14, color: Colors.green.shade900),
               const SizedBox(width: 4),
               Text(
-                isLocalhost ? 'Local Server (localhost)' : 'Venue LAN (roboref.local)',
+                isLocalhost ? context.l10n.settingsBadgeLocalhost : context.l10n.settingsBadgeVenueLan,
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green.shade900),
               ),
             ],
@@ -860,7 +895,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Icon(Icons.cloud_done, size: 14, color: Colors.blue.shade900),
               const SizedBox(width: 4),
               Text(
-                'Cloud Server',
+                context.l10n.serverTypeCloud,
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue.shade900),
               ),
             ],
@@ -879,14 +914,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Icon(Icons.cloud_off, size: 14, color: Colors.red.shade900),
               const SizedBox(width: 4),
               Text(
-                'Offline / Unreachable',
+                context.l10n.settingsBadgeOfflineUnreachable,
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.red.shade900),
               ),
             ],
           ),
         );
       case ServerConnectionStatus.unknown:
-        return const Text('Checking...', style: TextStyle(color: Colors.grey, fontSize: 12));
+        return Text(context.l10n.settingsBadgeChecking, style: const TextStyle(color: Colors.grey, fontSize: 12));
     }
   }
 
@@ -898,7 +933,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        'RELEASE',
+        context.l10n.settingsReleaseBadge,
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
@@ -929,14 +964,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       onPressed: () {
         Clipboard.setData(ClipboardData(text: _version));
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Version copied to clipboard'),
-            duration: Duration(seconds: 1),
+          SnackBar(
+            content: Text(context.l10n.settingsVersionCopied),
+            duration: const Duration(seconds: 1),
           ),
         );
       },
       icon: const Icon(Icons.copy, size: 16),
-      label: const Text('Copy'),
+      label: Text(context.l10n.commonCopy),
       style: TextButton.styleFrom(
         visualDensity: VisualDensity.compact,
       ),
@@ -967,18 +1002,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Current Version',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    context.l10n.settingsCurrentVersionTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Use this to let a developer know what version you are using if you encounter an issue.',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+            Text(
+              context.l10n.settingsCurrentVersionDescription,
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
             ),
             const SizedBox(height: 12),
             Container(
@@ -1008,9 +1043,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   )..layout();
 
                   final badgePainter = TextPainter(
-                    text: const TextSpan(
-                      text: 'RELEASE',
-                      style: TextStyle(
+                    text: TextSpan(
+                      text: context.l10n.settingsReleaseBadge,
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
@@ -1022,7 +1057,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   final copyPainter = TextPainter(
                     text: TextSpan(
-                      text: 'Copy',
+                      text: context.l10n.commonCopy,
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     textDirection: TextDirection.ltr,

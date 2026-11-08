@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/team_utils.dart';
 import '../../../database/app_database.dart';
 import '../../event_data/services/vex_events_client.dart';
@@ -35,7 +36,7 @@ class TeamListController extends Notifier<bool> {
     if (state) {
       return VexEventsFetchResult(
         success: false,
-        errorMessage: 'Refresh already in progress',
+        errorMessage: lookupL10n().errorRefreshAlreadyInProgress,
       );
     }
 

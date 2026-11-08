@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../l10n/l10n.dart';
 
 /// Regex matching official VEX Tournament SKUs (supports RE- and VE- prefixes)
 final RegExp skuRegex = RegExp(
@@ -350,6 +351,20 @@ String getAppTitle([AppEnvironment? env]) {
   }
 }
 
+/// Retrieve the localized user-facing application title for the active or given environment.
+String getLocalizedAppTitle(BuildContext context, [AppEnvironment? env]) {
+  final l10n = context.l10n;
+  final environment = env ?? getAppEnvironment();
+  switch (environment) {
+    case AppEnvironment.local:
+      return l10n.appTitleLocal;
+    case AppEnvironment.test:
+      return l10n.appTitleTest;
+    case AppEnvironment.production:
+      return l10n.appTitle;
+  }
+}
+
 /// Categorize sync server URL as 'RoboRef Cloud Server' or 'Other Server'
 String getServerTypeDisplayName(String serverUrl) {
   final clean = serverUrl.trim().toLowerCase();
@@ -357,6 +372,16 @@ String getServerTypeDisplayName(String serverUrl) {
     return 'RoboRef Cloud Server';
   }
   return 'Other Server';
+}
+
+/// Categorize sync server URL using localized display labels.
+String getLocalizedServerTypeDisplayName(BuildContext context, String serverUrl) {
+  final l10n = context.l10n;
+  final clean = serverUrl.trim().toLowerCase();
+  if (clean.contains('roboref.app') || clean.contains('roboref.fyi') || clean.contains('workers.dev')) {
+    return l10n.commonServerTypeCloud;
+  }
+  return l10n.commonServerTypeOther;
 }
 
 /// Constructs a share join URL for an event SKU and share session ID.

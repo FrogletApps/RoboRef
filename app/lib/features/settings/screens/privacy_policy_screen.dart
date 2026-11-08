@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// Screen displaying the RoboRef Privacy Policy offline from local assets.
 class PrivacyPolicyScreen extends StatefulWidget {
@@ -24,24 +24,28 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
   void initState() {
     super.initState();
     final path = widget.privacyAssetPath ?? 'assets/privacy.md';
-    _privacyPolicyFuture = rootBundle.loadString(path);
+    _privacyPolicyFuture = loadLocalizedAssetString(path);
   }
 
   void _reloadPrivacyPolicy() {
     setState(() {
       final path = widget.privacyAssetPath ?? 'assets/privacy.md';
-      _privacyPolicyFuture = rootBundle.loadString(path);
+      _privacyPolicyFuture = loadLocalizedAssetString(
+        path,
+        locale: Localizations.maybeLocaleOf(context),
+      );
     });
   }
 
   Future<void> _openWebPolicy(BuildContext context) async {
-    final uri = Uri.parse('https://roboref.app/privacy');
+    const urlStr = 'https://roboref.app/privacy';
+    final uri = Uri.parse(urlStr);
     try {
       final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!launched && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open https://roboref.app/privacy in browser.'),
+          SnackBar(
+            content: Text(context.l10n.privacyCannotOpenBrowser(urlStr)),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -49,8 +53,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not open web link.'),
+          SnackBar(
+            content: Text(context.l10n.privacyCannotOpenWebLink),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -65,12 +69,12 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Privacy Policy'),
+        title: Text(context.l10n.privacyPolicyTitle),
         actions: [
           if (!kIsWeb)
             IconButton(
               icon: const Icon(Icons.open_in_browser_rounded),
-              tooltip: 'Open in Browser',
+              tooltip: context.l10n.privacyOpenInBrowserTooltip,
               onPressed: () => _openWebPolicy(context),
             ),
         ],
@@ -93,9 +97,9 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                   children: [
                     const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 40),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Unable to load privacy policy',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    Text(
+                      context.l10n.privacyLoadErrorTitle,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -107,7 +111,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                     ElevatedButton.icon(
                       onPressed: _reloadPrivacyPolicy,
                       icon: const Icon(Icons.refresh, size: 18),
-                      label: const Text('Retry'),
+                      label: Text(context.l10n.commonRetry),
                     ),
                   ],
                 ),
@@ -173,7 +177,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                     child: TextButton.icon(
                       onPressed: () => _openWebPolicy(context),
                       icon: const Icon(Icons.public, size: 16),
-                      label: const Text('View on roboref.app/privacy'),
+                      label: Text(context.l10n.privacyViewOnline),
                     ),
                   ),
                 ],

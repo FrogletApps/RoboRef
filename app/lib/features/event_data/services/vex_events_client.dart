@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
+import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../../../core/utils/match_utils.dart';
 import '../../../database/app_database.dart';
@@ -119,15 +120,16 @@ class VexEventsClient {
       }
     }
 
+    final l10n = lookupL10n();
     if (lastResponse != null) {
       throw VexApiException(
-        'Server returned error ${lastResponse.statusCode}: ${lastResponse.body}',
+        l10n.errorServerReturnedError(lastResponse.statusCode, lastResponse.body),
         statusCode: lastResponse.statusCode,
       );
     }
 
     throw VexApiException(
-      'Failed to connect to VEX Events proxy: ${lastException?.toString() ?? "Unknown error"}',
+      l10n.errorFailedToConnectVexEventsProxy(lastException?.toString() ?? 'Unknown error'),
     );
   }
 
@@ -275,7 +277,7 @@ class VexEventsClient {
       return [];
     } catch (e) {
       if (e is VexApiException) rethrow;
-      throw VexApiException('Failed to search events via sync server: ${e.toString()}');
+      throw VexApiException(lookupL10n().errorFailedToSearchEventsViaSyncServer(e.toString()));
     }
   }
 
@@ -291,9 +293,10 @@ class VexEventsClient {
     bool fetchMatches = true,
     bool forceRefresh = false,
   }) async {
+    final l10n = lookupL10n();
     final cleanSku = sku.trim().toUpperCase();
     if (cleanSku.isEmpty) {
-      return VexEventsFetchResult(success: false, errorMessage: 'SKU cannot be empty');
+      return VexEventsFetchResult(success: false, errorMessage: l10n.errorSkuCannotBeEmpty);
     }
 
     try {
@@ -355,7 +358,7 @@ class VexEventsClient {
       if (resolvedId == null && eventFetchError != null) {
         return VexEventsFetchResult(
           success: false,
-          errorMessage: 'Could not connect to VEX Events: ${eventFetchError.toString()}',
+          errorMessage: l10n.errorCouldNotConnectToVexEvents(eventFetchError.toString()),
         );
       }
 
@@ -460,7 +463,7 @@ class VexEventsClient {
                   allTeamCompanions.add(
                     TeamsCompanion(
                       teamNumber: Value(teamNum),
-                      teamName: Value(t['team_name']?.toString() ?? 'Team $teamNum'),
+                      teamName: Value(t['team_name']?.toString() ?? l10n.teamFallbackName(teamNum)),
                       sku: Value(cleanSku),
                       organization: Value(t['organization']?.toString()),
                       city: Value(t['location']?['city']?.toString()),
@@ -494,7 +497,7 @@ class VexEventsClient {
             allTeamCompanions.add(
               TeamsCompanion(
                 teamNumber: Value(entry.key),
-                teamName: Value('Team ${entry.key}'),
+                teamName: Value(l10n.teamFallbackName(entry.key)),
                 sku: Value(cleanSku),
                 rank: Value(entry.value),
               ),
@@ -607,7 +610,7 @@ class VexEventsClient {
       if (resolvedId == null) {
         return VexEventsFetchResult(
           success: false,
-          errorMessage: 'Tournament "$cleanSku" not found on VEX Events',
+          errorMessage: l10n.errorTournamentNotFoundOnVexEvents(cleanSku),
         );
       }
 
@@ -620,7 +623,7 @@ class VexEventsClient {
     } catch (e) {
       return VexEventsFetchResult(
         success: false,
-        errorMessage: 'Failed to fetch tournament data from sync server: ${e.toString()}',
+        errorMessage: l10n.errorFailedToFetchTournamentData(e.toString()),
       );
     }
   }

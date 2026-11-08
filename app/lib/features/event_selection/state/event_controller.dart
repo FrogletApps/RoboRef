@@ -4,6 +4,7 @@ import '../../../database/app_database.dart';
 import '../../event_data/services/vex_events_client.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../settings/state/sync_settings_controller.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../models/event_model.dart';
 
@@ -104,7 +105,7 @@ class EventController extends Notifier<AsyncValue<void>> {
         state = const AsyncValue.data(null);
       } else {
         state = AsyncValue.error(
-          result.errorMessage ?? 'Failed to load tournament data',
+          result.errorMessage ?? lookupL10n().errorFailedToLoadTournamentData,
           StackTrace.current,
         );
       }

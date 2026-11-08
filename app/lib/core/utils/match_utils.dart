@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../database/app_database.dart';
+import '../l10n/l10n.dart';
 import 'sku_utils.dart';
 
 // Pre-compiled regular expression constants to optimize performance.
@@ -649,3 +650,34 @@ List<_Chunk> _splitChunks(String str) {
   }
   return chunks;
 }
+
+/// Localizes a canonical match name (from [normalizeMatchName]) for UI display,
+/// while preserving canonical English names in database storage and sorting.
+String localizeMatchName(BuildContext context, String rawMatchName) {
+  final normalized = normalizeMatchName(rawMatchName);
+  if (normalized.isEmpty) return '';
+  final l10n = context.l10n;
+
+  if (normalized.startsWith('Practice ')) {
+    final num = int.tryParse(normalized.substring('Practice '.length).trim());
+    if (num != null) return l10n.matchNamePractice(num);
+  } else if (normalized.startsWith('Qualification ')) {
+    final num = int.tryParse(normalized.substring('Qualification '.length).trim());
+    if (num != null) return l10n.matchNameQualification(num);
+  } else if (normalized.startsWith('Finals ')) {
+    final rest = normalized.substring('Finals '.length).trim();
+    final parts = rest.split('-');
+    if (parts.length == 2) {
+      final inst = int.tryParse(parts[0]);
+      final num = int.tryParse(parts[1]);
+      if (inst != null && num != null) {
+        return l10n.matchNameFinalsInstance(inst, num);
+      }
+    } else {
+      final num = int.tryParse(rest);
+      if (num != null) return l10n.matchNameFinals(num);
+    }
+  }
+  return normalized;
+}
+

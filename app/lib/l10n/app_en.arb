@@ -1,0 +1,1958 @@
+{
+  "@@locale": "en",
+  "appTitle": "RoboRef",
+  "@appTitle": {
+    "description": "Production application title"
+  },
+  "appTitleLocal": "RoboRef Local",
+  "@appTitleLocal": {
+    "description": "Local development application title"
+  },
+  "appTitleTest": "RoboRef Test",
+  "@appTitleTest": {
+    "description": "Test environment application title"
+  },
+  "envBadgeLocal": "LOCAL",
+  "@envBadgeLocal": {
+    "description": "Badge label for local environment"
+  },
+  "envBadgeTest": "TEST",
+  "@envBadgeTest": {
+    "description": "Badge label for test environment"
+  },
+  "envBadgeRelease": "RELEASE",
+  "@envBadgeRelease": {
+    "description": "Badge label for release version"
+  },
+  "commonAll": "All",
+  "@commonAll": {
+    "description": "Filter chip label for showing all items"
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Standard cancel button label"
+  },
+  "commonClose": "Close",
+  "@commonClose": {
+    "description": "Standard close button or tooltip label"
+  },
+  "commonRetry": "Retry",
+  "@commonRetry": {
+    "description": "Standard retry button label"
+  },
+  "commonDelete": "Delete",
+  "@commonDelete": {
+    "description": "Standard delete button label"
+  },
+  "commonRemove": "Remove",
+  "@commonRemove": {
+    "description": "Standard remove button label"
+  },
+  "commonCopy": "Copy",
+  "@commonCopy": {
+    "description": "Standard copy button label"
+  },
+  "commonOk": "OK",
+  "@commonOk": {
+    "description": "Standard OK button label"
+  },
+  "commonEnable": "Enable",
+  "@commonEnable": {
+    "description": "Standard enable button label"
+  },
+  "commonClearSearch": "Clear search",
+  "@commonClearSearch": {
+    "description": "Tooltip and button label to clear a search field"
+  },
+  "commonClearAll": "Clear All",
+  "@commonClearAll": {
+    "description": "Button label to clear all selected items"
+  },
+  "commonDoneCount": "Done ({count})",
+  "@commonDoneCount": {
+    "description": "Done button showing count of selected items",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonAddNote": "Add Note",
+  "@commonAddNote": {
+    "description": "Button label to add a new incident note"
+  },
+  "commonSaveNote": "Save Note",
+  "@commonSaveNote": {
+    "description": "Button label to save an incident note"
+  },
+  "commonShareEventOnline": "Share Event Online",
+  "@commonShareEventOnline": {
+    "description": "Button or menu item to share an event online"
+  },
+  "commonHeadReferee": "Head Referee",
+  "@commonHeadReferee": {
+    "description": "Default display name for the head referee"
+  },
+  "commonReferee": "Referee",
+  "@commonReferee": {
+    "description": "Default fallback name for a referee participant"
+  },
+  "commonCustom": "Custom",
+  "@commonCustom": {
+    "description": "Category label for custom user-entered rule codes"
+  },
+  "commonCouldNotOpenLink": "Could not open link: {url}",
+  "@commonCouldNotOpenLink": {
+    "description": "Snackbar message when an external URL cannot be launched",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "commonLinkCopiedToClipboard": "Link copied to clipboard: {url}",
+  "@commonLinkCopiedToClipboard": {
+    "description": "Snackbar message when a link is copied to the clipboard as fallback",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "commonServerTypeCloud": "RoboRef Cloud Server",
+  "@commonServerTypeCloud": {
+    "description": "Display name for the official RoboRef cloud sync server"
+  },
+  "commonServerTypeOther": "Other Server",
+  "@commonServerTypeOther": {
+    "description": "Display name for a custom or local LAN sync server"
+  },
+  "homeRecentTournaments": "Recent Tournaments",
+  "@homeRecentTournaments": {
+    "description": "Section header for recent tournaments on the home screen"
+  },
+  "homeSharingLabel": "Sharing: {serverType}",
+  "@homeSharingLabel": {
+    "description": "Badge showing which server type an event is being shared on",
+    "placeholders": {
+      "serverType": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRemovedFromRecent": "Removed {sku} from recent list",
+  "@homeRemovedFromRecent": {
+    "description": "Snackbar message when an event is hidden from the recent list",
+    "placeholders": {
+      "sku": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRemoveFromRecent": "Remove from recent",
+  "@homeRemoveFromRecent": {
+    "description": "Menu item to remove an event from the recent list"
+  },
+  "homeShareRoboRef": "Share RoboRef",
+  "@homeShareRoboRef": {
+    "description": "Quick action button and screen title for sharing the RoboRef app"
+  },
+  "homeSettings": "Settings",
+  "@homeSettings": {
+    "description": "Quick action button and screen title for app settings"
+  },
+  "homeAddNewEvent": "Add a new event",
+  "@homeAddNewEvent": {
+    "description": "Primary button on the home screen to select or add a tournament"
+  },
+  "homeWelcomeTitle": "Welcome to RoboRef!",
+  "@homeWelcomeTitle": {
+    "description": "Heading on the welcome card when no events have been added"
+  },
+  "homeWelcomeDescription": "This is an anomaly log for Head Referees at VEX robotics competitions.",
+  "@homeWelcomeDescription": {
+    "description": "Description text on the home welcome card"
+  },
+  "homeWelcomeInstruction": "To get started, tap the \"Add a new event\" button above.",
+  "@homeWelcomeInstruction": {
+    "description": "Onboarding instruction on the home welcome card"
+  },
+  "shareTitle": "Share RoboRef",
+  "@shareTitle": {
+    "description": "AppBar title on the Share RoboRef screen"
+  },
+  "shareDescription": "Scan the QR code below or share the link with head referees, alliance referees, and scorekeepers.",
+  "@shareDescription": {
+    "description": "Instruction text above the QR code on the Share RoboRef screen"
+  },
+  "shareLinkCopied": "RoboRef link copied to clipboard!",
+  "@shareLinkCopied": {
+    "description": "Snackbar message when the RoboRef app URL is copied"
+  },
+  "shareCopyLink": "Copy Link",
+  "@shareCopyLink": {
+    "description": "Button label to copy the RoboRef app link"
+  },
+  "changelogTitle": "Change Log",
+  "@changelogTitle": {
+    "description": "AppBar title and settings item for the Change Log screen"
+  },
+  "changelogReloadTooltip": "Reload Changelog",
+  "@changelogReloadTooltip": {
+    "description": "Tooltip for reloading the changelog"
+  },
+  "changelogLoading": "Loading changelog...",
+  "@changelogLoading": {
+    "description": "Loading indicator text on the Change Log screen"
+  },
+  "changelogUnableToLoad": "Unable to load change log",
+  "@changelogUnableToLoad": {
+    "description": "Error heading when the changelog markdown fails to load"
+  },
+  "changelogReleaseHistory": "Release History",
+  "@changelogReleaseHistory": {
+    "description": "Section header above changelog release cards"
+  },
+  "changelogReleaseNotesFallback": "Release Notes",
+  "@changelogReleaseNotesFallback": {
+    "description": "Fallback release card title when markdown has no headings"
+  },
+  "changelogSearchHint": "Search release notes...",
+  "@changelogSearchHint": {
+    "description": "Hint text for searching the changelog"
+  },
+  "changelogNoEntriesMatching": "No changelog entries found matching \"{query}\"",
+  "@changelogNoEntriesMatching": {
+    "description": "Empty state text when no changelog entries match the search query",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "changelogLinkCopied": "Link copied: {href}",
+  "@changelogLinkCopied": {
+    "description": "Snackbar message when a markdown link in the changelog is copied",
+    "placeholders": {
+      "href": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionTitle": "Pick An Event",
+  "@eventSelectionTitle": {
+    "description": "AppBar title on the event selection screen"
+  },
+  "eventSelectionReloadTooltip": "Reload Events",
+  "@eventSelectionReloadTooltip": {
+    "description": "Tooltip for the reload events button"
+  },
+  "eventSelectionSearchHint": "Search by SKU (RE-... / VE-...) or event name",
+  "@eventSelectionSearchHint": {
+    "description": "Search field hint on the event selection screen"
+  },
+  "eventSelectionAllRegions": "All Regions",
+  "@eventSelectionAllRegions": {
+    "description": "Filter chip and list item label for all regions"
+  },
+  "eventSelectionRegionSelected": "Region: {region}",
+  "@eventSelectionRegionSelected": {
+    "description": "Filter chip label when a specific region is selected",
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionAllStates": "All States",
+  "@eventSelectionAllStates": {
+    "description": "Filter chip and list item label for all US states"
+  },
+  "eventSelectionAllProvinces": "All Provinces",
+  "@eventSelectionAllProvinces": {
+    "description": "Filter chip and list item label for all Canadian provinces"
+  },
+  "eventSelectionStateSelected": "State: {division}",
+  "@eventSelectionStateSelected": {
+    "description": "Filter chip label when a US state is selected",
+    "placeholders": {
+      "division": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionProvinceSelected": "Province: {division}",
+  "@eventSelectionProvinceSelected": {
+    "description": "Filter chip label when a Canadian province is selected",
+    "placeholders": {
+      "division": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionAllDivisions": "All {pluralLabel}",
+  "@eventSelectionAllDivisions": {
+    "description": "Fallback filter label for all administrative divisions",
+    "placeholders": {
+      "pluralLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionDivisionSelected": "{singularLabel}: {division}",
+  "@eventSelectionDivisionSelected": {
+    "description": "Fallback filter chip label when an administrative division is selected",
+    "placeholders": {
+      "singularLabel": {
+        "type": "String"
+      },
+      "division": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionResetFilters": "Reset Filters",
+  "@eventSelectionResetFilters": {
+    "description": "Button label to reset active event filters"
+  },
+  "eventSelectionAddCustomSchedule": "Add & fetch custom {program} tournament schedule",
+  "@eventSelectionAddCustomSchedule": {
+    "description": "Subtitle on the custom SKU entry card",
+    "placeholders": {
+      "program": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionCustomTournamentName": "{program} Tournament ({sku})",
+  "@eventSelectionCustomTournamentName": {
+    "description": "Default tournament name when adding an event manually by SKU",
+    "placeholders": {
+      "program": {
+        "type": "String"
+      },
+      "sku": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionAddAndSelect": "Add & Select",
+  "@eventSelectionAddAndSelect": {
+    "description": "Button label on the custom SKU card"
+  },
+  "eventSelectionEventsHeader": "Events",
+  "@eventSelectionEventsHeader": {
+    "description": "Section header for the events list"
+  },
+  "eventSelectionFoundEventsSummary": "{count, plural, =1{Found 1 event between {startDate} and {endDate}} other{Found {count} events between {startDate} and {endDate}}}",
+  "@eventSelectionFoundEventsSummary": {
+    "description": "Summary count of events found in the active date window",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "startDate": {
+        "type": "String"
+      },
+      "endDate": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionLoadingEvents": "Loading live events from VEX Events...",
+  "@eventSelectionLoadingEvents": {
+    "description": "Loading text when fetching events from the VEX Events API"
+  },
+  "eventSelectionProxyError": "Could not connect to VEX Events proxy.",
+  "@eventSelectionProxyError": {
+    "description": "Error message when the VEX Events proxy cannot be reached"
+  },
+  "eventSelectionNoEventsFound": "No events found in this date window.",
+  "@eventSelectionNoEventsFound": {
+    "description": "Empty state heading when no events match the current window and filters"
+  },
+  "eventSelectionNoEventsSubtitle": "Try loading a wider date range or entering a SKU directly.",
+  "@eventSelectionNoEventsSubtitle": {
+    "description": "Empty state subtitle on the event selection screen"
+  },
+  "eventSelectionSearchNext30Days": "Search Next 30 Days",
+  "@eventSelectionSearchNext30Days": {
+    "description": "Button to expand the event search window by 30 days"
+  },
+  "eventSelectionLoadingMoreEvents": "Loading More Events...",
+  "@eventSelectionLoadingMoreEvents": {
+    "description": "Button label while loading additional events"
+  },
+  "eventSelectionLoadMoreEvents": "Load More Events",
+  "@eventSelectionLoadMoreEvents": {
+    "description": "Button label to load more events"
+  },
+  "eventSelectionShowingCachedEvents": "Could not reach server. Showing cached events.",
+  "@eventSelectionShowingCachedEvents": {
+    "description": "Snackbar message when offline reload falls back to cached events"
+  },
+  "eventSelectionLoadingTournamentData": "Loading teams and match schedule for {sku}...",
+  "@eventSelectionLoadingTournamentData": {
+    "description": "Snackbar message shown when an event is selected and data is being fetched",
+    "placeholders": {
+      "sku": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionLoadedTournamentSummary": "Loaded \"{eventName}\" ({teamsCount, plural, =1{1 team} other{{teamsCount} teams}}, {matchesCount, plural, =1{1 match} other{{matchesCount} matches}})",
+  "@eventSelectionLoadedTournamentSummary": {
+    "description": "Snackbar message shown after tournament teams and matches finish loading",
+    "placeholders": {
+      "eventName": {
+        "type": "String"
+      },
+      "teamsCount": {
+        "type": "int"
+      },
+      "matchesCount": {
+        "type": "int"
+      }
+    }
+  },
+  "eventSelectionLoadNotePrefix": "Note: {errorMessage}",
+  "@eventSelectionLoadNotePrefix": {
+    "description": "Snackbar notice when loading tournament data returns a warning/error",
+    "placeholders": {
+      "errorMessage": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionFilterByRegion": "Filter by Region",
+  "@eventSelectionFilterByRegion": {
+    "description": "Title of the region picker modal sheet"
+  },
+  "eventSelectionSearchRegionHint": "Search region (e.g. United States, UK, Australia)...",
+  "@eventSelectionSearchRegionHint": {
+    "description": "Search input hint inside the region picker modal"
+  },
+  "eventSelectionNoRegionsMatching": "No regions matching \"{query}\"",
+  "@eventSelectionNoRegionsMatching": {
+    "description": "Empty state when no regions match the filter text",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionRegionIncludes": "Includes: {divisions}",
+  "@eventSelectionRegionIncludes": {
+    "description": "Subtitle showing matching states/provinces inside a region",
+    "placeholders": {
+      "divisions": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionFilterByState": "Filter by State",
+  "@eventSelectionFilterByState": {
+    "description": "Title of the division picker sheet for US states"
+  },
+  "eventSelectionFilterByProvince": "Filter by Province",
+  "@eventSelectionFilterByProvince": {
+    "description": "Title of the division picker sheet for Canadian provinces"
+  },
+  "eventSelectionFilterByDivision": "Filter by {singularLabel}",
+  "@eventSelectionFilterByDivision": {
+    "description": "Fallback title of the division picker sheet",
+    "placeholders": {
+      "singularLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionSearchStatesHint": "Search states (e.g. Texas, TX)...",
+  "@eventSelectionSearchStatesHint": {
+    "description": "Search hint for US states"
+  },
+  "eventSelectionSearchProvincesHint": "Search provinces (e.g. Texas, TX)...",
+  "@eventSelectionSearchProvincesHint": {
+    "description": "Search hint for Canadian provinces"
+  },
+  "eventSelectionSearchDivisionsHint": "Search {pluralLabelLower} (e.g. Texas, TX)...",
+  "@eventSelectionSearchDivisionsHint": {
+    "description": "Fallback search hint for divisions",
+    "placeholders": {
+      "pluralLabelLower": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionNoStatesMatching": "No states matching \"{query}\"",
+  "@eventSelectionNoStatesMatching": {
+    "description": "Empty state when no US states match the search query",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionNoProvincesMatching": "No provinces matching \"{query}\"",
+  "@eventSelectionNoProvincesMatching": {
+    "description": "Empty state when no Canadian provinces match the search query",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectionNoDivisionsMatching": "No {pluralLabelLower} matching \"{query}\"",
+  "@eventSelectionNoDivisionsMatching": {
+    "description": "Fallback empty state when no divisions match the search query",
+    "placeholders": {
+      "pluralLabelLower": {
+        "type": "String"
+      },
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "workspaceTitleMatchSchedule": "Match Schedule",
+  "@workspaceTitleMatchSchedule": {
+    "description": "AppBar title for the Match Schedule tab"
+  },
+  "workspaceTitleTeamHistories": "Team Histories",
+  "@workspaceTitleTeamHistories": {
+    "description": "AppBar title for the Team Histories tab"
+  },
+  "workspaceTitleNotes": "RoboRef",
+  "@workspaceTitleNotes": {
+    "description": "AppBar title for the Incident Notes tab"
+  },
+  "workspaceTitleRules": "Game Rules Summary",
+  "@workspaceTitleRules": {
+    "description": "AppBar title for the Game Rules Summary tab"
+  },
+  "workspaceTitleManage": "Manage & Sync",
+  "@workspaceTitleManage": {
+    "description": "AppBar title for the Manage & Sync tab"
+  },
+  "workspaceNavMatches": "Matches",
+  "@workspaceNavMatches": {
+    "description": "Bottom navigation label for the Matches tab"
+  },
+  "workspaceNavTeams": "Teams",
+  "@workspaceNavTeams": {
+    "description": "Bottom navigation label for the Teams tab"
+  },
+  "workspaceNavNotes": "Notes",
+  "@workspaceNavNotes": {
+    "description": "Bottom navigation label for the Notes tab"
+  },
+  "workspaceNavRules": "Rules",
+  "@workspaceNavRules": {
+    "description": "Bottom navigation label for the Rules tab"
+  },
+  "workspaceNavManage": "Manage",
+  "@workspaceNavManage": {
+    "description": "Bottom navigation label for the Manage tab"
+  },
+  "workspaceRefreshMatchesTooltip": "Refresh Matches",
+  "@workspaceRefreshMatchesTooltip": {
+    "description": "Tooltip for refreshing the match schedule"
+  },
+  "workspaceImportScheduleTooltip": "Load / Import Schedule",
+  "@workspaceImportScheduleTooltip": {
+    "description": "Tooltip for importing match schedule CSV"
+  },
+  "workspaceRefreshTeamsTooltip": "Refresh Teams",
+  "@workspaceRefreshTeamsTooltip": {
+    "description": "Tooltip for refreshing the team list"
+  },
+  "workspaceImportTeamsTooltip": "Load / Import Teams",
+  "@workspaceImportTeamsTooltip": {
+    "description": "Tooltip for importing teams CSV"
+  },
+  "workspaceSyncNotesTooltip": "Sync Notes",
+  "@workspaceSyncNotesTooltip": {
+    "description": "Tooltip for syncing incident notes"
+  },
+  "workspaceHostingOnlineTooltip": "Hosting Online ({count} connected)",
+  "@workspaceHostingOnlineTooltip": {
+    "description": "Tooltip on the share icon when the current referee is hosting an online session",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workspaceConnectedOnlineTooltip": "Connected Online ({count} connected)",
+  "@workspaceConnectedOnlineTooltip": {
+    "description": "Tooltip on the share icon when connected as a participant",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workspaceLoadedMatchesForSku": "Loaded {count} match(es) for {sku}",
+  "@workspaceLoadedMatchesForSku": {
+    "description": "Snackbar message when missing tournament matches are auto-fetched",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "sku": {
+        "type": "String"
+      }
+    }
+  },
+  "workspaceCheckingMatchUpdates": "Checking for match schedule updates...",
+  "@workspaceCheckingMatchUpdates": {
+    "description": "Snackbar message while checking for match updates"
+  },
+  "workspaceUpdatedMatches": "Updated {count} match(es)",
+  "@workspaceUpdatedMatches": {
+    "description": "Snackbar message when match schedule updates are fetched",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workspaceMatchScheduleUpToDate": "Match schedule is up to date",
+  "@workspaceMatchScheduleUpToDate": {
+    "description": "Snackbar message when no new matches were found"
+  },
+  "workspaceFailedToUpdateMatches": "Failed to update matches",
+  "@workspaceFailedToUpdateMatches": {
+    "description": "Fallback error message when updating matches fails"
+  },
+  "workspaceCheckingTeamUpdates": "Checking for team roster updates...",
+  "@workspaceCheckingTeamUpdates": {
+    "description": "Snackbar message while checking for team roster updates"
+  },
+  "workspaceUpdatedTeams": "Updated {count} team(s)",
+  "@workspaceUpdatedTeams": {
+    "description": "Snackbar message when team roster updates are fetched",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workspaceTeamListUpToDate": "Team list is up to date",
+  "@workspaceTeamListUpToDate": {
+    "description": "Snackbar message when the team list is already up to date"
+  },
+  "workspaceFailedToUpdateTeams": "Failed to update teams",
+  "@workspaceFailedToUpdateTeams": {
+    "description": "Fallback error message when updating teams fails"
+  },
+  "workspaceSyncingNotes": "Syncing notes...",
+  "@workspaceSyncingNotes": {
+    "description": "Snackbar message when manual note sync is triggered from workspace"
+  },
+  "eventImportTitle": "Load Tournament Data",
+  "@eventImportTitle": {
+    "description": "Title of the CSV tournament data import bottom sheet"
+  },
+  "eventImportSubtitle": "Paste Tournament Manager (TM) export data below.",
+  "@eventImportSubtitle": {
+    "description": "Subtitle of the CSV tournament data import bottom sheet"
+  },
+  "eventImportTeamsCsvTab": "Teams CSV",
+  "@eventImportTeamsCsvTab": {
+    "description": "Segmented button label for importing Teams CSV"
+  },
+  "eventImportMatchesCsvTab": "Match Schedule CSV",
+  "@eventImportMatchesCsvTab": {
+    "description": "Segmented button label for importing Match Schedule CSV"
+  },
+  "eventImportPasteTeamsLabel": "Paste Teams CSV Text",
+  "@eventImportPasteTeamsLabel": {
+    "description": "Input field label for pasting Teams CSV"
+  },
+  "eventImportPasteMatchesLabel": "Paste Matches CSV Text",
+  "@eventImportPasteMatchesLabel": {
+    "description": "Input field label for pasting Matches CSV"
+  },
+  "eventImportPasteTeamsHint": "Number, Name, City, State, Country\n1234A, RoboKnights, Austin, TX, USA",
+  "@eventImportPasteTeamsHint": {
+    "description": "Example CSV hint for Teams import"
+  },
+  "eventImportPasteMatchesHint": "Match, Field, Time, Red 1, Red 2, Blue 1, Blue 2\nQ1, Field 1, 09:00, 1234A, 5678B, 9012C, 3456D",
+  "@eventImportPasteMatchesHint": {
+    "description": "Example CSV hint for Matches import"
+  },
+  "eventImportImportingButton": "Importing...",
+  "@eventImportImportingButton": {
+    "description": "Button label while CSV import is in progress"
+  },
+  "eventImportTeamsButton": "Import Teams CSV",
+  "@eventImportTeamsButton": {
+    "description": "Button label to import Teams CSV"
+  },
+  "eventImportMatchesButton": "Import Matches CSV",
+  "@eventImportMatchesButton": {
+    "description": "Button label to import Matches CSV"
+  },
+  "eventImportNoSkuError": "No tournament SKU selected.",
+  "@eventImportNoSkuError": {
+    "description": "Validation error when attempting CSV import with no active SKU"
+  },
+  "eventImportEmptyCsvError": "Please paste CSV content to import.",
+  "@eventImportEmptyCsvError": {
+    "description": "Validation error when CSV text field is empty"
+  },
+  "eventImportTeamsSuccess": "Successfully imported {count} teams!",
+  "@eventImportTeamsSuccess": {
+    "description": "Status message after importing teams from CSV",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventImportMatchesSuccess": "Successfully imported {count} matches!",
+  "@eventImportMatchesSuccess": {
+    "description": "Status message after importing matches from CSV",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchScheduleSearchHint": "Search by match (e.g. Q12) or team...",
+  "@matchScheduleSearchHint": {
+    "description": "Search input hint on the Match Schedule screen"
+  },
+  "matchScheduleErrorLoading": "Error loading matches: {error}",
+  "@matchScheduleErrorLoading": {
+    "description": "Error text when matches stream fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "matchScheduleEmpty": "No match schedule has been loaded yet.",
+  "@matchScheduleEmpty": {
+    "description": "Empty state message when no matches are loaded for the tournament"
+  },
+  "matchScheduleNoMatchesMatching": "No matches found matching \"{query}\"",
+  "@matchScheduleNoMatchesMatching": {
+    "description": "Empty state message when no matches match the search query",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "matchScheduleCheckingButton": "Checking...",
+  "@matchScheduleCheckingButton": {
+    "description": "Button label while checking for a match schedule"
+  },
+  "matchScheduleCheckButton": "Check for Schedule",
+  "@matchScheduleCheckButton": {
+    "description": "Button label to check for a match schedule"
+  },
+  "matchScheduleFetchOrImportButton": "Fetch or Import Schedule",
+  "@matchScheduleFetchOrImportButton": {
+    "description": "Button label to open the import schedule sheet"
+  },
+  "matchScheduleAllianceTeams": "TEAMS",
+  "@matchScheduleAllianceTeams": {
+    "description": "Badge label for single-alliance matches (e.g. VIQRC Teamwork)"
+  },
+  "matchScheduleAllianceRed": "RED",
+  "@matchScheduleAllianceRed": {
+    "description": "Badge label for the Red alliance"
+  },
+  "matchScheduleAllianceBlue": "BLUE",
+  "@matchScheduleAllianceBlue": {
+    "description": "Badge label for the Blue alliance"
+  },
+  "matchScheduleNoTeamsAssigned": "No teams assigned to this match.",
+  "@matchScheduleNoTeamsAssigned": {
+    "description": "Message in the match details sheet when a match has no teams"
+  },
+  "matchScheduleNoNotesLogged": "No notes logged",
+  "@matchScheduleNoNotesLogged": {
+    "description": "Label when a team has no incident notes logged"
+  },
+  "matchNamePractice": "Practice {num}",
+  "@matchNamePractice": {
+    "description": "Full display name for a Practice match",
+    "placeholders": {
+      "num": {
+        "type": "int"
+      }
+    }
+  },
+  "matchNameQualification": "Qualification {num}",
+  "@matchNameQualification": {
+    "description": "Full display name for a Qualification match",
+    "placeholders": {
+      "num": {
+        "type": "int"
+      }
+    }
+  },
+  "matchNameFinalsInstance": "Finals {instance}-{num}",
+  "@matchNameFinalsInstance": {
+    "description": "Full display name for an elimination/teamwork Finals match with instance and match number",
+    "placeholders": {
+      "instance": {
+        "type": "int"
+      },
+      "num": {
+        "type": "int"
+      }
+    }
+  },
+  "matchNameFinals": "Finals {num}",
+  "@matchNameFinals": {
+    "description": "Full display name for a Finals match with a single match number",
+    "placeholders": {
+      "num": {
+        "type": "int"
+      }
+    }
+  },
+  "teamListSearchHint": "Search teams...",
+  "@teamListSearchHint": {
+    "description": "Search input hint on the Team Histories screen"
+  },
+  "teamListErrorLoading": "Error loading teams: {error}",
+  "@teamListErrorLoading": {
+    "description": "Error message when teams or notes fail to load",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamListEmpty": "No teams have been loaded yet.",
+  "@teamListEmpty": {
+    "description": "Empty state message when no teams exist for the tournament"
+  },
+  "teamListNoTeamsMatching": "No teams matching \"{query}\"",
+  "@teamListNoTeamsMatching": {
+    "description": "Empty state message when no teams match the search query",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "teamListNoteCount": "{count, plural, =0{No notes logged} other{{count} note(s)}}",
+  "@teamListNoteCount": {
+    "description": "Subtitle on a team card showing the number of logged notes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamListMajorCountBadge": "{count} MAJOR",
+  "@teamListMajorCountBadge": {
+    "description": "Badge on a team card indicating the count of major/disabled violations",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamListTeamHistoryTitle": "Team {teamNumber} History",
+  "@teamListTeamHistoryTitle": {
+    "description": "Title of the team incident history bottom sheet",
+    "placeholders": {
+      "teamNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "teamListNoNotesForTeam": "No notes logged for this team yet.",
+  "@teamListNoNotesForTeam": {
+    "description": "Empty state message inside a team's history sheet"
+  },
+  "teamListGeneralNote": "General Note",
+  "@teamListGeneralNote": {
+    "description": "Heading for a note that is not tied to a specific match"
+  },
+  "teamListRulesList": "Rules: {rules}",
+  "@teamListRulesList": {
+    "description": "Line listing violated rule codes in team history",
+    "placeholders": {
+      "rules": {
+        "type": "String"
+      }
+    }
+  },
+  "teamListByReferee": "By {refereeName}",
+  "@teamListByReferee": {
+    "description": "Attribution line showing which referee logged a note",
+    "placeholders": {
+      "refereeName": {
+        "type": "String"
+      }
+    }
+  },
+  "teamFallbackName": "Team {teamNumber}",
+  "@teamFallbackName": {
+    "description": "Fallback team name when a team has no custom name",
+    "placeholders": {
+      "teamNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "incidentsSyncingNetwork": "Syncing with referee network...",
+  "@incidentsSyncingNetwork": {
+    "description": "Snackbar message when syncing notes from the Incident Logger screen"
+  },
+  "incidentsSearchHint": "Search by team number, rule, or notes...",
+  "@incidentsSearchHint": {
+    "description": "Search input hint on the Incident Logger screen"
+  },
+  "incidentsErrorLoading": "Error loading notes: {error}",
+  "@incidentsErrorLoading": {
+    "description": "Error message when incident notes fail to load",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "incidentsEmptyTournament": "No notes logged yet for this tournament.",
+  "@incidentsEmptyTournament": {
+    "description": "Empty state message when no incident notes have been logged"
+  },
+  "incidentsNoMatchingNotes": "No matching notes found.",
+  "@incidentsNoMatchingNotes": {
+    "description": "Empty state message when no incident notes match the search query"
+  },
+  "incidentsLoggedByAt": "Logged by {refereeName} at {time}",
+  "@incidentsLoggedByAt": {
+    "description": "Footer on an incident note card showing author and timestamp",
+    "placeholders": {
+      "refereeName": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "incidentsDeleteNoteTooltip": "Delete Note",
+  "@incidentsDeleteNoteTooltip": {
+    "description": "Tooltip for the delete note icon button"
+  },
+  "incidentsDeleteNoteTitle": "Delete Note?",
+  "@incidentsDeleteNoteTitle": {
+    "description": "Title of the delete note confirmation dialog"
+  },
+  "incidentsDeleteNoteConfirm": "Are you sure you want to remove this note?",
+  "@incidentsDeleteNoteConfirm": {
+    "description": "Body of the delete note confirmation dialog"
+  },
+  "incidentsNewNoteTitle": "New Note",
+  "@incidentsNewNoteTitle": {
+    "description": "Title of the Add Incident bottom sheet"
+  },
+  "incidentsTeamNumberLabel": "Team Number *",
+  "@incidentsTeamNumberLabel": {
+    "description": "Input label for the required team number field"
+  },
+  "incidentsTeamNumberHint": "e.g. 1234A",
+  "@incidentsTeamNumberHint": {
+    "description": "Input hint for the team number field"
+  },
+  "incidentsMatchOptionalLabel": "Match (Optional)",
+  "@incidentsMatchOptionalLabel": {
+    "description": "Input label for the optional match field"
+  },
+  "incidentsMatchOptionalHint": "e.g. Q42",
+  "@incidentsMatchOptionalHint": {
+    "description": "Input hint for the match field"
+  },
+  "incidentsTeamsInMatch": "Teams in match:",
+  "@incidentsTeamsInMatch": {
+    "description": "Label before the quick-select team chips for the chosen match"
+  },
+  "incidentsNoteTypeLabel": "Note Type",
+  "@incidentsNoteTypeLabel": {
+    "description": "Section label for selecting the incident severity/type"
+  },
+  "incidentsRuleViolationsLabel": "Rule Violations",
+  "@incidentsRuleViolationsLabel": {
+    "description": "Section label for selecting violated rules"
+  },
+  "incidentsShowMoreRules": "Show More Rules",
+  "@incidentsShowMoreRules": {
+    "description": "Button label to open the full rule selection sheet"
+  },
+  "incidentsRefereeNotesLabel": "Referee Notes",
+  "@incidentsRefereeNotesLabel": {
+    "description": "Input label for free-text referee notes"
+  },
+  "incidentsRefereeNotesHint": "Describe details, warnings given, or match conditions...",
+  "@incidentsRefereeNotesHint": {
+    "description": "Input hint for free-text referee notes"
+  },
+  "incidentsEnterTeamValidation": "Please enter a team number",
+  "@incidentsEnterTeamValidation": {
+    "description": "Snackbar message when attempting to save a note without a team number"
+  },
+  "severityGeneral": "General",
+  "@severityGeneral": {
+    "description": "Short label for General severity"
+  },
+  "severityMinor": "Minor",
+  "@severityMinor": {
+    "description": "Short label for Minor violation severity"
+  },
+  "severityMajor": "Major",
+  "@severityMajor": {
+    "description": "Short label for Major violation severity"
+  },
+  "severityInspection": "Inspection",
+  "@severityInspection": {
+    "description": "Short label for Inspection note type"
+  },
+  "severityDisabled": "Disabled",
+  "@severityDisabled": {
+    "description": "Short label for Disabled robot note type"
+  },
+  "severityBadgeDisabled": "DISABLED",
+  "@severityBadgeDisabled": {
+    "description": "Uppercase badge label for Disabled severity"
+  },
+  "severityBadgeMajor": "MAJOR VIOLATION",
+  "@severityBadgeMajor": {
+    "description": "Uppercase badge label for Major violation severity"
+  },
+  "severityBadgeInspection": "INSPECTION",
+  "@severityBadgeInspection": {
+    "description": "Uppercase badge label for Inspection severity"
+  },
+  "severityBadgeMinor": "MINOR",
+  "@severityBadgeMinor": {
+    "description": "Uppercase badge label for Minor violation severity"
+  },
+  "severityBadgeGeneral": "GENERAL",
+  "@severityBadgeGeneral": {
+    "description": "Uppercase badge label for General severity"
+  },
+  "ruleSelectionTitle": "Select Rule Violations",
+  "@ruleSelectionTitle": {
+    "description": "Header title of the rule selection modal sheet"
+  },
+  "ruleSelectionSubtitle": "{program} {gameTitle} ({count, plural, =1{1 rule} other{{count} rules}})",
+  "@ruleSelectionSubtitle": {
+    "description": "Subtitle showing program, game title, and rule count in the rule picker",
+    "placeholders": {
+      "program": {
+        "type": "String"
+      },
+      "gameTitle": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ruleSelectionSearchHint": "Search by rule code (SG1, GG2...) or summary...",
+  "@ruleSelectionSearchHint": {
+    "description": "Search input hint in the rule selection modal sheet"
+  },
+  "ruleSelectionNoMatchingRules": "No matching rules found",
+  "@ruleSelectionNoMatchingRules": {
+    "description": "Empty state heading in the rule selection modal sheet"
+  },
+  "ruleSelectionNoMatchingRulesSubtitle": "Try searching for another rule code or keyword.",
+  "@ruleSelectionNoMatchingRulesSubtitle": {
+    "description": "Empty state subtitle in the rule selection modal sheet"
+  },
+  "rulesViewInManual": "View in Manual",
+  "@rulesViewInManual": {
+    "description": "Button in rule details sheet to open the official manual"
+  },
+  "rulesSearchQa": "Search Q&A",
+  "@rulesSearchQa": {
+    "description": "Button in rule details sheet to search the official Q&A for the rule"
+  },
+  "rulesProgramManual": "{program} Manual",
+  "@rulesProgramManual": {
+    "description": "Button on the Rules screen to open the program's Game Manual",
+    "placeholders": {
+      "program": {
+        "type": "String"
+      }
+    }
+  },
+  "rulesOfficialQa": "Official Q&A",
+  "@rulesOfficialQa": {
+    "description": "Button on the Rules screen to open the official Q&A system"
+  },
+  "rulesSearchHint": "Search rules (e.g. G12, SG6, Pinning, Autonomous)",
+  "@rulesSearchHint": {
+    "description": "Search input hint on the Game Rules Summary screen"
+  },
+  "rulesNoMatchingRules": "No matching rules found.",
+  "@rulesNoMatchingRules": {
+    "description": "Empty state heading on the Game Rules Summary screen"
+  },
+  "rulesNoMatchingRulesSubtitle": "Try searching with a different rule code or keyword.",
+  "@rulesNoMatchingRulesSubtitle": {
+    "description": "Empty state subtitle on the Game Rules Summary screen"
+  },
+  "rulesDisclaimerBanner": "DISCLAIMER:  These are a summary of the official rules and are only for reference - check the game manual before you make a ruling.",
+  "@rulesDisclaimerBanner": {
+    "description": "Disclaimer banner text at the bottom of the Game Rules Summary screen"
+  },
+  "rulesDismissDisclaimerTooltip": "Dismiss disclaimer",
+  "@rulesDismissDisclaimerTooltip": {
+    "description": "Tooltip for dismissing the rules disclaimer banner"
+  },
+  "ruleGroupSpecificGame": "Specific Game Rules",
+  "@ruleGroupSpecificGame": {
+    "description": "Rule category name for Specific Game Rules"
+  },
+  "ruleGroupScoring": "Scoring Rules",
+  "@ruleGroupScoring": {
+    "description": "Rule category name for Scoring Rules"
+  },
+  "ruleGroupGeneralGame": "General Game Rules",
+  "@ruleGroupGeneralGame": {
+    "description": "Rule category name for General Game Rules"
+  },
+  "ruleGroupGeneral": "General Rules",
+  "@ruleGroupGeneral": {
+    "description": "Rule category name for General Rules"
+  },
+  "ruleGroupSafety": "Safety Rules",
+  "@ruleGroupSafety": {
+    "description": "Rule category name for Safety Rules"
+  },
+  "ruleGroupRobot": "Robot Rules",
+  "@ruleGroupRobot": {
+    "description": "Rule category name for Robot Rules"
+  },
+  "ruleGroupRobotSkills": "Robot Skills Challenge Rules",
+  "@ruleGroupRobotSkills": {
+    "description": "Rule category name for Robot Skills Challenge Rules"
+  },
+  "ruleGroupTournament": "Tournament Rules",
+  "@ruleGroupTournament": {
+    "description": "Rule category name for Tournament Rules"
+  },
+  "ruleGroupVexUGame": "VEX U Game Rules",
+  "@ruleGroupVexUGame": {
+    "description": "Rule category name for VEX U Game Rules"
+  },
+  "ruleGroupVexURobot": "VEX U Robot Rules",
+  "@ruleGroupVexURobot": {
+    "description": "Rule category name for VEX U Robot Rules"
+  },
+  "ruleGroupVexUSkills": "VEX U Robot Skills Challenge Rules",
+  "@ruleGroupVexUSkills": {
+    "description": "Rule category name for VEX U Robot Skills Challenge Rules"
+  },
+  "ruleGroupVexUTournament": "VEX U Tournament Rules",
+  "@ruleGroupVexUTournament": {
+    "description": "Rule category name for VEX U Tournament Rules"
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "AppBar title on the Settings screen"
+  },
+  "settingsAppearanceSection": "Appearance",
+  "@settingsAppearanceSection": {
+    "description": "Section header for theme and language settings"
+  },
+  "settingsThemeDescription": "Select theme mode. Device mode automatically follows your operating system light or dark setting.",
+  "@settingsThemeDescription": {
+    "description": "Helper description under Appearance for theme mode selection"
+  },
+  "settingsThemeDevice": "Device",
+  "@settingsThemeDevice": {
+    "description": "Theme mode segment label for following device theme"
+  },
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {
+    "description": "Theme mode segment label for light theme"
+  },
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {
+    "description": "Theme mode segment label for dark theme"
+  },
+  "settingsLanguageLabel": "Language",
+  "@settingsLanguageLabel": {
+    "description": "Dropdown label for selecting the application language"
+  },
+  "settingsLanguageSystemDefault": "System Default",
+  "@settingsLanguageSystemDefault": {
+    "description": "Dropdown option to follow the device's operating system language"
+  },
+  "settingsRefereeSetupSection": "Referee Setup",
+  "@settingsRefereeSetupSection": {
+    "description": "Section header for referee profile configuration"
+  },
+  "settingsRefereeNameLabel": "Referee Display Name",
+  "@settingsRefereeNameLabel": {
+    "description": "Input label for the referee display name"
+  },
+  "settingsRefereeNameHint": "e.g. Field 1 Head Referee",
+  "@settingsRefereeNameHint": {
+    "description": "Input hint for the referee display name"
+  },
+  "settingsSyncSharingSection": "Sync & Sharing",
+  "@settingsSyncSharingSection": {
+    "description": "Section header for sync and sharing when not yet shared"
+  },
+  "settingsSharingNotEnabled": "Sharing Not Enabled",
+  "@settingsSharingNotEnabled": {
+    "description": "Card title when event sharing is not enabled"
+  },
+  "settingsSharingNotEnabledDescription": "Notes are stored locally on this device. Once sharing is enabled for this event, the share admin can configure and manage the sync server.",
+  "@settingsSharingNotEnabledDescription": {
+    "description": "Description explaining local storage when sharing is not enabled"
+  },
+  "settingsSyncServerConfigSection": "Sync Server Configuration",
+  "@settingsSyncServerConfigSection": {
+    "description": "Section header for sync server configuration"
+  },
+  "settingsSyncServerConfigAdminDesc": "Connect to the cloud server or a server on your local network",
+  "@settingsSyncServerConfigAdminDesc": {
+    "description": "Subtitle for sync server configuration when user is share admin"
+  },
+  "settingsSyncServerConfigMemberDesc": "Sync server is configured by the share admin for this event",
+  "@settingsSyncServerConfigMemberDesc": {
+    "description": "Subtitle for sync server configuration when user is a member"
+  },
+  "settingsManagedByHostNotice": "Managed by Host ({adminName}). Only the share admin can configure the sync server for this event.",
+  "@settingsManagedByHostNotice": {
+    "description": "Notice shown to non-admin participants about server configuration",
+    "placeholders": {
+      "adminName": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSyncServerModeLabel": "Sync Server Mode",
+  "@settingsSyncServerModeLabel": {
+    "description": "Dropdown label for selecting the sync server mode"
+  },
+  "settingsServerOptionCloud": "Cloud Server ({cloudUrl})",
+  "@settingsServerOptionCloud": {
+    "description": "Dropdown item for the cloud sync server",
+    "placeholders": {
+      "cloudUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsServerOptionLan": "Local Server (http://roboref.local:8080)",
+  "@settingsServerOptionLan": {
+    "description": "Dropdown item for the venue LAN sync server"
+  },
+  "settingsServerOptionCustom": "Custom Server URL",
+  "@settingsServerOptionCustom": {
+    "description": "Dropdown item and input label for a custom sync server URL"
+  },
+  "settingsCustomServerUrlHint": "e.g. http://localhost:8080 or https://sync.roboref.app",
+  "@settingsCustomServerUrlHint": {
+    "description": "Hint text for the custom server URL input"
+  },
+  "settingsServerStatusLabel": "Server Status:",
+  "@settingsServerStatusLabel": {
+    "description": "Label for the server connection status row"
+  },
+  "settingsSyncStatusLabel": "Sync Status:",
+  "@settingsSyncStatusLabel": {
+    "description": "Label for the note synchronization status row"
+  },
+  "settingsSyncingStatus": "Syncing...",
+  "@settingsSyncingStatus": {
+    "description": "Status text shown while synchronization is active"
+  },
+  "settingsIdleReadyStatus": "Idle / Ready",
+  "@settingsIdleReadyStatus": {
+    "description": "Status text shown when sync is idle and ready"
+  },
+  "settingsDeviceUuid": "Device UUID: {deviceId}",
+  "@settingsDeviceUuid": {
+    "description": "Label displaying the unique device identifier",
+    "placeholders": {
+      "deviceId": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsLastSync": "Last sync: {time}",
+  "@settingsLastSync": {
+    "description": "Label displaying the last synchronization timestamp",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsErrorPrefix": "Error: {error}",
+  "@settingsErrorPrefix": {
+    "description": "Label displaying the last synchronization error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTriggeredSyncSnackbar": "Triggered background sync...",
+  "@settingsTriggeredSyncSnackbar": {
+    "description": "Snackbar message when Sync Now is pressed"
+  },
+  "settingsSyncNowButton": "Sync Now",
+  "@settingsSyncNowButton": {
+    "description": "Button label to trigger synchronization immediately"
+  },
+  "settingsTestingConnectionTo": "Testing connection to {target}...",
+  "@settingsTestingConnectionTo": {
+    "description": "Snackbar message while testing connection to a server URL",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTestingDefaultTarget": "server",
+  "@settingsTestingDefaultTarget": {
+    "description": "Fallback target name when testing an empty server URL"
+  },
+  "settingsConnectionSuccessful": "Connection successful: {message}",
+  "@settingsConnectionSuccessful": {
+    "description": "Snackbar message when connection test succeeds",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsConnectionFailed": "Connection failed: {message}",
+  "@settingsConnectionFailed": {
+    "description": "Snackbar message when connection test fails",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTestingButton": "Testing...",
+  "@settingsTestingButton": {
+    "description": "Button label while server connection test is running"
+  },
+  "settingsTestConnectionButton": "Test Connection",
+  "@settingsTestConnectionButton": {
+    "description": "Button label to test server connectivity"
+  },
+  "settingsBadgeLocalhost": "Local Server (localhost)",
+  "@settingsBadgeLocalhost": {
+    "description": "Connection badge text when connected to localhost"
+  },
+  "settingsBadgeVenueLan": "Venue LAN (roboref.local)",
+  "@settingsBadgeVenueLan": {
+    "description": "Connection badge text when connected to a local LAN server"
+  },
+  "settingsBadgeCloudServer": "Cloud Server",
+  "@settingsBadgeCloudServer": {
+    "description": "Connection badge text when connected to the cloud server"
+  },
+  "settingsBadgeOffline": "Offline / Unreachable",
+  "@settingsBadgeOffline": {
+    "description": "Connection badge text when the server is unreachable"
+  },
+  "settingsBadgeChecking": "Checking...",
+  "@settingsBadgeChecking": {
+    "description": "Connection badge text while checking server status"
+  },
+  "settingsEventInfoSection": "Event Information",
+  "@settingsEventInfoSection": {
+    "description": "Section header for event links on the manage tab"
+  },
+  "settingsVexEventsPage": "VEX Events Page",
+  "@settingsVexEventsPage": {
+    "description": "List tile title linking to the event's page on VEX Events"
+  },
+  "settingsAboutSection": "About RoboRef",
+  "@settingsAboutSection": {
+    "description": "Section header for About RoboRef"
+  },
+  "settingsViewSourceItem": "View Source",
+  "@settingsViewSourceItem": {
+    "description": "List tile title linking to the GitHub source repository"
+  },
+  "settingsPrivacyPolicyItem": "Privacy Policy",
+  "@settingsPrivacyPolicyItem": {
+    "description": "List tile title and screen title for the Privacy Policy"
+  },
+  "settingsVersionCopied": "Version copied to clipboard",
+  "@settingsVersionCopied": {
+    "description": "Snackbar message when the app version string is copied"
+  },
+  "settingsCurrentVersionTitle": "Current Version",
+  "@settingsCurrentVersionTitle": {
+    "description": "Title on the version card in Settings"
+  },
+  "settingsCurrentVersionDescription": "Use this to let a developer know what version you are using if you encounter an issue.",
+  "@settingsCurrentVersionDescription": {
+    "description": "Helper text on the version card in Settings"
+  },
+  "settingsExperimentalSection": "Experimental Features",
+  "@settingsExperimentalSection": {
+    "description": "Section header for experimental features"
+  },
+  "settingsExperimentalCheckboxLabel": "Enable extra features that may not work as intended",
+  "@settingsExperimentalCheckboxLabel": {
+    "description": "Checkbox title for enabling experimental features"
+  },
+  "settingsExperimentalWarningTitle": "Warning!  Experimental Features!",
+  "@settingsExperimentalWarningTitle": {
+    "description": "Title of the confirmation dialog when enabling experimental features"
+  },
+  "settingsExperimentalWarningContent": "Ticking this will enable extra features that may not work as intended",
+  "@settingsExperimentalWarningContent": {
+    "description": "Content of the confirmation dialog when enabling experimental features"
+  },
+  "settingsImportEventDataSection": "Import Event Data",
+  "@settingsImportEventDataSection": {
+    "description": "Section header for importing event CSV data"
+  },
+  "settingsImportEventDataDescription": "This feature is experimental and may not work as intended",
+  "@settingsImportEventDataDescription": {
+    "description": "Warning subtitle under Import Event Data"
+  },
+  "settingsImportEventDataButton": "Import Event Data (TM CSV)",
+  "@settingsImportEventDataButton": {
+    "description": "Button label to open the Tournament Manager CSV import sheet"
+  },
+  "privacyTitle": "Privacy Policy",
+  "@privacyTitle": {
+    "description": "AppBar title on the Privacy Policy screen"
+  },
+  "privacyOpenInBrowserTooltip": "Open in Browser",
+  "@privacyOpenInBrowserTooltip": {
+    "description": "Tooltip for opening the privacy policy in an external browser"
+  },
+  "privacyUnableToLoad": "Unable to load privacy policy",
+  "@privacyUnableToLoad": {
+    "description": "Error heading when privacy policy markdown fails to load"
+  },
+  "privacyViewOnWebButton": "View on roboref.app/privacy",
+  "@privacyViewOnWebButton": {
+    "description": "Footer button to view the privacy policy on the web"
+  },
+  "privacyCouldNotOpenBrowser": "Could not open https://roboref.app/privacy in browser.",
+  "@privacyCouldNotOpenBrowser": {
+    "description": "Snackbar message when launching the web privacy policy fails"
+  },
+  "privacyCouldNotOpenLink": "Could not open web link.",
+  "@privacyCouldNotOpenLink": {
+    "description": "Snackbar message when launching the web privacy policy throws an error"
+  },
+  "eventShareTitle": "Event Sharing & Sync",
+  "@eventShareTitle": {
+    "description": "Header title of the Event Share modal bottom sheet"
+  },
+  "eventShareBadgeLocalOnly": "LOCAL ONLY",
+  "@eventShareBadgeLocalOnly": {
+    "description": "Badge shown when event notes are stored strictly locally"
+  },
+  "eventShareLocalOnlyTitle": "Notes are stored entirely locally on this device.",
+  "@eventShareLocalOnlyTitle": {
+    "description": "Heading in the local-only view of the Event Share sheet"
+  },
+  "eventShareLocalOnlyDescription": "To collaborate with alliance referees and scorekeepers, share this event online to synchronize notes in real time.",
+  "@eventShareLocalOnlyDescription": {
+    "description": "Description in the local-only view of the Event Share sheet"
+  },
+  "eventShareCheckingServerButton": "Checking Server...",
+  "@eventShareCheckingServerButton": {
+    "description": "Button label while checking for existing share sessions"
+  },
+  "eventShareOrJoinExisting": "OR JOIN AN EXISTING SHARE",
+  "@eventShareOrJoinExisting": {
+    "description": "Divider label between creating a share and joining via code"
+  },
+  "eventShareEnterCodeLabel": "Enter 6-Digit Share Code",
+  "@eventShareEnterCodeLabel": {
+    "description": "Input label for entering a 6-digit share code"
+  },
+  "eventShareEnterCodeHint": "e.g. ABC123",
+  "@eventShareEnterCodeHint": {
+    "description": "Input hint for entering a 6-digit share code"
+  },
+  "eventShareJoinedSuccessSnackbar": "Joined shared session successfully!",
+  "@eventShareJoinedSuccessSnackbar": {
+    "description": "Snackbar message after joining a share session by code"
+  },
+  "eventShareJoinButton": "Join",
+  "@eventShareJoinButton": {
+    "description": "Button label to join a share session"
+  },
+  "eventShareConflictTitle": "Existing Share Session Found",
+  "@eventShareConflictTitle": {
+    "description": "Heading on the conflict warning card when a share session already exists"
+  },
+  "eventShareConflictDescription": "{count, plural, =1{A shared session for {sku} is already active on the network, hosted by {adminName} with 1 participant.} other{A shared session for {sku} is already active on the network, hosted by {adminName} with {count} participants.}}",
+  "@eventShareConflictDescription": {
+    "description": "Explanation of an existing active share session for the event SKU",
+    "placeholders": {
+      "sku": {
+        "type": "String"
+      },
+      "adminName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventShareJoinedAdminSessionSnackbar": "Joined {adminName}'s session",
+  "@eventShareJoinedAdminSessionSnackbar": {
+    "description": "Snackbar message when joining the existing host's session from the conflict card",
+    "placeholders": {
+      "adminName": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareJoinAdminButton": "Join {adminName}",
+  "@eventShareJoinAdminButton": {
+    "description": "Button label to join the existing host's session",
+    "placeholders": {
+      "adminName": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareCreateSeparateAnywayButton": "Create Separate Share Anyway",
+  "@eventShareCreateSeparateAnywayButton": {
+    "description": "Button label to force-create a separate share session despite an existing one"
+  },
+  "eventShareSharingStatusAdmin": "Sharing: {serverType} (Host / Admin)",
+  "@eventShareSharingStatusAdmin": {
+    "description": "Status heading when sharing online as the session host/admin",
+    "placeholders": {
+      "serverType": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareSharingStatusMember": "Sharing: {serverType} (Member)",
+  "@eventShareSharingStatusMember": {
+    "description": "Status heading when connected to a shared session as a member",
+    "placeholders": {
+      "serverType": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareAdminRoleDescription": "You are the admin on {serverType}. You can invite referees and manage participants.",
+  "@eventShareAdminRoleDescription": {
+    "description": "Subtitle explaining admin capabilities in a shared session",
+    "placeholders": {
+      "serverType": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareMemberRoleDescription": "Hosted by {adminName} on {serverType}. Notes synchronize automatically.",
+  "@eventShareMemberRoleDescription": {
+    "description": "Subtitle explaining member status in a shared session",
+    "placeholders": {
+      "adminName": {
+        "type": "String"
+      },
+      "serverType": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareScanToJoinTitle": "Scan to Join Share Session",
+  "@eventShareScanToJoinTitle": {
+    "description": "Heading above the QR code in the Event Share sheet"
+  },
+  "eventShareCodeLabel": "Share Code: ",
+  "@eventShareCodeLabel": {
+    "description": "Prefix label before the 6-character share code"
+  },
+  "eventShareCopyCodeTooltip": "Copy Share Code",
+  "@eventShareCopyCodeTooltip": {
+    "description": "Tooltip for copying the 6-character share code"
+  },
+  "eventShareCodeCopiedSnackbar": "Share code copied to clipboard!",
+  "@eventShareCodeCopiedSnackbar": {
+    "description": "Snackbar message when the share code is copied"
+  },
+  "eventShareJoinLinkCopiedSnackbar": "Join link copied to clipboard!",
+  "@eventShareJoinLinkCopiedSnackbar": {
+    "description": "Snackbar message when the join URL is copied"
+  },
+  "eventShareCopyJoinLinkButton": "Copy Join Link",
+  "@eventShareCopyJoinLinkButton": {
+    "description": "Button label to copy the share join URL"
+  },
+  "eventShareConnectedRefereesTitle": "Connected Referees ({count})",
+  "@eventShareConnectedRefereesTitle": {
+    "description": "Section header showing the count of connected referees",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventShareNameHistoryTooltip": "Referee name history",
+  "@eventShareNameHistoryTooltip": {
+    "description": "Tooltip for viewing the referee name history dialog"
+  },
+  "eventShareRefreshParticipantsTooltip": "Refresh participant list",
+  "@eventShareRefreshParticipantsTooltip": {
+    "description": "Tooltip for refreshing the connected participants list"
+  },
+  "eventShareBadgeYou": "You",
+  "@eventShareBadgeYou": {
+    "description": "Badge next to the current user's participant entry"
+  },
+  "eventShareBadgeAdmin": "Admin",
+  "@eventShareBadgeAdmin": {
+    "description": "Badge next to the admin participant entry"
+  },
+  "eventSharePreviousNamesForTooltip": "Previous names for {refereeName}",
+  "@eventSharePreviousNamesForTooltip": {
+    "description": "Tooltip for viewing previous display names of a specific referee",
+    "placeholders": {
+      "refereeName": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareRemoveParticipantTooltip": "Remove {refereeName}",
+  "@eventShareRemoveParticipantTooltip": {
+    "description": "Tooltip for removing a participant from the shared session",
+    "placeholders": {
+      "refereeName": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareCloseAndDeleteButton": "Close & Delete Share Session",
+  "@eventShareCloseAndDeleteButton": {
+    "description": "Button label for the admin to close and delete the share session"
+  },
+  "eventShareAdminCannotLeaveNote": "Note: The admin cannot leave until all other referees have left or been removed.",
+  "@eventShareAdminCannotLeaveNote": {
+    "description": "Warning note below the close button when other participants are still connected"
+  },
+  "eventShareLeaveSharedEventButton": "Leave Shared Event",
+  "@eventShareLeaveSharedEventButton": {
+    "description": "Button label for a member to leave the shared event"
+  },
+  "eventShareRemoveParticipantTitle": "Remove {refereeName}?",
+  "@eventShareRemoveParticipantTitle": {
+    "description": "Dialog title when confirming removal of a participant",
+    "placeholders": {
+      "refereeName": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareRemoveParticipantConfirm": "Are you sure you want to remove {refereeName} from this shared session? They will stop syncing new notes.",
+  "@eventShareRemoveParticipantConfirm": {
+    "description": "Dialog body when confirming removal of a participant",
+    "placeholders": {
+      "refereeName": {
+        "type": "String"
+      }
+    }
+  },
+  "eventShareCannotLeaveTitle": "Cannot Leave Share",
+  "@eventShareCannotLeaveTitle": {
+    "description": "Dialog title when the admin tries to leave while others are connected"
+  },
+  "eventShareCannotLeaveContent": "You cannot leave or close this session while {count} other referees are connected. Please remove all participants first or wait for them to leave.",
+  "@eventShareCannotLeaveContent": {
+    "description": "Dialog body when the admin tries to leave while others are connected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventShareCloseDeleteTitle": "Close & Delete Share?",
+  "@eventShareCloseDeleteTitle": {
+    "description": "Dialog title when confirming closing and deleting a share session"
+  },
+  "eventShareCloseDeleteContent": "Closing the session will delete it from the sync server and purge cloud notes. Your local notes will remain safely on this device.",
+  "@eventShareCloseDeleteContent": {
+    "description": "Dialog body when confirming closing and deleting a share session"
+  },
+  "eventShareClosedDeletedSnackbar": "Share session closed and cloud data deleted.",
+  "@eventShareClosedDeletedSnackbar": {
+    "description": "Snackbar message after closing and deleting a share session"
+  },
+  "eventShareCloseDeleteConfirmButton": "Close & Delete",
+  "@eventShareCloseDeleteConfirmButton": {
+    "description": "Confirmation button label to close and delete a share session"
+  },
+  "eventShareLeaveEventTitle": "Leave Shared Event?",
+  "@eventShareLeaveEventTitle": {
+    "description": "Dialog title when a member confirms leaving a shared event"
+  },
+  "eventShareLeaveEventContent": "You will disconnect from this share session and stop receiving sync updates. Your local notes will remain on your device.",
+  "@eventShareLeaveEventContent": {
+    "description": "Dialog body when a member confirms leaving a shared event"
+  },
+  "eventShareLeftEventSnackbar": "Left shared event session.",
+  "@eventShareLeftEventSnackbar": {
+    "description": "Snackbar message after a member leaves a shared event"
+  },
+  "eventShareLeaveEventConfirmButton": "Leave Event",
+  "@eventShareLeaveEventConfirmButton": {
+    "description": "Confirmation button label to leave a shared event"
+  },
+  "eventShareNameHistoryDialogTitle": "Name History",
+  "@eventShareNameHistoryDialogTitle": {
+    "description": "Dialog title for a single referee's name history"
+  },
+  "eventShareCurrentNameLabel": "Current Name: {refereeName}",
+  "@eventShareCurrentNameLabel": {
+    "description": "Label showing a referee's current display name",
+    "placeholders": {
+      "refereeName": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSharePreviousNamesLabel": "Previous names at this event:",
+  "@eventSharePreviousNamesLabel": {
+    "description": "Subheading above the list of previous names for a referee"
+  },
+  "eventShareNoPreviousNamesForReferee": "No previous names recorded for this referee at this event.",
+  "@eventShareNoPreviousNamesForReferee": {
+    "description": "Empty state text when a referee has no previous names"
+  },
+  "eventShareAllNameHistoryDialogTitle": "Referee Name History",
+  "@eventShareAllNameHistoryDialogTitle": {
+    "description": "Dialog title for all connected referees' name histories"
+  },
+  "eventShareNoPreviousNamesForAny": "No previous names recorded for any referee at this event.",
+  "@eventShareNoPreviousNamesForAny": {
+    "description": "Empty state text when no referee has any previous names"
+  },
+  "eventShareNoPreviousNamesShort": "No previous names",
+  "@eventShareNoPreviousNamesShort": {
+    "description": "Short italic label when a participant has no previous names"
+  },
+  "errorSyncServerUrlNotConfigured": "Sync server URL is not configured",
+  "@errorSyncServerUrlNotConfigured": {
+    "description": "Error message when attempting a server request with an empty server URL"
+  },
+  "errorServerRespondedWithStatus": "Server responded with status {statusCode}",
+  "@errorServerRespondedWithStatus": {
+    "description": "Error message when sync push receives a non-200 HTTP status",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "errorSkuCannotBeEmpty": "SKU cannot be empty",
+  "@errorSkuCannotBeEmpty": {
+    "description": "Validation error when an operation requires a non-empty tournament SKU"
+  },
+  "errorCsvIsEmpty": "CSV is empty",
+  "@errorCsvIsEmpty": {
+    "description": "Validation error when imported CSV text contains no lines"
+  },
+  "errorFailedToParseTeamsCsv": "Failed to parse Teams CSV: {error}",
+  "@errorFailedToParseTeamsCsv": {
+    "description": "Error message when parsing a Teams CSV fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorFailedToParseMatchesCsv": "Failed to parse Matches CSV: {error}",
+  "@errorFailedToParseMatchesCsv": {
+    "description": "Error message when parsing a Matches CSV fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorServerReturnedError": "Server returned error {statusCode}: {body}",
+  "@errorServerReturnedError": {
+    "description": "Error message when the VEX Events proxy returns an HTTP error",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      },
+      "body": {
+        "type": "String"
+      }
+    }
+  },
+  "errorFailedToConnectVexEventsProxy": "Failed to connect to VEX Events proxy: {error}",
+  "@errorFailedToConnectVexEventsProxy": {
+    "description": "Error message when all candidate VEX Events proxy URLs fail",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorFailedToSearchEventsViaSyncServer": "Failed to search events via sync server: {error}",
+  "@errorFailedToSearchEventsViaSyncServer": {
+    "description": "Error message when searching events throws an unexpected error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorCouldNotConnectToVexEvents": "Could not connect to VEX Events: {error}",
+  "@errorCouldNotConnectToVexEvents": {
+    "description": "Error message when fetching tournament info from VEX Events fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorTournamentNotFoundOnVexEvents": "Tournament \"{sku}\" not found on VEX Events",
+  "@errorTournamentNotFoundOnVexEvents": {
+    "description": "Error message when a tournament SKU does not exist on VEX Events",
+    "placeholders": {
+      "sku": {
+        "type": "String"
+      }
+    }
+  },
+  "errorFailedToFetchTournamentData": "Failed to fetch tournament data from sync server: {error}",
+  "@errorFailedToFetchTournamentData": {
+    "description": "Error message when fetching tournament teams/matches throws an unexpected exception",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorFailedToLoadTournamentData": "Failed to load tournament data",
+  "@errorFailedToLoadTournamentData": {
+    "description": "Fallback error message when importing an event fails"
+  },
+  "errorRefreshAlreadyInProgress": "Refresh already in progress",
+  "@errorRefreshAlreadyInProgress": {
+    "description": "Message returned when a match or team refresh is already running"
+  },
+  "errorProviderNotMounted": "Provider not mounted",
+  "@errorProviderNotMounted": {
+    "description": "Internal status message when a provider is disposed before completion"
+  },
+  "errorServerUrlIsEmpty": "Server URL is empty",
+  "@errorServerUrlIsEmpty": {
+    "description": "Health check error when the configured server URL is blank"
+  },
+  "errorInvalidServerUrlFormat": "Invalid server URL format",
+  "@errorInvalidServerUrlFormat": {
+    "description": "Health check error when the server URL cannot be parsed as a valid URI"
+  },
+  "statusServerTypeLocal": "Local Server",
+  "@statusServerTypeLocal": {
+    "description": "Server type label for localhost in health check messages"
+  },
+  "statusServerTypeVenueLan": "Venue LAN",
+  "@statusServerTypeVenueLan": {
+    "description": "Server type label for a venue LAN server in health check messages"
+  },
+  "statusServerTypeCloud": "Cloud Server",
+  "@statusServerTypeCloud": {
+    "description": "Server type label for the cloud server in health check messages"
+  },
+  "statusConnectedToServer": "Connected to {serverType} ({latencyMs} ms)",
+  "@statusConnectedToServer": {
+    "description": "Health check message when connected to a sync server",
+    "placeholders": {
+      "serverType": {
+        "type": "String"
+      },
+      "latencyMs": {
+        "type": "int"
+      }
+    }
+  },
+  "errorServerReachableHttpStatus": "Server reachable but returned HTTP {statusCode}",
+  "@errorServerReachableHttpStatus": {
+    "description": "Health check message when server responds with a non-200 HTTP code",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "errorCouldNotReachServer": "Could not reach server",
+  "@errorCouldNotReachServer": {
+    "description": "Generic health check error when the server cannot be reached"
+  },
+  "errorConnectionTimedOut": "Connection timed out (server unreachable)",
+  "@errorConnectionTimedOut": {
+    "description": "Health check error when the request times out"
+  },
+  "errorConnectionRefused": "Connection refused / host unreachable",
+  "@errorConnectionRefused": {
+    "description": "Health check error when socket connection is refused or host lookup fails"
+  },
+  "errorNetworkOrCors": "Network or CORS error connecting to server",
+  "@errorNetworkOrCors": {
+    "description": "Health check error when a client network or CORS error occurs"
+  },
+  "errorFailedToCreateShareHttp": "Failed to create share session (HTTP {statusCode})",
+  "@errorFailedToCreateShareHttp": {
+    "description": "Error message when creating a share session returns an HTTP error",
+    "placeholders": {
+      "statusCode": {
+        "type": "int"
+      }
+    }
+  },
+  "errorAdminCannotLeaveWithActiveParticipants": "The admin cannot leave while other referees are in the session.",
+  "@errorAdminCannotLeaveWithActiveParticipants": {
+    "description": "Error message when the admin attempts to leave a session with active participants"
+  },
+  "errorFailedToLeaveShare": "Failed to leave share session",
+  "@errorFailedToLeaveShare": {
+    "description": "Fallback error message when leaving a share session fails"
+  },
+  "errorControllerDisposed": "Controller disposed",
+  "@errorControllerDisposed": {
+    "description": "Internal error message when ShareController is disposed"
+  },
+  "errorFailedToCreateShare": "Failed to create share",
+  "@errorFailedToCreateShare": {
+    "description": "Fallback error message when creating a share fails"
+  },
+  "errorCouldNotJoinShareSession": "Could not join share session. Check code or connection.",
+  "@errorCouldNotJoinShareSession": {
+    "description": "Error message when joining a share session returns null/failure"
+  },
+  "errorFailedToRemoveParticipant": "Failed to remove participant",
+  "@errorFailedToRemoveParticipant": {
+    "description": "Error message when removing a participant fails"
+  },
+  "errorRemovedFromSharedSession": "You were removed from this shared event session.",
+  "@errorRemovedFromSharedSession": {
+    "description": "Message shown to a participant who was kicked/removed by the admin"
+  }
+}
