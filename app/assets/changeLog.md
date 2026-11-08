@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.11.8+260
+
+- **Match Details Sheet**: Tapping a match now displays the full match name, per-team note type and rule violation counts, and direct "Add Note" buttons for each team in the match.
+
 ## 2026.10.26+259
 
 - **Event Sharing Fix**: Fixed a "Null check operator used on a null value" error when sharing an event on devices with an older local database schema.

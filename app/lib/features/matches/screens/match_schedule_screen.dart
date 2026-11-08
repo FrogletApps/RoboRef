@@ -4,10 +4,16 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/match_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
+import '../../event_selection/state/event_controller.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
+import '../../incidents/state/incident_controller.dart';
+import '../../rules/data/default_rules.dart';
+import '../../rules/models/rule_model.dart';
+import '../../../database/app_database.dart';
 import '../../../core/utils/team_utils.dart';
 import '../../../core/utils/match_utils.dart';
+import '../../../core/utils/sku_utils.dart';
 
 class MatchScheduleScreen extends StatefulWidget {
   final bool showAppBar;
@@ -452,110 +458,313 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
   }
 
   void _showMatchActions(BuildContext context, String matchName, List<dynamic> redTeams, List<dynamic> blueTeams) {
+    final fullMatchName = normalizeMatchName(matchName);
     final displayMatchName = formatMatchShortName(matchName);
+    final sortedRedTeams = List<String>.from(redTeams.map((e) => e.toString()))..sort(compareTeamNumbers);
+    final sortedBlueTeams = List<String>.from(blueTeams.map((e) => e.toString()))..sort(compareTeamNumbers);
+    final isSingleAlliance = sortedBlueTeams.isEmpty;
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Actions for $displayMatchName',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        return Consumer(
+          builder: (context, ref, _) {
+            final notes = ref.watch(activeTournamentNotesProvider).value ?? [];
+            final settings = ref.watch(syncSettingsProvider);
+            final activeEventAsync = ref.watch(activeEventProvider);
+            final program = activeEventAsync.value?.program ?? getSkuProgram(settings.currentSku);
+            final season = activeEventAsync.value?.season ?? '2026-2027';
+            final ruleset = getGameRuleset(program, season);
+
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
               ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: Icon(Symbols.note_stack_add, color: Theme.of(context).colorScheme.primary),
-                title: Text('Add Note for $displayMatchName'),
-                subtitle: const Text('Pre-fills match number into note'),
-                onTap: () {
-                  Navigator.pop(ctx);
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      fullMatchName.isNotEmpty ? fullMatchName : displayMatchName,
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    if (sortedRedTeams.isEmpty && sortedBlueTeams.isEmpty)
+                      Text(
+                        'No teams assigned to this match.',
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      )
+                    else
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ...sortedRedTeams.map((teamStr) => _buildMatchTeamDetailsCard(
+                                    context: context,
+                                    sheetContext: ctx,
+                                    teamNumber: teamStr,
+                                    displayMatchName: displayMatchName,
+                                    allianceColor: isSingleAlliance
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.red.shade700,
+                                    allNotes: notes,
+                                    ruleset: ruleset,
+                                  )),
+                              ...sortedBlueTeams.map((teamStr) => _buildMatchTeamDetailsCard(
+                                    context: context,
+                                    sheetContext: ctx,
+                                    teamNumber: teamStr,
+                                    displayMatchName: displayMatchName,
+                                    allianceColor: Colors.blue.shade700,
+                                    allNotes: notes,
+                                    ruleset: ruleset,
+                                  )),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildMatchTeamDetailsCard({
+    required BuildContext context,
+    required BuildContext sheetContext,
+    required String teamNumber,
+    required String displayMatchName,
+    required Color allianceColor,
+    required List<IncidentNote> allNotes,
+    required GameRuleset ruleset,
+  }) {
+    final teamUpper = teamNumber.trim().toUpperCase();
+    final teamNotes = allNotes.where((n) => n.teamNumber.trim().toUpperCase() == teamUpper).toList();
+
+    const severityOrder = ['disabled', 'major', 'minor', 'inspection', 'general'];
+    final Map<String, int> rawSeverityCounts = {};
+    final Map<String, int> rawRuleCounts = {};
+
+    for (final note in teamNotes) {
+      final sev = note.severity.trim().toLowerCase();
+      final normalizedSev = severityOrder.contains(sev) ? sev : 'general';
+      rawSeverityCounts[normalizedSev] = (rawSeverityCounts[normalizedSev] ?? 0) + 1;
+
+      try {
+        final decoded = jsonDecode(note.ruleCodesJson);
+        if (decoded is List) {
+          for (final item in decoded) {
+            final rawCode = item.toString().trim();
+            if (rawCode.isEmpty) continue;
+            final matchedRule = ruleset.findRule(rawCode);
+            final code = matchedRule?.code ??
+                (rawCode.startsWith('<') && rawCode.endsWith('>')
+                    ? rawCode.toUpperCase()
+                    : '<${rawCode.replaceAll(RegExp(r'[<>]'), '').toUpperCase()}>');
+            rawRuleCounts[code] = (rawRuleCounts[code] ?? 0) + 1;
+          }
+        }
+      } catch (_) {}
+    }
+
+    final List<MapEntry<String, int>> severityEntries = [
+      for (final sev in severityOrder)
+        if ((rawSeverityCounts[sev] ?? 0) > 0) MapEntry(sev, rawSeverityCounts[sev]!),
+    ];
+
+    final List<MapEntry<String, int>> ruleEntries = rawRuleCounts.entries.toList()
+      ..sort((a, b) {
+        final countDiff = b.value.compareTo(a.value);
+        if (countDiff != 0) return countDiff;
+        return a.key.compareTo(b.key);
+      });
+
+    return Container(
+      key: ValueKey('match_team_$teamNumber'),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: allianceColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildTeamPill(teamNumber, allianceColor),
+              FilledButton.tonalIcon(
+                key: ValueKey('add_note_$teamNumber'),
+                onPressed: () {
+                  Navigator.pop(sheetContext);
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                     ),
-                    builder: (c) => AddIncidentSheet(initialMatch: displayMatchName),
+                    builder: (c) => AddIncidentSheet(
+                      initialMatch: displayMatchName,
+                      initialTeam: teamNumber,
+                    ),
                   );
                 },
+                icon: const Icon(Symbols.note_stack_add, size: 16),
+                label: const Text('Add Note'),
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(0, 34),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                ),
               ),
-              if (redTeams.isNotEmpty || blueTeams.isNotEmpty) ...[
-                const Divider(height: 24),
-                const Text(
-                  'Add Note for Specific Team:',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ...(List<dynamic>.from(redTeams)..sort((a, b) => compareTeamNumbers(a.toString(), b.toString()))).map((team) => ActionChip(
-                          avatar: CircleAvatar(
-                            backgroundColor: Colors.red.shade700,
-                            radius: 6,
-                          ),
-                          label: Text(
-                            team.toString(),
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade900),
-                          ),
-                          backgroundColor: Colors.red.shade50,
-                          side: BorderSide(color: Colors.red.shade200),
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                              ),
-                              builder: (c) => AddIncidentSheet(
-                                initialMatch: displayMatchName,
-                                initialTeam: team.toString(),
-                              ),
-                            );
-                          },
-                        )),
-                    ...(List<dynamic>.from(blueTeams)..sort((a, b) => compareTeamNumbers(a.toString(), b.toString()))).map((team) => ActionChip(
-                          avatar: CircleAvatar(
-                            backgroundColor: Colors.blue.shade700,
-                            radius: 6,
-                          ),
-                          label: Text(
-                            team.toString(),
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900),
-                          ),
-                          backgroundColor: Colors.blue.shade50,
-                          side: BorderSide(color: Colors.blue.shade200),
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                              ),
-                              builder: (c) => AddIncidentSheet(
-                                initialMatch: displayMatchName,
-                                initialTeam: team.toString(),
-                              ),
-                            );
-                          },
-                        )),
-                  ],
-                ),
-              ],
             ],
           ),
-        );
-      },
+          const SizedBox(height: 8),
+          if (teamNotes.isEmpty)
+            Text(
+              'No notes logged',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            )
+          else ...[
+            if (severityEntries.isNotEmpty)
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: severityEntries
+                    .map((entry) => _buildSeverityCountBadge(entry.key, entry.value))
+                    .toList(),
+              ),
+            if (ruleEntries.isNotEmpty) ...[
+              if (severityEntries.isNotEmpty) const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: ruleEntries
+                    .map((entry) => _buildRuleCountBadge(context, ruleset, entry.key, entry.value))
+                    .toList(),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSeverityCountBadge(String severity, int count) {
+    Color bg;
+    Color fg;
+    String label;
+
+    switch (severity.toLowerCase()) {
+      case 'disabled':
+        bg = Colors.purple.shade700;
+        fg = Colors.white;
+        label = '$count Disabled';
+        break;
+      case 'major':
+        bg = Colors.deepOrange.shade600;
+        fg = Colors.white;
+        label = '$count Major';
+        break;
+      case 'inspection':
+        bg = Colors.teal.shade700;
+        fg = Colors.white;
+        label = '$count Inspection';
+        break;
+      case 'minor':
+        bg = Colors.blue.shade100;
+        fg = Colors.blue.shade900;
+        label = '$count Minor';
+        break;
+      case 'general':
+      default:
+        bg = Colors.blueGrey.shade100;
+        fg = Colors.blueGrey.shade900;
+        label = '$count General';
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: fg,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRuleCountBadge(
+    BuildContext context,
+    GameRuleset ruleset,
+    String ruleCode,
+    int count,
+  ) {
+    final matchedRule = ruleset.findRule(ruleCode);
+    final summary = matchedRule?.summary;
+    final displayText = '$ruleCode ×$count';
+    final tooltipMessage = summary != null && summary.isNotEmpty
+        ? '${matchedRule!.code}: $summary ($count)'
+        : displayText;
+
+    return Tooltip(
+      message: tooltipMessage,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+          ),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          displayText,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }

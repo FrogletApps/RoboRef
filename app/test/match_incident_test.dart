@@ -136,7 +136,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('MatchScheduleScreen opens AddIncidentSheet with pre-filled match and team', (WidgetTester tester) async {
+  testWidgets('MatchScheduleScreen opens match details with full match name and opens AddIncidentSheet for a specific team', (WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -159,15 +159,17 @@ void main() {
     await tester.tap(find.text('Q 12'));
     await tester.pumpAndSettle();
 
-    // Match actions modal should be shown
-    expect(find.text('Actions for Q 12'), findsOneWidget);
-    expect(find.text('Add Note for Q 12'), findsOneWidget);
-    expect(find.text('Pre-fills match number into note'), findsOneWidget);
+    // Match details modal should show full match name and no general "Add Note for Q 12" button
+    expect(find.text('Qualification 12'), findsOneWidget);
+    expect(find.text('Actions for Q 12'), findsNothing);
+    expect(find.text('Add Note for Q 12'), findsNothing);
+    expect(find.text('Pre-fills match number into note'), findsNothing);
 
-    // Tap on action chip for team 2056A
-    final chip2056 = find.widgetWithText(ActionChip, '2056A');
-    expect(chip2056, findsOneWidget);
-    await tester.tap(chip2056);
+    // Tap on Add Note button for team 2056A
+    final addNote2056 = find.byKey(const ValueKey('add_note_2056A'));
+    expect(addNote2056, findsOneWidget);
+    await tester.ensureVisible(addNote2056);
+    await tester.tap(addNote2056);
     await tester.pumpAndSettle();
 
     // AddIncidentSheet should open with both Q 12 and 2056A pre-filled
@@ -190,6 +192,132 @@ void main() {
     expect(notes.length, equals(1));
     expect(notes.first.matchId, equals('Q 12'));
     expect(notes.first.teamNumber, equals('2056A'));
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('MatchScheduleScreen match details sheet displays full name (e.g. Practice 2) and violation counts per team', (WidgetTester tester) async {
+    await testDb.into(testDb.matches).insert(
+      MatchesCompanion(
+        matchId: const Value('m_p2'),
+        divisionId: const Value(1),
+        sku: const Value('RE-V5RC-26-4487'),
+        name: const Value('P2'),
+        field: const Value('Field 2'),
+        scheduledTime: const Value('08:45 AM'),
+        redTeamsJson: Value(jsonEncode(['1114A', '2056A'])),
+        blueTeamsJson: Value(jsonEncode(['217A', '148A'])),
+      ),
+    );
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    // Log 2 Minor and 1 Major for 1114A with <SG1> twice and <GG2> once
+    await testDb.into(testDb.incidentNotes).insert(
+      IncidentNotesCompanion(
+        id: const Value('v1'),
+        sku: const Value('RE-V5RC-26-4487'),
+        teamNumber: const Value('1114A'),
+        matchId: const Value('P 1'),
+        severity: const Value('minor'),
+        notes: const Value('Early start'),
+        refereeName: const Value('Ref A'),
+        deviceId: const Value('d1'),
+        ruleCodesJson: Value(jsonEncode(['<SG1>'])),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    );
+    await testDb.into(testDb.incidentNotes).insert(
+      IncidentNotesCompanion(
+        id: const Value('v2'),
+        sku: const Value('RE-V5RC-26-4487'),
+        teamNumber: const Value('1114A'),
+        matchId: const Value('Q 1'),
+        severity: const Value('major'),
+        notes: const Value('Repeated SG1 and GG2'),
+        refereeName: const Value('Ref A'),
+        deviceId: const Value('d1'),
+        ruleCodesJson: Value(jsonEncode(['SG1', '<GG2>'])),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    );
+    await testDb.into(testDb.incidentNotes).insert(
+      IncidentNotesCompanion(
+        id: const Value('v3'),
+        sku: const Value('RE-V5RC-26-4487'),
+        teamNumber: const Value('1114A'),
+        matchId: const Value('Q 4'),
+        severity: const Value('minor'),
+        notes: const Value('Minor warning'),
+        refereeName: const Value('Ref B'),
+        deviceId: const Value('d2'),
+        ruleCodesJson: Value(jsonEncode([])),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    );
+
+    // Log 1 Disabled for 217A
+    await testDb.into(testDb.incidentNotes).insert(
+      IncidentNotesCompanion(
+        id: const Value('v4'),
+        sku: const Value('RE-V5RC-26-4487'),
+        teamNumber: const Value('217A'),
+        matchId: const Value('Q 2'),
+        severity: const Value('disabled'),
+        notes: const Value('Safety disablement'),
+        refereeName: const Value('Ref A'),
+        deviceId: const Value('d1'),
+        ruleCodesJson: Value(jsonEncode(['<S1>'])),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(testDb),
+        ],
+        child: const MaterialApp(
+          home: MatchScheduleScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Practice 2 card is displayed as P 2
+    expect(find.text('P 2'), findsOneWidget);
+    await tester.tap(find.text('P 2'));
+    await tester.pumpAndSettle();
+
+    // Title should be full name "Practice 2"
+    expect(find.text('Practice 2'), findsOneWidget);
+    expect(find.text('Actions for P 2'), findsNothing);
+    expect(find.text('Add Note for P 2'), findsNothing);
+
+    // Verify 1114A violation counts (1 Major, 2 Minor, <SG1> ×2, <GG2> ×1)
+    final team1114Card = find.byKey(const ValueKey('match_team_1114A'));
+    expect(team1114Card, findsOneWidget);
+    expect(find.descendant(of: team1114Card, matching: find.text('1 Major')), findsOneWidget);
+    expect(find.descendant(of: team1114Card, matching: find.text('2 Minor')), findsOneWidget);
+    expect(find.descendant(of: team1114Card, matching: find.text('<SG1> ×2')), findsOneWidget);
+    expect(find.descendant(of: team1114Card, matching: find.text('<GG2> ×1')), findsOneWidget);
+
+    // Verify 217A violation counts (1 Disabled, <S1> ×1)
+    final team217Card = find.byKey(const ValueKey('match_team_217A'));
+    expect(team217Card, findsOneWidget);
+    expect(find.descendant(of: team217Card, matching: find.text('1 Disabled')), findsOneWidget);
+    expect(find.descendant(of: team217Card, matching: find.text('<S1> ×1')), findsOneWidget);
+
+    // Verify teams without notes show 'No notes logged'
+    final team2056Card = find.byKey(const ValueKey('match_team_2056A'));
+    expect(team2056Card, findsOneWidget);
+    expect(find.descendant(of: team2056Card, matching: find.text('No notes logged')), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
