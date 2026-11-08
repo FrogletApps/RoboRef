@@ -564,15 +564,14 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
     final teamUpper = teamNumber.trim().toUpperCase();
     final teamNotes = allNotes.where((n) => n.teamNumber.trim().toUpperCase() == teamUpper).toList();
 
-    const severityOrder = ['disabled', 'major', 'minor', 'inspection', 'general'];
-    final Map<String, int> rawSeverityCounts = {};
-    final Map<String, int> rawRuleCounts = {};
+    const severityOrder = ['major', 'disabled', 'minor', 'inspection', 'general'];
+    final Map<({String severity, String? ruleCode}), int> violationCounts = {};
 
     for (final note in teamNotes) {
       final sev = note.severity.trim().toLowerCase();
       final normalizedSev = severityOrder.contains(sev) ? sev : 'general';
-      rawSeverityCounts[normalizedSev] = (rawSeverityCounts[normalizedSev] ?? 0) + 1;
 
+      final List<String> noteRuleCodes = [];
       try {
         final decoded = jsonDecode(note.ruleCodesJson);
         if (decoded is List) {
@@ -584,22 +583,31 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                 (rawCode.startsWith('<') && rawCode.endsWith('>')
                     ? rawCode.toUpperCase()
                     : '<${rawCode.replaceAll(RegExp(r'[<>]'), '').toUpperCase()}>');
-            rawRuleCounts[code] = (rawRuleCounts[code] ?? 0) + 1;
+            noteRuleCodes.add(code);
           }
         }
       } catch (_) {}
+
+      if (noteRuleCodes.isEmpty) {
+        final key = (severity: normalizedSev, ruleCode: null);
+        violationCounts[key] = (violationCounts[key] ?? 0) + 1;
+      } else {
+        for (final code in noteRuleCodes) {
+          final key = (severity: normalizedSev, ruleCode: code);
+          violationCounts[key] = (violationCounts[key] ?? 0) + 1;
+        }
+      }
     }
 
-    final List<MapEntry<String, int>> severityEntries = [
-      for (final sev in severityOrder)
-        if ((rawSeverityCounts[sev] ?? 0) > 0) MapEntry(sev, rawSeverityCounts[sev]!),
-    ];
-
-    final List<MapEntry<String, int>> ruleEntries = rawRuleCounts.entries.toList()
+    final violationEntries = violationCounts.entries.toList()
       ..sort((a, b) {
+        final sevDiff = severityOrder.indexOf(a.key.severity).compareTo(severityOrder.indexOf(b.key.severity));
+        if (sevDiff != 0) return sevDiff;
+        if (a.key.ruleCode != null && b.key.ruleCode == null) return -1;
+        if (a.key.ruleCode == null && b.key.ruleCode != null) return 1;
         final countDiff = b.value.compareTo(a.value);
         if (countDiff != 0) return countDiff;
-        return a.key.compareTo(b.key);
+        return (a.key.ruleCode ?? '').compareTo(b.key.ruleCode ?? '');
       });
 
     return Container(
@@ -656,110 +664,85 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             )
-          else ...[
-            if (severityEntries.isNotEmpty)
-              Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: severityEntries
-                    .map((entry) => _buildSeverityCountBadge(entry.key, entry.value))
-                    .toList(),
-              ),
-            if (ruleEntries.isNotEmpty) ...[
-              if (severityEntries.isNotEmpty) const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: ruleEntries
-                    .map((entry) => _buildRuleCountBadge(context, ruleset, entry.key, entry.value))
-                    .toList(),
-              ),
-            ],
-          ],
+          else
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: violationEntries
+                  .map((entry) => _buildViolationPill(
+                        ruleset: ruleset,
+                        severity: entry.key.severity,
+                        ruleCode: entry.key.ruleCode,
+                        count: entry.value,
+                      ))
+                  .toList(),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildSeverityCountBadge(String severity, int count) {
+  Widget _buildViolationPill({
+    required GameRuleset ruleset,
+    required String severity,
+    required String? ruleCode,
+    required int count,
+  }) {
     Color bg;
     Color fg;
-    String label;
+    String typeLabel;
 
     switch (severity.toLowerCase()) {
+      case 'major':
+        bg = Colors.red.shade900;
+        fg = Colors.white;
+        typeLabel = 'Major';
+        break;
+      case 'minor':
+        bg = Colors.yellow.shade600;
+        fg = Colors.black87;
+        typeLabel = 'Minor';
+        break;
       case 'disabled':
         bg = Colors.purple.shade700;
         fg = Colors.white;
-        label = '$count Disabled';
-        break;
-      case 'major':
-        bg = Colors.deepOrange.shade600;
-        fg = Colors.white;
-        label = '$count Major';
+        typeLabel = 'Disabled';
         break;
       case 'inspection':
         bg = Colors.teal.shade700;
         fg = Colors.white;
-        label = '$count Inspection';
-        break;
-      case 'minor':
-        bg = Colors.blue.shade100;
-        fg = Colors.blue.shade900;
-        label = '$count Minor';
+        typeLabel = 'Inspection';
         break;
       case 'general':
       default:
         bg = Colors.blueGrey.shade100;
         fg = Colors.blueGrey.shade900;
-        label = '$count General';
+        typeLabel = 'General';
         break;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: fg,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
+    final displayText = ruleCode != null && ruleCode.isNotEmpty
+        ? '$typeLabel $ruleCode ×$count'
+        : '$typeLabel ×$count';
 
-  Widget _buildRuleCountBadge(
-    BuildContext context,
-    GameRuleset ruleset,
-    String ruleCode,
-    int count,
-  ) {
-    final matchedRule = ruleset.findRule(ruleCode);
+    final matchedRule = ruleCode != null ? ruleset.findRule(ruleCode) : null;
     final summary = matchedRule?.summary;
-    final displayText = '$ruleCode ×$count';
     final tooltipMessage = summary != null && summary.isNotEmpty
-        ? '${matchedRule!.code}: $summary ($count)'
+        ? '$typeLabel ${matchedRule!.code}: $summary ($count)'
         : displayText;
 
     return Tooltip(
       message: tooltipMessage,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-          ),
+          color: bg,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           displayText,
           style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
+            color: fg,
             fontSize: 11,
             fontWeight: FontWeight.bold,
           ),

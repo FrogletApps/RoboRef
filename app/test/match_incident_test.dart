@@ -300,19 +300,52 @@ void main() {
     expect(find.text('Actions for P 2'), findsNothing);
     expect(find.text('Add Note for P 2'), findsNothing);
 
-    // Verify 1114A violation counts (1 Major, 2 Minor, <SG1> ×2, <GG2> ×1)
+    // Verify 1114A combined violation pills (rule type and rule reference in the same pill)
     final team1114Card = find.byKey(const ValueKey('match_team_1114A'));
     expect(team1114Card, findsOneWidget);
-    expect(find.descendant(of: team1114Card, matching: find.text('1 Major')), findsOneWidget);
-    expect(find.descendant(of: team1114Card, matching: find.text('2 Minor')), findsOneWidget);
-    expect(find.descendant(of: team1114Card, matching: find.text('<SG1> ×2')), findsOneWidget);
-    expect(find.descendant(of: team1114Card, matching: find.text('<GG2> ×1')), findsOneWidget);
+    expect(find.descendant(of: team1114Card, matching: find.text('Major <SG1> ×1')), findsOneWidget);
+    expect(find.descendant(of: team1114Card, matching: find.text('Major <GG2> ×1')), findsOneWidget);
+    expect(find.descendant(of: team1114Card, matching: find.text('Minor <SG1> ×1')), findsOneWidget);
+    expect(find.descendant(of: team1114Card, matching: find.text('Minor ×1')), findsOneWidget);
 
-    // Verify 217A violation counts (1 Disabled, <S1> ×1)
+    // Ensure rule type and rule reference are NOT in separate pills
+    expect(find.descendant(of: team1114Card, matching: find.text('1 Major')), findsNothing);
+    expect(find.descendant(of: team1114Card, matching: find.text('2 Minor')), findsNothing);
+    expect(find.descendant(of: team1114Card, matching: find.text('<SG1> ×2')), findsNothing);
+
+    // Verify Minor pill is yellow and Major pill is a shade of red distinct from the Red team pill
+    final team1114PillContainer = tester.widget<Container>(
+      find.ancestor(
+        of: find.descendant(of: team1114Card, matching: find.text('1114A')),
+        matching: find.byType(Container),
+      ).first,
+    );
+    final majorPillContainer = tester.widget<Container>(
+      find.ancestor(
+        of: find.descendant(of: team1114Card, matching: find.text('Major <SG1> ×1')),
+        matching: find.byType(Container),
+      ).first,
+    );
+    final minorPillContainer = tester.widget<Container>(
+      find.ancestor(
+        of: find.descendant(of: team1114Card, matching: find.text('Minor <SG1> ×1')),
+        matching: find.byType(Container),
+      ).first,
+    );
+
+    final teamRedColor = (team1114PillContainer.decoration as BoxDecoration).color;
+    final majorColor = (majorPillContainer.decoration as BoxDecoration).color;
+    final minorColor = (minorPillContainer.decoration as BoxDecoration).color;
+
+    expect(teamRedColor, equals(Colors.red.shade700));
+    expect(majorColor, equals(Colors.red.shade900));
+    expect(majorColor, isNot(equals(teamRedColor)));
+    expect(minorColor, equals(Colors.yellow.shade600));
+
+    // Verify 217A combined violation pill (Disabled <S1> ×1)
     final team217Card = find.byKey(const ValueKey('match_team_217A'));
     expect(team217Card, findsOneWidget);
-    expect(find.descendant(of: team217Card, matching: find.text('1 Disabled')), findsOneWidget);
-    expect(find.descendant(of: team217Card, matching: find.text('<S1> ×1')), findsOneWidget);
+    expect(find.descendant(of: team217Card, matching: find.text('Disabled <S1> ×1')), findsOneWidget);
 
     // Verify teams without notes show 'No notes logged'
     final team2056Card = find.byKey(const ValueKey('match_team_2056A'));

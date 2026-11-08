@@ -18,7 +18,7 @@ class SeverityBadge extends StatelessWidget {
         label = 'DISABLED';
         break;
       case 'major':
-        bg = Colors.deepOrange.shade600;
+        bg = Colors.red.shade900;
         fg = Colors.white;
         label = 'MAJOR VIOLATION';
         break;
@@ -28,8 +28,8 @@ class SeverityBadge extends StatelessWidget {
         label = 'INSPECTION';
         break;
       case 'minor':
-        bg = Colors.blue.shade100;
-        fg = Colors.blue.shade900;
+        bg = Colors.yellow.shade600;
+        fg = Colors.black87;
         label = 'MINOR';
         break;
       case 'general':
