@@ -332,12 +332,14 @@ class _MultiSelectPickerHeader extends StatelessWidget {
   final int selectedCount;
   final VoidCallback onClearAll;
   final VoidCallback onDone;
+  final bool isMultiSelect;
 
   const _MultiSelectPickerHeader({
     required this.title,
     required this.selectedCount,
     required this.onClearAll,
     required this.onDone,
+    this.isMultiSelect = true,
   });
 
   @override
@@ -367,20 +369,22 @@ class _MultiSelectPickerHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              if (selectedCount > 0)
+              if (isMultiSelect && selectedCount > 0)
                 TextButton(
                   onPressed: onClearAll,
                   child: Text(context.l10n.commonClearAll),
                 ),
-              const SizedBox(width: 4),
-              FilledButton(
-                onPressed: onDone,
-                child: Text(
-                  selectedCount > 0
-                      ? context.l10n.commonDoneCount(selectedCount)
-                      : context.l10n.commonDone,
+              if (isMultiSelect) ...[
+                const SizedBox(width: 4),
+                FilledButton(
+                  onPressed: onDone,
+                  child: Text(
+                    selectedCount > 0
+                        ? context.l10n.commonDoneCount(selectedCount)
+                        : context.l10n.commonDone,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -407,18 +411,32 @@ class _RegionPickerSheetState extends State<RegionPickerSheet> {
   final TextEditingController _filterController = TextEditingController();
   final List<String> _allRegions = getSortedVexRegions();
   late final Set<String> _draftSelectedRegions;
+  late bool _isMultiSelect;
   String _filterText = '';
 
   @override
   void initState() {
     super.initState();
     _draftSelectedRegions = Set<String>.from(widget.selectedRegions);
+    _isMultiSelect = widget.selectedRegions.length > 1;
   }
 
   @override
   void dispose() {
     _filterController.dispose();
     super.dispose();
+  }
+
+  void _setMultiSelect(bool enabled) {
+    setState(() {
+      _isMultiSelect = enabled;
+      if (!enabled && _draftSelectedRegions.length > 1) {
+        final first = _draftSelectedRegions.first;
+        _draftSelectedRegions
+          ..clear()
+          ..add(first);
+      }
+    });
   }
 
   void _toggleRegion(String region) {
@@ -449,11 +467,12 @@ class _RegionPickerSheetState extends State<RegionPickerSheet> {
             _MultiSelectPickerHeader(
               title: context.l10n.eventSelectionFilterByRegion,
               selectedCount: _draftSelectedRegions.length,
+              isMultiSelect: _isMultiSelect,
               onClearAll: () => setState(() => _draftSelectedRegions.clear()),
               onDone: () => widget.onRegionsApplied(_draftSelectedRegions),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
               child: TextField(
                 controller: _filterController,
                 autofocus: false,
@@ -487,6 +506,18 @@ class _RegionPickerSheetState extends State<RegionPickerSheet> {
                   });
                 },
               ),
+            ),
+            CheckboxListTile(
+              value: _isMultiSelect,
+              onChanged: (value) => _setMultiSelect(value ?? false),
+              title: Text(
+                context.l10n.eventSelectionEnableMultiselect,
+                style: theme.textTheme.bodyMedium,
+              ),
+              controlAffinity: ListTileControlAffinity.leading,
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
             ),
             const Divider(height: 1),
             Expanded(
@@ -543,8 +574,13 @@ class _RegionPickerSheetState extends State<RegionPickerSheet> {
                                     color: theme.colorScheme.primary,
                                   )
                                 : null,
-                            onTap: () =>
-                                setState(() => _draftSelectedRegions.clear()),
+                            onTap: () {
+                              if (_isMultiSelect) {
+                                setState(() => _draftSelectedRegions.clear());
+                              } else {
+                                widget.onRegionsApplied(const {});
+                              }
+                            },
                           );
                         }
 
@@ -586,11 +622,24 @@ class _RegionPickerSheetState extends State<RegionPickerSheet> {
                                   ),
                                 )
                               : null,
-                          trailing: Checkbox(
-                            value: isSelected,
-                            onChanged: (_) => _toggleRegion(region),
-                          ),
-                          onTap: () => _toggleRegion(region),
+                          trailing: _isMultiSelect
+                              ? Checkbox(
+                                  value: isSelected,
+                                  onChanged: (_) => _toggleRegion(region),
+                                )
+                              : (isSelected
+                                  ? Icon(
+                                      Icons.check,
+                                      color: theme.colorScheme.primary,
+                                    )
+                                  : null),
+                          onTap: () {
+                            if (_isMultiSelect) {
+                              _toggleRegion(region);
+                            } else {
+                              widget.onRegionsApplied({region});
+                            }
+                          },
                         );
                       },
                     ),

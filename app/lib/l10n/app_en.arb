@@ -358,6 +358,10 @@
   "@eventSelectionResetFilters": {
     "description": "Button label to reset active event filters"
   },
+  "eventSelectionEnableMultiselect": "Enable Multiselect",
+  "@eventSelectionEnableMultiselect": {
+    "description": "Checkbox label under region search field to allow selecting multiple regions"
+  },
   "eventSelectionAddCustomSchedule": "Add & fetch custom {program} tournament schedule",
   "@eventSelectionAddCustomSchedule": {
     "description": "Subtitle on the custom SKU entry card",

@@ -502,6 +502,12 @@ abstract class AppLocalizations {
   /// **'Reset Filters'**
   String get eventSelectionResetFilters;
 
+  /// Checkbox label under region search field to allow selecting multiple regions
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Multiselect'**
+  String get eventSelectionEnableMultiselect;
+
   /// Subtitle on the custom SKU entry card
   ///
   /// In en, this message translates to:

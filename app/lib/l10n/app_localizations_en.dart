@@ -249,6 +249,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventSelectionResetFilters => 'Reset Filters';
 
   @override
+  String get eventSelectionEnableMultiselect => 'Enable Multiselect';
+
+  @override
   String eventSelectionAddCustomSchedule(String program) {
     return 'Add & fetch custom $program tournament schedule';
   }

@@ -321,8 +321,6 @@ void main() {
 
       // 3. Select Taiwan -> filters to Taiwan event (matching Chinese Taipei country in API)
       await tester.tap(find.widgetWithText(ListTile, 'Taiwan'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Done (1)'));
       await tester.runAsync(() async {
         await Future.delayed(const Duration(milliseconds: 50));
       });
@@ -332,10 +330,8 @@ void main() {
       expect(find.text('RE-V5RC-24-5555'), findsOneWidget);
       expect(find.text('RE-V5RC-24-1111'), findsNothing);
 
-      // 4. Open Region Picker, clear Taiwan, and search USA shorthand
+      // 4. Open Region Picker and search USA shorthand
       await tester.tap(find.text('Region: Taiwan'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Clear All'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'USA');
@@ -346,8 +342,6 @@ void main() {
 
       // 5. Select United States -> reveals "All States" division chip
       await tester.tap(find.widgetWithText(ListTile, 'United States'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Done (1)'));
       await tester.runAsync(() async {
         await Future.delayed(const Duration(milliseconds: 50));
       });
@@ -387,13 +381,9 @@ void main() {
       // 8. Test switching to Canada -> displays "All Provinces" chip
       await tester.tap(find.text('Region: United States'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Clear All'));
-      await tester.pumpAndSettle();
       await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'Canada');
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ListTile, 'Canada'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Done (1)'));
       await tester.runAsync(() async {
         await Future.delayed(const Duration(milliseconds: 50));
       });
@@ -406,13 +396,9 @@ void main() {
       // 9. Test switching to Australia -> NO division / states chip shown
       await tester.tap(find.text('Region: Canada'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Clear All'));
-      await tester.pumpAndSettle();
       await tester.enterText(find.widgetWithText(TextField, 'Search region (e.g. United States, UK, Australia)...'), 'Australia');
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ListTile, 'Australia'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Done (1)'));
       await tester.runAsync(() async {
         await Future.delayed(const Duration(milliseconds: 50));
       });

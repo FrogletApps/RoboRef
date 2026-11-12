@@ -134,7 +134,7 @@ void main() {
       expect(filterChangeCount, equals(3));
     });
 
-    testWidgets('supports multi-select regions and per-region multi-select divisions', (tester) async {
+    testWidgets('region picker defaults to single-select on tap and enables multi-select via checkbox under search', (tester) async {
       tester.view.physicalSize = const Size(1000, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -162,19 +162,45 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Open RegionPickerSheet and select both United States and Canada
+      // Open RegionPickerSheet: single-select is default (Enable Multiselect unchecked, no Done button)
       await tester.tap(find.text('All Regions'));
       await tester.pumpAndSettle();
 
       expect(find.text('Filter by Region'), findsOneWidget);
+      final enableMultiselectFinder = find.widgetWithText(
+        CheckboxListTile,
+        'Enable Multiselect',
+      );
+      expect(enableMultiselectFinder, findsOneWidget);
+      expect(tester.widget<CheckboxListTile>(enableMultiselectFinder).value, isFalse);
+      expect(find.text('Done'), findsNothing);
+
       final regionSearchField = find.widgetWithText(
         TextField,
         'Search region (e.g. United States, UK, Australia)...',
       );
       await tester.enterText(regionSearchField, 'USA');
       await tester.pumpAndSettle();
+
+      // Clicking United States immediately selects it and closes the modal
       await tester.tap(find.widgetWithText(ListTile, 'United States'));
       await tester.pumpAndSettle();
+
+      expect(find.text('Filter by Region'), findsNothing);
+      expect(find.text('Region: United States'), findsOneWidget);
+      expect(find.text('All States'), findsOneWidget);
+      expect(filterChangeCount, equals(1));
+
+      // Re-open RegionPickerSheet, enable multiselect, and add Canada
+      await tester.tap(find.text('Region: United States'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<CheckboxListTile>(enableMultiselectFinder).value, isFalse);
+      await tester.tap(enableMultiselectFinder);
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<CheckboxListTile>(enableMultiselectFinder).value, isTrue);
+      expect(find.text('Done (1)'), findsOneWidget);
 
       await tester.enterText(regionSearchField, 'Canada');
       await tester.pumpAndSettle();
@@ -189,7 +215,14 @@ void main() {
       expect(find.text('All States'), findsOneWidget);
       expect(find.text('All Provinces'), findsOneWidget);
       expect(find.text('Reset Filters'), findsOneWidget);
-      expect(filterChangeCount, equals(1));
+      expect(filterChangeCount, equals(2));
+
+      // Re-opening when multiple regions are selected keeps Enable Multiselect checked
+      await tester.tap(find.text('Regions: 2 selected'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<CheckboxListTile>(enableMultiselectFinder).value, isTrue);
+      await tester.tap(find.text('Done (2)'));
+      await tester.pumpAndSettle();
 
       // Open States picker and select Texas and California
       await tester.tap(find.text('All States'));
