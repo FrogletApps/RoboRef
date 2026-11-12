@@ -1,4 +1,4 @@
-RoboRef Source-Available Non-Commercial License (v1.0)
+RoboRef Source-Available Non-Commercial License (v1.1)
 Copyright (c) 2026 FrogletApps. All rights reserved.
 
 This License governs the RoboRef source code, documentation, build scripts,
@@ -13,7 +13,7 @@ components or dependencies are governed by their own separate licenses.
 
 "Excluded Entity" means:
   (a) The Robotics Education & Competition Foundation, Inc. ("RECF"), including
-      any parent, subsidiary, successor, or affiliated organization; and
+      any affiliated, subsidiary, successor, or parent organization; and
   (b) Any paid employee, officer, director, agent, or contractor of RECF (or
       its affiliates) when acting within the scope of their employment,
       official duties, or contract.
@@ -138,4 +138,3 @@ permission outside the scope of this License, contact:
 
   FrogletApps
   Email: dev@roboref.app
-  Web:   https://roboref.app
