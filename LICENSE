@@ -1,0 +1,141 @@
+RoboRef Source-Available Non-Commercial License (v1.0)
+Copyright (c) 2026 FrogletApps. All rights reserved.
+
+This License governs the RoboRef source code, documentation, build scripts,
+and project assets in this repository (the "Software"), except where third-party
+components or dependencies are governed by their own separate licenses.
+
+--------------------------------------------------------------------------------
+1. DEFINITIONS
+--------------------------------------------------------------------------------
+
+"Licensor" means FrogletApps.
+
+"Excluded Entity" means:
+  (a) The Robotics Education & Competition Foundation, Inc. ("RECF"), including
+      any parent, subsidiary, successor, or affiliated organization; and
+  (b) Any paid employee, officer, director, agent, or contractor of RECF (or
+      its affiliates) when acting within the scope of their employment,
+      official duties, or contract.
+
+  Clarification: Independent, unpaid tournament volunteers, Head Referees,
+  educators, students, and local Event Partners acting in a personal, team, or
+  independent local-event capacity are NOT Excluded Entities solely because
+  they participate in or volunteer at an RECF-affiliated event.
+
+"Commercial Purpose" means any use, copying, modification, hosting, or
+distribution primarily intended for or directed toward commercial advantage,
+business revenue, or private monetary compensation, including but not limited to:
+  (a) Selling, licensing, renting, leasing, or charging any fee for access to
+      the Software or any modified version ("Fork");
+  (b) Operating a paid, subscription-based, or ad-monetized hosted service or
+      SaaS offering based on the Software;
+  (c) Publishing a monetized or paid app-store listing derived from the
+      Software; or
+  (d) Integrating or using the Software inside a for-profit business or paid
+      commercial product or service.
+
+"Permitted Community Use" means personal, educational, research, or
+non-commercial community use of the Software (including running a local LAN or
+self-hosted sync server at a tournament), provided that:
+  (a) No fee is charged specifically for access to, distribution of, or hosting
+      of the Software or Fork; and
+  (b) The activity is not for a Commercial Purpose and is not carried out by or
+      on behalf of an Excluded Entity.
+  Standard tournament entry or venue registration fees collected by a school,
+  club, or independent Event Partner to run a robotics competition do not by
+  themselves make volunteer use of the Software a Commercial Purpose.
+
+--------------------------------------------------------------------------------
+2. LICENSE GRANT (NON-COMMERCIAL FORKS & MODIFICATIONS)
+--------------------------------------------------------------------------------
+
+Subject to strict compliance with every condition in this License, Licensor
+grants to any individual or non-excluded organization a worldwide,
+non-exclusive, non-transferable, royalty-free copyright license to:
+
+  1. View, copy, fork, and modify the Software;
+  2. Compile, install, and run the Software (including self-hosting the sync
+     server) strictly for Permitted Community Use; and
+  3. Distribute unmodified or modified source code and compiled builds strictly
+     for Permitted Community Use, provided that you:
+       (a) Retain this LICENSE file and all copyright notices intact in every
+           copy and Fork;
+       (b) Clearly document in any Fork that you modified the Software and
+           state the date/nature of changes; and
+       (c) Comply in full with Section 4 (Branding & Rebranding Condition).
+
+--------------------------------------------------------------------------------
+3. EXPLICIT PROHIBITIONS (COMMERCIAL USE & EXCLUDED ENTITIES)
+--------------------------------------------------------------------------------
+
+(a) No Commercial Forks or Commercial Use:
+    You may NOT use, fork, modify, compile, host, integrate, or distribute the
+    Software or any Fork for any Commercial Purpose without a separate written
+    commercial license signed by Licensor.
+
+(b) Prohibition on RECF / Excluded Entities:
+    Notwithstanding any nonprofit, charitable, or 501(c)(3) tax-exempt status,
+    an Excluded Entity may NOT use, copy, fork, modify, compile, integrate,
+    host, or redistribute the Software (or any portion or derivative thereof)
+    for any purpose—whether commercial, operational, internal, educational, or
+    charitable—without a separate written license signed by Licensor.
+
+--------------------------------------------------------------------------------
+4. BRANDING, TRADEMARKS & REBRANDING CONDITION
+--------------------------------------------------------------------------------
+
+This License grants NO trademark, service mark, trade name, or brand rights.
+All rights in the "RoboRef" name, domains (including roboref.app and
+roboref.fyi), icons/logos (app/assets/icons/), and package/bundle identifier
+("app.roboref") remain exclusively with Licensor, as detailed in TRADEMARKS.md.
+
+As an express condition of the rights granted in Section 2, if you distribute a
+modified Fork or host a public web/PWA instance of a modified Fork, you MUST:
+  1. Remove the "RoboRef" name and use a clearly distinct application name;
+  2. Replace all RoboRef logos, icons, favicons, and brand artwork in
+     app/assets/icons/ (and any generated platform launcher icons);
+  3. Change the application/bundle identifier ("app.roboref"); and
+  4. Avoid any statement or branding implying endorsement by FrogletApps.
+
+--------------------------------------------------------------------------------
+5. CONTRIBUTIONS
+--------------------------------------------------------------------------------
+
+By submitting a pull request, patch, issue snippet, or other contribution to
+this repository, you represent that you have the right to submit it and you
+grant Licensor (FrogletApps) a perpetual, worldwide, irrevocable, royalty-free
+license to use, modify, distribute, sublicense, and relicense your contribution
+under any license terms (including commercial or open-source licenses) at
+Licensor's sole discretion.
+
+--------------------------------------------------------------------------------
+6. TERMINATION
+--------------------------------------------------------------------------------
+
+All rights granted to you under this License terminate automatically and
+immediately if you breach any term of this License (including any Commercial
+Purpose, any use by or for an Excluded Entity, or failure to rebrand a
+distributed Fork). Sections 3, 4, 5, 7, and 8 survive termination.
+
+--------------------------------------------------------------------------------
+7. DISCLAIMER OF WARRANTY
+--------------------------------------------------------------------------------
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. IN NO EVENT SHALL
+LICENSOR OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+--------------------------------------------------------------------------------
+8. LICENSING INQUIRIES
+--------------------------------------------------------------------------------
+
+To request a commercial license, organizational exception, or written
+permission outside the scope of this License, contact:
+
+  FrogletApps
+  Email: dev@roboref.app
+  Web:   https://roboref.app
