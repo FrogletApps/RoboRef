@@ -39,7 +39,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
       final success = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.commonCannotOpenLink(urlString))),
+          SnackBar(content: Text(context.l10n.commonCouldNotOpenLink(urlString))),
         );
       }
     } catch (_) {
@@ -152,7 +152,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                           _launchExternalUrl(context, rule.link!);
                         },
                         icon: const Icon(Icons.menu_book, size: 18),
-                        label: Text(ctx.l10n.rulesViewInManualButton),
+                        label: Text(ctx.l10n.rulesViewInManual),
                       ),
                     ),
                   if (rule.link != null) const SizedBox(width: 10),
@@ -163,7 +163,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                         _launchExternalUrl(context, specificQaUrl);
                       },
                       icon: const Icon(Icons.search, size: 18),
-                      label: Text(ctx.l10n.rulesSearchQaButton),
+                      label: Text(ctx.l10n.rulesSearchQa),
                     ),
                   ),
                 ],
@@ -217,7 +217,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
               title: Column(
                 children: [
                   Text(
-                    context.l10n.rulesTitle,
+                    context.l10n.workspaceTitleRules,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                   ),
                   Text(
@@ -254,7 +254,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                         onPressed: () => _launchExternalUrl(context, ruleset.manualUrl),
                         icon: const Icon(Icons.menu_book, size: 16),
                         label: Text(
-                          context.l10n.rulesManualButton(ruleset.program),
+                          context.l10n.rulesProgramManual(ruleset.program),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -265,7 +265,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () => _launchExternalUrl(context, ruleset.qaUrl),
                         icon: const Icon(Icons.help_outline, size: 16),
-                        label: Text(context.l10n.rulesOfficialQaButton, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        label: Text(context.l10n.rulesOfficialQa, maxLines: 1, overflow: TextOverflow.ellipsis),
                       ),
                     ),
                   ],
@@ -340,12 +340,12 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                           Icon(Icons.search_off, size: 48, color: Colors.grey.shade400),
                           const SizedBox(height: 12),
                           Text(
-                            context.l10n.rulesNoMatchingTitle,
+                            context.l10n.rulesNoMatchingRules,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            context.l10n.rulesNoMatchingHint,
+                            context.l10n.rulesNoMatchingRulesSubtitle,
                             style: const TextStyle(color: Colors.grey, fontSize: 13),
                           ),
                         ],
@@ -437,7 +437,7 @@ class _RulesScreenState extends ConsumerState<RulesScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        context.l10n.rulesDisclaimerText,
+                        context.l10n.rulesDisclaimerBanner,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,

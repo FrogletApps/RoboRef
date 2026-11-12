@@ -150,7 +150,7 @@ class _RuleSelectionSheetState extends State<RuleSelectionSheet> {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
                     onPressed: () => Navigator.pop(context, _selectedRules),
-                    child: Text(context.l10n.ruleSelectionDoneButton(_selectedRules.length)),
+                    child: Text(context.l10n.commonDoneCount(_selectedRules.length)),
                   ),
                 ],
               ),
@@ -234,12 +234,12 @@ class _RuleSelectionSheetState extends State<RuleSelectionSheet> {
                             Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
                             const SizedBox(height: 8),
                             Text(
-                              context.l10n.ruleSelectionNoMatchingTitle,
+                              context.l10n.ruleSelectionNoMatchingRules,
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              context.l10n.ruleSelectionNoMatchingHint,
+                              context.l10n.ruleSelectionNoMatchingRulesSubtitle,
                               style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                             ),
                           ],

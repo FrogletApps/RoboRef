@@ -220,7 +220,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             const Icon(Icons.share, size: 12, color: Colors.green),
                                             const SizedBox(width: 4),
                                             Text(
-                                              context.l10n.homeSharingBadge(serverType),
+                                              context.l10n.homeSharingLabel(serverType),
                                               style: const TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
@@ -397,7 +397,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                context.l10n.homeEnvLocal,
+                context.l10n.envBadgeLocal,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -414,7 +414,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                context.l10n.homeEnvTest,
+                context.l10n.envBadgeTest,
                 style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -455,7 +455,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: _buildQuickActionButton(
             context,
             icon: Icons.settings_outlined,
-            label: context.l10n.commonSettings,
+            label: context.l10n.homeSettings,
             isDark: isDark,
             onTap: () {
               Navigator.of(context).push(
@@ -526,7 +526,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       },
       icon: const Icon(Icons.add, size: 24),
       label: Text(
-        context.l10n.homeAddEvent,
+        context.l10n.homeAddNewEvent,
         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );

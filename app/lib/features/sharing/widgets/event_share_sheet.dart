@@ -223,7 +223,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                         const Icon(Icons.lock_outline, size: 14, color: Colors.grey),
                         const SizedBox(width: 4),
                         Text(
-                          context.l10n.eventShareLocalOnlyBadge,
+                          context.l10n.eventShareBadgeLocalOnly,
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -288,7 +288,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: Text(
-                context.l10n.eventShareOrJoinExistingDivider,
+                context.l10n.eventShareOrJoinExisting,
                 style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
               ),
             ),
@@ -363,7 +363,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
           ),
           const SizedBox(height: 8),
           Text(
-            context.l10n.eventShareConflictBody(
+            context.l10n.eventShareConflictDescription(
               widget.sku,
               existing.adminRefereeName,
               existing.participantCount,
@@ -385,7 +385,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                         .joinShare(shareId: existing.id, sku: widget.sku);
                     if (success && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(context.l10n.eventShareJoinedAdminSnackbar(existing.adminRefereeName))),
+                        SnackBar(content: Text(context.l10n.eventShareJoinedAdminSessionSnackbar(existing.adminRefereeName))),
                       );
                     }
                   },
@@ -412,7 +412,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                       .createShare(widget.sku, force: true);
                 },
                 child: Text(
-                  context.l10n.eventShareCreateSeparateButton,
+                  context.l10n.eventShareCreateSeparateAnywayButton,
                   style: const TextStyle(color: Colors.orange),
                 ),
               ),
@@ -471,8 +471,8 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                   children: [
                     Text(
                       isAdmin
-                          ? context.l10n.eventShareStatusAdminTitle(serverType)
-                          : context.l10n.eventShareStatusMemberTitle(serverType),
+                          ? context.l10n.eventShareSharingStatusAdmin(serverType)
+                          : context.l10n.eventShareSharingStatusMember(serverType),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -481,8 +481,8 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                     ),
                     Text(
                       isAdmin
-                          ? context.l10n.eventShareStatusAdminDescription(serverType)
-                          : context.l10n.eventShareStatusMemberDescription(
+                          ? context.l10n.eventShareAdminRoleDescription(serverType)
+                          : context.l10n.eventShareMemberRoleDescription(
                               shareState.adminRefereeName ?? context.l10n.commonHeadReferee,
                               serverType,
                             ),
@@ -535,7 +535,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        context.l10n.eventShareCodePrefix,
+                        context.l10n.eventShareCodeLabel,
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                       SelectableText(
@@ -653,7 +653,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                           color: Colors.grey.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text(context.l10n.eventShareYouBadge, style: const TextStyle(fontSize: 10)),
+                        child: Text(context.l10n.eventShareBadgeYou, style: const TextStyle(fontSize: 10)),
                       ),
                     ],
                     if (isItemAdmin) ...[
@@ -665,7 +665,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          context.l10n.eventShareAdminBadge,
+                          context.l10n.eventShareBadgeAdmin,
                           style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -705,7 +705,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
             ),
             onPressed: () => _handleAdminLeave(context, participantCount),
             icon: const Icon(Icons.delete_forever, size: 20),
-            label: Text(context.l10n.eventShareCloseDeleteButton),
+            label: Text(context.l10n.eventShareCloseAndDeleteButton),
           ),
           if (participantCount > 1) ...[
             const SizedBox(height: 6),
@@ -725,7 +725,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
             ),
             onPressed: () => _confirmMemberLeave(context),
             icon: const Icon(Icons.exit_to_app, size: 20),
-            label: Text(context.l10n.eventShareLeaveEventButton),
+            label: Text(context.l10n.eventShareLeaveSharedEventButton),
           ),
         ],
       ],
@@ -736,9 +736,9 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(ctx.l10n.eventShareRemoveParticipantDialogTitle(participant.refereeName)),
+        title: Text(ctx.l10n.eventShareRemoveParticipantTitle(participant.refereeName)),
         content: Text(
-          ctx.l10n.eventShareRemoveParticipantDialogBody(participant.refereeName),
+          ctx.l10n.eventShareRemoveParticipantConfirm(participant.refereeName),
         ),
         actions: [
           TextButton(
@@ -769,11 +769,11 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
             children: [
               const Icon(Icons.block, color: Colors.red),
               const SizedBox(width: 8),
-              Text(ctx.l10n.eventShareCannotLeaveDialogTitle),
+              Text(ctx.l10n.eventShareCannotLeaveTitle),
             ],
           ),
           content: Text(
-            ctx.l10n.eventShareCannotLeaveDialogBody(participantCount),
+            ctx.l10n.eventShareCannotLeaveContent(participantCount),
           ),
           actions: [
             ElevatedButton(
@@ -789,9 +789,9 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(ctx.l10n.eventShareCloseDeleteDialogTitle),
+        title: Text(ctx.l10n.eventShareCloseDeleteTitle),
         content: Text(
-          ctx.l10n.eventShareCloseDeleteDialogBody,
+          ctx.l10n.eventShareCloseDeleteContent,
         ),
         actions: [
           TextButton(
@@ -821,9 +821,9 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(ctx.l10n.eventShareLeaveDialogTitle),
+        title: Text(ctx.l10n.eventShareLeaveEventTitle),
         content: Text(
-          ctx.l10n.eventShareLeaveDialogBody,
+          ctx.l10n.eventShareLeaveEventContent,
         ),
         actions: [
           TextButton(
@@ -838,11 +838,11 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
               if (result.success && context.mounted) {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(context.l10n.eventShareLeftSessionSnackbar)),
+                  SnackBar(content: Text(context.l10n.eventShareLeftEventSnackbar)),
                 );
               }
             },
-            child: Text(ctx.l10n.eventShareLeaveConfirmButton),
+            child: Text(ctx.l10n.eventShareLeaveEventConfirmButton),
           ),
         ],
       ),
@@ -1013,7 +1013,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    dialogContext.l10n.eventShareAdminBadge,
+                                    dialogContext.l10n.eventShareBadgeAdmin,
                                     style: const TextStyle(fontSize: 9, color: Colors.green, fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -1023,7 +1023,7 @@ class _EventShareSheetState extends ConsumerState<EventShareSheet> {
                           const SizedBox(height: 4),
                           if (participants[i].previousNames.isEmpty)
                             Text(
-                              dialogContext.l10n.eventShareNoPreviousNamesItem,
+                              dialogContext.l10n.eventShareNoPreviousNamesShort,
                               style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
                             )
                           else

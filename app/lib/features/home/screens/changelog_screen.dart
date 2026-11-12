@@ -66,7 +66,7 @@ List<ChangeLogRelease> parseChangeLogReleases(String markdown) {
   if (releases.isEmpty && markdown.trim().isNotEmpty) {
     releases.add(
       ChangeLogRelease(
-        title: lookupL10n().changelogReleaseNotes,
+        title: lookupL10n().changelogReleaseNotesFallback,
         markdownContent: markdown.trim(),
         itemCount: 1,
       ),
@@ -178,7 +178,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                           const Icon(Icons.error_outline, color: Colors.redAccent, size: 36),
                           const SizedBox(height: 12),
                           Text(
-                            context.l10n.changelogLoadErrorTitle,
+                            context.l10n.changelogUnableToLoad,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 8),
@@ -314,7 +314,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
               const Icon(Icons.search_off_rounded, size: 40, color: Colors.grey),
               const SizedBox(height: 12),
               Text(
-                context.l10n.changelogNoEntriesFound(_searchQuery),
+                context.l10n.changelogNoEntriesMatching(_searchQuery),
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
@@ -415,7 +415,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
                   Clipboard.setData(ClipboardData(text: href));
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(context.l10n.commonLinkCopied(href)),
+                      content: Text(context.l10n.changelogLinkCopied(href)),
                       duration: const Duration(seconds: 2),
                     ),
                   );

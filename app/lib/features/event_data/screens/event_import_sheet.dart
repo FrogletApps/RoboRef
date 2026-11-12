@@ -55,12 +55,12 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
             ),
             const SizedBox(height: 12),
             Text(
-              context.l10n.csvImportTitle,
+              context.l10n.eventImportTitle,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
             Text(
-              context.l10n.csvImportSubtitle,
+              context.l10n.eventImportSubtitle,
               style: const TextStyle(color: Colors.grey, fontSize: 13),
             ),
             const SizedBox(height: 16),
@@ -96,8 +96,8 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
             ],
             SegmentedButton<String>(
               segments: [
-                ButtonSegment(value: 'teams', label: Text(context.l10n.csvImportSegmentTeams)),
-                ButtonSegment(value: 'matches', label: Text(context.l10n.csvImportSegmentMatches)),
+                ButtonSegment(value: 'teams', label: Text(context.l10n.eventImportTeamsCsvTab)),
+                ButtonSegment(value: 'matches', label: Text(context.l10n.eventImportMatchesCsvTab)),
               ],
               selected: {_csvType},
               onSelectionChanged: (val) => setState(() => _csvType = val.first),
@@ -108,11 +108,11 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
               maxLines: 6,
               decoration: InputDecoration(
                 labelText: _csvType == 'teams'
-                    ? context.l10n.csvImportPasteTeamsLabel
-                    : context.l10n.csvImportPasteMatchesLabel,
+                    ? context.l10n.eventImportPasteTeamsLabel
+                    : context.l10n.eventImportPasteMatchesLabel,
                 hintText: _csvType == 'teams'
-                    ? context.l10n.csvImportPasteTeamsHint
-                    : context.l10n.csvImportPasteMatchesHint,
+                    ? context.l10n.eventImportPasteTeamsHint
+                    : context.l10n.eventImportPasteMatchesHint,
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -135,10 +135,10 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
                     : const Icon(Icons.file_upload_outlined),
                 label: Text(
                   _isLoading
-                      ? context.l10n.csvImportImportingButton
+                      ? context.l10n.eventImportImportingButton
                       : (_csvType == 'teams'
-                          ? context.l10n.csvImportImportTeamsButton
-                          : context.l10n.csvImportImportMatchesButton),
+                          ? context.l10n.eventImportTeamsButton
+                          : context.l10n.eventImportMatchesButton),
                 ),
               ),
             ),
@@ -155,7 +155,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
     if (sku.isEmpty) {
       setState(() {
         _isError = true;
-        _statusMessage = context.l10n.csvImportNoSkuSelected;
+        _statusMessage = context.l10n.eventImportNoSkuError;
       });
       return;
     }
@@ -163,7 +163,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
     if (csv.isEmpty) {
       setState(() {
         _isError = true;
-        _statusMessage = context.l10n.csvImportEmptyContent;
+        _statusMessage = context.l10n.eventImportEmptyCsvError;
       });
       return;
     }
@@ -182,7 +182,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
           _isLoading = false;
           _isError = !result.success;
           _statusMessage = result.success
-              ? context.l10n.csvImportTeamsSuccess(result.teamsImported)
+              ? context.l10n.eventImportTeamsSuccess(result.teamsImported)
               : result.errorMessage;
         });
       }
@@ -193,7 +193,7 @@ class _EventImportSheetState extends ConsumerState<EventImportSheet> {
           _isLoading = false;
           _isError = !result.success;
           _statusMessage = result.success
-              ? context.l10n.csvImportMatchesSuccess(result.matchesImported)
+              ? context.l10n.eventImportMatchesSuccess(result.matchesImported)
               : result.errorMessage;
         });
       }

@@ -81,7 +81,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                           : () {
                               ref.read(incidentControllerProvider.notifier).triggerSync();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(context.l10n.incidentsSyncingWithNetwork), duration: const Duration(seconds: 1)),
+                                SnackBar(content: Text(context.l10n.incidentsSyncingNetwork), duration: const Duration(seconds: 1)),
                               );
                             },
                     ),
@@ -133,7 +133,7 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                      child: Center(child: Text(context.l10n.incidentsLoadError('$err'))),
+                      child: Center(child: Text(context.l10n.incidentsErrorLoading('$err'))),
                     ),
                   ),
                 ),
@@ -305,8 +305,8 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(ctx.l10n.incidentsDeleteDialogTitle),
-        content: Text(ctx.l10n.incidentsDeleteDialogBody),
+        title: Text(ctx.l10n.incidentsDeleteNoteTitle),
+        content: Text(ctx.l10n.incidentsDeleteNoteConfirm),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(ctx.l10n.commonCancel)),
           TextButton(
@@ -516,7 +516,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  context.l10n.addIncidentTitle,
+                  context.l10n.incidentsNewNoteTitle,
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
@@ -562,8 +562,8 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                             focusNode: focusNode,
                             textCapitalization: TextCapitalization.characters,
                             decoration: InputDecoration(
-                              labelText: context.l10n.addIncidentTeamNumberLabel,
-                              hintText: context.l10n.addIncidentTeamNumberHint,
+                              labelText: context.l10n.incidentsTeamNumberLabel,
+                              hintText: context.l10n.incidentsTeamNumberHint,
                               border: const OutlineInputBorder(),
                               isDense: true,
                             ),
@@ -603,8 +603,8 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                             focusNode: focusNode,
                             textCapitalization: TextCapitalization.characters,
                             decoration: InputDecoration(
-                              labelText: context.l10n.addIncidentMatchOptionalLabel,
-                              hintText: context.l10n.addIncidentMatchHint,
+                              labelText: context.l10n.incidentsMatchOptionalLabel,
+                              hintText: context.l10n.incidentsMatchOptionalHint,
                               border: const OutlineInputBorder(),
                               isDense: true,
                             ),
@@ -625,7 +625,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        context.l10n.addIncidentTeamsInMatchLabel,
+                        context.l10n.incidentsTeamsInMatch,
                         style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
                       ),
                       ...matchTeams.map((team) {
@@ -645,7 +645,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   ),
                 ],
                 const SizedBox(height: 16),
-                Text(context.l10n.addIncidentNoteTypeLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(context.l10n.incidentsNoteTypeLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 SegmentedButton<String>(
                   expandedInsets: EdgeInsets.zero,
@@ -665,7 +665,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   onSelectionChanged: (val) => setState(() => _severity = val.first),
                 ),
                 const SizedBox(height: 16),
-                Text(context.l10n.addIncidentRuleViolationsLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(context.l10n.incidentsRuleViolationsLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
 
                 // Consistent Rule Chips (all selected rules with no limit + up to (6 - selected.length) unselected candidate rules)
@@ -709,7 +709,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.add, size: 18),
-                    label: Text(context.l10n.addIncidentShowMoreRulesButton),
+                    label: Text(context.l10n.incidentsShowMoreRules),
                     onPressed: () async {
                       final updated = await RuleSelectionSheet.show(
                         context,
@@ -731,8 +731,8 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                   controller: _notesController,
                   maxLines: 3,
                   decoration: InputDecoration(
-                    labelText: context.l10n.addIncidentRefereeNotesLabel,
-                    hintText: context.l10n.addIncidentRefereeNotesHint,
+                    labelText: context.l10n.incidentsRefereeNotesLabel,
+                    hintText: context.l10n.incidentsRefereeNotesHint,
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -749,7 +749,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                       final team = _teamController.text.trim();
                       if (team.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(context.l10n.addIncidentMissingTeamError)),
+                          SnackBar(content: Text(context.l10n.incidentsEnterTeamValidation)),
                         );
                         return;
                       }
@@ -764,7 +764,7 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
 
                       Navigator.pop(context);
                     },
-                    child: Text(context.l10n.addIncidentSaveButton, style: const TextStyle(fontSize: 16)),
+                    child: Text(context.l10n.commonSaveNote, style: const TextStyle(fontSize: 16)),
                   ),
                 ),
               ],

@@ -351,7 +351,12 @@ void main() {
       expect(find.text('Custom Server URL'), findsNothing);
 
       // 2. Select Custom option from dropdown
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.tap(
+        find.ancestor(
+          of: find.text('Sync Server Mode'),
+          matching: find.byType(DropdownButtonFormField<String>),
+        ),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Custom Server URL').last);

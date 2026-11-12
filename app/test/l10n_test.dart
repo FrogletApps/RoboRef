@@ -4,13 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:roboref/core/l10n/l10n.dart';
-import 'package:roboref/core/l10n/locale_controller.dart';
 import 'package:roboref/core/utils/match_utils.dart';
 import 'package:roboref/features/rules/data/default_rules.dart';
 import 'package:roboref/features/rules/models/rule_model.dart';
 import 'package:roboref/features/settings/screens/settings_screen.dart';
 import 'package:roboref/features/settings/state/sync_settings_controller.dart';
-import 'package:roboref/l10n/app_localizations.dart';
 
 void main() {
   group('Internationalization (i18n) & Localization Tests', () {
@@ -19,11 +17,11 @@ void main() {
       expect(parseLocaleCode(''), isNull);
       expect(parseLocaleCode('system'), isNull);
       expect(parseLocaleCode('en'), const Locale('en'));
-      expect(parseLocaleCode('zh_TW'), const Locale('zh', 'TW'));
+      expect(parseLocaleCode('en_GB'), const Locale('en', 'GB'));
 
       expect(localeToOptionCode(null), 'system');
       expect(localeToOptionCode(const Locale('en')), 'en');
-      expect(localeToOptionCode(const Locale('zh', 'TW')), 'zh_TW');
+      expect(localeToOptionCode(const Locale('en', 'GB')), 'en_GB');
     });
 
     test('LocaleController persists and restores selected locale in SharedPreferences', () async {
@@ -39,13 +37,13 @@ void main() {
 
       expect(container.read(localeProvider), isNull);
 
-      await container.read(localeProvider.notifier).setLocale(const Locale('en'));
+      container.read(localeProvider.notifier).setLocale(const Locale('en'));
       expect(container.read(localeProvider), const Locale('en'));
-      expect(prefs.getString('selected_locale'), 'en');
+      expect(prefs.getString(LocaleNotifier.key), 'en');
 
-      await container.read(localeProvider.notifier).setLocaleByCode('system');
+      container.read(localeProvider.notifier).setLocaleByCode('system');
       expect(container.read(localeProvider), isNull);
-      expect(prefs.getString('selected_locale'), isNull);
+      expect(prefs.getString(LocaleNotifier.key), 'system');
     });
 
     test('ICU pluralization and parameterized strings format accurately', () {
@@ -115,16 +113,21 @@ void main() {
         manualUrl: 'https://link.vex.com/docs/26-27/v5rc-game-manual',
         qaUrl: 'https://www.robotevents.com/V5RC/2026-2027/QA',
         rules: [
-          RuleItem(
+          RuleModel(
             code: '<G1>',
             title: 'Tratar a todos con respeto.',
             group: 'General Game Rules',
-            summary: 'Todos los participantes deben comportarse con respeto.',
+            description: 'Todos los participantes deben comportarse con respeto.',
           ),
         ],
       );
 
-      registerLocalizedRuleset('es', 'V5RC', customSpanishRuleset);
+      registerLocalizedRuleset(
+        locale: const Locale('es'),
+        program: 'V5RC',
+        season: '2026-2027',
+        ruleset: customSpanishRuleset,
+      );
 
       final esRuleset = getGameRuleset('V5RC', '2026-2027', locale: const Locale('es', 'MX'));
       expect(esRuleset.gameTitle, 'Juego de Prueba');
@@ -163,7 +166,7 @@ void main() {
       await tester.tap(find.text('English').last);
       await tester.pumpAndSettle();
 
-      expect(prefs.getString('selected_locale'), 'en');
+      expect(prefs.getString(LocaleNotifier.key), 'en');
       expect(find.byKey(const ValueKey('language_dropdown_en')), findsOneWidget);
     });
   });

@@ -167,11 +167,11 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
     ];
 
     final titles = [
-      context.l10n.workspaceTabMatchScheduleTitle,
-      context.l10n.workspaceTabTeamHistoriesTitle,
+      context.l10n.workspaceTitleMatchSchedule,
+      context.l10n.workspaceTitleTeamHistories,
       context.l10n.appTitle,
-      context.l10n.workspaceTabRulesSummaryTitle,
-      context.l10n.workspaceTabManageSyncTitle,
+      context.l10n.workspaceTitleRules,
+      context.l10n.workspaceTitleManage,
     ];
 
     final isReloadingMatches = ref.watch(matchScheduleControllerProvider);
@@ -197,7 +197,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                   : () async {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(context.l10n.workspaceCheckingScheduleUpdates),
+                          content: Text(context.l10n.workspaceCheckingMatchUpdates),
                           duration: const Duration(seconds: 1),
                         ),
                       );
@@ -208,8 +208,8 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                             SnackBar(
                               content: Text(
                                 result.matchesCount > 0
-                                    ? context.l10n.workspaceUpdatedMatchesCount(result.matchesCount)
-                                    : context.l10n.workspaceScheduleUpToDate,
+                                    ? context.l10n.workspaceUpdatedMatches(result.matchesCount)
+                                    : context.l10n.workspaceMatchScheduleUpToDate,
                               ),
                               duration: const Duration(seconds: 2),
                             ),
@@ -217,7 +217,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(result.errorMessage ?? context.l10n.workspaceFailedUpdateMatches),
+                              content: Text(result.errorMessage ?? context.l10n.workspaceFailedToUpdateMatches),
                               backgroundColor: Theme.of(context).colorScheme.error,
                               duration: const Duration(seconds: 3),
                             ),
@@ -264,8 +264,8 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                             SnackBar(
                               content: Text(
                                 result.teamsCount > 0
-                                    ? context.l10n.workspaceUpdatedTeamsCount(result.teamsCount)
-                                    : context.l10n.workspaceTeamsUpToDate,
+                                    ? context.l10n.workspaceUpdatedTeams(result.teamsCount)
+                                    : context.l10n.workspaceTeamListUpToDate,
                               ),
                               duration: const Duration(seconds: 2),
                             ),
@@ -273,7 +273,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(result.errorMessage ?? context.l10n.workspaceFailedUpdateTeams),
+                              content: Text(result.errorMessage ?? context.l10n.workspaceFailedToUpdateTeams),
                               backgroundColor: Theme.of(context).colorScheme.error,
                               duration: const Duration(seconds: 3),
                             ),
@@ -310,7 +310,7 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
                       ref.read(incidentControllerProvider.notifier).triggerSync();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(context.l10n.workspaceSyncingNotesSnackbar),
+                          content: Text(context.l10n.workspaceSyncingNotes),
                           duration: const Duration(seconds: 1),
                         ),
                       );
@@ -408,27 +408,27 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
           NavigationDestination(
             icon: const Icon(Symbols.format_list_numbered),
             selectedIcon: const Icon(Symbols.format_list_numbered, fill: 1),
-            label: context.l10n.workspaceBottomNavMatches,
+            label: context.l10n.workspaceNavMatches,
           ),
           NavigationDestination(
             icon: const Icon(Symbols.groups),
             selectedIcon: const Icon(Symbols.groups, fill: 1),
-            label: context.l10n.workspaceBottomNavTeams,
+            label: context.l10n.workspaceNavTeams,
           ),
           NavigationDestination(
             icon: const Icon(Symbols.note_stack),
             selectedIcon: const Icon(Symbols.note_stack, fill: 1),
-            label: context.l10n.workspaceBottomNavNotes,
+            label: context.l10n.workspaceNavNotes,
           ),
           NavigationDestination(
             icon: const Icon(Icons.menu_book_outlined),
             selectedIcon: const Icon(Icons.menu_book),
-            label: context.l10n.workspaceBottomNavRules,
+            label: context.l10n.workspaceNavRules,
           ),
           NavigationDestination(
             icon: const Icon(Icons.cloud_outlined),
             selectedIcon: const Icon(Icons.cloud),
-            label: context.l10n.workspaceBottomNavManage,
+            label: context.l10n.workspaceNavManage,
           ),
         ],
       ),

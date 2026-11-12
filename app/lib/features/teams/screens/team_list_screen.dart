@@ -46,7 +46,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
         return Scaffold(
           appBar: widget.showAppBar
               ? AppBar(
-                  title: Text(context.l10n.teamsTitle),
+                  title: Text(context.l10n.workspaceTitleTeamHistories),
                   actions: [
                     IconButton(
                       icon: isReloading
@@ -73,8 +73,8 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                     SnackBar(
                                       content: Text(
                                         result.teamsCount > 0
-                                            ? context.l10n.workspaceUpdatedTeamsCount(result.teamsCount)
-                                            : context.l10n.workspaceTeamsUpToDate,
+                                            ? context.l10n.workspaceUpdatedTeams(result.teamsCount)
+                                            : context.l10n.workspaceTeamListUpToDate,
                                       ),
                                       duration: const Duration(seconds: 2),
                                     ),
@@ -82,7 +82,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(result.errorMessage ?? context.l10n.workspaceFailedUpdateTeams),
+                                      content: Text(result.errorMessage ?? context.l10n.workspaceFailedToUpdateTeams),
                                       backgroundColor: Theme.of(context).colorScheme.error,
                                       duration: const Duration(seconds: 3),
                                     ),
@@ -116,7 +116,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: context.l10n.teamsSearchHint,
+                    hintText: context.l10n.teamListSearchHint,
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _search.isNotEmpty
                         ? IconButton(
@@ -149,8 +149,8 @@ class _TeamListScreenState extends State<TeamListScreen> {
                           SnackBar(
                             content: Text(
                               result.teamsCount > 0
-                                  ? context.l10n.workspaceUpdatedTeamsCount(result.teamsCount)
-                                  : context.l10n.workspaceTeamsUpToDate,
+                                  ? context.l10n.workspaceUpdatedTeams(result.teamsCount)
+                                  : context.l10n.workspaceTeamListUpToDate,
                             ),
                             duration: const Duration(seconds: 2),
                           ),
@@ -158,7 +158,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(result.errorMessage ?? context.l10n.workspaceFailedUpdateTeams),
+                            content: Text(result.errorMessage ?? context.l10n.workspaceFailedToUpdateTeams),
                             backgroundColor: Theme.of(context).colorScheme.error,
                             duration: const Duration(seconds: 3),
                           ),
@@ -173,7 +173,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                          child: Center(child: Text(context.l10n.teamsLoadError('$err'))),
+                          child: Center(child: Text(context.l10n.teamListErrorLoading('$err'))),
                         ),
                       ),
                     ),
@@ -215,8 +215,8 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                     const SizedBox(height: 12),
                                     Text(
                                       _search.isEmpty
-                                          ? context.l10n.teamsEmptyList
-                                          : context.l10n.teamsNoTeamsMatching(_search),
+                                          ? context.l10n.teamListEmpty
+                                          : context.l10n.teamListNoTeamsMatching(_search),
                                       style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                                     ),
                                   ],
@@ -267,9 +267,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                               ],
                             ),
                             subtitle: Text(
-                              list.isEmpty
-                                  ? context.l10n.commonNoNotesLogged
-                                  : context.l10n.teamsNoteCount(list.length),
+                              context.l10n.teamListNoteCount(list.length),
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -283,7 +281,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      context.l10n.teamsMajorBadgeCount(majorCount),
+                                      context.l10n.teamListMajorCountBadge(majorCount),
                                       style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -392,7 +390,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    ctx.l10n.teamsHistorySheetTitle(teamNumber),
+                    ctx.l10n.teamListTeamHistoryTitle(teamNumber),
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   TextButton.icon(
@@ -416,7 +414,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
               if (notes.isEmpty)
                 Expanded(
                   child: Center(
-                    child: Text(ctx.l10n.teamsNoNotesForTeam),
+                    child: Text(ctx.l10n.teamListNoNotesForTeam),
                   ),
                 )
               else
@@ -442,7 +440,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                 Text(
                                   note.matchId != null
                                       ? formatMatchShortName(note.matchId!)
-                                      : c.l10n.teamsGeneralNoteLabel,
+                                      : c.l10n.teamListGeneralNote,
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 SeverityBadge(severity: note.severity),
@@ -451,7 +449,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                             if (ruleCodes.isNotEmpty) ...[
                               const SizedBox(height: 4),
                               Text(
-                                c.l10n.commonRulesPrefix(ruleCodes.join(', ')),
+                                c.l10n.teamListRulesList(ruleCodes.join(', ')),
                                 style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 12, fontWeight: FontWeight.w600),
                               ),
                             ],
@@ -461,7 +459,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                             ],
                             const SizedBox(height: 4),
                             Text(
-                              c.l10n.teamsByRefereePrefix(note.refereeName),
+                              c.l10n.teamListByReferee(note.refereeName),
                               style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
                             ),
                           ],

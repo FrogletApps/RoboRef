@@ -45,7 +45,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
       if (!launched && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.privacyCannotOpenBrowser(urlStr)),
+            content: Text(context.l10n.privacyCouldNotOpenBrowser),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -54,7 +54,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.privacyCannotOpenWebLink),
+            content: Text(context.l10n.privacyCouldNotOpenLink),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -69,7 +69,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.privacyPolicyTitle),
+        title: Text(context.l10n.privacyTitle),
         actions: [
           if (!kIsWeb)
             IconButton(
@@ -98,7 +98,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                     const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 40),
                     const SizedBox(height: 12),
                     Text(
-                      context.l10n.privacyLoadErrorTitle,
+                      context.l10n.privacyUnableToLoad,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
@@ -177,7 +177,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                     child: TextButton.icon(
                       onPressed: () => _openWebPolicy(context),
                       icon: const Icon(Icons.public, size: 16),
-                      label: Text(context.l10n.privacyViewOnline),
+                      label: Text(context.l10n.privacyViewOnWebButton),
                     ),
                   ),
                 ],

@@ -147,7 +147,7 @@ class ShareScreen extends StatelessWidget {
                             );
                           },
                           icon: const Icon(Icons.copy, size: 16),
-                          label: Text(context.l10n.commonCopyLink),
+                          label: Text(context.l10n.shareCopyLink),
                         ),
                       ],
                     ),

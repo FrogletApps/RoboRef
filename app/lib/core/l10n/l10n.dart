@@ -34,7 +34,7 @@ final appLocalizationsProvider = Provider<AppLocalizations>((ref) {
 extension AppLocalizationsX on BuildContext {
   /// Convenient access to [AppLocalizations], with a safe fallback to English
   /// when mounted inside a test harness that omits `AppLocalizations.delegate`.
-  AppLocalizations get l10n => AppLocalizations.of(this) ?? _fallbackL10n;
+  AppLocalizations get l10n => Localizations.of<AppLocalizations>(this, AppLocalizations) ?? _fallbackL10n;
 }
 
 /// Loads a localized text/markdown asset with graceful fallback to the base asset path.

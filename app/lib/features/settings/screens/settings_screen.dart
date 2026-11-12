@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/l10n/l10n.dart';
-import '../../../core/l10n/locale_controller.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
@@ -86,7 +85,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (!success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.commonCannotOpenLink(urlString)),
+            content: Text(context.l10n.commonCouldNotOpenLink(urlString)),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -192,12 +191,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               // Appearance Section
               Text(
-                context.l10n.settingsAppearanceTitle,
+                context.l10n.settingsAppearanceSection,
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
               Text(
-                context.l10n.settingsAppearanceDescription,
+                context.l10n.settingsThemeDescription,
                 style: const TextStyle(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 12),
@@ -233,7 +232,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 initialValue: selectedLocaleCode,
                 decoration: InputDecoration(
                   labelText: context.l10n.settingsLanguageLabel,
-                  helperText: context.l10n.settingsLanguageDescription,
                   border: const OutlineInputBorder(),
                   isDense: true,
                   prefixIcon: const Icon(Icons.language_outlined),
@@ -241,12 +239,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 items: [
                   DropdownMenuItem<String>(
                     value: 'system',
-                    child: Text(context.l10n.settingsLanguageSystem),
+                    child: Text(context.l10n.settingsLanguageSystemDefault),
                   ),
                   ...supportedLocaleOptions.map(
                     (option) => DropdownMenuItem<String>(
                       value: option.code,
-                      child: Text(option.displayName),
+                      child: Text(option.nativeName),
                     ),
                   ),
                 ],
@@ -261,15 +259,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // Referee Setup Section
               Text(
-                context.l10n.settingsRefereeSetupTitle,
+                context.l10n.settingsRefereeSetupSection,
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: context.l10n.settingsRefereeDisplayNameLabel,
-                  hintText: context.l10n.settingsRefereeDisplayNameHint,
+                  labelText: context.l10n.settingsRefereeNameLabel,
+                  hintText: context.l10n.settingsRefereeNameHint,
                   border: const OutlineInputBorder(),
                   isDense: true,
                 ),
@@ -283,7 +281,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Sync & Sharing Section (on Event Manage Page when sharing is NOT enabled)
               if (_isEventManagePage && !isEventShared) ...[
                 Text(
-                  context.l10n.settingsSyncSharingTitle,
+                  context.l10n.settingsSyncSharingSection,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
@@ -305,7 +303,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             Icon(Icons.cloud_off_outlined, color: Colors.grey.shade600, size: 22),
                             const SizedBox(width: 8),
                             Text(
-                              context.l10n.settingsSharingNotEnabledTitle,
+                              context.l10n.settingsSharingNotEnabled,
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                             ),
                           ],
@@ -342,14 +340,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Sync Server Configuration (ONLY visible when on event manage page AND sharing is enabled)
               if (_isEventManagePage && isEventShared) ...[
                 Text(
-                  context.l10n.settingsSyncServerConfigTitle,
+                  context.l10n.settingsSyncServerConfigSection,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   isShareAdmin
-                      ? context.l10n.settingsSyncServerAdminSubtitle
-                      : context.l10n.settingsSyncServerMemberSubtitle,
+                      ? context.l10n.settingsSyncServerConfigAdminDesc
+                      : context.l10n.settingsSyncServerConfigMemberDesc,
                   style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 12),
@@ -412,20 +410,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       DropdownMenuItem(
                         value: 'cloud',
                         child: Text(
-                          context.l10n.settingsServerModeCloudOption(cloudUrl),
+                          context.l10n.settingsServerOptionCloud(cloudUrl),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       DropdownMenuItem(
                         value: 'lan',
                         child: Text(
-                          context.l10n.settingsServerModeLanOption,
+                          context.l10n.settingsServerOptionLan,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       DropdownMenuItem(
                         value: 'custom',
-                        child: Text(context.l10n.settingsServerModeCustomOption),
+                        child: Text(context.l10n.settingsServerOptionCustom),
                       ),
                     ],
                     onChanged: (newOption) {
@@ -456,7 +454,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     TextField(
                       controller: _serverController,
                       decoration: InputDecoration(
-                        labelText: context.l10n.settingsCustomServerUrlLabel,
+                        labelText: context.l10n.settingsServerOptionCustom,
                         hintText: context.l10n.settingsCustomServerUrlHint,
                         border: const OutlineInputBorder(),
                         isDense: true,
@@ -521,11 +519,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 children: [
                                   const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
                                   const SizedBox(width: 6),
-                                  Text(context.l10n.settingsSyncStatusSyncing, style: const TextStyle(color: Colors.blue)),
+                                  Text(context.l10n.settingsSyncingStatus, style: const TextStyle(color: Colors.blue)),
                                 ],
                               )
                             else
-                              Text(context.l10n.settingsSyncStatusIdle, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                              Text(context.l10n.settingsIdleReadyStatus, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -536,7 +534,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ],
                         if (settings.lastError != null) ...[
                           const SizedBox(height: 6),
-                          Text(context.l10n.settingsSyncError(settings.lastError!), style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
+                          Text(context.l10n.settingsErrorPrefix(settings.lastError!), style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
                         ],
                       ],
                     ),
@@ -571,8 +569,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 setState(() => _isTestingConnection = true);
 
                                 final messenger = ScaffoldMessenger.of(context);
-                                final testingMsg = context.l10n.settingsTestingConnectionSnackbar(
-                                  targetUrl.isEmpty ? context.l10n.commonServer : targetUrl,
+                                final testingMsg = context.l10n.settingsTestingConnectionTo(
+                                  targetUrl.isEmpty ? context.l10n.settingsTestingDefaultTarget : targetUrl,
                                 );
                                 messenger.hideCurrentSnackBar();
                                 messenger.showSnackBar(
@@ -621,8 +619,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         Expanded(
                                           child: Text(
                                             result.isSuccess
-                                                ? context.l10n.settingsConnectionSuccessfulSnackbar(result.message)
-                                                : context.l10n.settingsConnectionFailedSnackbar(result.message),
+                                                ? context.l10n.settingsConnectionSuccessful(result.message)
+                                                : context.l10n.settingsConnectionFailed(result.message),
                                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                           ),
                                         ),
@@ -651,7 +649,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Event Information Section (if on the manage page for the event)
               if (_isEventManagePage) ...[
                 Text(
-                  context.l10n.settingsEventInformationTitle,
+                  context.l10n.settingsEventInfoSection,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
@@ -683,7 +681,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // About RoboRef Section
               Text(
-                context.l10n.settingsAboutRoboRefTitle,
+                context.l10n.settingsAboutSection,
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
@@ -731,7 +729,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   title: Text(
-                    context.l10n.settingsViewSource,
+                    context.l10n.settingsViewSourceItem,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 20),
@@ -753,7 +751,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   title: Text(
-                    context.l10n.privacyPolicyTitle,
+                    context.l10n.privacyTitle,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 20),
@@ -772,7 +770,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const Divider(),
                 const SizedBox(height: 24),
                 Text(
-                  context.l10n.settingsExperimentalFeaturesTitle,
+                  context.l10n.settingsExperimentalSection,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
@@ -796,7 +794,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           builder: (ctx) => AlertDialog(
                             title: Text(ctx.l10n.settingsExperimentalWarningTitle),
                             content: Text(
-                              ctx.l10n.settingsExperimentalWarningBody,
+                              ctx.l10n.settingsExperimentalWarningContent,
                             ),
                             actions: [
                               TextButton(
@@ -825,12 +823,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const Divider(),
                   const SizedBox(height: 24),
                   Text(
-                    context.l10n.settingsImportEventDataTitle,
+                    context.l10n.settingsImportEventDataSection,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    context.l10n.settingsImportEventDataDisclaimer,
+                    context.l10n.settingsImportEventDataDescription,
                     style: const TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                   const SizedBox(height: 12),
@@ -895,7 +893,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Icon(Icons.cloud_done, size: 14, color: Colors.blue.shade900),
               const SizedBox(width: 4),
               Text(
-                context.l10n.serverTypeCloud,
+                context.l10n.settingsBadgeCloudServer,
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue.shade900),
               ),
             ],
@@ -914,7 +912,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Icon(Icons.cloud_off, size: 14, color: Colors.red.shade900),
               const SizedBox(width: 4),
               Text(
-                context.l10n.settingsBadgeOfflineUnreachable,
+                context.l10n.settingsBadgeOffline,
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.red.shade900),
               ),
             ],
@@ -933,7 +931,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        context.l10n.settingsReleaseBadge,
+        context.l10n.envBadgeRelease,
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
@@ -1044,7 +1042,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   final badgePainter = TextPainter(
                     text: TextSpan(
-                      text: context.l10n.settingsReleaseBadge,
+                      text: context.l10n.envBadgeRelease,
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,

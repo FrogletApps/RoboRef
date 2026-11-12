@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -15,11 +16,9 @@ import 'package:roboref/core/theme/app_theme.dart';
 import 'package:roboref/database/app_database.dart';
 import 'package:roboref/features/event_data/screens/event_import_sheet.dart';
 import 'package:roboref/features/event_data/services/vex_events_client.dart';
-import 'package:roboref/features/event_selection/models/event_model.dart';
 import 'package:roboref/features/event_selection/screens/event_selection_screen.dart';
 import 'package:roboref/features/event_selection/services/event_cache_service.dart';
 import 'package:roboref/features/event_selection/state/event_controller.dart';
-import 'package:roboref/features/event_selection/state/event_filter_controller.dart';
 import 'package:roboref/features/home/screens/changelog_screen.dart';
 import 'package:roboref/features/home/screens/home_screen.dart';
 import 'package:roboref/features/home/screens/share_screen.dart';
@@ -278,6 +277,8 @@ void main() {
 
         expect(find.text('Recent Tournaments'), findsOneWidget);
         await expectMeetsAllAccessibilityGuidelines(tester);
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(Duration.zero);
       });
 
       testWidgets('EventSelectionScreen (with active filters & events) meets all guidelines', (tester) async {
@@ -390,13 +391,12 @@ void main() {
           shareId: 'ABC123',
           role: ShareRole.admin,
           adminRefereeName: 'Head Referee Jane',
-          participants: const [
+          participants: [
             ShareParticipantModel(
               deviceId: 'test-device-uuid',
               refereeName: 'Head Referee Jane',
               role: ShareRole.admin,
               joinedAt: 1000,
-              lastSeenAt: 2000,
             ),
           ],
         );
@@ -453,12 +453,12 @@ void main() {
         await expectMeetsAllAccessibilityGuidelines(tester);
 
         // 2. Conflict state
-        const conflictState = EventShareState(
+        final conflictState = EventShareState(
           sku: 'RE-V5RC-26-4487',
           isShared: false,
           isConflict: true,
           existingShares: [
-            ExistingShareSummary(
+            ActiveShareSummary(
               id: 'XYZ789',
               sku: 'RE-V5RC-26-4487',
               adminRefereeName: 'Other Head Ref',
@@ -483,7 +483,7 @@ void main() {
         await expectMeetsAllAccessibilityGuidelines(tester);
 
         // 3. Shared Online Admin state
-        const sharedAdminState = EventShareState(
+        final sharedAdminState = EventShareState(
           sku: 'RE-V5RC-26-4487',
           isShared: true,
           shareId: 'ABC123',
@@ -495,14 +495,12 @@ void main() {
               refereeName: 'Head Referee Jane',
               role: ShareRole.admin,
               joinedAt: 1000,
-              lastSeenAt: 2000,
             ),
             ShareParticipantModel(
               deviceId: 'peer-device-uuid',
               refereeName: 'Scorekeeper Bob',
               role: ShareRole.member,
               joinedAt: 1100,
-              lastSeenAt: 2100,
             ),
           ],
         );

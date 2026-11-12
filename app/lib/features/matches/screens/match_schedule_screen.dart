@@ -46,7 +46,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
     if (showCheckingSnackBar) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(context.l10n.workspaceCheckingScheduleUpdates),
+          content: Text(context.l10n.workspaceCheckingMatchUpdates),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -58,8 +58,8 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
           SnackBar(
             content: Text(
               result.matchesCount > 0
-                  ? context.l10n.workspaceUpdatedMatchesCount(result.matchesCount)
-                  : context.l10n.workspaceScheduleUpToDate,
+                  ? context.l10n.workspaceUpdatedMatches(result.matchesCount)
+                  : context.l10n.workspaceMatchScheduleUpToDate,
             ),
             duration: const Duration(seconds: 2),
           ),
@@ -67,7 +67,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.errorMessage ?? context.l10n.workspaceFailedUpdateMatches),
+            content: Text(result.errorMessage ?? context.l10n.workspaceFailedToUpdateMatches),
             backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 3),
           ),
@@ -89,7 +89,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
               ? AppBar(
                   title: Column(
                     children: [
-                      Text(context.l10n.matchesTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(context.l10n.workspaceTitleMatchSchedule, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       Text(
                         settings.currentSku,
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white70),
@@ -127,7 +127,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: context.l10n.matchesSearchHint,
+                    hintText: context.l10n.matchScheduleSearchHint,
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
@@ -162,7 +162,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                          child: Center(child: Text(context.l10n.matchesLoadError('$err'))),
+                          child: Center(child: Text(context.l10n.matchScheduleErrorLoading('$err'))),
                         ),
                       ),
                     ),
@@ -195,8 +195,8 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                     const SizedBox(height: 12),
                                     Text(
                                       matches.isEmpty
-                                          ? context.l10n.matchesEmptySchedule
-                                          : context.l10n.matchesNoMatchesMatching(_searchQuery),
+                                          ? context.l10n.matchScheduleEmpty
+                                          : context.l10n.matchScheduleNoMatchesMatching(_searchQuery),
                                       style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
                                     ),
                                     if (matches.isEmpty) ...[
@@ -218,8 +218,8 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                             : const Icon(Icons.refresh),
                                         label: Text(
                                           isReloading
-                                              ? context.l10n.matchesCheckingButton
-                                              : context.l10n.matchesCheckForScheduleButton,
+                                              ? context.l10n.matchScheduleCheckingButton
+                                              : context.l10n.matchScheduleCheckButton,
                                         ),
                                       ),
                                     ],
@@ -228,7 +228,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                       ElevatedButton.icon(
                                         onPressed: () => _showImportSheet(context),
                                         icon: const Icon(Icons.cloud_download),
-                                        label: Text(context.l10n.matchesFetchOrImportButton),
+                                        label: Text(context.l10n.matchScheduleFetchOrImportButton),
                                       ),
                                     ],
                                   ],
@@ -285,7 +285,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                               Row(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  _buildAllianceLabel(context.l10n.matchesAllianceTeams, Theme.of(context).colorScheme.primary, width: 50),
+                                                  _buildAllianceLabel(context.l10n.matchScheduleAllianceTeams, Theme.of(context).colorScheme.primary, width: 50),
                                                   const SizedBox(width: 6),
                                                   Expanded(
                                                     child: Wrap(
@@ -303,7 +303,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                               Row(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  _buildAllianceLabel(context.l10n.matchesAllianceRed, Colors.red.shade700),
+                                                  _buildAllianceLabel(context.l10n.matchScheduleAllianceRed, Colors.red.shade700),
                                                   const SizedBox(width: 6),
                                                   Expanded(
                                                     child: Wrap(
@@ -322,7 +322,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                               Row(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  _buildAllianceLabel(context.l10n.matchesAllianceBlue, Colors.blue.shade700),
+                                                  _buildAllianceLabel(context.l10n.matchScheduleAllianceBlue, Colors.blue.shade700),
                                                   const SizedBox(width: 6),
                                                   Expanded(
                                                     child: Wrap(
@@ -517,7 +517,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                     const SizedBox(height: 16),
                     if (sortedRedTeams.isEmpty && sortedBlueTeams.isEmpty)
                       Text(
-                        context.l10n.matchesNoTeamsAssigned,
+                        context.l10n.matchScheduleNoTeamsAssigned,
                         style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       )
                     else
@@ -667,7 +667,7 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
           const SizedBox(height: 8),
           if (teamNotes.isEmpty)
             Text(
-              context.l10n.commonNoNotesLogged,
+              context.l10n.matchScheduleNoNotesLogged,
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

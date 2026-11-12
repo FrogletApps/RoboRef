@@ -6,14 +6,12 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/l10n/l10n.dart';
-import 'core/l10n/locale_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/utils/sku_utils.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/settings/screens/privacy_policy_screen.dart';
 import 'features/settings/state/sync_settings_controller.dart';
-import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
