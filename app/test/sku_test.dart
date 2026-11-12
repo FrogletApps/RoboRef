@@ -177,6 +177,57 @@ void main() {
       expect(isEventMatchingProgram(program: 'VAIRC', sku: 'VE-AI-26-1234', selectedProgram: 'V5RC'), isFalse);
     });
 
+    test('isEventMatchingPrograms supports multi-select program filtering', () {
+      expect(
+        isEventMatchingPrograms(
+          program: 'V5RC',
+          sku: 'RE-V5RC-26-1111',
+          selectedPrograms: const ['VIQRC', 'V5RC'],
+        ),
+        isTrue,
+      );
+      expect(
+        isEventMatchingPrograms(
+          program: 'VIQRC',
+          sku: 'RE-VIQRC-26-2222',
+          selectedPrograms: const ['VIQRC', 'V5RC'],
+        ),
+        isTrue,
+      );
+      expect(
+        isEventMatchingPrograms(
+          program: 'VEX U',
+          sku: 'RE-VEXU-26-3333',
+          selectedPrograms: const ['VIQRC', 'V5RC'],
+        ),
+        isFalse,
+      );
+      expect(
+        isEventMatchingPrograms(
+          program: 'VAIRC',
+          sku: 'VE-AI-26-4444',
+          selectedPrograms: const ['VEX U', 'VEX AI'],
+        ),
+        isTrue,
+      );
+      expect(
+        isEventMatchingPrograms(
+          program: 'V5RC',
+          sku: 'RE-V5RC-26-1111',
+          selectedPrograms: const [],
+        ),
+        isTrue,
+      );
+      expect(
+        isEventMatchingPrograms(
+          program: 'VEX U',
+          sku: 'RE-VEXU-26-3333',
+          selectedPrograms: const ['All'],
+        ),
+        isTrue,
+      );
+    });
+
     test('isRegionMatchingQuery matches regions by direct name, alias, or child division (state/province)', () {
       // Direct region name
       expect(isRegionMatchingQuery('United States', 'United States'), isTrue);

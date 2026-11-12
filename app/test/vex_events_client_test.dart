@@ -97,6 +97,119 @@ void main() {
       expect(usEvents.length, equals(1));
     });
 
+    test('searchEvents supports multi-select programs in a single request', () async {
+      int requestCount = 0;
+      List<String> capturedProgramIds = [];
+      List<String> capturedSeasonIds = [];
+
+      final mockClient = MockClient((request) async {
+        requestCount++;
+        capturedProgramIds = request.url.queryParametersAll['program[]'] ?? [];
+        capturedSeasonIds = request.url.queryParametersAll['season[]'] ?? [];
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 2001,
+                'sku': 'RE-VIQRC-26-1001',
+                'name': 'IQ Event',
+                'start': '2026-10-10T09:00:00Z',
+                'program': {'code': 'VIQRC'},
+                'location': {'city': 'Dallas', 'region': 'Texas', 'country': 'United States'},
+              },
+              {
+                'id': 2002,
+                'sku': 'RE-V5RC-26-1002',
+                'name': 'V5 Event',
+                'start': '2026-10-11T09:00:00Z',
+                'program': {'code': 'V5RC'},
+                'location': {'city': 'Austin', 'region': 'Texas', 'country': 'United States'},
+              },
+            ],
+          }),
+          200,
+        );
+      });
+
+      final client = VexEventsClient(client: mockClient);
+      final events = await client.searchEvents(programs: ['VIQRC', 'V5RC']);
+
+      expect(requestCount, equals(1));
+      expect(capturedProgramIds, containsAll(['1', '41']));
+      expect(capturedSeasonIds, containsAll(['196', '197']));
+      expect(events.map((e) => e.sku), equals(['RE-VIQRC-26-1001', 'RE-V5RC-26-1002']));
+    });
+
+    test('searchEvents supports multi-select regions with parallel merge and United States/Canada fallback', () async {
+      final requestedRegions = <String?>[];
+      final mockClient = MockClient((request) async {
+        final reg = request.url.queryParameters['region'];
+        requestedRegions.add(reg);
+        if (reg == 'United Kingdom') {
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 3001,
+                  'sku': 'RE-V5RC-26-UK1',
+                  'name': 'UK Event',
+                  'start': '2026-10-12T09:00:00Z',
+                  'program': {'code': 'V5RC'},
+                  'location': {'city': 'Telford', 'region': 'England', 'country': 'United Kingdom'},
+                },
+                {
+                  'id': 3002,
+                  'sku': 'RE-V5RC-26-SHARED',
+                  'name': 'Shared Event',
+                  'start': '2026-10-10T09:00:00Z',
+                  'program': {'code': 'V5RC'},
+                  'location': {'city': 'London', 'region': 'England', 'country': 'United Kingdom'},
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        if (reg == 'France') {
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 3003,
+                  'sku': 'RE-V5RC-26-FR1',
+                  'name': 'France Event',
+                  'start': '2026-10-11T09:00:00Z',
+                  'program': {'code': 'V5RC'},
+                  'location': {'city': 'Paris', 'region': 'Île-de-France', 'country': 'France'},
+                },
+                {
+                  'id': 3002,
+                  'sku': 'RE-V5RC-26-SHARED',
+                  'name': 'Shared Event',
+                  'start': '2026-10-10T09:00:00Z',
+                  'program': {'code': 'V5RC'},
+                  'location': {'city': 'London', 'region': 'England', 'country': 'United Kingdom'},
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response(jsonEncode({'data': []}), 200);
+      });
+
+      final client = VexEventsClient(client: mockClient);
+      final events = await client.searchEvents(regions: ['United Kingdom', 'France']);
+
+      expect(requestedRegions, containsAll(['United Kingdom', 'France']));
+      expect(events.map((e) => e.sku), equals(['RE-V5RC-26-SHARED', 'RE-V5RC-26-FR1', 'RE-V5RC-26-UK1']));
+
+      requestedRegions.clear();
+      await client.searchEvents(regions: ['United States', 'Canada']);
+      // Parent regions without division omit server-side `region` query param
+      expect(requestedRegions, equals([null]));
+    });
+
     test('searchEvents includes season[] params according to program filter', () async {
       final mockClient = MockClient((request) async {
         final seasons = request.url.queryParametersAll['season[]'];

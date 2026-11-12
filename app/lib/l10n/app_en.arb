@@ -68,6 +68,10 @@
   "@commonClearAll": {
     "description": "Button label to clear all selected items"
   },
+  "commonDone": "Done",
+  "@commonDone": {
+    "description": "Standard done button label"
+  },
   "commonDoneCount": "Done ({count})",
   "@commonDoneCount": {
     "description": "Done button showing count of selected items",
@@ -264,6 +268,15 @@
       }
     }
   },
+  "eventSelectionRegionsSelected": "Regions: {count} selected",
+  "@eventSelectionRegionsSelected": {
+    "description": "Filter chip label when multiple regions are selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "eventSelectionAllStates": "All States",
   "@eventSelectionAllStates": {
     "description": "Filter chip and list item label for all US states"
@@ -308,6 +321,36 @@
       },
       "division": {
         "type": "String"
+      }
+    }
+  },
+  "eventSelectionStatesSelected": "States: {count} selected",
+  "@eventSelectionStatesSelected": {
+    "description": "Filter chip label when multiple US states are selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventSelectionProvincesSelected": "Provinces: {count} selected",
+  "@eventSelectionProvincesSelected": {
+    "description": "Filter chip label when multiple Canadian provinces are selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventSelectionDivisionsSelected": "{pluralLabel}: {count} selected",
+  "@eventSelectionDivisionsSelected": {
+    "description": "Fallback filter chip label when multiple administrative divisions are selected",
+    "placeholders": {
+      "pluralLabel": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
       }
     }
   },

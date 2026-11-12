@@ -1,5 +1,10 @@
 # Change Log
 
+## 2026.11.12+263
+
+- **Multi-Select Event Filters**: Added multi-select support to the program, region, and state/province filters on the Events selection screen.
+- **Country & Division Event Filtering**: Fixed overly broad substring matching so country and state/province filters only match events in the selected region (e.g., preventing Australian New South Wales events from appearing under United Kingdom).
+
 ## 2026.11.8+261
 
 - **Match Details Sheet**: Tapping a match now displays the full match name, per-team note type and rule violation counts, and direct "Add Note" buttons for each team in the match.

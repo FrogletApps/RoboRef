@@ -9,6 +9,7 @@ import '../models/event_model.dart';
 import '../services/event_cache_service.dart';
 import '../state/event_controller.dart';
 import '../state/event_filter_controller.dart';
+import '../widgets/event_filters_bar.dart';
 
 class EventSelectionScreen extends ConsumerStatefulWidget {
   const EventSelectionScreen({super.key});
@@ -33,8 +34,6 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   late DateTime _startDate;
   late DateTime _endDate;
   int _daysForward = 7;
-
-  final List<String> _programs = const ['All', 'V5RC', 'VIQRC', 'VEX U', 'VEX AI'];
 
   @override
   void initState() {
@@ -102,14 +101,13 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     final client = ref.read(vexEventsClientProvider);
     final filters = ref.read(eventFiltersProvider);
     final cleanQuery = _searchQuery.trim();
+    final apiRegionTargets = _resolveApiRegionTargets(filters);
 
     try {
       final results = await client.searchEvents(
         query: cleanQuery.isNotEmpty ? cleanQuery : null,
-        program: filters.program != 'All' ? filters.program : null,
-        region: filters.division != 'All'
-            ? filters.division
-            : (filters.region != 'All' ? filters.region : null),
+        programs: filters.programs,
+        regions: apiRegionTargets,
         start: isSkuQuery(cleanQuery) ? null : _startDate,
         end: isSkuQuery(cleanQuery) ? null : _endDate,
         perPage: 50,
@@ -131,10 +129,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
           await cacheService.updateCacheWithRemoteEvents(
             remoteEvents: results,
             query: cleanQuery.isNotEmpty ? cleanQuery : null,
-            program: filters.program != 'All' ? filters.program : null,
-            region: filters.division != 'All'
-                ? filters.division
-                : (filters.region != 'All' ? filters.region : null),
+            programs: filters.programs,
+            regions: filters.regions,
+            divisions: filters.divisions,
             windowStart: isSkuQuery(cleanQuery) ? null : _startDate,
             windowEnd: isSkuQuery(cleanQuery) ? null : _endDate,
           );
@@ -198,13 +195,31 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
         if (isExplicitReload && _apiEvents.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(context.l10n.eventSelectionServerUnreachableShowingCached),
+              content: Text(context.l10n.eventSelectionShowingCachedEvents),
               duration: const Duration(seconds: 2),
             ),
           );
         }
       }
     }
+  }
+
+  List<String> _resolveApiRegionTargets(EventFiltersState filters) {
+    if (filters.regions.isEmpty) return const [];
+    final targets = <String>[];
+    for (final region in filters.regions) {
+      final config = getRegionDivisionConfig(region);
+      if (config != null) {
+        final selectedDivs =
+            filters.divisions.where(config.divisions.contains).toList();
+        if (selectedDivs.isNotEmpty) {
+          targets.addAll(selectedDivs);
+          continue;
+        }
+      }
+      targets.add(region);
+    }
+    return targets;
   }
 
   void _loadMoreEvents() {
@@ -253,7 +268,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                l10n.eventSelectionLoadingScheduleFor(event.sku),
+                l10n.eventSelectionLoadingTournamentData(event.sku),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -270,7 +285,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              l10n.eventSelectionLoadedSummary(
+              l10n.eventSelectionLoadedTournamentSummary(
                 result.eventName ?? event.sku,
                 result.teamsCount,
                 result.matchesCount,
@@ -284,7 +299,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
         messenger.hideCurrentSnackBar();
         messenger.showSnackBar(
           SnackBar(
-            content: Text(l10n.eventSelectionNotePrefix(result.errorMessage!)),
+            content: Text(l10n.eventSelectionLoadNotePrefix(result.errorMessage!)),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -295,9 +310,9 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final filters = ref.watch(eventFiltersProvider);
-    final selectedProgram = filters.program;
-    final selectedRegion = filters.region;
-    final selectedDivision = filters.division;
+    final selectedPrograms = filters.programs;
+    final selectedRegions = filters.regions;
+    final selectedDivisions = filters.divisions;
 
     final cleanQuery = _searchQuery.trim().toUpperCase();
     final isCustomSkuValid = isValidSku(cleanQuery);
@@ -306,100 +321,28 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     List<EventModel> filteredApiEvents = _apiEvents;
 
     final isDirectSkuQuery = isSkuQuery(cleanQuery);
-    if (selectedProgram != 'All' && !isDirectSkuQuery) {
+    if (selectedPrograms.isNotEmpty && !isDirectSkuQuery) {
       filteredApiEvents = filteredApiEvents
-          .where((e) => isEventMatchingProgram(
+          .where((e) => isEventMatchingPrograms(
                 program: e.program,
                 sku: e.sku,
-                selectedProgram: selectedProgram,
+                selectedPrograms: selectedPrograms,
               ))
           .toList();
     }
 
-    if (selectedRegion != 'All' && !isDirectSkuQuery) {
-      final targetRegion = selectedRegion.toUpperCase().trim();
-      final isTaiwan = targetRegion == 'TAIWAN' || targetRegion == 'CHINESE TAIPEI';
-      final isUS = targetRegion == 'UNITED STATES' || targetRegion == 'USA' || targetRegion == 'US';
-      final isCanada = targetRegion == 'CANADA' || targetRegion == 'CA';
-      final isAustralia = targetRegion == 'AUSTRALIA' || targetRegion == 'AU';
-      final isUK = targetRegion == 'UNITED KINGDOM' || targetRegion == 'UK' || targetRegion == 'GB';
-
-      filteredApiEvents = filteredApiEvents.where((e) {
-        final country = e.country?.toUpperCase() ?? '';
-        final region = e.region?.toUpperCase() ?? '';
-        final city = e.city?.toUpperCase() ?? '';
-        final venue = e.venue?.toUpperCase() ?? '';
-
-        if (isTaiwan) {
-          return country == 'TAIWAN' ||
-              country == 'CHINESE TAIPEI' ||
-              country.contains('TAIPEI') ||
-              region == 'TAIWAN' ||
-              region == 'CHINESE TAIPEI' ||
-              region.contains('TAIPEI') ||
-              city.contains('TAIPEI') ||
-              venue.contains('TAIPEI');
-        }
-
-        if (isUS) {
-          return country == 'UNITED STATES' ||
-              country == 'USA' ||
-              country == 'US' ||
-              country.contains('UNITED STATES') ||
-              region == 'UNITED STATES';
-        }
-
-        if (isCanada) {
-          return country == 'CANADA' ||
-              country.contains('CANADA') ||
-              region == 'CANADA';
-        }
-
-        if (isAustralia) {
-          return country == 'AUSTRALIA' ||
-              country.contains('AUSTRALIA') ||
-              region == 'AUSTRALIA';
-        }
-
-        if (isUK) {
-          return country == 'UNITED KINGDOM' ||
-              country == 'GREAT BRITAIN' ||
-              country == 'UK' ||
-              region == 'ENGLAND' ||
-              region == 'SCOTLAND' ||
-              region == 'WALES' ||
-              region == 'NORTHERN IRELAND' ||
-              region == 'UNITED KINGDOM' ||
-              country.contains('UNITED KINGDOM') ||
-              country.contains('GREAT BRITAIN') ||
-              country.contains('UK') ||
-              region.contains('ENGLAND') ||
-              region.contains('SCOTLAND') ||
-              region.contains('WALES') ||
-              region.contains('NORTHERN IRELAND') ||
-              region.contains('UNITED KINGDOM');
-        }
-
-        return country == targetRegion ||
-            country.contains(targetRegion) ||
-            region == targetRegion ||
-            region.contains(targetRegion) ||
-            city.contains(targetRegion) ||
-            venue.contains(targetRegion);
-      }).toList();
-    }
-
-    if (selectedDivision != 'All' && !isDirectSkuQuery) {
-      final targetDivision = selectedDivision.toUpperCase().trim();
-      filteredApiEvents = filteredApiEvents.where((e) {
-        final region = e.region?.toUpperCase() ?? '';
-        final city = e.city?.toUpperCase() ?? '';
-        final venue = e.venue?.toUpperCase() ?? '';
-        return region == targetDivision ||
-            region.contains(targetDivision) ||
-            city.contains(targetDivision) ||
-            venue.contains(targetDivision);
-      }).toList();
+    if ((selectedRegions.isNotEmpty || selectedDivisions.isNotEmpty) &&
+        !isDirectSkuQuery) {
+      filteredApiEvents = filteredApiEvents
+          .where((e) => isEventMatchingRegionAndDivisions(
+                country: e.country,
+                region: e.region,
+                city: e.city,
+                venue: e.venue,
+                selectedRegions: selectedRegions,
+                selectedDivisions: selectedDivisions,
+              ))
+          .toList();
     }
 
     if (cleanQuery.isNotEmpty && !isDirectSkuQuery) {
@@ -442,16 +385,11 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
     final locale = getUserLocale(context);
     final yDateStr = formatEventDate(firstDate.toIso8601String(), locale);
     final zDateStr = formatEventDate(lastDate.toIso8601String(), locale);
-    final searchSummary = context.l10n.eventSelectionSearchSummary(
+    final searchSummary = context.l10n.eventSelectionFoundEventsSummary(
       displayEvents.length,
       yDateStr,
       zDateStr,
     );
-
-    final divisionConfig = getRegionDivisionConfig(selectedRegion);
-    final hasActiveFilters = selectedProgram != 'All' ||
-        selectedRegion != 'All' ||
-        selectedDivision != 'All';
 
     return Scaffold(
       appBar: AppBar(
@@ -510,164 +448,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                   onChanged: _onSearchChanged,
                 ),
                 const SizedBox(height: 10),
-
-                // Program Filter Chips
-                Center(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: _programs.map((program) {
-                        final isSelected = selectedProgram == program;
-                        final displayLabel = program == 'All' ? context.l10n.commonAll : program;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: FilterChip(
-                            label: Text(displayLabel),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              ref.read(eventFiltersProvider.notifier).setProgram(
-                                    program == 'All' ? 'All' : (selected ? program : 'All'),
-                                  );
-                              _fetchEvents();
-                            },
-                            showCheckmark: false,
-                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                            selectedColor: program == 'VIQRC'
-                                ? const Color(0xFF1E88E5)
-                                : program == 'V5RC' || program == 'VEX U'
-                                    ? const Color(0xFFD32F2F)
-                                    : program == 'VEX AI'
-                                        ? const Color(0xFF8E24AA)
-                                        : Theme.of(context).colorScheme.primary,
-                            labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : null,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Region & CountryDivision Filter Chips
-                SizedBox(
-                  width: double.infinity,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Center(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Region Chip
-                              FilterChip(
-                                avatar: Icon(
-                                  selectedRegion == 'All' ? Icons.public_outlined : Icons.public,
-                                  size: 16,
-                                  color: selectedRegion != 'All'
-                                      ? Theme.of(context).colorScheme.onPrimary
-                                      : Theme.of(context).colorScheme.primary,
-                                ),
-                                label: Text(
-                                  selectedRegion == 'All'
-                                      ? context.l10n.eventSelectionAllRegions
-                                      : context.l10n.eventSelectionRegionLabel(selectedRegion),
-                                ),
-                                selected: selectedRegion != 'All',
-                                showCheckmark: false,
-                                onSelected: (_) => _showRegionPickerModal(context, selectedRegion),
-                                deleteIcon: selectedRegion != 'All'
-                                    ? Icon(
-                                        Icons.close,
-                                        size: 16,
-                                        color: Theme.of(context).colorScheme.onPrimary,
-                                      )
-                                    : const Icon(Icons.arrow_drop_down, size: 18),
-                                onDeleted: selectedRegion != 'All'
-                                    ? () {
-                                        ref.read(eventFiltersProvider.notifier).setRegion('All');
-                                        _fetchEvents();
-                                      }
-                                    : () => _showRegionPickerModal(context, selectedRegion),
-                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                                selectedColor: Theme.of(context).colorScheme.primary,
-                                labelStyle: TextStyle(
-                                  color: selectedRegion != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
-                                  fontWeight: selectedRegion != 'All' ? FontWeight.bold : FontWeight.normal,
-                                ),
-                              ),
-
-                              // Division Chip (e.g. State, Province) if configured for region
-                              if (divisionConfig != null) ...[
-                                const SizedBox(width: 8),
-                                FilterChip(
-                                  avatar: Icon(
-                                    selectedDivision == 'All' ? Icons.place_outlined : Icons.place,
-                                    size: 16,
-                                    color: selectedDivision != 'All'
-                                        ? Theme.of(context).colorScheme.onPrimary
-                                        : Theme.of(context).colorScheme.primary,
-                                  ),
-                                  label: Text(
-                                    selectedDivision == 'All'
-                                        ? divisionConfig.allLabel(context)
-                                        : divisionConfig.selectedLabel(context, selectedDivision),
-                                  ),
-                                  selected: selectedDivision != 'All',
-                                  showCheckmark: false,
-                                  onSelected: (_) => _showDivisionPickerModal(context, divisionConfig, selectedDivision),
-                                  deleteIcon: selectedDivision != 'All'
-                                      ? Icon(
-                                          Icons.close,
-                                          size: 16,
-                                          color: Theme.of(context).colorScheme.onPrimary,
-                                        )
-                                      : const Icon(Icons.arrow_drop_down, size: 18),
-                                  onDeleted: selectedDivision != 'All'
-                                      ? () {
-                                          ref.read(eventFiltersProvider.notifier).setDivision('All');
-                                          _fetchEvents();
-                                        }
-                                      : () => _showDivisionPickerModal(context, divisionConfig, selectedDivision),
-                                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                                  selectedColor: Theme.of(context).colorScheme.primary,
-                                  labelStyle: TextStyle(
-                                    color: selectedDivision != 'All' ? Theme.of(context).colorScheme.onPrimary : null,
-                                    fontWeight: selectedDivision != 'All' ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Right-aligned Reset Filters Button
-                      if (hasActiveFilters)
-                        Positioned(
-                          right: 0,
-                          child: TextButton.icon(
-                            onPressed: () {
-                              ref.read(eventFiltersProvider.notifier).resetFilters();
-                              _fetchEvents();
-                            },
-                            icon: const Icon(Icons.clear_all, size: 16),
-                            label: Text(context.l10n.eventSelectionResetFilters, style: const TextStyle(fontSize: 12)),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                EventFiltersBar(onFiltersChanged: _fetchEvents),
               ],
             ),
           ),
@@ -697,14 +478,14 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                           cleanQuery,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'monospace'),
                         ),
-                        subtitle: Text(context.l10n.eventSelectionAddCustomSkuSubtitle(getSkuProgram(cleanQuery))),
+                        subtitle: Text(context.l10n.eventSelectionAddCustomSchedule(getSkuProgram(cleanQuery))),
                         trailing: ElevatedButton(
                           onPressed: () async {
                             final prog = getSkuProgram(cleanQuery);
                             await _handleEventSelection(
                               EventModel(
                                 sku: cleanQuery,
-                                name: context.l10n.eventSelectionDefaultTournamentName(prog, cleanQuery),
+                                name: context.l10n.eventSelectionCustomTournamentName(prog, cleanQuery),
                                 program: prog,
                                 season: '2026-2027',
                                 startDate: DateTime.now().toIso8601String(),
@@ -726,7 +507,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        context.l10n.eventSelectionSectionTitle,
+                        context.l10n.eventSelectionEventsHeader,
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 8),
@@ -758,7 +539,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                           children: [
                             const CircularProgressIndicator(),
                             const SizedBox(height: 16),
-                            Text(context.l10n.eventSelectionLoadingLiveEvents, style: const TextStyle(color: Colors.grey)),
+                            Text(context.l10n.eventSelectionLoadingEvents, style: const TextStyle(color: Colors.grey)),
                           ],
                         ),
                       ),
@@ -773,14 +554,14 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
                             const SizedBox(height: 12),
                             Text(
                               _errorMessage != null
-                                  ? context.l10n.eventSelectionCannotConnectProxy
+                                  ? context.l10n.eventSelectionProxyError
                                   : context.l10n.eventSelectionNoEventsFound,
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              context.l10n.eventSelectionEmptyHint,
+                              context.l10n.eventSelectionNoEventsSubtitle,
                               style: const TextStyle(color: Colors.grey, fontSize: 13),
                             ),
                             const SizedBox(height: 16),
@@ -911,425 +692,4 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
       ),
     );
   }
-
-  void _showRegionPickerModal(BuildContext context, String currentRegion) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return _RegionPickerSheet(
-          selectedRegion: currentRegion,
-          onRegionSelected: (region) {
-            Navigator.of(ctx).pop();
-            ref.read(eventFiltersProvider.notifier).setRegion(region);
-            _fetchEvents();
-          },
-        );
-      },
-    );
-  }
-
-  void _showDivisionPickerModal(BuildContext context, RegionDivisionConfig config, String currentDivision) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return _DivisionPickerSheet(
-          config: config,
-          selectedDivision: currentDivision,
-          onDivisionSelected: (division) {
-            Navigator.of(ctx).pop();
-            ref.read(eventFiltersProvider.notifier).setDivision(division);
-            _fetchEvents();
-          },
-        );
-      },
-    );
-  }
 }
-
-class _RegionPickerSheet extends StatefulWidget {
-  final String selectedRegion;
-  final ValueChanged<String> onRegionSelected;
-
-  const _RegionPickerSheet({
-    required this.selectedRegion,
-    required this.onRegionSelected,
-  });
-
-  @override
-  State<_RegionPickerSheet> createState() => _RegionPickerSheetState();
-}
-
-class _RegionPickerSheetState extends State<_RegionPickerSheet> {
-  final TextEditingController _filterController = TextEditingController();
-  final List<String> _allRegions = getSortedVexRegions();
-  String _filterText = '';
-
-  @override
-  void dispose() {
-    _filterController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final query = _filterText.trim().toUpperCase();
-
-    List<String> visibleRegions = _allRegions.where((region) {
-      return isRegionMatchingQuery(region, _filterText);
-    }).toList();
-
-    return DraggableScrollableSheet(
-      initialChildSize: 0.75,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
-      expand: false,
-      builder: (context, scrollController) {
-        final theme = Theme.of(context);
-        return Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 8, bottom: 4),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.dividerColor.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    context.l10n.eventSelectionFilterByRegion,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    tooltip: context.l10n.commonClose,
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: TextField(
-                controller: _filterController,
-                autofocus: false,
-                decoration: InputDecoration(
-                  hintText: context.l10n.eventSelectionSearchRegionHint,
-                  prefixIcon: const Icon(Icons.search, size: 20),
-                  suffixIcon: _filterText.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, size: 18),
-                          tooltip: context.l10n.commonClearSearch,
-                          onPressed: () {
-                            _filterController.clear();
-                            setState(() {
-                              _filterText = '';
-                            });
-                          },
-                        )
-                      : null,
-                  isDense: true,
-                  filled: true,
-                  fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                onChanged: (val) {
-                  setState(() {
-                    _filterText = val;
-                  });
-                },
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: visibleRegions.isEmpty && query.isNotEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
-                            const SizedBox(height: 8),
-                            Text(
-                              context.l10n.eventSelectionNoMatchingRegions(_filterText),
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      controller: scrollController,
-                      itemCount: visibleRegions.length + (query.isEmpty ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (query.isEmpty && index == 0) {
-                          final isSelected = widget.selectedRegion == 'All';
-                          return ListTile(
-                            leading: Icon(
-                              Icons.public,
-                              color: isSelected ? theme.colorScheme.primary : Colors.grey,
-                            ),
-                            title: Text(
-                              context.l10n.eventSelectionAllRegions,
-                              style: TextStyle(
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? theme.colorScheme.primary : null,
-                              ),
-                            ),
-                            trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
-                            onTap: () => widget.onRegionSelected('All'),
-                          );
-                        }
-
-                        final regionIndex = query.isEmpty ? index - 1 : index;
-                        final region = visibleRegions[regionIndex];
-                        final isSelected = widget.selectedRegion == region;
-                        final matchingDivisions = getMatchingDivisionsForRegion(region, _filterText);
-
-                        return ListTile(
-                          leading: Icon(
-                            Icons.public,
-                            size: 20,
-                            color: isSelected ? theme.colorScheme.primary : Colors.grey,
-                          ),
-                          title: Text(
-                            region,
-                            style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? theme.colorScheme.primary : null,
-                            ),
-                          ),
-                          subtitle: (matchingDivisions.isNotEmpty && !region.toUpperCase().contains(query))
-                              ? Text(
-                                  context.l10n.eventSelectionRegionIncludes(
-                                    '${matchingDivisions.take(3).join(', ')}${matchingDivisions.length > 3 ? '...' : ''}',
-                                  ),
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                )
-                              : null,
-                          trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
-                          onTap: () => widget.onRegionSelected(region),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _DivisionPickerSheet extends StatefulWidget {
-  final CountryDivisionConfig config;
-  final String selectedDivision;
-  final ValueChanged<String> onDivisionSelected;
-
-  const _DivisionPickerSheet({
-    required this.config,
-    required this.selectedDivision,
-    required this.onDivisionSelected,
-  });
-
-  @override
-  State<_DivisionPickerSheet> createState() => _DivisionPickerSheetState();
-}
-
-class _DivisionPickerSheetState extends State<_DivisionPickerSheet> {
-  final TextEditingController _filterController = TextEditingController();
-  late final List<String> _allDivisions;
-  String _filterText = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _allDivisions = List<String>.from(widget.config.divisions)..sort((a, b) => a.compareTo(b));
-  }
-
-  @override
-  void dispose() {
-    _filterController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final query = _filterText.trim().toUpperCase();
-
-    List<String> visibleDivisions = _allDivisions.where((div) {
-      if (query.isEmpty) return true;
-      final upper = div.toUpperCase();
-      if (upper.contains(query)) return true;
-
-      final aliasTarget = divisionAliases[query]?.toUpperCase();
-      if (aliasTarget != null && (upper == aliasTarget || upper.contains(aliasTarget))) {
-        return true;
-      }
-      return false;
-    }).toList();
-
-    return DraggableScrollableSheet(
-      initialChildSize: 0.75,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
-      expand: false,
-      builder: (context, scrollController) {
-        final theme = Theme.of(context);
-        return Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 8, bottom: 4),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.dividerColor.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.config.filterByTitle(context),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    tooltip: context.l10n.commonClose,
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: TextField(
-                controller: _filterController,
-                autofocus: false,
-                decoration: InputDecoration(
-                  hintText: widget.config.searchHint(context),
-                  prefixIcon: const Icon(Icons.search, size: 20),
-                  suffixIcon: _filterText.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, size: 18),
-                          tooltip: context.l10n.commonClearSearch,
-                          onPressed: () {
-                            _filterController.clear();
-                            setState(() {
-                              _filterText = '';
-                            });
-                          },
-                        )
-                      : null,
-                  isDense: true,
-                  filled: true,
-                  fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                onChanged: (val) {
-                  setState(() {
-                    _filterText = val;
-                  });
-                },
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: visibleDivisions.isEmpty && query.isNotEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
-                            const SizedBox(height: 8),
-                            Text(
-                              widget.config.noMatchingLabel(context, _filterText),
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      controller: scrollController,
-                      itemCount: visibleDivisions.length + (query.isEmpty ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (query.isEmpty && index == 0) {
-                          final isSelected = widget.selectedDivision == 'All';
-                          return ListTile(
-                            leading: Icon(
-                              Icons.place,
-                              color: isSelected ? theme.colorScheme.primary : Colors.grey,
-                            ),
-                            title: Text(
-                              widget.config.allLabel(context),
-                              style: TextStyle(
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? theme.colorScheme.primary : null,
-                              ),
-                            ),
-                            trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
-                            onTap: () => widget.onDivisionSelected('All'),
-                          );
-                        }
-
-                        final divIndex = query.isEmpty ? index - 1 : index;
-                        final divName = visibleDivisions[divIndex];
-                        final isSelected = widget.selectedDivision == divName;
-
-                        return ListTile(
-                          leading: Icon(
-                            Icons.location_on_outlined,
-                            size: 20,
-                            color: isSelected ? theme.colorScheme.primary : Colors.grey,
-                          ),
-                          title: Text(
-                            divName,
-                            style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? theme.colorScheme.primary : null,
-                            ),
-                          ),
-                          trailing: isSelected ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
-                          onTap: () => widget.onDivisionSelected(divName),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-

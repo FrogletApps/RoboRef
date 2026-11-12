@@ -165,6 +165,16 @@ class VexEventsClient {
     }
   }
 
+  /// Map a list of selected program names to deduplicated VEX Events program IDs
+  List<int> _getProgramIdsForList(List<String> programs) {
+    if (programs.isEmpty) return [];
+    final ids = <int>{};
+    for (final p in programs) {
+      ids.addAll(_getProgramIds(p));
+    }
+    return ids.toList();
+  }
+
   /// Map program names to VEX Events season IDs for server-side season filtering
   List<int> _getProgramSeasonIds(String? program) {
     if (program == null || program.isEmpty || program == 'All') {
@@ -197,13 +207,136 @@ class VexEventsClient {
     }
   }
 
+  /// Map a list of selected program names to deduplicated VEX Events season IDs
+  List<int> _getProgramSeasonIdsForList(List<String> programs) {
+    if (programs.isEmpty) {
+      return _getProgramSeasonIds(null);
+    }
+    final ids = <int>{};
+    for (final p in programs) {
+      ids.addAll(_getProgramSeasonIds(p));
+    }
+    return ids.toList();
+  }
+
   /// Searches events via the sync server VEX Events proxy
   Future<List<EventModel>> searchEvents({
     String? query,
     String? program,
+    Iterable<String>? programs,
     String? sku,
     String? country,
     String? region,
+    Iterable<String>? regions,
+    DateTime? start,
+    DateTime? end,
+    int page = 1,
+    int perPage = 30,
+    String? serverUrl,
+    bool forceRefresh = false,
+  }) async {
+    final effectivePrograms = (programs ?? (program != null ? [program] : const <String>[]))
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty && p != 'All')
+        .toList();
+
+    final isSkuSearch = (sku != null && sku.trim().isNotEmpty) ||
+        (query != null && isSkuQuery(query));
+
+    if (!isSkuSearch && regions != null) {
+      final cleanedRegions = regions
+          .map((r) => r.trim())
+          .where((r) => r.isNotEmpty && r != 'All')
+          .toList();
+      if (cleanedRegions.isNotEmpty) {
+        var needsGlobalQuery = false;
+        final apiTargets = <String>{};
+        for (final r in cleanedRegions) {
+          if (r == 'United States' || r == 'Canada') {
+            needsGlobalQuery = true;
+          } else {
+            apiTargets.add(r);
+          }
+        }
+
+        if (!needsGlobalQuery && apiTargets.length > 1 && apiTargets.length <= 4) {
+          final batches = await Future.wait(
+            apiTargets.map(
+              (target) => _searchEventsSingle(
+                query: query,
+                effectivePrograms: effectivePrograms,
+                sku: sku,
+                apiRegion: target,
+                start: start,
+                end: end,
+                page: page,
+                perPage: perPage,
+                serverUrl: serverUrl,
+                forceRefresh: forceRefresh,
+              ),
+            ),
+          );
+          final merged = <String, EventModel>{};
+          for (final batch in batches) {
+            for (final event in batch) {
+              merged[event.sku.toUpperCase()] = event;
+            }
+          }
+          final mergedList = merged.values.toList()
+            ..sort((a, b) => a.startDate.compareTo(b.startDate));
+          return mergedList;
+        }
+
+        final singleTarget = (!needsGlobalQuery && apiTargets.length == 1)
+            ? apiTargets.first
+            : null;
+        return _searchEventsSingle(
+          query: query,
+          effectivePrograms: effectivePrograms,
+          sku: sku,
+          apiRegion: singleTarget,
+          start: start,
+          end: end,
+          page: page,
+          perPage: perPage,
+          serverUrl: serverUrl,
+          forceRefresh: forceRefresh,
+        );
+      }
+    }
+
+    final targetReg = region ?? country;
+    String? singleApiRegion;
+    if (targetReg != null && targetReg.trim().isNotEmpty && targetReg.trim() != 'All') {
+      final clean = targetReg.trim();
+      // Only United States (and Canada when no province is specified) are omitted from the upstream
+      // API 'region' parameter because RobotEvents API v2 requires state/province names for US and returns 0 for 'region=United States'.
+      // For all other countries (such as United Kingdom, Australia, Taiwan, Japan, etc.), RobotEvents API accepts 'region=<country>' properly.
+      final isCountryWithStateOnlyApi = clean == 'United States' || clean == 'Canada';
+      if (!isCountryWithStateOnlyApi) {
+        singleApiRegion = clean;
+      }
+    }
+
+    return _searchEventsSingle(
+      query: query,
+      effectivePrograms: effectivePrograms,
+      sku: sku,
+      apiRegion: singleApiRegion,
+      start: start,
+      end: end,
+      page: page,
+      perPage: perPage,
+      serverUrl: serverUrl,
+      forceRefresh: forceRefresh,
+    );
+  }
+
+  Future<List<EventModel>> _searchEventsSingle({
+    String? query,
+    required List<String> effectivePrograms,
+    String? sku,
+    String? apiRegion,
     DateTime? start,
     DateTime? end,
     int page = 1,
@@ -235,26 +368,18 @@ class VexEventsClient {
       queryParams['end'] = [end.toUtc().toIso8601String()];
     }
 
-    final targetReg = region ?? country;
-    if (targetReg != null && targetReg.trim().isNotEmpty && targetReg.trim() != 'All') {
-      final clean = targetReg.trim();
-      // Only United States (and Canada when no province is specified) are omitted from the upstream
-      // API 'region' parameter because RobotEvents API v2 requires state/province names for US and returns 0 for 'region=United States'.
-      // For all other countries (such as United Kingdom, Australia, Taiwan, Japan, etc.), RobotEvents API accepts 'region=<country>' properly.
-      final isCountryWithStateOnlyApi = clean == 'United States' || clean == 'Canada';
-      if (!isCountryWithStateOnlyApi) {
-        queryParams['region'] = [clean];
-      }
+    if (apiRegion != null && apiRegion.trim().isNotEmpty) {
+      queryParams['region'] = [apiRegion.trim()];
     }
 
     if (!isSkuSearch) {
-      final seasonIds = _getProgramSeasonIds(program);
+      final seasonIds = _getProgramSeasonIdsForList(effectivePrograms);
       if (seasonIds.isNotEmpty) {
         queryParams['season[]'] = seasonIds.map((id) => id.toString()).toList();
       }
     }
 
-    final programIds = _getProgramIds(program);
+    final programIds = _getProgramIdsForList(effectivePrograms);
     if (programIds.isNotEmpty) {
       queryParams['program[]'] = programIds.map((id) => id.toString()).toList();
     }

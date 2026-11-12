@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/utils/event_regions.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../models/event_model.dart';
@@ -84,42 +85,41 @@ class EventCacheService {
   /// Check if an event falls within the scope of a specific search/filter query
   bool _isEventInScope(
     EventModel event, {
+    Iterable<String>? programs,
+    Iterable<String>? regions,
+    Iterable<String>? divisions,
     String? program,
     String? region,
     String? division,
     DateTime? windowStart,
     DateTime? windowEnd,
   }) {
-    // 1. Program filter
-    if (program != null && program != 'All') {
-      if (!isEventMatchingProgram(
-        program: event.program,
-        sku: event.sku,
-        selectedProgram: program,
-      )) {
-        return false;
-      }
+    final effectivePrograms =
+        programs ?? (program != null ? [program] : const <String>[]);
+    if (!isEventMatchingPrograms(
+      program: event.program,
+      sku: event.sku,
+      selectedPrograms: effectivePrograms,
+    )) {
+      return false;
     }
 
-    // 2. Region / Division filter
-    if (region != null && region != 'All') {
-      final target = region.toUpperCase().trim();
-      final c = event.country?.toUpperCase() ?? '';
-      final r = event.region?.toUpperCase() ?? '';
-      final v = event.venue?.toUpperCase() ?? '';
-      final city = event.city?.toUpperCase() ?? '';
-
-      final matchesRegion = c == target ||
-          c.contains(target) ||
-          r == target ||
-          r.contains(target) ||
-          v.contains(target) ||
-          city.contains(target);
-
-      if (!matchesRegion) return false;
+    final effectiveRegions =
+        regions ?? (region != null ? [region] : const <String>[]);
+    final effectiveDivisions =
+        divisions ?? (division != null ? [division] : const <String>[]);
+    if (!isEventMatchingRegionAndDivisions(
+      country: event.country,
+      region: event.region,
+      city: event.city,
+      venue: event.venue,
+      selectedRegions: effectiveRegions,
+      selectedDivisions: effectiveDivisions,
+    )) {
+      return false;
     }
 
-    // 3. Date window
+    // Date window
     if (windowStart != null || windowEnd != null) {
       final start = DateTime.tryParse(event.startDate);
       final end = DateTime.tryParse(event.endDate) ?? start;
@@ -140,6 +140,9 @@ class EventCacheService {
   Future<List<EventModel>> updateCacheWithRemoteEvents({
     required List<EventModel> remoteEvents,
     String? query,
+    Iterable<String>? programs,
+    Iterable<String>? regions,
+    Iterable<String>? divisions,
     String? program,
     String? region,
     String? division,
@@ -166,6 +169,9 @@ class EventCacheService {
         final cached = entry.value;
         if (_isEventInScope(
           cached,
+          programs: programs,
+          regions: regions,
+          divisions: divisions,
           program: program,
           region: region,
           division: division,

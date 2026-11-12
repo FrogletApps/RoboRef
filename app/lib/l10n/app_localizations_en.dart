@@ -60,6 +60,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonClearAll => 'Clear All';
 
   @override
+  String get commonDone => 'Done';
+
+  @override
   String commonDoneCount(int count) {
     return 'Done ($count)';
   }
@@ -197,6 +200,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String eventSelectionRegionsSelected(int count) {
+    return 'Regions: $count selected';
+  }
+
+  @override
   String get eventSelectionAllStates => 'All States';
 
   @override
@@ -220,6 +228,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String eventSelectionDivisionSelected(String singularLabel, String division) {
     return '$singularLabel: $division';
+  }
+
+  @override
+  String eventSelectionStatesSelected(int count) {
+    return 'States: $count selected';
+  }
+
+  @override
+  String eventSelectionProvincesSelected(int count) {
+    return 'Provinces: $count selected';
+  }
+
+  @override
+  String eventSelectionDivisionsSelected(String pluralLabel, int count) {
+    return '$pluralLabel: $count selected';
   }
 
   @override

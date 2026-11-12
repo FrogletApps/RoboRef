@@ -196,6 +196,12 @@ abstract class AppLocalizations {
   /// **'Clear All'**
   String get commonClearAll;
 
+  /// Standard done button label
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get commonDone;
+
   /// Done button showing count of selected items
   ///
   /// In en, this message translates to:
@@ -430,6 +436,12 @@ abstract class AppLocalizations {
   /// **'Region: {region}'**
   String eventSelectionRegionSelected(String region);
 
+  /// Filter chip label when multiple regions are selected
+  ///
+  /// In en, this message translates to:
+  /// **'Regions: {count} selected'**
+  String eventSelectionRegionsSelected(int count);
+
   /// Filter chip and list item label for all US states
   ///
   /// In en, this message translates to:
@@ -465,6 +477,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{singularLabel}: {division}'**
   String eventSelectionDivisionSelected(String singularLabel, String division);
+
+  /// Filter chip label when multiple US states are selected
+  ///
+  /// In en, this message translates to:
+  /// **'States: {count} selected'**
+  String eventSelectionStatesSelected(int count);
+
+  /// Filter chip label when multiple Canadian provinces are selected
+  ///
+  /// In en, this message translates to:
+  /// **'Provinces: {count} selected'**
+  String eventSelectionProvincesSelected(int count);
+
+  /// Fallback filter chip label when multiple administrative divisions are selected
+  ///
+  /// In en, this message translates to:
+  /// **'{pluralLabel}: {count} selected'**
+  String eventSelectionDivisionsSelected(String pluralLabel, int count);
 
   /// Button label to reset active event filters
   ///

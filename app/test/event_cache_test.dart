@@ -200,5 +200,139 @@ void main() {
       expect(updatedCache.any((e) => e.sku == 'RE-NEW-1'), isTrue);
       expect(updatedCache.firstWhere((e) => e.sku == 'RE-KEEP-1').name, equals('Keep Event Updated'));
     });
+
+    test('updateCacheWithRemoteEvents preserves New South Wales (Australia) events when updating United Kingdom scope', () async {
+      final initialEvents = [
+        EventModel(
+          sku: 'RE-AU-NSW-1',
+          name: 'NSW State Championship',
+          program: 'V5RC',
+          season: '2026-2027',
+          startDate: '2026-09-10T09:00:00Z',
+          endDate: '2026-09-11T18:00:00Z',
+          city: 'Sydney',
+          region: 'New South Wales',
+          country: 'Australia',
+        ),
+        EventModel(
+          sku: 'RE-UK-OLD-1',
+          name: 'Removed UK Event',
+          program: 'V5RC',
+          season: '2026-2027',
+          startDate: '2026-09-10T09:00:00Z',
+          endDate: '2026-09-11T18:00:00Z',
+          city: 'Telford',
+          region: 'England',
+          country: 'United Kingdom',
+        ),
+      ];
+
+      await cacheService.saveCachedEvents(initialEvents, referenceTime: testNow);
+
+      await cacheService.updateCacheWithRemoteEvents(
+        remoteEvents: [
+          EventModel(
+            sku: 'RE-UK-NEW-1',
+            name: 'UK Regional',
+            program: 'V5RC',
+            season: '2026-2027',
+            startDate: '2026-09-10T09:00:00Z',
+            endDate: '2026-09-11T18:00:00Z',
+            city: 'London',
+            region: 'England',
+            country: 'United Kingdom',
+          ),
+        ],
+        region: 'United Kingdom',
+        windowStart: DateTime.parse('2026-09-07T00:00:00Z'),
+        windowEnd: DateTime.parse('2026-09-17T00:00:00Z'),
+        referenceTime: testNow,
+      );
+
+      final updatedCache = cacheService.getCachedEvents(referenceTime: testNow);
+      expect(updatedCache.any((e) => e.sku == 'RE-AU-NSW-1'), isTrue);
+      expect(updatedCache.any((e) => e.sku == 'RE-UK-OLD-1'), isFalse);
+      expect(updatedCache.any((e) => e.sku == 'RE-UK-NEW-1'), isTrue);
+    });
+
+    test('updateCacheWithRemoteEvents scopes multi-select programs and multi-select regions/divisions accurately', () async {
+      final initialEvents = [
+        EventModel(
+          sku: 'RE-VIQRC-TX-OLD',
+          name: 'Old IQ TX',
+          program: 'VIQRC',
+          season: '2026-2027',
+          startDate: '2026-09-10T09:00:00Z',
+          endDate: '2026-09-11T18:00:00Z',
+          city: 'Dallas',
+          region: 'Texas',
+          country: 'United States',
+        ),
+        EventModel(
+          sku: 'RE-V5RC-ON-OLD',
+          name: 'Old V5 ON',
+          program: 'V5RC',
+          season: '2026-2027',
+          startDate: '2026-09-10T09:00:00Z',
+          endDate: '2026-09-11T18:00:00Z',
+          city: 'Toronto',
+          region: 'Ontario',
+          country: 'Canada',
+        ),
+        EventModel(
+          sku: 'RE-V5RC-FL-KEEP',
+          name: 'Keep V5 FL',
+          program: 'V5RC',
+          season: '2026-2027',
+          startDate: '2026-09-10T09:00:00Z',
+          endDate: '2026-09-11T18:00:00Z',
+          city: 'Orlando',
+          region: 'Florida',
+          country: 'United States',
+        ),
+        EventModel(
+          sku: 'RE-VEXU-TX-KEEP',
+          name: 'Keep VEX U TX',
+          program: 'VEX U',
+          season: '2026-2027',
+          startDate: '2026-09-10T09:00:00Z',
+          endDate: '2026-09-11T18:00:00Z',
+          city: 'Houston',
+          region: 'Texas',
+          country: 'United States',
+        ),
+      ];
+
+      await cacheService.saveCachedEvents(initialEvents, referenceTime: testNow);
+
+      await cacheService.updateCacheWithRemoteEvents(
+        remoteEvents: [
+          EventModel(
+            sku: 'RE-VIQRC-TX-NEW',
+            name: 'New IQ TX',
+            program: 'VIQRC',
+            season: '2026-2027',
+            startDate: '2026-09-10T09:00:00Z',
+            endDate: '2026-09-11T18:00:00Z',
+            city: 'Austin',
+            region: 'Texas',
+            country: 'United States',
+          ),
+        ],
+        programs: const ['VIQRC', 'V5RC'],
+        regions: const ['United States', 'Canada'],
+        divisions: const ['Texas', 'Ontario'],
+        windowStart: DateTime.parse('2026-09-07T00:00:00Z'),
+        windowEnd: DateTime.parse('2026-09-17T00:00:00Z'),
+        referenceTime: testNow,
+      );
+
+      final updatedCache = cacheService.getCachedEvents(referenceTime: testNow);
+      expect(updatedCache.any((e) => e.sku == 'RE-VIQRC-TX-OLD'), isFalse);
+      expect(updatedCache.any((e) => e.sku == 'RE-V5RC-ON-OLD'), isFalse);
+      expect(updatedCache.any((e) => e.sku == 'RE-VIQRC-TX-NEW'), isTrue);
+      expect(updatedCache.any((e) => e.sku == 'RE-V5RC-FL-KEEP'), isTrue);
+      expect(updatedCache.any((e) => e.sku == 'RE-VEXU-TX-KEEP'), isTrue);
+    });
   });
 }

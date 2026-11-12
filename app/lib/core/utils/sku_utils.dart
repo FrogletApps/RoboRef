@@ -138,6 +138,27 @@ bool isEventMatchingProgram({
   }
 }
 
+/// Check if an event matches any of the selected program filters.
+/// An empty iterable (or containing 'All') matches all events.
+bool isEventMatchingPrograms({
+  required String? program,
+  required String? sku,
+  required Iterable<String> selectedPrograms,
+}) {
+  final targets = selectedPrograms
+      .map((p) => p.trim())
+      .where((p) => p.isNotEmpty && p != 'All')
+      .toList();
+  if (targets.isEmpty) return true;
+  return targets.any(
+    (selected) => isEventMatchingProgram(
+      program: program,
+      sku: sku,
+      selectedProgram: selected,
+    ),
+  );
+}
+
 /// Get primary color theme for SKU
 Color getSkuColor(String? sku) {
   if (isVIQRC(sku)) {

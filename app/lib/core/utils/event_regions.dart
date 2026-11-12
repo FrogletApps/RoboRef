@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
 import '../l10n/l10n.dart';
+import 'event_region_matcher.dart';
+
+export 'event_region_matcher.dart';
 
 /// Configuration for a region's administrative divisions (e.g. States, Provinces)
 class RegionDivisionConfig {
@@ -29,11 +32,25 @@ class RegionDivisionConfig {
     final l10n = context.l10n;
     switch (singularLabel) {
       case 'State':
-        return l10n.eventSelectionStateLabel(division);
+        return l10n.eventSelectionStateSelected(division);
       case 'Province':
-        return l10n.eventSelectionProvinceLabel(division);
+        return l10n.eventSelectionProvinceSelected(division);
       default:
-        return l10n.eventSelectionDivisionLabel(singularLabel, division);
+        return l10n.eventSelectionDivisionSelected(singularLabel, division);
+    }
+  }
+
+  String selectedMultiLabel(BuildContext context, List<String> divisions) {
+    if (divisions.isEmpty) return allLabel(context);
+    if (divisions.length == 1) return selectedLabel(context, divisions.first);
+    final l10n = context.l10n;
+    switch (singularLabel) {
+      case 'State':
+        return l10n.eventSelectionStatesSelected(divisions.length);
+      case 'Province':
+        return l10n.eventSelectionProvincesSelected(divisions.length);
+      default:
+        return l10n.eventSelectionDivisionsSelected(pluralLabel, divisions.length);
     }
   }
 
@@ -65,11 +82,11 @@ class RegionDivisionConfig {
     final l10n = context.l10n;
     switch (singularLabel) {
       case 'State':
-        return l10n.eventSelectionNoMatchingStates(query);
+        return l10n.eventSelectionNoStatesMatching(query);
       case 'Province':
-        return l10n.eventSelectionNoMatchingProvinces(query);
+        return l10n.eventSelectionNoProvincesMatching(query);
       default:
-        return l10n.eventSelectionNoMatchingDivisions(
+        return l10n.eventSelectionNoDivisionsMatching(
           pluralLabel.toLowerCase(),
           query,
         );
@@ -130,76 +147,12 @@ const Map<String, RegionDivisionConfig> vexRegionDivisions = {
   'United States': RegionDivisionConfig(
     singularLabel: 'State',
     pluralLabel: 'States',
-    divisions: [
-      "Alabama",
-      "Alaska",
-      "Arizona",
-      "Arkansas",
-      "California",
-      "Colorado",
-      "Connecticut",
-      "Delaware",
-      "District of Columbia",
-      "Florida",
-      "Georgia",
-      "Hawaii",
-      "Idaho",
-      "Illinois",
-      "Indiana",
-      "Iowa",
-      "Kansas",
-      "Kentucky",
-      "Louisiana",
-      "Maine",
-      "Maryland",
-      "Massachusetts",
-      "Michigan",
-      "Minnesota",
-      "Mississippi",
-      "Missouri",
-      "Montana",
-      "Nebraska",
-      "Nevada",
-      "New Hampshire",
-      "New Jersey",
-      "New Mexico",
-      "New York",
-      "North Carolina",
-      "North Dakota",
-      "Ohio",
-      "Oklahoma",
-      "Oregon",
-      "Pennsylvania",
-      "Puerto Rico",
-      "Rhode Island",
-      "South Carolina",
-      "South Dakota",
-      "Tennessee",
-      "Texas",
-      "Utah",
-      "Vermont",
-      "Virginia",
-      "Washington",
-      "West Virginia",
-      "Wisconsin",
-      "Wyoming",
-    ],
+    divisions: usDivisions,
   ),
   'Canada': RegionDivisionConfig(
     singularLabel: 'Province',
     pluralLabel: 'Provinces',
-    divisions: [
-      "Alberta",
-      "British Columbia",
-      "Manitoba",
-      "New Brunswick",
-      "Newfoundland and Labrador",
-      "Nova Scotia",
-      "Ontario",
-      "Prince Edward Island",
-      "Quebec",
-      "Saskatchewan",
-    ],
+    divisions: canadaDivisions,
   ),
 };
 
@@ -226,108 +179,8 @@ List<String> getSortedVexRegions() {
 // Backwards compatibility alias
 List<String> getSortedVexCountries() => getSortedVexRegions();
 
-/// Shorthand region aliases to support quick lookup (e.g. "USA" -> "United States", "Chinese Taipei" -> "Taiwan")
-const Map<String, String> regionAliases = {
-  'USA': 'United States',
-  'US': 'United States',
-  'UK': 'United Kingdom',
-  'GB': 'United Kingdom',
-  'GREAT BRITAIN': 'United Kingdom',
-  'ENGLAND': 'United Kingdom',
-  'SCOTLAND': 'United Kingdom',
-  'WALES': 'United Kingdom',
-  'NORTHERN IRELAND': 'United Kingdom',
-  'AU': 'Australia',
-  'AUS': 'Australia',
-  'CA': 'Canada',
-  'CAN': 'Canada',
-  'NZ': 'New Zealand',
-  'UAE': 'United Arab Emirates',
-  'KOR': 'South Korea',
-  'JP': 'Japan',
-  'GER': 'Germany',
-  'DE': 'Germany',
-  'FR': 'France',
-  'FRA': 'France',
-  'MEX': 'Mexico',
-  'TW': 'Taiwan',
-  'TAIWAN': 'Taiwan',
-  'CHINESE TAIPEI': 'Taiwan',
-  'CHINESETAIPEI': 'Taiwan',
-  'TAIPEI': 'Taiwan',
-  'HK': 'Hong Kong',
-  'SG': 'Singapore',
-  'PH': 'Philippines',
-};
-
 // Backwards compatibility alias
 const Map<String, String> countryAliases = regionAliases;
-
-/// Shorthand division aliases (e.g. "TX" -> "Texas", "ON" -> "Ontario", "NSW" -> "New South Wales")
-const Map<String, String> divisionAliases = {
-  'AL': 'Alabama',
-  'AK': 'Alaska',
-  'AZ': 'Arizona',
-  'AR': 'Arkansas',
-  'CA': 'California',
-  'CO': 'Colorado',
-  'CT': 'Connecticut',
-  'DE': 'Delaware',
-  'DC': 'District of Columbia',
-  'FL': 'Florida',
-  'GA': 'Georgia',
-  'HI': 'Hawaii',
-  'ID': 'Idaho',
-  'IL': 'Illinois',
-  'IN': 'Indiana',
-  'IA': 'Iowa',
-  'KS': 'Kansas',
-  'KY': 'Kentucky',
-  'LA': 'Louisiana',
-  'ME': 'Maine',
-  'MD': 'Maryland',
-  'MA': 'Massachusetts',
-  'MI': 'Michigan',
-  'MN': 'Minnesota',
-  'MS': 'Mississippi',
-  'MO': 'Missouri',
-  'MT': 'Montana',
-  'NE': 'Nebraska',
-  'NV': 'Nevada',
-  'NH': 'New Hampshire',
-  'NJ': 'New Jersey',
-  'NM': 'New Mexico',
-  'NY': 'New York',
-  'NC': 'North Carolina',
-  'ND': 'North Dakota',
-  'OH': 'Ohio',
-  'OK': 'Oklahoma',
-  'OR': 'Oregon',
-  'PA': 'Pennsylvania',
-  'PR': 'Puerto Rico',
-  'RI': 'Rhode Island',
-  'SC': 'South Carolina',
-  'SD': 'South Dakota',
-  'TN': 'Tennessee',
-  'TX': 'Texas',
-  'UT': 'Utah',
-  'VT': 'Vermont',
-  'VA': 'Virginia',
-  'WA': 'Washington',
-  'WV': 'West Virginia',
-  'WI': 'Wisconsin',
-  'WY': 'Wyoming',
-  'AB': 'Alberta',
-  'BC': 'British Columbia',
-  'MB': 'Manitoba',
-  'NB': 'New Brunswick',
-  'NL': 'Newfoundland and Labrador',
-  'NS': 'Nova Scotia',
-  'ON': 'Ontario',
-  'PE': 'Prince Edward Island',
-  'QC': 'Quebec',
-  'SK': 'Saskatchewan',
-};
 
 /// Checks whether a region matches a query string by direct name, alias, or child division (e.g. state or province).
 bool isRegionMatchingQuery(String region, String query) {
@@ -389,5 +242,74 @@ List<String> getMatchingDivisionsForRegion(String region, String query) {
   }
 
   return matches;
+}
+
+/// Checks whether an event matches multi-select [selectedRegions] and [selectedDivisions].
+///
+/// An empty [selectedRegions] matches all regions (and if [selectedDivisions] is also empty, all events).
+/// When multiple regions are selected, each region's division filters only constrain events within that region.
+bool isEventMatchingRegionAndDivisions({
+  required String? country,
+  required String? region,
+  required String? city,
+  required String? venue,
+  Iterable<String> selectedRegions = const [],
+  Iterable<String> selectedDivisions = const [],
+}) {
+  final regions = selectedRegions
+      .map((r) => r.trim())
+      .where((r) => r.isNotEmpty && r != 'All')
+      .toList();
+  final divisions = selectedDivisions
+      .map((d) => d.trim())
+      .where((d) => d.isNotEmpty && d != 'All')
+      .toList();
+
+  if (regions.isEmpty) {
+    if (divisions.isEmpty) return true;
+    return divisions.any(
+      (d) => isEventInDivision(
+        region: region,
+        city: city,
+        venue: venue,
+        targetDivision: d,
+      ),
+    );
+  }
+
+  for (final r in regions) {
+    if (!isEventInRegion(
+      country: country,
+      region: region,
+      city: city,
+      venue: venue,
+      targetRegion: r,
+    )) {
+      continue;
+    }
+
+    final divConfig = getRegionDivisionConfig(r);
+    if (divConfig == null) {
+      return true;
+    }
+
+    final activeDivsForRegion = divisions.where((d) => divConfig.divisions.contains(d)).toList();
+    if (activeDivsForRegion.isEmpty) {
+      return true;
+    }
+
+    if (activeDivsForRegion.any(
+      (d) => isEventInDivision(
+        region: region,
+        city: city,
+        venue: venue,
+        targetDivision: d,
+      ),
+    )) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
