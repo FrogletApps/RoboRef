@@ -37,7 +37,7 @@ When assisting with code modifications or feature implementations, AI agents **M
 - Follow **Material Design 3 (M3)** principles and component guidelines across all UI implementations, styling, and navigation patterns unless specifically guided not to.
 
 ### F. Environment & Deployment Guardrails
-- **Test Environment Only**: AI agents may build, test, and deploy ONLY to the **Test** environment (e.g. `npm run deploy:cf:test` inside `server/`, `wrangler deploy -c ../wrangler.toml --env test`, `test.roboref.app`, or `test.roboref.fyi`).
+- **Test Environment Only**: AI agents may build, test, and deploy ONLY to the **Test** environment (e.g. `npm run deploy:cf:test` inside `server/`, `wrangler deploy -c ../wrangler.toml --env test`, or `test.roboref.app`).
 - **Live / Production Protection**: AI agents are strictly **PROHIBITED** from executing production deployment commands (e.g. `npm run deploy:cf:live`, `wrangler deploy --env live`) or modifying live production infrastructure directly. Production deployments must be executed or triggered manually by the maintainer.
 
 ---

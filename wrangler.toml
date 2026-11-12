@@ -6,8 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 
 # Default (Test) Environment Routes
 routes = [
-  { pattern = "test.roboref.app", custom_domain = true },
-  { pattern = "test.roboref.fyi", custom_domain = true }
+  { pattern = "test.roboref.app", custom_domain = true }
 ]
 
 # Static Assets Configuration (serves Flutter Web PWA from app/build/web)
@@ -41,8 +40,7 @@ enabled = true
 name = "roboref-test"
 workers_dev = true
 routes = [
-  { pattern = "test.roboref.app", custom_domain = true },
-  { pattern = "test.roboref.fyi", custom_domain = true }
+  { pattern = "test.roboref.app", custom_domain = true }
 ]
 
 [env.test.vars]
@@ -61,8 +59,7 @@ database_id = "8bcc2138-47d7-4b1b-9f57-e668abe27b42"
 name = "roboref"
 workers_dev = false
 routes = [
-  { pattern = "roboref.app", custom_domain = true },
-  { pattern = "roboref.fyi", custom_domain = true },
+  { pattern = "roboref.app", custom_domain = true }
 ]
 
 [env.live.vars]
