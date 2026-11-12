@@ -16,22 +16,20 @@
     "test": "tsx --test test/**/*.test.ts"
   },
   "dependencies": {
-    "@hono/node-server": "^2.1.6",
-    "dotenv": "^18.0.9",
-    "hono": "^4.13.17",
+    "@hono/node-server": "^2.1.8",
+    "dotenv": "^18.0.10",
+    "hono": "^4.13.18",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261108.1",
+    "@cloudflare/workers-types": "^5.20261112.1",
     "@types/node": "^26.6.6",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "wrangler": "^4.158.0"
+    "wrangler": "^4.161.0"
   },
   "allowScripts": {
-    "better-sqlite3@11.10.0": true,
     "esbuild@0.28.2": true,
-    "esbuild@0.28.1": true,
-    "workerd@1.20261104.1": true
+    "workerd": true
   }
 }
