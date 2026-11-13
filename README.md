@@ -9,6 +9,8 @@
 
 RoboRef enables field referees to quickly log rule infractions, inspect a team's prior incident history before match queuing, and synchronise notes seamlessly across peer devices in real-time.
 
+RoboRef is available for Android on ([Google Play](https://play.google.com/store/apps/details?id=app.roboref)).
+
 ---
 
 ## 📑 Table of Contents
