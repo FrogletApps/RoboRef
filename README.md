@@ -5,11 +5,11 @@
 [![Database - SQLite / Drift](https://img.shields.io/badge/Database-SQLite%20%7C%20Drift-003B57?logo=sqlite)](https://drift.simonbinder.eu)
 [![UI - Material 3](https://img.shields.io/badge/UI-Material%20Design%203-7B1FA2)](https://m3.material.io)
 
-**RoboRef** ([roboref.app](https://roboref.app)) is an offline-first match anomaly log and referee assistant built specifically for Head Referees and field referees at VEX Robotics competitions (**V5RC**, **VIQRC**, **VEX U**, and **VEX AI**).
+**RoboRef** is an offline-first match anomaly log and referee assistant built specifically for Head Referees and field referees at VEX Robotics competitions (**V5RC**, **VIQRC**, **VEX U**, and **VEX AI**).
 
 RoboRef enables field referees to quickly log rule infractions, inspect a team's prior incident history before match queuing, and synchronise notes seamlessly across peer devices in real-time.
 
-RoboRef is available for Android on ([Google Play](https://play.google.com/store/apps/details?id=app.roboref)).
+RoboRef is available for Android on [Google Play](https://play.google.com/store/apps/details?id=app.roboref), and on the web at [roboref.app](https://roboref.app).
 
 ---
 
