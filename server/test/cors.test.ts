@@ -23,6 +23,7 @@ describe("CORS Security Middleware & Origin Validation", () => {
       assert.strictEqual(isAllowedOrigin("https://roboref.app"), true);
       assert.strictEqual(isAllowedOrigin("https://test.roboref.app"), true);
       assert.strictEqual(isAllowedOrigin("https://staging.roboref.app:8443"), true);
+      assert.strictEqual(isAllowedOrigin("https://roboref-volunteer-hub.james-pearson.workers.dev"), true);
     });
 
     it("allows localhost and 127.0.0.1", () => {
@@ -72,6 +73,19 @@ describe("CORS Security Middleware & Origin Validation", () => {
 
       assert.strictEqual(res.status, 200);
       assert.strictEqual(res.headers.get("Access-Control-Allow-Origin"), "https://roboref.app");
+    });
+
+    it("returns Access-Control-Allow-Origin for Volunteer Hub worker origin", async () => {
+      const app = createSyncApp(new DummyStorageAdapter());
+      const res = await app.request("/api/health", {
+        headers: { Origin: "https://roboref-volunteer-hub.james-pearson.workers.dev" },
+      });
+
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(
+        res.headers.get("Access-Control-Allow-Origin"),
+        "https://roboref-volunteer-hub.james-pearson.workers.dev"
+      );
     });
 
     it("returns Access-Control-Allow-Origin for local IP origin", async () => {

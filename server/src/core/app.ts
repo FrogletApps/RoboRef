@@ -29,8 +29,11 @@ export function isAllowedOrigin(origin: string, envOrigins?: string): boolean {
     }
   }
 
-  // Official RoboRef domains
-  if (/^https:\/\/(.*\.)?roboref\.app(:\d+)?$/i.test(origin)) {
+  // Official RoboRef & Volunteer Hub domains
+  if (
+    /^https:\/\/(.*\.)?roboref\.app(:\d+)?$/i.test(origin) ||
+    /^https:\/\/roboref-volunteer-hub\.james-pearson\.workers\.dev(:\d+)?$/i.test(origin)
+  ) {
     return true;
   }
 
