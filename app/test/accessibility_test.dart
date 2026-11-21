@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -827,7 +827,7 @@ void main() {
 
         final summarySemantics = tester.getSemantics(summaryFinder);
         expect(
-          summarySemantics.getSemanticsData().hasFlag(SemanticsFlag.isLiveRegion),
+          summarySemantics.getSemanticsData().flagsCollection.isLiveRegion,
           isTrue,
           reason: 'EventSelectionScreen search summary should be wrapped in Semantics(liveRegion: true)',
         );

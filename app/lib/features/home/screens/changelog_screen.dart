@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import '../../../core/l10n/l10n.dart';
@@ -375,7 +375,7 @@ class _ChangeLogScreenState extends State<ChangeLogScreen> {
             MarkdownBody(
               data: release.markdownContent,
               selectable: true,
-              styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+              styleSheet: MarkdownStyleSheet(
                 p: TextStyle(
                   fontSize: 13.5,
                   height: 1.45,

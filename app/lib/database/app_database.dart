@@ -109,7 +109,7 @@ class AppDatabase extends _$AppDatabase {
         batch.insert(
           incidentNotes,
           entry,
-          onConflict: DoUpdate(
+          onConflict: DoUpdate<$IncidentNotesTable, IncidentNote>(
             (old) => entry,
             target: [incidentNotes.id],
             where: entry.updatedAt.present
