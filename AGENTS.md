@@ -10,7 +10,8 @@ Welcome! This file (`AGENTS.md`) contains primary guidelines and context for AI 
 
 ### Tech Stack & Architecture
 - **Frontend (`app/`)**: Flutter & Dart (Android first, iOS, and Web/PWA) using **Drift** (SQLite) for offline-first data persistence and **Riverpod** for state management.
-- **Sync Server (`server/`)**: Universal backend built with **TypeScript & Hono**, designed to run both as a **Cloudflare Worker** (cloud sync) and as a **Raspberry Pi / Linux local server** (LAN offline sync at tournament venues).
+- **Web Worker (`worker/`)**: Minimal zero-dependency Cloudflare Worker serving the Flutter Web PWA static assets (`app/build/web`) and the public `/privacy` page.
+- **Sync & API Server**: Maintained separately in the **RoboApps Server** repository (`RoboAppsServer`), handling `/api/*` on Cloudflare Workers (D1) and local Raspberry Pi / Linux LAN servers (SQLite).
 
 ---
 
@@ -37,8 +38,8 @@ When assisting with code modifications or feature implementations, AI agents **M
 - Follow **Material Design 3 (M3)** principles and component guidelines across all UI implementations, styling, and navigation patterns unless specifically guided not to.
 
 ### F. Environment & Deployment Guardrails
-- **Test Environment Only**: AI agents may build, test, and deploy ONLY to the **Test** environment (e.g. `npm run deploy:cf:test` inside `server/`, `wrangler deploy -c ../wrangler.toml --env test`, or `test.roboref.app`).
-- **Live / Production Protection**: AI agents are strictly **PROHIBITED** from executing production deployment commands (e.g. `npm run deploy:cf:live`, `wrangler deploy --env live`) or modifying live production infrastructure directly. Production deployments must be executed or triggered manually by the maintainer.
+- **Test Environment Only**: AI agents may build, test, and deploy ONLY to the **Test** environment (e.g. `npm run deploy:test`, `npx wrangler deploy --env test`, `.\scripts\deploy.ps1 test`, or `test.roboref.app`).
+- **Live / Production Protection**: AI agents are strictly **PROHIBITED** from executing production deployment commands (e.g. `npm run deploy:live`, `npx wrangler deploy --env live`, `.\scripts\deploy.ps1 live`) or modifying live production infrastructure directly. Production deployments must be executed or triggered manually by the maintainer.
 
 ---
 
@@ -53,12 +54,10 @@ flutter run -d android
 flutter test
 flutter analyze
 
-# Sync Server (in server/)
-cd server
-npm run dev:node        # Run local Node server (for Raspberry Pi / LAN testing)
-npm run dev:cf          # Run Cloudflare Worker locally (wrangler)
-npm run typecheck
+# Web Worker (/privacy & Static Assets, at repo root)
+npm run test:worker     # Run lightweight /privacy worker tests
+npm run dev:cf          # Run Cloudflare Worker + Web assets locally (wrangler)
 
 # Deployments (Test Only)
-npm run deploy:cf:test  # Deploy Cloudflare Worker & Web assets to test environment
+npm run deploy:test     # Deploy Cloudflare Web assets & /privacy worker to test environment
 ```

@@ -1,8 +1,7 @@
-#:schema server/node_modules/wrangler/config-schema.json
+#:schema node_modules/wrangler/config-schema.json
 name = "roboref-test"
-main = "server/src/index.cf.ts"
+main = "worker/index.ts"
 compatibility_date = "2026-08-24"
-compatibility_flags = ["nodejs_compat"]
 
 # Default (Test) Environment Routes
 routes = [
@@ -10,20 +9,16 @@ routes = [
 ]
 
 # Static Assets Configuration (serves Flutter Web PWA from app/build/web)
+# Only /privacy routes invoke the lightweight worker; all other static assets are served directly at the edge.
+# Backend API routes (/api/*) are handled by the standalone RoboApps Server Worker.
 [assets]
 directory = "app/build/web"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-run_worker_first = true
+run_worker_first = ["/privacy", "/privacy/"]
 
 [vars]
 ENVIRONMENT = "test"
-
-
-[[d1_databases]]
-binding = "DB"
-database_name = "roboref-test-db"
-database_id = "8bcc2138-47d7-4b1b-9f57-e668abe27b42"
 
 # Observability & Logging
 [observability]
@@ -46,11 +41,6 @@ routes = [
 [env.test.vars]
 ENVIRONMENT = "test"
 
-[[env.test.d1_databases]]
-binding = "DB"
-database_name = "roboref-test-db"
-database_id = "8bcc2138-47d7-4b1b-9f57-e668abe27b42"
-
 # ----------------------------------------------------------------------
 # Live / Production Environment
 # Deploy via: npx wrangler deploy --env live
@@ -64,11 +54,6 @@ routes = [
 
 [env.live.vars]
 ENVIRONMENT = "live"
-
-[[env.live.d1_databases]]
-binding = "DB"
-database_name = "roboref-db"
-database_id = "4cc2e2c6-eec4-4f55-bc95-481ca4d3c59e"
 
 # ----------------------------------------------------------------------
 # Durable Object Migrations (Cleanup legacy DO classes from previous stack)

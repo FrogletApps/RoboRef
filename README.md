@@ -21,11 +21,11 @@ RoboRef is available for Android on [Google Play](https://play.google.com/store/
 - [Prerequisites](#-prerequisites)
 - [Getting Started & Running Locally](#-getting-started--running-locally)
   - [1. Flutter Client (`app/`)](#1-flutter-client-app)
-  - [2. Universal Sync Server (`server/`)](#2-universal-sync-server-server)
+  - [2. Sync & API Server (`RoboAppsServer`)](#2-sync--api-server-roboappsserver)
 - [Building for Production](#-building-for-production)
   - [Using Automated Build Scripts](#using-automated-build-scripts)
   - [Manual Flutter Builds](#manual-flutter-builds)
-  - [Deploying the Sync Server](#deploying-the-sync-server)
+  - [Deploying the Web PWA to Cloudflare](#deploying-the-web-pwa-to-cloudflare)
 - [Configuration & Environment Variables](#-configuration--environment-variables)
 - [Testing & Code Quality](#-testing--code-quality)
 - [Versioning & Changelog](#-versioning--changelog)
@@ -56,8 +56,8 @@ RoboRef is available for Android on [Google Play](https://play.google.com/store/
 | **Frontend Client** | **Flutter** (Dart ^3.5.0) | Cross-platform mobile (Android, iOS) & Web/PWA client |
 | **State Management** | **Riverpod** 3.x | Reactive state and dependency injection |
 | **Client Storage** | **Drift** (SQLite) | Embedded, high-performance offline database |
-| **Sync Server** | **Hono** + **TypeScript** | Universal backend running on Node.js (LAN) and Cloudflare Workers (Cloud) |
-| **Server Storage** | **better-sqlite3** / **Cloudflare D1** | High-speed server persistence and delta sync logging |
+| **Web Hosting Worker** | **Cloudflare Workers** | Minimal static asset & `/privacy` endpoint wrapper (`worker/`) |
+| **Sync & API Server** | **RoboApps Server** (separate repo) | Universal Hono/TypeScript backend on Cloudflare Workers (D1) & Node.js/Raspberry Pi (SQLite) |
 
 ---
 
@@ -69,24 +69,22 @@ RoboRef/
 │   ├── android/          # Android platform files & gradle configuration
 │   ├── ios/              # iOS platform files & Xcode workspace
 │   ├── web/              # Web platform assets, manifest, and service worker
-│   ├── assets/           # Application icons, fonts, and changeLog.md
+│   ├── assets/           # Application icons, fonts, privacy.md, and changeLog.md
 │   └── lib/
 │       ├── core/         # Network clients, themes, constants, and utilities
 │       ├── database/     # Drift SQLite schemas, DAOs, and connection logic
 │       └── features/     # Feature-first modules (incidents, matches, teams, settings, home)
-├── server/               # Universal sync backend (TypeScript & Hono)
-│   └── src/
-│       ├── adapters/     # Storage implementations (better-sqlite3 for Node, D1 for Cloudflare)
-│       ├── core/         # REST API routes, VEX Events proxy, and sync logic
-│       ├── index.node.ts # Local Node.js / Raspberry Pi server entry point
-│       └── index.cf.ts   # Cloudflare Workers server entry point
+├── worker/               # Minimal Cloudflare Worker for Web PWA static assets & /privacy
+│   ├── index.ts          # Request router (/privacy + ASSETS fallback)
+│   ├── privacy.ts        # Markdown-to-HTML renderer for app/assets/privacy.md
+│   └── privacy.test.ts   # Node built-in test suite for the /privacy worker
 ├── scripts/              # Build and utility scripts
-│   ├── build.ps1         # Automated Windows / PowerShell build script (CalVer + commit count)
-│   ├── build.sh          # Automated Bash / Linux build script
-│   ├── deploy.ps1        # Automated build + deploy script for Cloudflare (test/live)
-│   ├── deploy.sh         # Automated Linux / Bash deploy script for Cloudflare
-│   └── generate-icons.mjs# Icon generation pipeline for Android, iOS, and Web assets
-└── wrangler.toml         # Root Cloudflare configuration (Workers + Static Web Assets, test/live)
+│   ├── build.ps1         # Automated Windows / PowerShell Flutter build script (CalVer + commit count)
+│   ├── build.sh          # Automated Bash / Linux Flutter build script
+│   ├── deploy.ps1        # Automated Web PWA build + deploy script for Cloudflare (test/live)
+│   ├── deploy.sh         # Automated Linux / Bash Web PWA deploy script for Cloudflare
+│   └── generate_icons.py # Icon generation pipeline for Android, iOS, and Web assets
+└── wrangler.toml         # Root Cloudflare configuration (Web PWA Static Assets + /privacy worker)
 ```
 
 ---
@@ -139,32 +137,9 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-### 2. Universal Sync Server (`server/`)
+### 2. Sync & API Server (`RoboAppsServer`)
 
-The sync server can run locally as a Node.js process (ideal for Raspberry Pi venue servers or local debugging) or inside the Cloudflare Workers local environment.
-
-Navigate to the `server/` directory and install dependencies:
-
-```bash
-cd server
-npm install
-```
-
-#### Run Local Venue / LAN Server (Node.js)
-Starts the local server on `http://0.0.0.0:8080` backed by a local SQLite database file (`roboref.sqlite`):
-```bash
-npm run dev:node
-```
-
-#### Run Cloudflare Worker Locally (Wrangler)
-```bash
-npm run dev:cf
-```
-
-#### Server Typecheck
-```bash
-npm run typecheck
-```
+The universal sync, share, and VEX Events proxy server lives in the separate **RoboApps Server** repository (`RoboAppsServer`), deployable both to Cloudflare Workers (`/api/*` routes on `roboref.app` / `test.roboref.app`) and as a local Node.js / Docker venue server (`http://roboref.local:8080`).
 
 ---
 
@@ -179,12 +154,6 @@ RoboRef uses Calendar Versioning (**CalVer**, formatted as `YYYY.M.D`) paired wi
 # Build Android APK (default target: apk)
 .\scripts\build.ps1 apk
 
-# Build / Typecheck Sync Server & Cloudflare Worker
-.\scripts\build.ps1 server
-
-# Build both Android APK and Server
-.\scripts\build.ps1 all
-
 # Build other Flutter targets
 .\scripts\build.ps1 appbundle
 .\scripts\build.ps1 web
@@ -196,13 +165,8 @@ RoboRef uses Calendar Versioning (**CalVer**, formatted as `YYYY.M.D`) paired wi
 # Build Android APK (default target: apk)
 ./scripts/build.sh apk
 
-# Build / Typecheck Sync Server & Cloudflare Worker
-./scripts/build.sh server
-
-# Build both Android APK and Server
-./scripts/build.sh all
-
 # Build other Flutter targets
+./scripts/build.sh appbundle
 ./scripts/build.sh web
 ```
 
@@ -230,9 +194,9 @@ flutter build ipa --release
 
 ---
 
-### Deploying to Cloudflare (Web App + Sync Server)
+### Deploying the Web PWA to Cloudflare
 
-RoboRef uses a unified Cloudflare Workers configuration with **Static Assets** (`wrangler.toml` at the repository root). This hosts the **Flutter Web PWA** on Cloudflare's global edge network while routing backend API requests (`/api/*`) directly to the Hono sync worker.
+RoboRef deploys its **Flutter Web PWA** via Cloudflare Workers Static Assets (`wrangler.toml` at the repository root), paired with a minimal Worker in `worker/` solely to render `/privacy` from `app/assets/privacy.md`. Backend `/api/*` traffic is routed to the standalone **RoboApps Server** Worker.
 
 Ensure you are logged into Wrangler (`npx wrangler login`) before deploying.
 
@@ -240,34 +204,26 @@ Ensure you are logged into Wrangler (`npx wrangler login`) before deploying.
 
 ##### Windows (PowerShell)
 ```powershell
-# Build Server & Web, then deploy to Test environment (test D1 database)
+# Build Web PWA and deploy to Test environment (test.roboref.app)
 .\scripts\deploy.ps1 test
 
-# Build Server & Web, then deploy to Live environment (roboref.app + live D1 database)
+# Build Web PWA and deploy to Live environment (roboref.app)
 .\scripts\deploy.ps1 live
 
-# Deploy existing build without rebuilding
+# Deploy existing app/build/web artifacts without rebuilding
 .\scripts\deploy.ps1 test -SkipBuild
-
-# Deploy without rebuilding Flutter Web (e.g. server-only updates)
-.\scripts\deploy.ps1 test -SkipWebBuild
-
-# Deploy without rebuilding Server (e.g. web-only updates)
-.\scripts\deploy.ps1 test -SkipServerBuild
 ```
 
 ##### Linux / macOS (Bash)
 ```bash
-# Build Server & Web, then deploy to Test
+# Build Web PWA and deploy to Test
 ./scripts/deploy.sh test
 
-# Build Server & Web, then deploy to Live
+# Build Web PWA and deploy to Live
 ./scripts/deploy.sh live
 
-# Deploy with skip options
+# Deploy existing build without rebuilding
 ./scripts/deploy.sh test --skip-build
-./scripts/deploy.sh test --skip-web
-./scripts/deploy.sh test --skip-server
 ```
 
 #### 2. Direct Wrangler CLI Commands
@@ -281,44 +237,13 @@ npx wrangler deploy --env live
 
 ---
 
-### Deploying the Venue Server (Raspberry Pi / LAN)
-
-#### Raspberry Pi / Linux Venue Server (Native Node.js)
-```bash
-cd server
-npm run build:node
-npm run start:node
-```
-*(Optionally configure systemd or PM2 to keep the Node.js server active on boot at `http://roboref.local:8080`.)*
-
-#### Raspberry Pi / Linux Venue Server (Docker)
-Build and run the lightweight Alpine-based container with persistent SQLite storage:
-```bash
-cd server
-docker build -f Dockerfile.rpi -t roboref-sync-server .
-docker run -d -p 8080:8080 -v roboref-data:/data --restart unless-stopped --name roboref-sync roboref-sync-server
-```
-
----
-
 ## ⚙️ Configuration & Environment Variables
-
-### Server Environment Variables
-
-Create a `.env` file inside the `server/` folder or set environment variables on your deployment host:
-
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `PORT` | `8080` | Port for the local Node.js sync server |
-| `DB_PATH` | `roboref.sqlite` | Filepath for the local SQLite database |
-| `VEX_EVENTS_TOKEN` | *(Optional)* | VEX Events API v2 Bearer token for server-side proxy caching |
-| `VEX_API_KEY` | *(Optional)* | Alternative environment variable name for VEX Events API key |
 
 ### In-App Client Settings
 
 Inside the RoboRef app under **Settings**:
 - **Referee Display Name**: Configure referee display name. Active tournaments are selected from the Event List on the Home screen.
-- **Sync Server Address**: Configure the sync server host (eg `https://roboref.app`, or `http://roboref.local:8080`). All VEX Events queries proxy securely through the sync server.
+- **Sync Server Address**: Configure the sync server host (e.g. `https://roboref.app`, or `http://roboref.local:8080`). All VEX Events queries proxy securely through the sync server.
 
 ---
 
@@ -331,10 +256,9 @@ flutter test
 flutter analyze
 ```
 
-### Server Typecheck
+### Web Worker Tests (`/privacy`)
 ```bash
-cd server
-npm run typecheck
+npm run test:worker
 ```
 
 ---

@@ -10,8 +10,8 @@ RoboRef uses calendar-based versioning (`YYYY.M.D+build`). Only the **latest rel
 | :--- | :--- | :---: |
 | Flutter client (Android, iOS, Web/PWA) | Latest release | ✅ |
 | Flutter client | Older releases | ❌ |
-| Cloud sync server ([roboref.app](https://roboref.app)) | Currently deployed | ✅ |
-| Self-hosted LAN sync server (`server/`) | Latest `main` | ✅ |
+| Cloud sync server ([roboref.app](https://roboref.app), maintained in `RoboAppsServer`) | Currently deployed | ✅ |
+| Self-hosted LAN sync server (`RoboAppsServer`) | Latest `main` | ✅ |
 | Self-hosted LAN sync server | Older commits | ❌ |
 
 If you are running an older version, please update to the latest release before reporting an issue.
@@ -45,8 +45,8 @@ We will review every report on a best-effort basis and prioritise confirmed issu
 
 ### In scope
 
-- The RoboRef Flutter client (`app/`).
-- The universal sync server (`server/`), in both Cloudflare Worker and Node.js/LAN deployments.
+- The RoboRef Flutter client (`app/`) and web `/privacy` worker (`worker/`).
+- The universal sync server (maintained in `RoboAppsServer`), in both Cloudflare Worker and Node.js/LAN deployments.
 - RoboRef-operated infrastructure at `roboref.app` and its subdomains.
 - Issues such as authentication/authorisation bypass, unauthorised access to or modification of another event's or referee's data, sync protocol injection or tampering, data leakage, and remote code execution.
 
