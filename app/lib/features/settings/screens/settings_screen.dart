@@ -230,6 +230,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               DropdownButtonFormField<String>(
                 key: ValueKey('language_dropdown_$selectedLocaleCode'),
                 initialValue: selectedLocaleCode,
+                isExpanded: true,
                 decoration: InputDecoration(
                   labelText: context.l10n.settingsLanguageLabel,
                   border: const OutlineInputBorder(),
@@ -239,7 +240,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 items: [
                   DropdownMenuItem<String>(
                     value: 'system',
-                    child: Text(context.l10n.settingsLanguageSystemDefault),
+                    child: Text(
+                      context.l10n.settingsLanguageSystemDefault,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   ...supportedLocaleOptions.map(
                     (option) => DropdownMenuItem<String>(
@@ -400,6 +404,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   // Admin View: Sync Server Mode Dropdown
                   DropdownButtonFormField<String>(
                     initialValue: _selectedServerOption,
+                    isExpanded: true,
                     decoration: InputDecoration(
                       labelText: context.l10n.settingsSyncServerModeLabel,
                       border: const OutlineInputBorder(),
