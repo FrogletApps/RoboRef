@@ -112,6 +112,11 @@ class AppDatabase extends _$AppDatabase {
           onConflict: DoUpdate(
             (old) => entry,
             target: [incidentNotes.id],
+            where: entry.updatedAt.present
+                ? (old) =>
+                    old.isSynced.equals(true) |
+                    old.updatedAt.isSmallerOrEqualValue(entry.updatedAt.value)
+                : null,
           ),
         );
       }

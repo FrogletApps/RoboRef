@@ -989,6 +989,14 @@
       }
     }
   },
+  "incidentsEditNoteTooltip": "Edit Note",
+  "@incidentsEditNoteTooltip": {
+    "description": "Tooltip for the edit note icon button"
+  },
+  "incidentsEditNoteTitle": "Edit Note",
+  "@incidentsEditNoteTitle": {
+    "description": "Title of the Edit Incident bottom sheet"
+  },
   "incidentsDeleteNoteTooltip": "Delete Note",
   "@incidentsDeleteNoteTooltip": {
     "description": "Tooltip for the delete note icon button"

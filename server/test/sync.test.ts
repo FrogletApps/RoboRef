@@ -25,11 +25,22 @@ class MockStorageAdapter implements StorageAdapter {
     let maxVer = this.notes.reduce((max, n) => Math.max(max, n.version), 0);
     for (const change of changes) {
       maxVer += 1;
-      this.notes.push({
-        ...change,
-        sku,
-        version: maxVer,
-      });
+      const existingIdx = this.notes.findIndex((n) => n.id === change.id);
+      if (existingIdx >= 0) {
+        if (change.updatedAt > this.notes[existingIdx].updatedAt) {
+          this.notes[existingIdx] = {
+            ...change,
+            sku,
+            version: maxVer,
+          };
+        }
+      } else {
+        this.notes.push({
+          ...change,
+          sku,
+          version: maxVer,
+        });
+      }
     }
     return { latestVersion: maxVer };
   }
@@ -50,6 +61,9 @@ class MockStorageAdapter implements StorageAdapter {
     if (!s) return null;
     s.participants.push(participant);
     return s;
+  }
+  async updateParticipantName(deviceId: string, newRefereeName: string, shareId?: string): Promise<any[]> {
+    return [];
   }
   async removeParticipant(shareId: string, deviceId: string): Promise<any> {
     const s = await this.getShareSession(shareId);
@@ -264,6 +278,79 @@ describe("Sync Server Endpoints", () => {
       assert.strictEqual(storage.notes.length, 2);
       assert.strictEqual(storage.notes[0].id, "note-100");
       assert.strictEqual(storage.notes[1].id, "note-101");
+    });
+
+    it("should overwrite an existing note when pushed with a newer updatedAt and sync to connected users via pull", async () => {
+      const storage = new MockStorageAdapter();
+      const app = createSyncApp(storage);
+
+      const originalNote: IncidentNoteRecord = {
+        id: "note-edit-1",
+        sku: "RE-VRC-23-1234",
+        teamNumber: "1114A",
+        matchId: "Q1",
+        ruleCodes: ["<SG1>"],
+        severity: "minor",
+        notes: "Original note",
+        refereeName: "Ref A",
+        deviceId: "dev-1",
+        createdAt: 5000,
+        updatedAt: 5000,
+        isDeleted: false,
+        version: 0,
+      };
+
+      await app.request("/api/sync/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sku: "RE-VRC-23-1234",
+          deviceId: "dev-1",
+          changes: [originalNote],
+        }),
+      });
+
+      // Connected user pulls version 1
+      const pull1 = await (await app.request("/api/sync/pull?sku=RE-VRC-23-1234&since=0")).json();
+      assert.strictEqual(pull1.latestVersion, 1);
+      assert.strictEqual(pull1.changes.length, 1);
+      assert.strictEqual(pull1.changes[0].notes, "Original note");
+
+      // Push edited note with same id and newer updatedAt
+      const editedNote: IncidentNoteRecord = {
+        ...originalNote,
+        teamNumber: "2056A",
+        matchId: "Q2",
+        ruleCodes: ["<SG1>", "<GG2>"],
+        severity: "major",
+        notes: "Overwritten note text",
+        updatedAt: 6000,
+      };
+
+      const pushEditRes = await app.request("/api/sync/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sku: "RE-VRC-23-1234",
+          deviceId: "dev-1",
+          changes: [editedNote],
+        }),
+      });
+      assert.strictEqual(pushEditRes.status, 200);
+      const pushEditJson = await pushEditRes.json();
+      assert.strictEqual(pushEditJson.latestVersion, 2);
+
+      // Connected user pulls since version 1 and receives the overwritten note
+      const pull2 = await (await app.request("/api/sync/pull?sku=RE-VRC-23-1234&since=1")).json();
+      assert.strictEqual(pull2.latestVersion, 2);
+      assert.strictEqual(pull2.changes.length, 1);
+      assert.strictEqual(pull2.changes[0].id, "note-edit-1");
+      assert.strictEqual(pull2.changes[0].teamNumber, "2056A");
+      assert.strictEqual(pull2.changes[0].matchId, "Q2");
+      assert.deepStrictEqual(pull2.changes[0].ruleCodes, ["<SG1>", "<GG2>"]);
+      assert.strictEqual(pull2.changes[0].severity, "major");
+      assert.strictEqual(pull2.changes[0].notes, "Overwritten note text");
+      assert.strictEqual(storage.notes.length, 1);
     });
   });
 });

@@ -680,6 +680,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get incidentsEditNoteTooltip => 'Edit Note';
+
+  @override
+  String get incidentsEditNoteTitle => 'Edit Note';
+
+  @override
   String get incidentsDeleteNoteTooltip => 'Delete Note';
 
   @override
@@ -1013,9 +1019,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsViewSourceItem => 'View Source';
 
   @override
-  String get settingsPrivacyPolicyItem => 'Privacy Policy';
-
-  @override
   String get settingsContactUsItem => 'Contact Us';
 
   @override
@@ -1024,6 +1027,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsContactUsGithubIssues => 'RoboRef GitHub Issues';
+
+  @override
+  String get settingsPrivacyPolicyItem => 'Privacy Policy';
 
   @override
   String get settingsVersionCopied => 'Version copied to clipboard';

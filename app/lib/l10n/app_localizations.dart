@@ -1141,6 +1141,18 @@ abstract class AppLocalizations {
   /// **'Logged by {refereeName} at {time}'**
   String incidentsLoggedByAt(String refereeName, String time);
 
+  /// Tooltip for the edit note icon button
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Note'**
+  String get incidentsEditNoteTooltip;
+
+  /// Title of the Edit Incident bottom sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Note'**
+  String get incidentsEditNoteTitle;
+
   /// Tooltip for the delete note icon button
   ///
   /// In en, this message translates to:
@@ -1729,12 +1741,6 @@ abstract class AppLocalizations {
   /// **'View Source'**
   String get settingsViewSourceItem;
 
-  /// List tile title and screen title for the Privacy Policy
-  ///
-  /// In en, this message translates to:
-  /// **'Privacy Policy'**
-  String get settingsPrivacyPolicyItem;
-
   /// List tile title and dialog title for Contact Us
   ///
   /// In en, this message translates to:
@@ -1752,6 +1758,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RoboRef GitHub Issues'**
   String get settingsContactUsGithubIssues;
+
+  /// List tile title and screen title for the Privacy Policy
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get settingsPrivacyPolicyItem;
 
   /// Snackbar message when the app version string is copied
   ///

@@ -16,17 +16,17 @@
     "test": "tsx --test test/**/*.test.ts"
   },
   "dependencies": {
-    "@hono/node-server": "^2.1.8",
+    "@hono/node-server": "^2.1.11",
     "dotenv": "^18.0.10",
-    "hono": "^4.13.18",
+    "hono": "^4.13.19",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261112.1",
+    "@cloudflare/workers-types": "^5.20261121.1",
     "@types/node": "^26.6.6",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "wrangler": "^4.161.0"
+    "wrangler": "^4.166.0"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,

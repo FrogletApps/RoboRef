@@ -21,11 +21,14 @@ class SyncResult {
 class SyncClient {
   final String baseUrl;
   final String deviceId;
+  final http.Client? _httpClient;
 
   SyncClient({
     required String baseUrl,
     required this.deviceId,
-  }) : baseUrl = normalizeServerBaseUrl(baseUrl);
+    http.Client? httpClient,
+  })  : baseUrl = normalizeServerBaseUrl(baseUrl),
+        _httpClient = httpClient;
 
   // Pull new notes updated on server since localVersion
   Future<List<Map<String, dynamic>>> pullChanges({
@@ -40,7 +43,8 @@ class SyncClient {
           'since': sinceVersion.toString(),
         },
       );
-      final response = await http.get(uri).timeout(const Duration(seconds: 8));
+      final response = await (_httpClient != null ? _httpClient.get(uri) : http.get(uri))
+          .timeout(const Duration(seconds: 8));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -96,11 +100,18 @@ class SyncClient {
         }).toList(),
       };
 
-      final response = await http.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
-      ).timeout(const Duration(seconds: 8));
+      final response = await (_httpClient != null
+              ? _httpClient.post(
+                  uri,
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode(payload),
+                )
+              : http.post(
+                  uri,
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode(payload),
+                ))
+          .timeout(const Duration(seconds: 8));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

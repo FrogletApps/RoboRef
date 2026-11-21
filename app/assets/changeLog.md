@@ -2,6 +2,7 @@
 
 ## 2026.11.21+264
 
+- **Edit Notes**: Added the ability to edit saved incident notes and sync updates across connected devices.
 - **Contact Us in Settings**: Added a Contact Us button beneath Privacy Policy in Settings with developer email (`dev@roboref.app`) and link to the RoboRef GitHub issues page.
 
 ## 2026.11.12+263

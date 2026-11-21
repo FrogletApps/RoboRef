@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
+import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../../../database/app_database.dart';
 import '../../../core/network/sync_client.dart';
 import '../../settings/state/sync_settings_controller.dart';
+
+final syncClientHttpClientProvider = Provider<http.Client?>((ref) => null);
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
@@ -64,13 +67,51 @@ class IncidentController extends Notifier<AsyncValue<void>> {
     triggerSync();
   }
 
+  // Update an existing incident note
+  Future<void> updateNote({
+    required String id,
+    required String teamNumber,
+    String? matchId,
+    required List<String> ruleCodes,
+    required String severity,
+    required String notes,
+  }) async {
+    final existing = await (_db.select(_db.incidentNotes)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+    if (existing == null) return;
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final updatedAt = now <= existing.updatedAt ? existing.updatedAt + 1 : now;
+    final cleanMatchId = (matchId == null || matchId.trim().isEmpty)
+        ? null
+        : matchId.trim().toUpperCase();
+
+    await (_db.update(_db.incidentNotes)..where((tbl) => tbl.id.equals(id))).write(
+      IncidentNotesCompanion(
+        teamNumber: Value(teamNumber.trim().toUpperCase()),
+        matchId: Value(cleanMatchId),
+        ruleCodesJson: Value(jsonEncode(ruleCodes)),
+        severity: Value(severity),
+        notes: Value(notes.trim()),
+        refereeName: Value(_settings.refereeName),
+        deviceId: Value(_settings.deviceId),
+        updatedAt: Value(updatedAt),
+        isSynced: const Value(false),
+      ),
+    );
+
+    // Trigger sync in background
+    triggerSync();
+  }
+
   // Delete an incident note (soft delete for sync tombstones)
   Future<void> deleteNote(String id) async {
+    final existing = await (_db.select(_db.incidentNotes)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
     final now = DateTime.now().millisecondsSinceEpoch;
+    final updatedAt = (existing != null && now <= existing.updatedAt) ? existing.updatedAt + 1 : now;
     await (_db.update(_db.incidentNotes)..where((tbl) => tbl.id.equals(id))).write(
       IncidentNotesCompanion(
         isDeleted: const Value(true),
-        updatedAt: Value(now),
+        updatedAt: Value(updatedAt),
         isSynced: const Value(false),
       ),
     );
@@ -79,6 +120,7 @@ class IncidentController extends Notifier<AsyncValue<void>> {
   }
 
   bool _isSyncing = false;
+  bool _pendingSync = false;
 
   // Sync with remote server (push local changes, pull remote changes)
   Future<void> triggerSync({bool quiet = false}) async {
@@ -92,13 +134,17 @@ class IncidentController extends Notifier<AsyncValue<void>> {
       return;
     }
 
-    if (_isSyncing) return;
+    if (_isSyncing) {
+      _pendingSync = true;
+      return;
+    }
     _isSyncing = true;
     notifier.setSyncing(true);
 
     final client = SyncClient(
       baseUrl: settings.serverUrl,
       deviceId: settings.deviceId,
+      httpClient: ref.read(syncClientHttpClientProvider),
     );
 
     try {
@@ -150,6 +196,10 @@ class IncidentController extends Notifier<AsyncValue<void>> {
       notifier.setSyncing(false, error: e.toString());
     } finally {
       _isSyncing = false;
+      if (_pendingSync && ref.mounted) {
+        _pendingSync = false;
+        await triggerSync(quiet: quiet);
+      }
     }
   }
 }

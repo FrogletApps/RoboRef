@@ -438,7 +438,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  note.matchId != null
+                                  note.matchId != null && note.matchId!.isNotEmpty
                                       ? formatMatchShortName(note.matchId!)
                                       : c.l10n.teamListGeneralNote,
                                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -458,9 +458,31 @@ class _TeamListScreenState extends State<TeamListScreen> {
                               Text(note.notes),
                             ],
                             const SizedBox(height: 4),
-                            Text(
-                              c.l10n.teamListByReferee(note.refereeName),
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    c.l10n.teamListByReferee(note.refereeName),
+                                    style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined, size: 18),
+                                  tooltip: c.l10n.incidentsEditNoteTooltip,
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                      ),
+                                      builder: (sheetCtx) => AddIncidentSheet(existingNote: note),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),

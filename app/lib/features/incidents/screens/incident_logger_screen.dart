@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../database/app_database.dart';
 import '../state/incident_controller.dart';
 import '../widgets/severity_badge.dart';
 import '../widgets/rule_selection_sheet.dart';
@@ -268,14 +269,26 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  context.l10n.incidentsLoggedByAt(note.refereeName, formattedDate),
-                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                Expanded(
+                                  child: Text(
+                                    context.l10n.incidentsLoggedByAt(note.refereeName, formattedDate),
+                                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                  ),
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
-                                  tooltip: context.l10n.incidentsDeleteNoteTooltip,
-                                  onPressed: () => _confirmDelete(context, ref, note.id),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined, size: 18),
+                                      tooltip: context.l10n.incidentsEditNoteTooltip,
+                                      onPressed: () => _showEditIncidentDialog(context, note),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
+                                      tooltip: context.l10n.incidentsDeleteNoteTooltip,
+                                      onPressed: () => _confirmDelete(context, ref, note.id),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -331,16 +344,29 @@ class _IncidentLoggerScreenState extends State<IncidentLoggerScreen> {
       builder: (ctx) => const AddIncidentSheet(),
     );
   }
+
+  void _showEditIncidentDialog(BuildContext context, IncidentNote note) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => AddIncidentSheet(existingNote: note),
+    );
+  }
 }
 
 class AddIncidentSheet extends StatefulWidget {
   final String? initialMatch;
   final String? initialTeam;
+  final IncidentNote? existingNote;
 
   const AddIncidentSheet({
     super.key,
     this.initialMatch,
     this.initialTeam,
+    this.existingNote,
   });
 
   @override
@@ -350,7 +376,7 @@ class AddIncidentSheet extends StatefulWidget {
 class _AddIncidentSheetState extends State<AddIncidentSheet> {
   late final TextEditingController _teamController;
   late final TextEditingController _matchController;
-  final _notesController = TextEditingController();
+  late final TextEditingController _notesController;
 
   String _severity = 'general';
   final Set<String> _selectedRules = {};
@@ -358,8 +384,34 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
   @override
   void initState() {
     super.initState();
-    _teamController = TextEditingController(text: widget.initialTeam ?? '');
-    _matchController = TextEditingController(text: widget.initialMatch ?? '');
+    final existing = widget.existingNote;
+    _teamController = TextEditingController(
+      text: existing?.teamNumber ?? widget.initialTeam ?? '',
+    );
+    _matchController = TextEditingController(
+      text: existing?.matchId ?? widget.initialMatch ?? '',
+    );
+    _notesController = TextEditingController(
+      text: existing?.notes ?? '',
+    );
+
+    if (existing != null) {
+      const validSeverities = {'general', 'minor', 'major', 'inspection', 'disabled'};
+      final sev = existing.severity.trim().toLowerCase();
+      _severity = validSeverities.contains(sev) ? sev : 'general';
+
+      try {
+        final decoded = jsonDecode(existing.ruleCodesJson);
+        if (decoded is List) {
+          for (final item in decoded) {
+            final code = item.toString().trim();
+            if (code.isNotEmpty) {
+              _selectedRules.add(code);
+            }
+          }
+        }
+      } catch (_) {}
+    }
   }
 
   @override
@@ -516,7 +568,9 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  context.l10n.incidentsNewNoteTitle,
+                  widget.existingNote != null
+                      ? context.l10n.incidentsEditNoteTitle
+                      : context.l10n.incidentsNewNoteTitle,
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
@@ -754,13 +808,27 @@ class _AddIncidentSheetState extends State<AddIncidentSheet> {
                         return;
                       }
 
-                      ref.read(incidentControllerProvider.notifier).addNote(
-                        teamNumber: team,
-                        matchId: _matchController.text.trim().isEmpty ? null : _matchController.text.trim(),
-                        ruleCodes: _selectedRules.toList(),
-                        severity: _severity,
-                        notes: _notesController.text.trim(),
-                      );
+                      final matchText = _matchController.text.trim();
+                      final matchId = matchText.isEmpty ? null : matchText;
+
+                      if (widget.existingNote != null) {
+                        ref.read(incidentControllerProvider.notifier).updateNote(
+                          id: widget.existingNote!.id,
+                          teamNumber: team,
+                          matchId: matchId,
+                          ruleCodes: _selectedRules.toList(),
+                          severity: _severity,
+                          notes: _notesController.text.trim(),
+                        );
+                      } else {
+                        ref.read(incidentControllerProvider.notifier).addNote(
+                          teamNumber: team,
+                          matchId: matchId,
+                          ruleCodes: _selectedRules.toList(),
+                          severity: _severity,
+                          notes: _notesController.text.trim(),
+                        );
+                      }
 
                       Navigator.pop(context);
                     },
