@@ -764,6 +764,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                 ),
               ),
+              const SizedBox(height: 10),
+              Card(
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.mail_outline_rounded,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: Text(
+                    context.l10n.settingsContactUsItem,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () => _showContactUsDialog(context),
+                ),
+              ),
               // Experimental Features Section (only shown in local or test deployments)
               if (env == AppEnvironment.local || env == AppEnvironment.test) ...[
                 const SizedBox(height: 24),
@@ -852,6 +874,98 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SizedBox(height: 16),
           ],
         ),
+        );
+      },
+    );
+  }
+
+  void _showContactUsDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                Icons.mail_outline_rounded,
+                color: Theme.of(dialogContext).colorScheme.primary,
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  dialogContext.l10n.settingsContactUsItem,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dialogContext.l10n.settingsContactUsDescription,
+                  style: const TextStyle(fontSize: 14, height: 1.4),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Theme.of(dialogContext).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.email_outlined,
+                      color: Theme.of(dialogContext).colorScheme.primary,
+                    ),
+                    title: const Text(
+                      'dev@roboref.app',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    onTap: () => _openExternalUrl(context, 'mailto:dev@roboref.app'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Card(
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Theme.of(dialogContext).colorScheme.outlineVariant.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.bug_report_outlined,
+                      color: Theme.of(dialogContext).colorScheme.primary,
+                    ),
+                    title: Text(
+                      dialogContext.l10n.settingsContactUsGithubIssues,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    subtitle: const Text(
+                      'https://github.com/FrogletApps/RoboRef/issues',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    onTap: () => _openExternalUrl(context, 'https://github.com/FrogletApps/RoboRef/issues'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(dialogContext.l10n.commonClose),
+            ),
+          ],
         );
       },
     );

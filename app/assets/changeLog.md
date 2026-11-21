@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.11.21+264
+
+- **Contact Us in Settings**: Added a Contact Us button beneath Privacy Policy in Settings with developer email (`dev@roboref.app`) and link to the RoboRef GitHub issues page.
+
 ## 2026.11.12+263
 
 - **Multi-Select Event Filters**: Added multi-select support for program, region (via the **Enable Multiselect** option under region search), and state/province filters on the Events selection screen.

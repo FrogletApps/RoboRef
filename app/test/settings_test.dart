@@ -947,6 +947,10 @@ void main() {
 
       expect(changelogPos, lessThan(viewSourcePos), reason: 'Change Log must be above View Source');
       expect(viewSourcePos, lessThan(privacyPos), reason: 'View Source must be above Privacy Policy');
+      final contactUsTile = find.widgetWithText(ListTile, 'Contact Us');
+      expect(contactUsTile, findsOneWidget);
+      final contactUsPos = tester.getTopLeft(contactUsTile).dy;
+      expect(privacyPos, lessThan(contactUsPos), reason: 'Contact Us must be beneath Privacy Policy');
       expect(find.descendant(of: viewSourceTile, matching: find.byIcon(Icons.code_rounded)), findsOneWidget);
     });
 
@@ -1143,6 +1147,69 @@ void main() {
       expect(viewSourceTile, findsOneWidget);
 
       await tester.tap(viewSourceTile);
+    });
+
+    testWidgets('tapping Contact Us displays feedback message, dev@roboref.app email, and GitHub issues link', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final contactUsTile = find.widgetWithText(ListTile, 'Contact Us');
+      expect(contactUsTile, findsOneWidget);
+
+      await tester.tap(contactUsTile);
+      await tester.pumpAndSettle();
+
+      final messageFinder = find.text("If you've got feedback about RoboRef feel free to get in touch!");
+      final emailFinder = find.text('dev@roboref.app');
+      final issuesTitleFinder = find.text('RoboRef GitHub Issues');
+      final issuesUrlFinder = find.text('https://github.com/FrogletApps/RoboRef/issues');
+
+      expect(messageFinder, findsOneWidget);
+      expect(emailFinder, findsOneWidget);
+      expect(issuesTitleFinder, findsOneWidget);
+      expect(issuesUrlFinder, findsOneWidget);
+
+      final messagePos = tester.getTopLeft(messageFinder).dy;
+      final emailPos = tester.getTopLeft(emailFinder).dy;
+      final issuesPos = tester.getTopLeft(issuesTitleFinder).dy;
+
+      expect(messagePos, lessThan(emailPos), reason: 'Email address must be below feedback message');
+      expect(emailPos, lessThan(issuesPos), reason: 'GitHub issues link must be below email address');
+
+      await tester.tap(emailFinder);
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(issuesTitleFinder);
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Close'));
+      await tester.pumpAndSettle();
+      expect(messageFinder, findsNothing);
       await tester.pump();
       expect(tester.takeException(), isNull);
     });

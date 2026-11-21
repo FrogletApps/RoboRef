@@ -1437,6 +1437,18 @@
   "@settingsViewSourceItem": {
     "description": "List tile title linking to the GitHub source repository"
   },
+  "settingsContactUsItem": "Contact Us",
+  "@settingsContactUsItem": {
+    "description": "List tile title and dialog title for Contact Us"
+  },
+  "settingsContactUsDescription": "If you've got feedback about RoboRef feel free to get in touch!",
+  "@settingsContactUsDescription": {
+    "description": "Message shown when clicking the Contact Us button in Settings"
+  },
+  "settingsContactUsGithubIssues": "RoboRef GitHub Issues",
+  "@settingsContactUsGithubIssues": {
+    "description": "Label for the link to the RoboRef GitHub issues page"
+  },
   "settingsPrivacyPolicyItem": "Privacy Policy",
   "@settingsPrivacyPolicyItem": {
     "description": "List tile title and screen title for the Privacy Policy"

@@ -1016,6 +1016,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPrivacyPolicyItem => 'Privacy Policy';
 
   @override
+  String get settingsContactUsItem => 'Contact Us';
+
+  @override
+  String get settingsContactUsDescription =>
+      'If you\'ve got feedback about RoboRef feel free to get in touch!';
+
+  @override
+  String get settingsContactUsGithubIssues => 'RoboRef GitHub Issues';
+
+  @override
   String get settingsVersionCopied => 'Version copied to clipboard';
 
   @override

@@ -1735,6 +1735,24 @@ abstract class AppLocalizations {
   /// **'Privacy Policy'**
   String get settingsPrivacyPolicyItem;
 
+  /// List tile title and dialog title for Contact Us
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Us'**
+  String get settingsContactUsItem;
+
+  /// Message shown when clicking the Contact Us button in Settings
+  ///
+  /// In en, this message translates to:
+  /// **'If you\'ve got feedback about RoboRef feel free to get in touch!'**
+  String get settingsContactUsDescription;
+
+  /// Label for the link to the RoboRef GitHub issues page
+  ///
+  /// In en, this message translates to:
+  /// **'RoboRef GitHub Issues'**
+  String get settingsContactUsGithubIssues;
+
   /// Snackbar message when the app version string is copied
   ///
   /// In en, this message translates to:
