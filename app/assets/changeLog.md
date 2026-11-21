@@ -3,6 +3,7 @@
 ## 2026.11.21+295
 
 - **Edit Notes**: Added the ability to edit saved incident notes and sync updates across connected devices.
+- **Web Path URLs**: Enabled clean path URLs (e.g. `/privacy`, `/changelog`, `/settings`, `/events`, `/share`, `/rules`, and `/event/<SKU>`) for direct web access and navigation.
 - **Fix duplicate matches**: Fix for duplicate matches appearing on an event after a refresh.
 - **Contact Us in Settings**: Added a Contact Us button beneath Privacy Policy in Settings with developer email (`dev@roboref.app`) and link to the RoboRef GitHub issues page.
 - **Backend Changes**: Some changes under the hood to help with other future projects!

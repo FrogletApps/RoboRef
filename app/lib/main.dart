@@ -3,19 +3,20 @@ import 'package:material_ui/material_ui.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' show GlobalCupertinoLocalizations;
 import 'package:flutter_localizations/flutter_localizations.dart' show GlobalWidgetsLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/l10n/l10n.dart';
+import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/utils/sku_utils.dart';
-import 'features/home/screens/home_screen.dart';
-import 'features/settings/screens/privacy_policy_screen.dart';
 import 'features/settings/state/sync_settings_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  usePathUrlStrategy();
 
   // Guard against unhandled platform errors stalling the pipeline
   FlutterError.onError = (details) {
@@ -123,11 +124,8 @@ class RoboRefApp extends ConsumerWidget {
         }
         return supportedLocales.first;
       },
-      initialRoute: '/',
-      routes: {
-        '/': (_) => const HomeScreen(),
-        '/privacy': (_) => const PrivacyPolicyScreen(),
-      },
+      onGenerateRoute: AppRouter.onGenerateRoute,
+      onGenerateInitialRoutes: AppRouter.onGenerateInitialRoutes,
     );
   }
 }

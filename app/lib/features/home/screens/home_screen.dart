@@ -2,16 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/routing/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/sku_utils.dart';
-import '../../event_selection/screens/event_selection_screen.dart';
 import '../../event_selection/state/event_controller.dart';
-import '../../event_workspace/screens/event_workspace_screen.dart';
 import '../../incidents/state/incident_controller.dart';
-import '../../settings/screens/settings_screen.dart';
 import '../../settings/state/sync_settings_controller.dart';
 import '../../sharing/state/share_controller.dart';
-import 'share_screen.dart';
 import '../../sharing/widgets/event_share_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -76,11 +73,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           if (widget.onNavigateToIncidents != null) {
             widget.onNavigateToIncidents!();
           } else {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const EventWorkspaceScreen(),
-              ),
-            );
+            AppRouter.push(context, AppRoutes.eventPath(cleanSku));
           }
         }
       }
@@ -162,11 +155,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             if (widget.onNavigateToIncidents != null) {
                               widget.onNavigateToIncidents!();
                             } else {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const EventWorkspaceScreen(),
-                                ),
-                              );
+                              AppRouter.push(context, AppRoutes.eventPath(event.sku));
                             }
                           },
                           child: Padding(
@@ -442,9 +431,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             label: context.l10n.homeShareRoboRef,
             isDark: isDark,
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ShareScreen()),
-              );
+              AppRouter.push(context, AppRoutes.share);
             },
           ),
         ),
@@ -458,9 +445,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             label: context.l10n.homeSettings,
             isDark: isDark,
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              );
+              AppRouter.push(context, AppRoutes.settings);
             },
           ),
         ),
@@ -520,9 +505,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         elevation: 2,
       ),
       onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const EventSelectionScreen()),
-        );
+        AppRouter.push(context, AppRoutes.events);
       },
       icon: const Icon(Icons.add, size: 24),
       label: Text(

@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/routing/app_router.dart';
 import '../../../core/utils/event_regions.dart';
 import '../../../core/utils/sku_utils.dart';
-import '../../event_workspace/screens/event_workspace_screen.dart';
 import '../models/event_model.dart';
 import '../services/event_cache_service.dart';
 import '../state/event_controller.dart';
@@ -252,7 +252,7 @@ class _EventSelectionScreenState extends ConsumerState<EventSelectionScreen> {
 
     // 2. Navigate immediately to the Event Workspace screen
     navigator.pushReplacement(
-      MaterialPageRoute(builder: (_) => const EventWorkspaceScreen()),
+      AppRouter.routeForPath(AppRoutes.eventPath(event.sku)),
     );
 
     // 3. Show loading notification

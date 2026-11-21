@@ -4,17 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/routing/app_router.dart';
 import '../../../core/theme/theme_controller.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
-import '../../home/screens/changelog_screen.dart';
 import '../../incidents/state/incident_controller.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 import '../../event_selection/state/event_controller.dart';
 import '../../sharing/models/share_models.dart';
 import '../../sharing/state/share_controller.dart';
 import '../../sharing/widgets/event_share_sheet.dart';
-import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   final bool showAppBar;
@@ -711,11 +710,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 20),
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ChangeLogScreen(),
-                      ),
-                    );
+                    AppRouter.push(context, AppRoutes.changelog);
                   },
                 ),
               ),
@@ -761,11 +756,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 20),
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const PrivacyPolicyScreen(),
-                      ),
-                    );
+                    AppRouter.push(context, AppRoutes.privacy);
                   },
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/routing/app_router.dart';
 import '../../event_data/screens/event_import_sheet.dart';
 import '../../event_selection/state/event_controller.dart';
 import '../../incidents/screens/incident_logger_screen.dart';
@@ -23,10 +24,14 @@ import '../../sharing/models/share_models.dart';
 
 class EventWorkspaceScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
+  final String? initialSku;
+  final String? initialJoinShare;
 
   const EventWorkspaceScreen({
     super.key,
     this.initialTabIndex = 0,
+    this.initialSku,
+    this.initialJoinShare,
   });
 
   @override
@@ -42,12 +47,35 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialTabIndex;
-    Future.microtask(() {
-      if (mounted) {
-        final currentSku = ref.read(syncSettingsProvider).currentSku;
-        ref.read(shareControllerProvider.notifier).loadEventShareState(currentSku);
-        _autoFetchMissingTournamentData(currentSku);
+    Future.microtask(() async {
+      if (!mounted) return;
+      final requestedSku = widget.initialSku?.trim().toUpperCase();
+      String activeSku = ref.read(syncSettingsProvider).currentSku;
+
+      if (requestedSku != null && requestedSku.isNotEmpty) {
+        activeSku = requestedSku;
+        try {
+          final db = ref.read(databaseProvider);
+          final existingEvent = await db.getEventBySku(requestedSku);
+          if (existingEvent == null) {
+            await ref.read(eventControllerProvider.notifier).addManualEvent(sku: requestedSku);
+          } else if (ref.read(syncSettingsProvider).currentSku.trim().toUpperCase() != requestedSku) {
+            ref.read(syncSettingsProvider.notifier).setSku(requestedSku);
+          }
+
+          final joinShare = widget.initialJoinShare?.trim().toUpperCase();
+          if (joinShare != null && joinShare.isNotEmpty && mounted) {
+            await ref.read(shareControllerProvider.notifier).joinShare(
+                  shareId: joinShare,
+                  sku: requestedSku,
+                );
+          }
+        } catch (_) {}
       }
+
+      if (!mounted) return;
+      ref.read(shareControllerProvider.notifier).loadEventShareState(activeSku);
+      _autoFetchMissingTournamentData(activeSku);
     });
 
     _startPollingTimer();
@@ -400,6 +428,9 @@ class _EventWorkspaceScreenState extends ConsumerState<EventWorkspaceScreen> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (idx) {
           setState(() => _currentIndex = idx);
+          AppRouter.updateBrowserUrl(
+            AppRoutes.eventPath(settings.currentSku, tabIndex: idx),
+          );
           if (idx == 1 || idx == 2 || idx == 4) {
             _checkSyncIfShared(quiet: true);
           }
