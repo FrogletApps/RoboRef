@@ -258,6 +258,11 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                           match.scheduledTime,
                           context: context,
                         );
+                        final isOldSchedule = isOldScheduleMatch(match.name);
+                        final baseShortName = formatMatchShortName(stripOldScheduleSuffix(match.name));
+                        final headerText = isOldSchedule
+                            ? context.l10n.matchScheduleOldSchedule(baseShortName)
+                            : baseShortName;
 
                         return Card(
                           child: InkWell(
@@ -275,8 +280,12 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            formatMatchShortName(match.name),
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                            headerText,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: isOldSchedule ? Colors.grey : null,
+                                            ),
                                           ),
                                           if (redTeams.isNotEmpty || blueTeams.isNotEmpty) ...[
                                             const SizedBox(height: 6),
@@ -463,7 +472,11 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
   }
 
   void _showMatchActions(BuildContext context, String matchName, List<dynamic> redTeams, List<dynamic> blueTeams) {
-    final displayMatchName = formatMatchShortName(matchName);
+    final isOldSchedule = isOldScheduleMatch(matchName);
+    final baseShortName = formatMatchShortName(stripOldScheduleSuffix(matchName));
+    final displayMatchName = isOldSchedule
+        ? context.l10n.matchScheduleOldSchedule(baseShortName)
+        : baseShortName;
     final sortedRedTeams = List<String>.from(redTeams.map((e) => e.toString()))..sort(compareTeamNumbers);
     final sortedBlueTeams = List<String>.from(blueTeams.map((e) => e.toString()))..sort(compareTeamNumbers);
     final isSingleAlliance = sortedBlueTeams.isEmpty;
@@ -512,7 +525,11 @@ class _MatchScheduleScreenState extends State<MatchScheduleScreen> {
                     const SizedBox(height: 12),
                     Text(
                       fullMatchName.isNotEmpty ? fullMatchName : displayMatchName,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isOldSchedule ? Colors.grey : null,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     if (sortedRedTeams.isEmpty && sortedBlueTeams.isEmpty)

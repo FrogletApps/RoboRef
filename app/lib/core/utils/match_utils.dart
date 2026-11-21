@@ -33,6 +33,28 @@ final _roundOrderSingleNumRegex = RegExp(r'^(MATCH\s*#?\s*|M\s*#?\s*|#\s*)?\d+$'
 
 final _chunksRegex = RegExp(r'(\d+|\D+)');
 
+const String oldScheduleSuffix = ' (Old schedule)';
+final _oldScheduleRegex = RegExp(r'\s*\(old schedule\)\s*$', caseSensitive: false);
+
+/// Returns true if [matchName] is marked as belonging to an older match schedule.
+bool isOldScheduleMatch(String? matchName) {
+  if (matchName == null || matchName.isEmpty) return false;
+  return _oldScheduleRegex.hasMatch(matchName.trim());
+}
+
+/// Removes any trailing "(Old schedule)" suffix from [matchName].
+String stripOldScheduleSuffix(String? matchName) {
+  if (matchName == null || matchName.isEmpty) return '';
+  return matchName.trim().replaceAll(_oldScheduleRegex, '').trim();
+}
+
+/// Marks [matchName] with the "(Old schedule)" suffix if not already present.
+String markMatchAsOldSchedule(String matchName) {
+  final base = stripOldScheduleSuffix(matchName);
+  if (base.isEmpty) return matchName;
+  return '$base$oldScheduleSuffix';
+}
+
 /// Normalizes and standardizes match names across V5 and VEX IQ programs.
 /// Converts RobotEvents and Tournament Manager variations (e.g. "Teamwork 1",
 /// "Qual #1", "Teamwork Finals 1-1", "Match 1", "1-1") into consistent standard labels:
@@ -43,6 +65,16 @@ final _chunksRegex = RegExp(r'(\d+|\D+)');
 /// - Semifinals: "SF 1-1"
 /// - Finals: "Finals 1-1" (or "Finals 1")
 String normalizeMatchName(String? rawName, {int? round, int? instance, int? matchnum}) {
+  if (rawName != null && isOldScheduleMatch(rawName)) {
+    final baseNormalized = normalizeMatchName(
+      stripOldScheduleSuffix(rawName),
+      round: round,
+      instance: instance,
+      matchnum: matchnum,
+    );
+    return baseNormalized.isEmpty ? '' : '$baseNormalized$oldScheduleSuffix';
+  }
+
   if (rawName == null || rawName.trim().isEmpty) {
     if (round != null) {
       final inst = instance ?? 1;
@@ -187,6 +219,10 @@ String normalizeMatchName(String? rawName, {int? round, int? instance, int? matc
 /// - Round Robin: "RR 1-1"
 String formatMatchShortName(String? matchName) {
   if (matchName == null || matchName.trim().isEmpty) return '';
+  if (isOldScheduleMatch(matchName)) {
+    final baseShort = formatMatchShortName(stripOldScheduleSuffix(matchName));
+    return baseShort.isEmpty ? '' : '$baseShort$oldScheduleSuffix';
+  }
   final trimmed = matchName.trim();
   final upper = trimmed.toUpperCase();
 
@@ -271,6 +307,10 @@ String formatMatchShortName(String? matchName) {
 /// Returns a compact short code for a match name (e.g. "Qualification 12" -> "Q12", "Finals 1-1" -> "F1-1")
 String getMatchShortCode(String? matchName) {
   if (matchName == null || matchName.trim().isEmpty) return '';
+  if (isOldScheduleMatch(matchName)) {
+    final baseCode = getMatchShortCode(stripOldScheduleSuffix(matchName));
+    return baseCode.isEmpty ? '' : '$baseCode$oldScheduleSuffix';
+  }
   final trimmed = matchName.trim();
   final upper = trimmed.toUpperCase();
 
@@ -465,7 +505,9 @@ String _monthName(int month) {
 /// 99. Other / Unknown
 int getMatchRoundOrder(String? matchName) {
   if (matchName == null || matchName.trim().isEmpty) return 99;
-  final upper = matchName.trim().toUpperCase();
+  final stripped = stripOldScheduleSuffix(matchName);
+  if (stripped.isEmpty) return 99;
+  final upper = stripped.toUpperCase();
 
   // 1. Practice matches:
   // e.g. "Practice 1", "Practice #1", "Prac 1", "P 1", "P1", "P-1", "P_1", "P#1"
@@ -538,16 +580,21 @@ int compareMatchNames(String? a, String? b) {
   final strB = b.trim();
   if (strA == strB) return 0;
 
-  final roundA = getMatchRoundOrder(strA);
-  final roundB = getMatchRoundOrder(strB);
+  final isOldA = isOldScheduleMatch(strA);
+  final isOldB = isOldScheduleMatch(strB);
+  final baseA = stripOldScheduleSuffix(strA);
+  final baseB = stripOldScheduleSuffix(strB);
+
+  final roundA = getMatchRoundOrder(baseA);
+  final roundB = getMatchRoundOrder(baseB);
 
   if (roundA != roundB) {
     return roundA.compareTo(roundB);
   }
 
   // Same round: compare sequence of extracted numbers
-  final numsA = _extractMatchNumbers(strA);
-  final numsB = _extractMatchNumbers(strB);
+  final numsA = _extractMatchNumbers(baseA);
+  final numsB = _extractMatchNumbers(baseB);
 
   final minLen = numsA.length < numsB.length ? numsA.length : numsB.length;
   for (int i = 0; i < minLen; i++) {
@@ -557,6 +604,15 @@ int compareMatchNames(String? a, String? b) {
 
   if (numsA.length != numsB.length) {
     return numsA.length.compareTo(numsB.length);
+  }
+
+  if (roundA == 99) {
+    final baseDiff = _naturalCompareStrings(baseA, baseB);
+    if (baseDiff != 0) return baseDiff;
+  }
+
+  if (isOldA != isOldB) {
+    return isOldA ? -1 : 1;
   }
 
   // Fallback natural string comparison
@@ -654,16 +710,19 @@ List<_Chunk> _splitChunks(String str) {
 /// Localizes a canonical match name (from [normalizeMatchName]) for UI display,
 /// while preserving canonical English names in database storage and sorting.
 String localizeMatchName(BuildContext context, String rawMatchName) {
-  final normalized = normalizeMatchName(rawMatchName);
+  final isOld = isOldScheduleMatch(rawMatchName);
+  final baseRaw = stripOldScheduleSuffix(rawMatchName);
+  final normalized = normalizeMatchName(baseRaw);
   if (normalized.isEmpty) return '';
   final l10n = context.l10n;
 
+  String localized = normalized;
   if (normalized.startsWith('Practice ')) {
     final num = int.tryParse(normalized.substring('Practice '.length).trim());
-    if (num != null) return l10n.matchNamePractice(num);
+    if (num != null) localized = l10n.matchNamePractice(num);
   } else if (normalized.startsWith('Qualification ')) {
     final num = int.tryParse(normalized.substring('Qualification '.length).trim());
-    if (num != null) return l10n.matchNameQualification(num);
+    if (num != null) localized = l10n.matchNameQualification(num);
   } else if (normalized.startsWith('Finals ')) {
     final rest = normalized.substring('Finals '.length).trim();
     final parts = rest.split('-');
@@ -671,13 +730,13 @@ String localizeMatchName(BuildContext context, String rawMatchName) {
       final inst = int.tryParse(parts[0]);
       final num = int.tryParse(parts[1]);
       if (inst != null && num != null) {
-        return l10n.matchNameFinalsInstance(inst, num);
+        localized = l10n.matchNameFinalsInstance(inst, num);
       }
     } else {
       final num = int.tryParse(rest);
-      if (num != null) return l10n.matchNameFinals(num);
+      if (num != null) localized = l10n.matchNameFinals(num);
     }
   }
-  return normalized;
+  return isOld ? l10n.matchScheduleOldSchedule(localized) : localized;
 }
 

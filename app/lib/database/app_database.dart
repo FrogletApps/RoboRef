@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'tables/events_table.dart';
 import 'tables/teams_table.dart';
@@ -290,18 +291,449 @@ class AppDatabase extends _$AppDatabase {
     return List<Matche>.from(list)..sort(compareMatches);
   }
 
-  Future<void> upsertMatches(List<MatchesCompanion> entries) async {
-    await batch((batch) {
-      for (final entry in entries) {
-        batch.insert(
-          matches,
-          entry,
-          onConflict: DoUpdate(
-            (old) => entry,
-            target: [matches.matchId, matches.sku],
-          ),
+  static int _lastArchiveTimestamp = 0;
+  static final RegExp _archiveMetaRegex = RegExp(r'_old_(\d+)(?:_n(\d+))?$');
+
+  int _nextArchiveTimestamp([int minTimestamp = 0]) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    var candidate = now > minTimestamp ? now : minTimestamp;
+    if (candidate <= _lastArchiveTimestamp) {
+      candidate = _lastArchiveTimestamp + 1;
+    }
+    _lastArchiveTimestamp = candidate;
+    return candidate;
+  }
+
+  ({int? timestamp, int? notesCount}) _parseArchiveMeta(String matchId) {
+    final m = _archiveMetaRegex.firstMatch(matchId);
+    if (m == null) return (timestamp: null, notesCount: null);
+    return (
+      timestamp: int.tryParse(m.group(1) ?? ''),
+      notesCount: m.group(2) != null ? int.tryParse(m.group(2)!) : null,
+    );
+  }
+
+  List<String> _normalizeTeamsList(String teamsJson) {
+    try {
+      final decoded = jsonDecode(teamsJson);
+      if (decoded is List) {
+        final list = decoded
+            .map((e) => e.toString().trim().toUpperCase())
+            .where((s) => s.isNotEmpty)
+            .toList()
+          ..sort(compareTeamNumbers);
+        return list;
+      }
+    } catch (_) {}
+    return const [];
+  }
+
+  bool _stringListEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  bool _isSameScheduleData({
+    required String redJsonA,
+    required String blueJsonA,
+    required String? fieldA,
+    required String? timeA,
+    required String redJsonB,
+    required String blueJsonB,
+    required String? fieldB,
+    required String? timeB,
+  }) {
+    final redA = _normalizeTeamsList(redJsonA);
+    final redB = _normalizeTeamsList(redJsonB);
+    if (!_stringListEquals(redA, redB)) return false;
+
+    final blueA = _normalizeTeamsList(blueJsonA);
+    final blueB = _normalizeTeamsList(blueJsonB);
+    if (!_stringListEquals(blueA, blueB)) return false;
+
+    final normFieldA = (fieldA ?? '').trim();
+    final normFieldB = (fieldB ?? '').trim();
+    if (normFieldA != normFieldB) return false;
+
+    final normTimeA = (timeA ?? '').trim();
+    final normTimeB = (timeB ?? '').trim();
+    if (normTimeA != normTimeB) return false;
+
+    return true;
+  }
+
+  bool _isIncomingMoreRecent(MatchesCompanion previous, MatchesCompanion candidate) {
+    final prevId = int.tryParse(previous.matchId.value.trim());
+    final candId = int.tryParse(candidate.matchId.value.trim());
+    if (prevId != null && candId != null && prevId != candId) {
+      return candId > prevId;
+    }
+    return true;
+  }
+
+  ({bool hasNotes, int totalMatchingNotes, int maxNoteCreatedAt}) _checkNotesForActiveMatch(
+    Matche activeMatch,
+    List<Matche> existingOldMatches,
+    List<IncidentNote> notesForSku,
+  ) {
+    final baseName = stripOldScheduleSuffix(activeMatch.name);
+    final matchCanonical = normalizeMatchName(baseName).trim().toUpperCase();
+    final matchShortName = formatMatchShortName(baseName).trim().toUpperCase();
+    final matchShortCode = getMatchShortCode(baseName).trim().toUpperCase();
+    final matchIdUpper = activeMatch.matchId.trim().toUpperCase();
+
+    final matchingNotes = notesForSku.where((note) {
+      final raw = note.matchId?.trim();
+      if (raw == null || raw.isEmpty) return false;
+      if (isOldScheduleMatch(raw)) return false;
+      final rawUpper = raw.toUpperCase();
+      if (rawUpper == matchIdUpper) return true;
+      final noteCanonical = normalizeMatchName(raw).trim().toUpperCase();
+      if (noteCanonical.isNotEmpty && noteCanonical == matchCanonical) return true;
+      if (formatMatchShortName(raw).trim().toUpperCase() == matchShortName) return true;
+      if (getMatchShortCode(raw).trim().toUpperCase() == matchShortCode) return true;
+      return false;
+    }).toList();
+
+    if (matchingNotes.isEmpty) {
+      return (hasNotes: false, totalMatchingNotes: 0, maxNoteCreatedAt: 0);
+    }
+
+    int maxNoteCreatedAt = 0;
+    for (final n in matchingNotes) {
+      if (n.createdAt > maxNoteCreatedAt) {
+        maxNoteCreatedAt = n.createdAt;
+      }
+    }
+
+    if (existingOldMatches.isEmpty) {
+      return (
+        hasNotes: true,
+        totalMatchingNotes: matchingNotes.length,
+        maxNoteCreatedAt: maxNoteCreatedAt,
+      );
+    }
+
+    int maxArchivedAt = 0;
+    int maxArchivedNotesCount = 0;
+    bool hasArchiveNotesCountMeta = false;
+    final Set<String> oldTeams = {};
+    for (final oldM in existingOldMatches) {
+      final meta = _parseArchiveMeta(oldM.matchId);
+      if (meta.timestamp != null && meta.timestamp! > maxArchivedAt) {
+        maxArchivedAt = meta.timestamp!;
+      }
+      if (meta.notesCount != null) {
+        hasArchiveNotesCountMeta = true;
+        if (meta.notesCount! > maxArchivedNotesCount) {
+          maxArchivedNotesCount = meta.notesCount!;
+        }
+      }
+      oldTeams.addAll(_normalizeTeamsList(oldM.redTeamsJson));
+      oldTeams.addAll(_normalizeTeamsList(oldM.blueTeamsJson));
+    }
+
+    if (hasArchiveNotesCountMeta && matchingNotes.length > maxArchivedNotesCount) {
+      return (
+        hasNotes: true,
+        totalMatchingNotes: matchingNotes.length,
+        maxNoteCreatedAt: maxNoteCreatedAt,
+      );
+    }
+
+    final Set<String> activeTeams = {
+      ..._normalizeTeamsList(activeMatch.redTeamsJson),
+      ..._normalizeTeamsList(activeMatch.blueTeamsJson),
+    };
+
+    for (final note in matchingNotes) {
+      if (maxArchivedAt > 0 && note.createdAt > maxArchivedAt) {
+        return (
+          hasNotes: true,
+          totalMatchingNotes: matchingNotes.length,
+          maxNoteCreatedAt: maxNoteCreatedAt,
         );
       }
+      final noteTeam = note.teamNumber.trim().toUpperCase();
+      if (noteTeam.isNotEmpty && activeTeams.contains(noteTeam) && !oldTeams.contains(noteTeam)) {
+        return (
+          hasNotes: true,
+          totalMatchingNotes: matchingNotes.length,
+          maxNoteCreatedAt: maxNoteCreatedAt,
+        );
+      }
+    }
+
+    return (
+      hasNotes: false,
+      totalMatchingNotes: matchingNotes.length,
+      maxNoteCreatedAt: maxNoteCreatedAt,
+    );
+  }
+
+  Future<int> upsertMatches(List<MatchesCompanion> entries) async {
+    if (entries.isEmpty) return 0;
+
+    return transaction(() async {
+      int changedCount = 0;
+
+      // Group incoming entries by SKU
+      final Map<String, List<MatchesCompanion>> entriesBySku = {};
+      for (final entry in entries) {
+        if (!entry.sku.present || !entry.matchId.present || !entry.name.present) {
+          continue;
+        }
+        final sku = entry.sku.value;
+        if (sku.trim().isEmpty) continue;
+        entriesBySku.putIfAbsent(sku, () => []).add(entry);
+      }
+
+      for (final skuEntry in entriesBySku.entries) {
+        final sku = skuEntry.key;
+        final skuEntries = skuEntry.value;
+
+        final List<MatchesCompanion> explicitOldEntries = [];
+        final Map<({int divisionId, String canonicalName}), MatchesCompanion> deduplicatedActive = {};
+
+        for (final entry in skuEntries) {
+          final rawName = entry.name.value;
+          if (isOldScheduleMatch(rawName)) {
+            explicitOldEntries.add(entry);
+            continue;
+          }
+          final divId = entry.divisionId.present ? entry.divisionId.value : 1;
+          final baseName = stripOldScheduleSuffix(rawName);
+          final canonical = normalizeMatchName(baseName).trim().toUpperCase();
+          final key = (divisionId: divId, canonicalName: canonical);
+
+          final prev = deduplicatedActive[key];
+          if (prev == null || _isIncomingMoreRecent(prev, entry)) {
+            deduplicatedActive[key] = entry;
+          }
+        }
+
+        for (final oldEntry in explicitOldEntries) {
+          await into(matches).insertOnConflictUpdate(oldEntry);
+        }
+
+        if (deduplicatedActive.isEmpty) continue;
+
+        final existingMatches = await (select(matches)
+              ..where((tbl) => tbl.sku.equals(sku)))
+            .get();
+        final activeNotes = await (select(incidentNotes)
+              ..where((tbl) => tbl.sku.equals(sku) & tbl.isDeleted.equals(false)))
+            .get();
+
+        // Index existing matches by (divisionId, canonicalBaseName)
+        final Map<({int divisionId, String canonicalName}), List<Matche>> existingByKey = {};
+        for (final m in existingMatches) {
+          final baseName = stripOldScheduleSuffix(m.name);
+          final canonical = normalizeMatchName(baseName).trim().toUpperCase();
+          final key = (divisionId: m.divisionId, canonicalName: canonical);
+          existingByKey.putIfAbsent(key, () => []).add(m);
+        }
+
+        for (final activeEntry in deduplicatedActive.entries) {
+          final key = activeEntry.key;
+          final incoming = activeEntry.value;
+          final incomingRed = incoming.redTeamsJson.present ? incoming.redTeamsJson.value : '[]';
+          final incomingBlue = incoming.blueTeamsJson.present ? incoming.blueTeamsJson.value : '[]';
+          final incomingField = incoming.field.present ? incoming.field.value : null;
+          final incomingTime = incoming.scheduledTime.present ? incoming.scheduledTime.value : null;
+
+          final slotExisting = existingByKey[key] ?? const <Matche>[];
+          final List<Matche> existingOldMatches = [];
+          final List<Matche> existingActiveMatches = [];
+
+          for (final m in slotExisting) {
+            if (isOldScheduleMatch(m.name)) {
+              existingOldMatches.add(m);
+            } else {
+              existingActiveMatches.add(m);
+            }
+          }
+
+          if (existingActiveMatches.isEmpty) {
+            await into(matches).insertOnConflictUpdate(incoming);
+            changedCount++;
+            continue;
+          }
+
+          // If there were already duplicate active rows in DB for this slot, clean them up first
+          if (existingActiveMatches.length > 1) {
+            for (final candidate in existingActiveMatches) {
+              final sameAsIncoming = _isSameScheduleData(
+                redJsonA: candidate.redTeamsJson,
+                blueJsonA: candidate.blueTeamsJson,
+                fieldA: candidate.field,
+                timeA: candidate.scheduledTime,
+                redJsonB: incomingRed,
+                blueJsonB: incomingBlue,
+                fieldB: incomingField,
+                timeB: incomingTime,
+              );
+              if (!sameAsIncoming) {
+                final notesCheck = _checkNotesForActiveMatch(
+                  candidate,
+                  existingOldMatches,
+                  activeNotes,
+                );
+                final alreadyInOld = existingOldMatches.any(
+                  (oldM) => _isSameScheduleData(
+                    redJsonA: oldM.redTeamsJson,
+                    blueJsonA: oldM.blueTeamsJson,
+                    fieldA: oldM.field,
+                    timeA: oldM.scheduledTime,
+                    redJsonB: candidate.redTeamsJson,
+                    blueJsonB: candidate.blueTeamsJson,
+                    fieldB: candidate.field,
+                    timeB: candidate.scheduledTime,
+                  ),
+                );
+                if (notesCheck.hasNotes && !alreadyInOld) {
+                  final archiveTs = _nextArchiveTimestamp(notesCheck.maxNoteCreatedAt);
+                  final archivedId = '${candidate.matchId}_old_${archiveTs}_n${notesCheck.totalMatchingNotes}';
+                  final archivedName = markMatchAsOldSchedule(candidate.name);
+                  final archivedRow = candidate.copyWith(
+                    matchId: archivedId,
+                    name: archivedName,
+                  );
+                  await into(matches).insertOnConflictUpdate(archivedRow.toCompanion(false));
+                  existingOldMatches.add(archivedRow);
+                }
+              }
+            }
+
+            // Pick a single primary active row (preferring one matching incoming, else the last one)
+            Matche primary = existingActiveMatches.last;
+            for (final candidate in existingActiveMatches.reversed) {
+              if (_isSameScheduleData(
+                redJsonA: candidate.redTeamsJson,
+                blueJsonA: candidate.blueTeamsJson,
+                fieldA: candidate.field,
+                timeA: candidate.scheduledTime,
+                redJsonB: incomingRed,
+                blueJsonB: incomingBlue,
+                fieldB: incomingField,
+                timeB: incomingTime,
+              )) {
+                primary = candidate;
+                break;
+              }
+            }
+
+            for (final candidate in existingActiveMatches) {
+              if (candidate.matchId != primary.matchId) {
+                await (delete(matches)
+                      ..where((t) =>
+                          t.sku.equals(sku) & t.matchId.equals(candidate.matchId)))
+                    .go();
+              }
+            }
+            existingActiveMatches
+              ..clear()
+              ..add(primary);
+          }
+
+          final existingActive = existingActiveMatches.single;
+          final isSameSchedule = _isSameScheduleData(
+            redJsonA: existingActive.redTeamsJson,
+            blueJsonA: existingActive.blueTeamsJson,
+            fieldA: existingActive.field,
+            timeA: existingActive.scheduledTime,
+            redJsonB: incomingRed,
+            blueJsonB: incomingBlue,
+            fieldB: incomingField,
+            timeB: incomingTime,
+          );
+
+          if (isSameSchedule) {
+            // Data is all the same -> no schedule change.
+            // If scores were updated in incoming, update scores silently on the existing record.
+            final newRedScore = incoming.redScore.present ? incoming.redScore.value : existingActive.redScore;
+            final newBlueScore = incoming.blueScore.present ? incoming.blueScore.value : existingActive.blueScore;
+            if (newRedScore != existingActive.redScore || newBlueScore != existingActive.blueScore) {
+              await (update(matches)
+                    ..where((t) =>
+                        t.sku.equals(sku) & t.matchId.equals(existingActive.matchId)))
+                  .write(
+                MatchesCompanion(
+                  redScore: Value(newRedScore),
+                  blueScore: Value(newBlueScore),
+                ),
+              );
+            }
+            continue;
+          }
+
+          // Schedule data has changed (e.g. teams have changed)
+          final notesCheck = _checkNotesForActiveMatch(
+            existingActive,
+            existingOldMatches,
+            activeNotes,
+          );
+
+          if (notesCheck.hasNotes) {
+            // Match already has notes attached: keep old match as "(Old schedule)" and load new one
+            await (delete(matches)
+                  ..where((t) =>
+                      t.sku.equals(sku) & t.matchId.equals(existingActive.matchId)))
+                .go();
+
+            final alreadyInOld = existingOldMatches.any(
+              (oldM) => _isSameScheduleData(
+                redJsonA: oldM.redTeamsJson,
+                blueJsonA: oldM.blueTeamsJson,
+                fieldA: oldM.field,
+                timeA: oldM.scheduledTime,
+                redJsonB: existingActive.redTeamsJson,
+                blueJsonB: existingActive.blueTeamsJson,
+                fieldB: existingActive.field,
+                timeB: existingActive.scheduledTime,
+              ),
+            );
+
+            if (!alreadyInOld) {
+              final archiveTs = _nextArchiveTimestamp(notesCheck.maxNoteCreatedAt);
+              final archivedId = '${existingActive.matchId}_old_${archiveTs}_n${notesCheck.totalMatchingNotes}';
+              final archivedName = markMatchAsOldSchedule(existingActive.name);
+              await into(matches).insertOnConflictUpdate(
+                MatchesCompanion(
+                  matchId: Value(archivedId),
+                  sku: Value(existingActive.sku),
+                  divisionId: Value(existingActive.divisionId),
+                  name: Value(archivedName),
+                  field: Value(existingActive.field),
+                  scheduledTime: Value(existingActive.scheduledTime),
+                  redTeamsJson: Value(existingActive.redTeamsJson),
+                  blueTeamsJson: Value(existingActive.blueTeamsJson),
+                  redScore: Value(existingActive.redScore),
+                  blueScore: Value(existingActive.blueScore),
+                ),
+              );
+            }
+
+            await into(matches).insertOnConflictUpdate(incoming);
+            changedCount++;
+          } else {
+            // No notes attached: replace with the most recent version
+            if (existingActive.matchId != incoming.matchId.value) {
+              await (delete(matches)
+                    ..where((t) =>
+                        t.sku.equals(sku) & t.matchId.equals(existingActive.matchId)))
+                  .go();
+            }
+            await into(matches).insertOnConflictUpdate(incoming);
+            changedCount++;
+          }
+        }
+      }
+
+      return changedCount;
     });
   }
 

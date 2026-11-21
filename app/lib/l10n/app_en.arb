@@ -825,6 +825,15 @@
   "@matchScheduleNoNotesLogged": {
     "description": "Label when a team has no incident notes logged"
   },
+  "matchScheduleOldSchedule": "{matchName} (Old schedule)",
+  "@matchScheduleOldSchedule": {
+    "description": "Match header label when a match with attached notes belongs to an older schedule version",
+    "placeholders": {
+      "matchName": {
+        "type": "String"
+      }
+    }
+  },
   "matchNamePractice": "Practice {num}",
   "@matchNamePractice": {
     "description": "Full display name for a Practice match",

@@ -470,7 +470,7 @@ class VexEventsClient {
 
           if (item['divisions'] is List) {
             for (final div in item['divisions']) {
-              if (div['id'] is int) {
+              if (div['id'] is int && !divisionIds.contains(div['id'])) {
                 divisionIds.add(div['id'] as int);
               }
             }
@@ -727,8 +727,7 @@ class VexEventsClient {
         }
 
         if (allMatchCompanions.isNotEmpty) {
-          await db.upsertMatches(allMatchCompanions);
-          matchesCount = allMatchCompanions.length;
+          matchesCount = await db.upsertMatches(allMatchCompanions);
         }
       }
 

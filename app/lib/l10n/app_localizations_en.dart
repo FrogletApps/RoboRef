@@ -581,6 +581,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get matchScheduleNoNotesLogged => 'No notes logged';
 
   @override
+  String matchScheduleOldSchedule(String matchName) {
+    return '$matchName (Old schedule)';
+  }
+
+  @override
   String matchNamePractice(int num) {
     return 'Practice $num';
   }

@@ -1010,6 +1010,12 @@ abstract class AppLocalizations {
   /// **'No notes logged'**
   String get matchScheduleNoNotesLogged;
 
+  /// Match header label when a match with attached notes belongs to an older schedule version
+  ///
+  /// In en, this message translates to:
+  /// **'{matchName} (Old schedule)'**
+  String matchScheduleOldSchedule(String matchName);
+
   /// Full display name for a Practice match
   ///
   /// In en, this message translates to:
