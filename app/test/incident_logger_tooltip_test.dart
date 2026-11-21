@@ -140,6 +140,9 @@ void main() {
       find.widgetWithText(TextField, 'Initial entanglement warning'),
       'Upgraded to major violation after replay check',
     );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Major'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Major'));
     await tester.pumpAndSettle();
 
@@ -173,6 +176,9 @@ void main() {
     expect(find.text('Q 15'), findsOneWidget);
     expect(find.text('Upgraded to major violation after replay check'), findsOneWidget);
     expect(find.text('Initial entanglement warning'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
   });
 
   testWidgets('TeamListScreen Team History sheet allows editing a saved note', (WidgetTester tester) async {
@@ -256,6 +262,9 @@ void main() {
     expect(savedNotes.length, 1);
     expect(savedNotes.first.id, 'team-hist-note-1');
     expect(savedNotes.first.notes, 'Edited from team history sheet');
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
   });
 
   testWidgets('IncidentLoggerScreen search field shows clear button when typed and clears search query on tap', (WidgetTester tester) async {
