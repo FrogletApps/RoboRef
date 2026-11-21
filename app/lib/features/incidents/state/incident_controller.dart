@@ -119,26 +119,39 @@ class IncidentController extends Notifier<AsyncValue<void>> {
     triggerSync();
   }
 
-  bool _isSyncing = false;
+  Future<void>? _activeSyncFuture;
   bool _pendingSync = false;
 
   // Sync with remote server (push local changes, pull remote changes)
   Future<void> triggerSync({bool quiet = false}) async {
+    if (_activeSyncFuture != null) {
+      _pendingSync = true;
+      await _activeSyncFuture;
+      return;
+    }
+
+    final future = _performSync(quiet: quiet);
+    _activeSyncFuture = future;
+    try {
+      await future;
+    } finally {
+      _activeSyncFuture = null;
+    }
+  }
+
+  Future<void> _performSync({bool quiet = false}) async {
+    if (!ref.mounted) return;
     final settings = ref.read(syncSettingsProvider);
     final notifier = ref.read(syncSettingsProvider.notifier);
 
     // Only sync if the current event is shared online
     final isShared = await _db.isEventShared(settings.currentSku);
+    if (!ref.mounted) return;
     if (!isShared) {
       notifier.setSyncing(false);
       return;
     }
 
-    if (_isSyncing) {
-      _pendingSync = true;
-      return;
-    }
-    _isSyncing = true;
     notifier.setSyncing(true);
 
     final client = SyncClient(
@@ -191,14 +204,17 @@ class IncidentController extends Notifier<AsyncValue<void>> {
         await _db.upsertRemoteNotes(companions);
       }
 
-      notifier.setSyncing(false);
+      if (ref.mounted) {
+        notifier.setSyncing(false);
+      }
     } catch (e) {
-      notifier.setSyncing(false, error: e.toString());
+      if (ref.mounted) {
+        notifier.setSyncing(false, error: e.toString());
+      }
     } finally {
-      _isSyncing = false;
       if (_pendingSync && ref.mounted) {
         _pendingSync = false;
-        await triggerSync(quiet: quiet);
+        await _performSync(quiet: quiet);
       }
     }
   }

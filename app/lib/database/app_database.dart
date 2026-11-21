@@ -14,7 +14,13 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(impl.connect());
 
-  AppDatabase.forTesting(super.connection);
+  AppDatabase.forTesting(QueryExecutor connection)
+      : super(
+          DatabaseConnection(
+            connection is DatabaseConnection ? connection.executor : connection,
+            closeStreamsSynchronously: true,
+          ),
+        );
 
   @override
   int get schemaVersion => 3;
