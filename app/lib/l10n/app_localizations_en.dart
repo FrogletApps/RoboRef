@@ -606,7 +606,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get teamListSearchHint => 'Search teams...';
+  String get teamListSearchHint => 'Search by team, name, or school...';
+
+  @override
+  String get teamListSortByLabel => 'Sort';
+
+  @override
+  String get teamListSortOptionNumber => 'Team #';
+
+  @override
+  String get teamListSortOptionRank => 'Rank';
+
+  @override
+  String get teamListSortOptionName => 'Name';
+
+  @override
+  String get teamListSortOptionSchool => 'School';
+
+  @override
+  String teamListSortFieldTooltip(String field) {
+    return 'Sort by $field';
+  }
+
+  @override
+  String teamListSortFieldActiveAscendingTooltip(String field) {
+    return 'Sorted by $field, ascending. Tap to reverse.';
+  }
+
+  @override
+  String teamListSortFieldActiveDescendingTooltip(String field) {
+    return 'Sorted by $field, descending. Tap to reverse.';
+  }
 
   @override
   String teamListErrorLoading(String error) {

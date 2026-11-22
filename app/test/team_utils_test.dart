@@ -95,4 +95,148 @@ void main() {
       expect(getOrdinalSuffix(104), equals('th'));
     });
   });
+
+  group('Team Search & Normalization Tests', () {
+    test('normalizeTeamDisplayName trims custom names and filters fallback or blank names', () {
+      expect(normalizeTeamDisplayName('  RoboKnights  ', '1234A'), equals('RoboKnights'));
+      expect(normalizeTeamDisplayName('Team 1234A', '1234A'), isNull);
+      expect(normalizeTeamDisplayName('', '1234A'), isNull);
+      expect(normalizeTeamDisplayName('   ', '1234A'), isNull);
+      expect(normalizeTeamDisplayName(null, '1234A'), isNull);
+    });
+
+    test('normalizeTeamSchool trims school names and returns null for blank values', () {
+      expect(normalizeTeamSchool('  Central High School  '), equals('Central High School'));
+      expect(normalizeTeamSchool(''), isNull);
+      expect(normalizeTeamSchool('   '), isNull);
+      expect(normalizeTeamSchool(null), isNull);
+    });
+
+    test('matchesTeamSearch matches team number, team name, and school case-insensitively', () {
+      expect(
+        matchesTeamSearch(
+          query: '',
+          teamNumber: '96F',
+          teamName: 'Ninety Six',
+          school: 'Oak Ridge High',
+        ),
+        isTrue,
+      );
+      expect(
+        matchesTeamSearch(
+          query: '96f',
+          teamNumber: '96F',
+          teamName: 'Ninety Six',
+          school: 'Oak Ridge High',
+        ),
+        isTrue,
+      );
+      expect(
+        matchesTeamSearch(
+          query: 'ninety',
+          teamNumber: '96F',
+          teamName: 'Ninety Six',
+          school: 'Oak Ridge High',
+        ),
+        isTrue,
+      );
+      expect(
+        matchesTeamSearch(
+          query: 'oak ridge',
+          teamNumber: '96F',
+          teamName: 'Ninety Six',
+          school: 'Oak Ridge High',
+        ),
+        isTrue,
+      );
+      expect(
+        matchesTeamSearch(
+          query: 'WESTSIDE',
+          teamNumber: '96F',
+          teamName: 'Ninety Six',
+          school: 'Oak Ridge High',
+        ),
+        isFalse,
+      );
+      // Fallback "Team <number>" should not falsely match "team"
+      expect(
+        matchesTeamSearch(
+          query: 'team',
+          teamNumber: '96F',
+          teamName: 'Team 96F',
+          school: null,
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('Team Entry Sorting Tests', () {
+    const entries = [
+      TeamListEntry(
+        teamNumber: '1016X',
+        teamName: 'Ten Sixteen',
+        school: 'West High',
+        rank: 2,
+      ),
+      TeamListEntry(
+        teamNumber: '96F',
+        teamName: 'Alpha Bots',
+        school: 'Central High',
+        rank: 1,
+      ),
+      TeamListEntry(
+        teamNumber: '224A',
+        teamName: 'Zeta Bots',
+        school: 'Central High',
+        rank: null,
+      ),
+      TeamListEntry(
+        teamNumber: '1A',
+        teamName: 'Team 1A',
+        school: null,
+        rank: 5,
+      ),
+    ];
+
+    test('sorts by team number ascending and descending', () {
+      final asc = List<TeamListEntry>.from(entries)
+        ..sort((a, b) => compareTeamEntries(a, b, sortBy: TeamSortField.number, ascending: true));
+      expect(asc.map((e) => e.teamNumber), equals(['1A', '96F', '224A', '1016X']));
+
+      final desc = List<TeamListEntry>.from(entries)
+        ..sort((a, b) => compareTeamEntries(a, b, sortBy: TeamSortField.number, ascending: false));
+      expect(desc.map((e) => e.teamNumber), equals(['1016X', '224A', '96F', '1A']));
+    });
+
+    test('sorts by rank ascending and descending with unranked teams always last', () {
+      final asc = List<TeamListEntry>.from(entries)
+        ..sort((a, b) => compareTeamEntries(a, b, sortBy: TeamSortField.rank, ascending: true));
+      expect(asc.map((e) => e.teamNumber), equals(['96F', '1016X', '1A', '224A']));
+
+      final desc = List<TeamListEntry>.from(entries)
+        ..sort((a, b) => compareTeamEntries(a, b, sortBy: TeamSortField.rank, ascending: false));
+      expect(desc.map((e) => e.teamNumber), equals(['1A', '1016X', '96F', '224A']));
+    });
+
+    test('sorts by team name ascending and descending with fallback/unnamed teams last', () {
+      final asc = List<TeamListEntry>.from(entries)
+        ..sort((a, b) => compareTeamEntries(a, b, sortBy: TeamSortField.name, ascending: true));
+      expect(asc.map((e) => e.teamNumber), equals(['96F', '1016X', '224A', '1A']));
+
+      final desc = List<TeamListEntry>.from(entries)
+        ..sort((a, b) => compareTeamEntries(a, b, sortBy: TeamSortField.name, ascending: false));
+      expect(desc.map((e) => e.teamNumber), equals(['224A', '1016X', '96F', '1A']));
+    });
+
+    test('sorts by school ascending and descending with tie-break by team number and missing school last', () {
+      final asc = List<TeamListEntry>.from(entries)
+        ..sort((a, b) => compareTeamEntries(a, b, sortBy: TeamSortField.school, ascending: true));
+      expect(asc.map((e) => e.teamNumber), equals(['96F', '224A', '1016X', '1A']));
+
+      final desc = List<TeamListEntry>.from(entries)
+        ..sort((a, b) => compareTeamEntries(a, b, sortBy: TeamSortField.school, ascending: false));
+      expect(desc.map((e) => e.teamNumber), equals(['1016X', '96F', '224A', '1A']));
+    });
+  });
 }

@@ -68,6 +68,135 @@ int compareTeamNumbers(String? a, String? b) {
   return strA.compareTo(strB);
 }
 
+/// Sort criteria available on the Team List screen.
+enum TeamSortField {
+  number,
+  rank,
+  name,
+  school,
+}
+
+/// Lightweight view model representing a team entry on the Team List screen,
+/// combining registered tournament metadata with incident note presence.
+class TeamListEntry {
+  final String teamNumber;
+  final String? teamName;
+  final String? school;
+  final int? rank;
+
+  const TeamListEntry({
+    required this.teamNumber,
+    this.teamName,
+    this.school,
+    this.rank,
+  });
+}
+
+/// Returns a trimmed custom display name for a team, or `null` if missing or
+/// equal to the default fallback (`"Team <teamNumber>"`).
+String? normalizeTeamDisplayName(String? teamName, String teamNumber) {
+  final trimmed = teamName?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  if (trimmed == 'Team ${teamNumber.trim()}') return null;
+  return trimmed;
+}
+
+/// Returns a trimmed school/organization name, or `null` if missing or blank.
+String? normalizeTeamSchool(String? organization) {
+  final trimmed = organization?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return trimmed;
+}
+
+/// Returns true if the given team matches [query] on team number, custom team
+/// name, or school/organization (case-insensitive substring match).
+bool matchesTeamSearch({
+  required String query,
+  required String teamNumber,
+  String? teamName,
+  String? school,
+}) {
+  final cleanQuery = query.trim().toLowerCase();
+  if (cleanQuery.isEmpty) return true;
+
+  if (teamNumber.trim().toLowerCase().contains(cleanQuery)) {
+    return true;
+  }
+
+  final displayName = normalizeTeamDisplayName(teamName, teamNumber);
+  if (displayName != null && displayName.toLowerCase().contains(cleanQuery)) {
+    return true;
+  }
+
+  final normalizedSchool = normalizeTeamSchool(school);
+  if (normalizedSchool != null &&
+      normalizedSchool.toLowerCase().contains(cleanQuery)) {
+    return true;
+  }
+
+  return false;
+}
+
+int _compareTextCaseInsensitive(String a, String b) {
+  final lowerCmp = a.toLowerCase().compareTo(b.toLowerCase());
+  if (lowerCmp != 0) return lowerCmp;
+  return a.compareTo(b);
+}
+
+/// Compares two [TeamListEntry] items according to [sortBy] and [ascending].
+///
+/// Missing metadata (unranked, unnamed, or missing school) is always placed
+/// after populated entries regardless of sort direction. Ties are broken
+/// deterministically using natural team number ordering.
+int compareTeamEntries(
+  TeamListEntry a,
+  TeamListEntry b, {
+  required TeamSortField sortBy,
+  bool ascending = true,
+}) {
+  switch (sortBy) {
+    case TeamSortField.number:
+      final cmp = compareTeamNumbers(a.teamNumber, b.teamNumber);
+      return ascending ? cmp : -cmp;
+
+    case TeamSortField.rank:
+      final rankA = a.rank;
+      final rankB = b.rank;
+      if (rankA == null && rankB == null) {
+        return compareTeamNumbers(a.teamNumber, b.teamNumber);
+      }
+      if (rankA == null) return 1;
+      if (rankB == null) return -1;
+      final cmp = rankA.compareTo(rankB);
+      if (cmp != 0) return ascending ? cmp : -cmp;
+      return compareTeamNumbers(a.teamNumber, b.teamNumber);
+
+    case TeamSortField.name:
+      final nameA = normalizeTeamDisplayName(a.teamName, a.teamNumber);
+      final nameB = normalizeTeamDisplayName(b.teamName, b.teamNumber);
+      if (nameA == null && nameB == null) {
+        return compareTeamNumbers(a.teamNumber, b.teamNumber);
+      }
+      if (nameA == null) return 1;
+      if (nameB == null) return -1;
+      final cmp = _compareTextCaseInsensitive(nameA, nameB);
+      if (cmp != 0) return ascending ? cmp : -cmp;
+      return compareTeamNumbers(a.teamNumber, b.teamNumber);
+
+    case TeamSortField.school:
+      final schoolA = normalizeTeamSchool(a.school);
+      final schoolB = normalizeTeamSchool(b.school);
+      if (schoolA == null && schoolB == null) {
+        return compareTeamNumbers(a.teamNumber, b.teamNumber);
+      }
+      if (schoolA == null) return 1;
+      if (schoolB == null) return -1;
+      final cmp = _compareTextCaseInsensitive(schoolA, schoolB);
+      if (cmp != 0) return ascending ? cmp : -cmp;
+      return compareTeamNumbers(a.teamNumber, b.teamNumber);
+  }
+}
+
 /// Comparator for Drift [Team] database entities by natural team number order.
 int compareTeams(Team a, Team b) {
   return compareTeamNumbers(a.teamNumber, b.teamNumber);

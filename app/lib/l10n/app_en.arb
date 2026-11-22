@@ -873,9 +873,56 @@
       }
     }
   },
-  "teamListSearchHint": "Search teams...",
+  "teamListSearchHint": "Search by team, name, or school...",
   "@teamListSearchHint": {
     "description": "Search input hint on the Team Histories screen"
+  },
+  "teamListSortByLabel": "Sort",
+  "@teamListSortByLabel": {
+    "description": "Accessible label prefix for team list sort options"
+  },
+  "teamListSortOptionNumber": "Team #",
+  "@teamListSortOptionNumber": {
+    "description": "Sort option label to sort teams by team number"
+  },
+  "teamListSortOptionRank": "Rank",
+  "@teamListSortOptionRank": {
+    "description": "Sort option label to sort teams by event ranking"
+  },
+  "teamListSortOptionName": "Name",
+  "@teamListSortOptionName": {
+    "description": "Sort option label to sort teams by team name"
+  },
+  "teamListSortOptionSchool": "School",
+  "@teamListSortOptionSchool": {
+    "description": "Sort option label to sort teams by school or organization"
+  },
+  "teamListSortFieldTooltip": "Sort by {field}",
+  "@teamListSortFieldTooltip": {
+    "description": "Tooltip on an inactive team sort chip",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "teamListSortFieldActiveAscendingTooltip": "Sorted by {field}, ascending. Tap to reverse.",
+  "@teamListSortFieldActiveAscendingTooltip": {
+    "description": "Tooltip on the active team sort chip when sorted ascending",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "teamListSortFieldActiveDescendingTooltip": "Sorted by {field}, descending. Tap to reverse.",
+  "@teamListSortFieldActiveDescendingTooltip": {
+    "description": "Tooltip on the active team sort chip when sorted descending",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
   },
   "teamListErrorLoading": "Error loading teams: {error}",
   "@teamListErrorLoading": {

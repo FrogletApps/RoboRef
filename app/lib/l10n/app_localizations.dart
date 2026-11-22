@@ -1043,8 +1043,56 @@ abstract class AppLocalizations {
   /// Search input hint on the Team Histories screen
   ///
   /// In en, this message translates to:
-  /// **'Search teams...'**
+  /// **'Search by team, name, or school...'**
   String get teamListSearchHint;
+
+  /// Accessible label prefix for team list sort options
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get teamListSortByLabel;
+
+  /// Sort option label to sort teams by team number
+  ///
+  /// In en, this message translates to:
+  /// **'Team #'**
+  String get teamListSortOptionNumber;
+
+  /// Sort option label to sort teams by event ranking
+  ///
+  /// In en, this message translates to:
+  /// **'Rank'**
+  String get teamListSortOptionRank;
+
+  /// Sort option label to sort teams by team name
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get teamListSortOptionName;
+
+  /// Sort option label to sort teams by school or organization
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get teamListSortOptionSchool;
+
+  /// Tooltip on an inactive team sort chip
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by {field}'**
+  String teamListSortFieldTooltip(String field);
+
+  /// Tooltip on the active team sort chip when sorted ascending
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by {field}, ascending. Tap to reverse.'**
+  String teamListSortFieldActiveAscendingTooltip(String field);
+
+  /// Tooltip on the active team sort chip when sorted descending
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by {field}, descending. Tap to reverse.'**
+  String teamListSortFieldActiveDescendingTooltip(String field);
 
   /// Error message when teams or notes fail to load
   ///

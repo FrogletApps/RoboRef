@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.11.22+301
+
+- **Team List Sorting & School Info**: Added sort options by team number, rank, team name, and school, plus school display and search in the team list.
+
 ## 2026.11.21+295
 
 - **Edit Notes**: Added the ability to edit saved incident notes and sync updates across connected devices.
