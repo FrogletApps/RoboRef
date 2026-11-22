@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:roboref/database/app_database.dart';
 import 'package:roboref/features/event_data/services/vex_events_client.dart';
@@ -879,6 +879,183 @@ void main() {
 
     expect(find.text('Q 2'), findsOneWidget);
     expect(find.text('Main Field'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('MatchScheduleScreen shows old schedule match with greyed out header "Q 1 (Old schedule)" when teams change after notes were attached', (WidgetTester tester) async {
+    await testDb.clearTournamentData('RE-V5RC-26-4487');
+
+    // Seed Q1 and Q2
+    await testDb.upsertMatches([
+      MatchesCompanion(
+        matchId: const Value('101'),
+        divisionId: const Value(1),
+        sku: const Value('RE-V5RC-26-4487'),
+        name: const Value('Qualification 1'),
+        field: const Value('Field 1'),
+        scheduledTime: const Value('09:00 AM'),
+        redTeamsJson: Value(jsonEncode(['1114A', '2056A'])),
+        blueTeamsJson: Value(jsonEncode(['217A', '148A'])),
+      ),
+      MatchesCompanion(
+        matchId: const Value('102'),
+        divisionId: const Value(1),
+        sku: const Value('RE-V5RC-26-4487'),
+        name: const Value('Qualification 2'),
+        field: const Value('Field 2'),
+        scheduledTime: const Value('09:05 AM'),
+        redTeamsJson: Value(jsonEncode(['3333C', '4444D'])),
+        blueTeamsJson: Value(jsonEncode(['5555E', '6666F'])),
+      ),
+    ]);
+
+    // Add a note to Q1
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await testDb.into(testDb.incidentNotes).insert(
+      IncidentNotesCompanion(
+        id: const Value('note-q1-old'),
+        sku: const Value('RE-V5RC-26-4487'),
+        teamNumber: const Value('1114A'),
+        matchId: const Value('Q 1'),
+        ruleCodesJson: Value(jsonEncode(['<SG1>'])),
+        severity: const Value('minor'),
+        notes: const Value('Note on original Q1 schedule'),
+        refereeName: const Value('Head Referee Jane'),
+        deviceId: const Value('test-device-uuid'),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    );
+
+    final mockHttpClient = MockClient((request) async {
+      if (request.url.path == '/api/vexevents/events') {
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 4487,
+                'sku': 'RE-V5RC-26-4487',
+                'name': 'Regional Championship',
+                'program': {'code': 'V5RC'},
+                'divisions': [
+                  {'id': 1, 'name': 'Default Division'}
+                ]
+              }
+            ]
+          }),
+          200,
+        );
+      } else if (request.url.path.contains('/matches')) {
+        return http.Response(
+          jsonEncode({
+            'data': [
+              {
+                'id': 201,
+                'name': 'Q1',
+                'field': 'Field 1',
+                'scheduled': '09:00 AM',
+                'alliances': [
+                  {
+                    'color': 'red',
+                    'teams': [
+                      {'team': {'name': '1114A'}},
+                      {'team': {'name': '9999Z'}},
+                    ]
+                  },
+                  {
+                    'color': 'blue',
+                    'teams': [
+                      {'team': {'name': '217A'}},
+                      {'team': {'name': '148A'}},
+                    ]
+                  }
+                ]
+              },
+              {
+                'id': 202,
+                'name': 'Q2',
+                'field': 'Field 2',
+                'scheduled': '09:05 AM',
+                'alliances': [
+                  {
+                    'color': 'red',
+                    'teams': [
+                      {'team': {'name': '7777G'}},
+                      {'team': {'name': '4444D'}},
+                    ]
+                  },
+                  {
+                    'color': 'blue',
+                    'teams': [
+                      {'team': {'name': '5555E'}},
+                      {'team': {'name': '6666F'}},
+                    ]
+                  }
+                ]
+              }
+            ],
+            'meta': {'last_page': 1}
+          }),
+          200,
+        );
+      }
+      return http.Response('Not Found', 404);
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          databaseProvider.overrideWithValue(testDb),
+          vexEventsClientProvider.overrideWithValue(
+            VexEventsClient(
+              client: mockHttpClient,
+              serverUrl: 'http://127.0.0.1:8080',
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          home: MatchScheduleScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Q 1'), findsOneWidget);
+    expect(find.text('Q 1 (Old schedule)'), findsNothing);
+    expect(find.text('Q 2'), findsOneWidget);
+
+    // Tap Refresh button in AppBar
+    await tester.tap(find.byTooltip('Refresh Matches'));
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+
+    // Old Q1 with notes should remain as "Q 1 (Old schedule)" with greyed out header,
+    // new Q1 should show as "Q 1", and Q2 (no notes) should be updated in-place without duplication.
+    final oldQ1Finder = find.text('Q 1 (Old schedule)');
+    final newQ1Finder = find.text('Q 1');
+    final q2Finder = find.text('Q 2');
+
+    expect(oldQ1Finder, findsOneWidget);
+    expect(newQ1Finder, findsOneWidget);
+    expect(q2Finder, findsOneWidget);
+    expect(find.text('Q 2 (Old schedule)'), findsNothing);
+
+    final oldQ1Text = tester.widget<Text>(oldQ1Finder);
+    final newQ1Text = tester.widget<Text>(newQ1Finder);
+    expect(oldQ1Text.style?.color, equals(Colors.grey));
+    expect(newQ1Text.style?.color, isNull);
+
+    // Both old team (2056A) and new team (9999Z) for Q1 are visible, while Q2's old team (3333C) was replaced by 7777G
+    expect(find.text('2056A'), findsOneWidget);
+    expect(find.text('9999Z'), findsOneWidget);
+    expect(find.text('3333C'), findsNothing);
+    expect(find.text('7777G'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

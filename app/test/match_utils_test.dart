@@ -527,4 +527,43 @@ void main() {
       expect(res.time, 'TBD');
     });
   });
+
+  group('Old schedule match utilities', () {
+    test('detects, strips, and marks old schedule match names', () {
+      expect(isOldScheduleMatch('Qualification 1'), isFalse);
+      expect(isOldScheduleMatch('Qualification 1 (Old schedule)'), isTrue);
+      expect(isOldScheduleMatch('Q1 (Old schedule)'), isTrue);
+      expect(isOldScheduleMatch('Q 1 (old schedule)'), isTrue);
+
+      expect(stripOldScheduleSuffix('Qualification 1 (Old schedule)'), 'Qualification 1');
+      expect(stripOldScheduleSuffix('Q1 (Old schedule)'), 'Q1');
+      expect(stripOldScheduleSuffix('Q 1'), 'Q 1');
+
+      expect(markMatchAsOldSchedule('Qualification 1'), 'Qualification 1 (Old schedule)');
+      expect(markMatchAsOldSchedule('Qualification 1 (Old schedule)'), 'Qualification 1 (Old schedule)');
+    });
+
+    test('normalizeMatchName, formatMatchShortName, and getMatchShortCode preserve (Old schedule) suffix', () {
+      expect(normalizeMatchName('Q1 (Old schedule)'), 'Qualification 1 (Old schedule)');
+      expect(normalizeMatchName('Qualification 1 (Old schedule)'), 'Qualification 1 (Old schedule)');
+      expect(formatMatchShortName('Qualification 1 (Old schedule)'), 'Q 1 (Old schedule)');
+      expect(formatMatchShortName('Q1 (Old schedule)'), 'Q 1 (Old schedule)');
+      expect(getMatchShortCode('Qualification 1 (Old schedule)'), 'Q1 (Old schedule)');
+      expect(getMatchShortCode('Q1 (Old schedule)'), 'Q1 (Old schedule)');
+    });
+
+    test('compareMatchNames sorts old schedule match immediately before the current match of the same number', () {
+      final list = [
+        'Qualification 2',
+        'Qualification 1',
+        'Qualification 1 (Old schedule)',
+      ];
+      list.sort(compareMatchNames);
+      expect(list, [
+        'Qualification 1 (Old schedule)',
+        'Qualification 1',
+        'Qualification 2',
+      ]);
+    });
+  });
 }

@@ -628,6 +628,161 @@ void main() {
       expect(matches.first.divisionId, equals(2));
       expect(matches.first.name, equals('Qualification 1'));
     });
+
+    test('fetchTournamentData does not duplicate matches on repeated refreshes and preserves old schedule match if notes are attached', () async {
+      int fetchCall = 0;
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/vexevents/events') {
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 36495,
+                  'sku': 'RE-VRC-18-6495',
+                  'name': 'Torneo Internacional VEX Robotics',
+                  'program': {'code': 'V5RC'},
+                  'season': {'name': '2026-2027'},
+                  'divisions': [
+                    {'id': 1, 'name': 'Division 1'}
+                  ]
+                }
+              ]
+            }),
+            200,
+          );
+        } else if (request.url.path == '/api/vexevents/events/36495/divisions/1/matches') {
+          fetchCall++;
+          // Call 1 & Call 2 have identical teams (even though id changed from 501 to 601).
+          // Call 3 has updated teams for both Q1 and Q2.
+          final isUpdatedSchedule = fetchCall >= 3;
+          final baseId = fetchCall * 100;
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': baseId + 1,
+                  'name': 'Q1',
+                  'field': 'Field 1',
+                  'scheduled': '2026-11-21T09:00:00Z',
+                  'alliances': [
+                    {
+                      'color': 'red',
+                      'score': 0,
+                      'teams': [
+                        {'team': {'name': '1234A'}},
+                        {'team': {'name': isUpdatedSchedule ? '9999Z' : '2222B'}},
+                      ]
+                    },
+                    {
+                      'color': 'blue',
+                      'score': 0,
+                      'teams': [
+                        {'team': {'name': '5678B'}}
+                      ]
+                    }
+                  ]
+                },
+                {
+                  'id': baseId + 2,
+                  'name': 'Q2',
+                  'field': 'Field 2',
+                  'scheduled': '2026-11-21T09:05:00Z',
+                  'alliances': [
+                    {
+                      'color': 'red',
+                      'score': 0,
+                      'teams': [
+                        {'team': {'name': isUpdatedSchedule ? '8888Y' : '3333C'}}
+                      ]
+                    },
+                    {
+                      'color': 'blue',
+                      'score': 0,
+                      'teams': [
+                        {'team': {'name': '4444D'}}
+                      ]
+                    }
+                  ]
+                }
+              ],
+              'meta': {'last_page': 1}
+            }),
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final client = VexEventsClient(
+        client: mockClient,
+        serverUrl: 'http://127.0.0.1:8080',
+      );
+
+      // 1. Initial fetch loads 2 matches
+      final res1 = await client.fetchTournamentData(
+        sku: 'RE-VRC-18-6495',
+        db: db,
+        fetchTeams: false,
+        fetchMatches: true,
+        forceRefresh: true,
+      );
+      expect(res1.success, isTrue);
+      expect(res1.matchesCount, equals(2));
+      expect((await db.getMatchesForSku('RE-VRC-18-6495')).length, equals(2));
+
+      // 2. Second fetch with identical data (but new match IDs) results in 0 changes and no duplicates
+      final res2 = await client.fetchTournamentData(
+        sku: 'RE-VRC-18-6495',
+        db: db,
+        fetchTeams: false,
+        fetchMatches: true,
+        forceRefresh: true,
+      );
+      expect(res2.success, isTrue);
+      expect(res2.matchesCount, equals(0));
+      expect((await db.getMatchesForSku('RE-VRC-18-6495')).length, equals(2));
+
+      // Attach an incident note to Q1 only
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.into(db.incidentNotes).insert(
+        IncidentNotesCompanion(
+          id: const Value('note-1'),
+          sku: const Value('RE-VRC-18-6495'),
+          teamNumber: const Value('1234A'),
+          matchId: const Value('Q 1'),
+          ruleCodesJson: const Value('["<G1>"]'),
+          severity: const Value('minor'),
+          notes: const Value('Warning in Q1'),
+          refereeName: const Value('Head Ref'),
+          deviceId: const Value('dev-1'),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+
+      // 3. Third fetch has changed teams for both Q1 and Q2:
+      // Q1 (with notes) should keep old match as "Qualification 1 (Old schedule)" and add new "Qualification 1".
+      // Q2 (without notes) should be replaced in-place with the new teams.
+      final res3 = await client.fetchTournamentData(
+        sku: 'RE-VRC-18-6495',
+        db: db,
+        fetchTeams: false,
+        fetchMatches: true,
+        forceRefresh: true,
+      );
+      expect(res3.success, isTrue);
+      expect(res3.matchesCount, equals(2));
+
+      final matchesAfterChange = await db.getMatchesForSku('RE-VRC-18-6495');
+      expect(matchesAfterChange.map((m) => m.name).toList(), [
+        'Qualification 1 (Old schedule)',
+        'Qualification 1',
+        'Qualification 2',
+      ]);
+      expect(jsonDecode(matchesAfterChange[0].redTeamsJson), ['1234A', '2222B']);
+      expect(jsonDecode(matchesAfterChange[1].redTeamsJson), ['1234A', '9999Z']);
+      expect(jsonDecode(matchesAfterChange[2].redTeamsJson), ['8888Y']);
+    });
   });
 }
 
