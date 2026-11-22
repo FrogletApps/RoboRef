@@ -305,7 +305,7 @@ class _TeamListScreenState extends State<TeamListScreen> {
                                           children: [
                                             ExcludeSemantics(
                                               child: Icon(
-                                                Icons.school_outlined,
+                                                Icons.group_outlined,
                                                 size: 14,
                                                 color: colorScheme.onSurfaceVariant,
                                               ),

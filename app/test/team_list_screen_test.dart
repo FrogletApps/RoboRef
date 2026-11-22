@@ -219,7 +219,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Northside High School'), findsOneWidget);
-    expect(find.byIcon(Icons.school_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.group_outlined), findsOneWidget);
 
     // Open team history bottom sheet and verify school is displayed there too
     await tester.tap(find.text('1A'));
