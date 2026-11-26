@@ -46,6 +46,15 @@ void main() {
       );
       expect(buildHealthCheckUri(''), isNull);
       expect(buildHealthCheckUri('   '), isNull);
+      expect(
+        buildVersionUri('https://test.roboref.app')?.toString(),
+        equals('https://test.roboref.app/api/version'),
+      );
+      expect(
+        buildVersionUri('https://test.roboref.app/api/version')?.toString(),
+        equals('https://test.roboref.app/api/version'),
+      );
+      expect(buildVersionUri(''), isNull);
     });
 
     test('resolveDefaultServerUrl returns http://localhost:8080 for local environment', () {
@@ -212,6 +221,63 @@ void main() {
       expect(container.read(syncSettingsProvider).connectionStatus, equals(ServerConnectionStatus.connectedCloud));
       expect(container.read(syncSettingsProvider).lastConnectionSuccess, isTrue);
       expect(container.read(syncSettingsProvider).lastConnectionMessage, contains('Cloud Server'));
+    });
+
+    test('parses and sanitizes server name and version from /api/health and falls back to /api/version', () async {
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/health') {
+          return http.Response(
+            '{"status":"ok","server":"RoboApps Server (Test)\\u202E\\n","version":"v2026.11.26+1\\r\\n"}',
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(syncSettingsProvider.notifier);
+      final result = await notifier.checkServerHealth('https://test.roboref.app');
+
+      expect(result.isSuccess, isTrue);
+      expect(result.serverName, equals('RoboApps Server (Test)'));
+      expect(result.serverVersion, equals('v2026.11.26+1'));
+      expect(container.read(syncSettingsProvider).serverName, equals('RoboApps Server (Test)'));
+      expect(container.read(syncSettingsProvider).serverVersion, equals('v2026.11.26+1'));
+
+      // Fallback to /api/version when /api/health only returns {"status":"ok"}
+      final fallbackClient = MockClient((request) async {
+        if (request.url.path == '/api/health') {
+          return http.Response('{"status":"ok"}', 200);
+        }
+        if (request.url.path == '/api/version') {
+          return http.Response(
+            '{"server":"Venue Pi Server","version":"v2026.11.26+9"}',
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final fallbackContainer = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsHttpClientProvider.overrideWithValue(fallbackClient),
+        ],
+      );
+      addTearDown(fallbackContainer.dispose);
+      final fallbackResult = await fallbackContainer
+          .read(syncSettingsProvider.notifier)
+          .checkServerHealth('http://roboref.local:8080');
+
+      expect(fallbackResult.isSuccess, isTrue);
+      expect(fallbackResult.serverName, equals('Venue Pi Server'));
+      expect(fallbackResult.serverVersion, equals('v2026.11.26+9'));
     });
 
     test('handles HTTP 500 error response gracefully', () async {
@@ -931,6 +997,8 @@ void main() {
 
       expect(find.text('About RoboRef'), findsOneWidget);
       expect(find.text('Current Version'), findsOneWidget);
+      expect(find.text('RELEASE'), findsNothing);
+      expect(find.text('RoboRef Version:'), findsOneWidget);
       expect(find.text('v2026.10.11+157'), findsOneWidget);
       expect(find.text('Copy'), findsOneWidget);
       expect(find.widgetWithText(ListTile, 'Change Log'), findsOneWidget);
@@ -994,6 +1062,76 @@ void main() {
       expect(find.text('Version copied to clipboard'), findsOneWidget);
     });
 
+    testWidgets('displays sanitized server name and copyable server version below RoboRef Version', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final mockClient = MockClient((request) async {
+        if (request.url.path == '/api/health' || request.url.path == '/api/version') {
+          return http.Response(
+            '{"status":"ok","server":"RoboApps Server (Test)\\u202E\\n","version":"\\u001B[31mv2026.11.26+1\\u001B[0m\\n"}',
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'server_url': 'https://test.roboref.app',
+      });
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: SettingsScreen(overrideVersion: '2026.11.26+303'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final appLabelFinder = find.text('RoboRef Version:');
+      final appVersionFinder = find.text('v2026.11.26+303');
+      final serverNameFinder = find.text('RoboApps Server (Test)');
+      final serverVersionFinder = find.text('v2026.11.26+1');
+      final serverCopyBtnFinder = find.byKey(const ValueKey('copy_server_version_button'));
+
+      expect(find.text('RELEASE'), findsNothing);
+      expect(appLabelFinder, findsOneWidget);
+      expect(appVersionFinder, findsOneWidget);
+      expect(serverNameFinder, findsOneWidget);
+      expect(serverVersionFinder, findsOneWidget);
+      expect(serverCopyBtnFinder, findsOneWidget);
+
+      // Server name & version appear below RoboRef Version
+      expect(
+        tester.getTopLeft(appLabelFinder).dy,
+        lessThan(tester.getTopLeft(serverNameFinder).dy),
+      );
+      expect(
+        tester.getTopLeft(appVersionFinder).dy,
+        lessThan(tester.getTopLeft(serverVersionFinder).dy),
+      );
+
+      // Copy server version button works
+      await tester.tap(serverCopyBtnFinder);
+      await tester.pump();
+      expect(find.text('Server version copied to clipboard'), findsOneWidget);
+    });
+
     testWidgets('adapts version card layout responsively across wide, medium, and small screens (DPR 2.75, width < 330px)', (tester) async {
       addTearDown(() {
         tester.view.resetPhysicalSize();
@@ -1008,8 +1146,9 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
         ],
       );
+      addTearDown(container.dispose);
 
-      // 1. Wide screen (800px) - Single line layout: RELEASE + Version on left, Copy button on right
+      // 1. Wide screen (800px) - Single line layout: "RoboRef Version:" to the left of version + Copy button
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
 
@@ -1024,52 +1163,53 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
 
-      final releaseFinder = find.text('RELEASE');
+      expect(find.text('RELEASE'), findsNothing);
+      final labelFinder = find.text('RoboRef Version:');
       final versionFinder = find.text('v2026.10.16+167');
-      final copyBtnFinder = find.widgetWithText(TextButton, 'Copy');
+      final copyBtnFinder = find.byKey(const ValueKey('copy_app_version_button'));
 
-      expect(releaseFinder, findsOneWidget);
+      expect(labelFinder, findsOneWidget);
       expect(versionFinder, findsOneWidget);
       expect(copyBtnFinder, findsOneWidget);
 
-      final releasePosWide = tester.getTopLeft(releaseFinder);
+      final labelPosWide = tester.getTopLeft(labelFinder);
       final versionPosWide = tester.getTopLeft(versionFinder);
       final copyPosWide = tester.getTopLeft(copyBtnFinder);
 
-      // On wide screen, RELEASE and version are horizontally arranged next to each other on the same line
-      expect((releasePosWide.dy - versionPosWide.dy).abs(), lessThan(10.0));
-      expect(releasePosWide.dx, lessThan(versionPosWide.dx));
+      // On wide screen, RoboRef Version: and version are horizontally arranged on the same row
+      expect((labelPosWide.dy - versionPosWide.dy).abs(), lessThan(15.0));
+      expect(labelPosWide.dx, lessThan(versionPosWide.dx));
       expect(versionPosWide.dx, lessThan(copyPosWide.dx));
 
-      // 2. Medium screen (500px in test environment with Ahem font) - RELEASE text goes above version / copy row
+      // 2. Medium screen (500px in test environment with Ahem font) - Label goes above version / copy row
       tester.view.physicalSize = const Size(500, 1200);
       tester.view.devicePixelRatio = 1.0;
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
 
-      final releasePosMedium = tester.getTopLeft(releaseFinder);
+      final labelPosMedium = tester.getTopLeft(labelFinder);
       final versionPosMedium = tester.getTopLeft(versionFinder);
       final copyPosMedium = tester.getTopLeft(copyBtnFinder);
 
-      // RELEASE is above version and copy button
-      expect(releasePosMedium.dy, lessThan(versionPosMedium.dy));
+      // Label is above version and copy button
+      expect(labelPosMedium.dy, lessThan(versionPosMedium.dy));
       // Version and copy button share the same row
-      expect((versionPosMedium.dy - copyPosMedium.dy).abs(), lessThan(10.0));
+      expect((versionPosMedium.dy - copyPosMedium.dy).abs(), lessThan(15.0));
       expect(versionPosMedium.dx, lessThan(copyPosMedium.dx));
 
       // 3. Small screen with DPR 2.75 and horizontal resolution < 330px (e.g. 320px)
-      // RELEASE above version, and copy button on another line below that
+      // Label above version, and copy button on another line below that
       tester.view.physicalSize = const Size(320 * 2.75, 1200 * 2.75);
       tester.view.devicePixelRatio = 2.75;
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
 
-      final releasePosSmall = tester.getTopLeft(releaseFinder);
+      final labelPosSmall = tester.getTopLeft(labelFinder);
       final versionPosSmall = tester.getTopLeft(versionFinder);
       final copyPosSmall = tester.getTopLeft(copyBtnFinder);
 
-      // Stage 3 vertical hierarchy: RELEASE < version < Copy button
-      expect(releasePosSmall.dy, lessThan(versionPosSmall.dy));
+      // Stage 3 vertical hierarchy: Label < version < Copy button
+      expect(labelPosSmall.dy, lessThan(versionPosSmall.dy));
       expect(versionPosSmall.dy, lessThan(copyPosSmall.dy));
 
       // Tap Copy button in small screen layout and verify copying works

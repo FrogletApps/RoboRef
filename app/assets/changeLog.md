@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026.11.26+303
+
+- **Settings Version Display**: Replaced the `RELEASE` badge with `RoboRef Version:` and added the connected server's name and copyable version underneath.
+
 ## 2026.11.22+301
 
 - **Team List Sorting & School Info**: Added sort options by team number, rank, team name, and school, plus school display and search in the team list.

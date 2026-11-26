@@ -20,10 +20,6 @@
   "@envBadgeTest": {
     "description": "Badge label for test environment"
   },
-  "envBadgeRelease": "RELEASE",
-  "@envBadgeRelease": {
-    "description": "Badge label for release version"
-  },
   "commonAll": "All",
   "@commonAll": {
     "description": "Filter chip label for showing all items"
@@ -1520,6 +1516,22 @@
   "settingsVersionCopied": "Version copied to clipboard",
   "@settingsVersionCopied": {
     "description": "Snackbar message when the app version string is copied"
+  },
+  "settingsRoboRefVersionLabel": "RoboRef Version:",
+  "@settingsRoboRefVersionLabel": {
+    "description": "Label displayed to the left of the RoboRef application version"
+  },
+  "settingsServerVersionFallbackLabel": "Server Version:",
+  "@settingsServerVersionFallbackLabel": {
+    "description": "Fallback label when the server name has not been received"
+  },
+  "settingsServerVersionUnavailable": "Unavailable",
+  "@settingsServerVersionUnavailable": {
+    "description": "Placeholder text shown when the server version cannot be retrieved"
+  },
+  "settingsServerVersionCopied": "Server version copied to clipboard",
+  "@settingsServerVersionCopied": {
+    "description": "Snackbar message when the server version string is copied"
   },
   "settingsCurrentVersionTitle": "Current Version",
   "@settingsCurrentVersionTitle": {

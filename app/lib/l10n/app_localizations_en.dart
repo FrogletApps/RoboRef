@@ -26,9 +26,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get envBadgeTest => 'TEST';
 
   @override
-  String get envBadgeRelease => 'RELEASE';
-
-  @override
   String get commonAll => 'All';
 
   @override
@@ -1070,6 +1067,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsVersionCopied => 'Version copied to clipboard';
+
+  @override
+  String get settingsRoboRefVersionLabel => 'RoboRef Version:';
+
+  @override
+  String get settingsServerVersionFallbackLabel => 'Server Version:';
+
+  @override
+  String get settingsServerVersionUnavailable => 'Unavailable';
+
+  @override
+  String get settingsServerVersionCopied =>
+      'Server version copied to clipboard';
 
   @override
   String get settingsCurrentVersionTitle => 'Current Version';

@@ -125,12 +125,6 @@ abstract class AppLocalizations {
   /// **'TEST'**
   String get envBadgeTest;
 
-  /// Badge label for release version
-  ///
-  /// In en, this message translates to:
-  /// **'RELEASE'**
-  String get envBadgeRelease;
-
   /// Filter chip label for showing all items
   ///
   /// In en, this message translates to:
@@ -1825,6 +1819,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version copied to clipboard'**
   String get settingsVersionCopied;
+
+  /// Label displayed to the left of the RoboRef application version
+  ///
+  /// In en, this message translates to:
+  /// **'RoboRef Version:'**
+  String get settingsRoboRefVersionLabel;
+
+  /// Fallback label when the server name has not been received
+  ///
+  /// In en, this message translates to:
+  /// **'Server Version:'**
+  String get settingsServerVersionFallbackLabel;
+
+  /// Placeholder text shown when the server version cannot be retrieved
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get settingsServerVersionUnavailable;
+
+  /// Snackbar message when the server version string is copied
+  ///
+  /// In en, this message translates to:
+  /// **'Server version copied to clipboard'**
+  String get settingsServerVersionCopied;
 
   /// Title on the version card in Settings
   ///

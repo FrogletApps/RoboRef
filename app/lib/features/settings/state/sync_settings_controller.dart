@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../core/l10n/l10n.dart';
+import '../../../core/utils/server_info_sanitizer.dart';
 import '../../../core/utils/sku_utils.dart';
 
 enum ServerConnectionStatus {
@@ -20,6 +21,8 @@ class ServerHealthResult {
   final String message;
   final int? statusCode;
   final Duration? latency;
+  final String? serverName;
+  final String? serverVersion;
 
   const ServerHealthResult({
     required this.isSuccess,
@@ -27,6 +30,8 @@ class ServerHealthResult {
     required this.message,
     this.statusCode,
     this.latency,
+    this.serverName,
+    this.serverVersion,
   });
 }
 
@@ -39,6 +44,8 @@ String normalizeServerBaseUrl(String rawUrl) {
   url = url.replaceAll(RegExp(r'/+$'), '');
   if (url.endsWith('/api/health')) {
     url = url.substring(0, url.length - '/api/health'.length);
+  } else if (url.endsWith('/api/version')) {
+    url = url.substring(0, url.length - '/api/version'.length);
   }
   return url;
 }
@@ -47,6 +54,12 @@ Uri? buildHealthCheckUri(String rawUrl) {
   final base = normalizeServerBaseUrl(rawUrl);
   if (base.isEmpty) return null;
   return Uri.tryParse('$base/api/health');
+}
+
+Uri? buildVersionUri(String rawUrl) {
+  final base = normalizeServerBaseUrl(rawUrl);
+  if (base.isEmpty) return null;
+  return Uri.tryParse('$base/api/version');
 }
 
 /// Resolves the default sync server URL based on persistent storage or active environment.
@@ -101,6 +114,8 @@ String resolveDefaultServerUrl({
 }
 
 class SyncSettingsState {
+  static const Object _unset = Object();
+
   final String currentSku;
   final String refereeName;
   final String deviceId;
@@ -112,6 +127,8 @@ class SyncSettingsState {
   final String? lastConnectionMessage;
   final bool? lastConnectionSuccess;
   final bool experimentalFeaturesEnabled;
+  final String? serverName;
+  final String? serverVersion;
 
   SyncSettingsState({
     required this.currentSku,
@@ -125,6 +142,8 @@ class SyncSettingsState {
     this.lastConnectionMessage,
     this.lastConnectionSuccess,
     this.experimentalFeaturesEnabled = false,
+    this.serverName,
+    this.serverVersion,
   });
 
   SyncSettingsState copyWith({
@@ -139,6 +158,8 @@ class SyncSettingsState {
     String? lastConnectionMessage,
     bool? lastConnectionSuccess,
     bool? experimentalFeaturesEnabled,
+    Object? serverName = _unset,
+    Object? serverVersion = _unset,
   }) {
     return SyncSettingsState(
       currentSku: currentSku ?? this.currentSku,
@@ -153,6 +174,12 @@ class SyncSettingsState {
       lastConnectionSuccess: lastConnectionSuccess ?? this.lastConnectionSuccess,
       experimentalFeaturesEnabled:
           experimentalFeaturesEnabled ?? this.experimentalFeaturesEnabled,
+      serverName: identical(serverName, _unset)
+          ? this.serverName
+          : serverName as String?,
+      serverVersion: identical(serverVersion, _unset)
+          ? this.serverVersion
+          : serverVersion as String?,
     );
   }
 }
@@ -216,7 +243,13 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
       environment: env,
       sku: cleanSku,
     );
-    state = state.copyWith(currentSku: cleanSku, serverUrl: newServerUrl);
+    final serverChanged = newServerUrl.trim() != state.serverUrl.trim();
+    state = state.copyWith(
+      currentSku: cleanSku,
+      serverUrl: newServerUrl,
+      serverName: serverChanged ? null : state.serverName,
+      serverVersion: serverChanged ? null : state.serverVersion,
+    );
     checkServerHealth();
   }
 
@@ -232,7 +265,12 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
     }
     _prefs?.setString('server_url', url);
     if (targetSku.isEmpty || targetSku == state.currentSku.trim().toUpperCase()) {
-      state = state.copyWith(serverUrl: url);
+      final serverChanged = url.trim() != state.serverUrl.trim();
+      state = state.copyWith(
+        serverUrl: url,
+        serverName: serverChanged ? null : state.serverName,
+        serverVersion: serverChanged ? null : state.serverVersion,
+      );
       checkServerHealth();
     }
   }
@@ -252,6 +290,36 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
       lastError: error,
       lastSyncTime: syncing ? state.lastSyncTime : DateTime.now().toIso8601String(),
     );
+  }
+
+  Future<ServerInfo?> fetchServerInfo([String? targetUrlOverride]) async {
+    if (!ref.mounted) return null;
+    final targetUrl = (targetUrlOverride ?? state.serverUrl).trim();
+    if (targetUrl.isEmpty) return null;
+
+    final versionUri = buildVersionUri(targetUrl);
+    if (versionUri == null) return null;
+
+    try {
+      final client = httpClient ?? http.Client();
+      final res = await client.get(versionUri).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final info = parseServerInfoFromResponse(
+          body: res.body,
+          headers: res.headers,
+        );
+        if (ref.mounted && state.serverUrl.trim() == targetUrl && info.hasAny) {
+          state = state.copyWith(
+            serverName: info.serverName ?? state.serverName,
+            serverVersion: info.serverVersion ?? state.serverVersion,
+          );
+        }
+        return info;
+      }
+    } catch (_) {
+      // Ignore network errors on passive server info refresh
+    }
+    return null;
   }
 
   Future<ServerHealthResult> checkServerHealth([String? testUrl]) async {
@@ -276,6 +344,8 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
           connectionStatus: ServerConnectionStatus.unreachable,
           lastConnectionMessage: l10n.errorServerUrlIsEmpty,
           lastConnectionSuccess: false,
+          serverName: null,
+          serverVersion: null,
         );
       }
       return result;
@@ -292,6 +362,8 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
         connectionStatus: ServerConnectionStatus.unreachable,
         lastConnectionMessage: l10n.errorInvalidServerUrlFormat,
         lastConnectionSuccess: false,
+        serverName: null,
+        serverVersion: null,
       );
       return result;
     }
@@ -320,11 +392,41 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
         final latencyMs = stopwatch.elapsedMilliseconds;
         final msg = l10n.statusConnectedToServer(serverType, latencyMs);
 
+        var serverInfo = parseServerInfoFromResponse(
+          body: res.body,
+          headers: res.headers,
+        );
+        if (serverInfo.serverName == null || serverInfo.serverVersion == null) {
+          final versionUri = buildVersionUri(targetUrl);
+          if (versionUri != null) {
+            try {
+              final versionRes = await client
+                  .get(versionUri)
+                  .timeout(const Duration(seconds: 3));
+              if (versionRes.statusCode == 200) {
+                final versionInfo = parseServerInfoFromResponse(
+                  body: versionRes.body,
+                  headers: versionRes.headers,
+                );
+                serverInfo = ServerInfo(
+                  serverName: serverInfo.serverName ?? versionInfo.serverName,
+                  serverVersion:
+                      serverInfo.serverVersion ?? versionInfo.serverVersion,
+                );
+              }
+            } catch (_) {
+              // Optional /api/version fallback failed; keep whatever /api/health provided
+            }
+          }
+        }
+
         if (ref.mounted) {
           state = state.copyWith(
             connectionStatus: status,
             lastConnectionMessage: msg,
             lastConnectionSuccess: true,
+            serverName: serverInfo.serverName,
+            serverVersion: serverInfo.serverVersion,
           );
         }
 
@@ -334,6 +436,8 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
           message: msg,
           statusCode: res.statusCode,
           latency: stopwatch.elapsed,
+          serverName: serverInfo.serverName,
+          serverVersion: serverInfo.serverVersion,
         );
       } else {
         final msg = l10n.errorServerReachableHttpStatus(res.statusCode);
@@ -342,6 +446,8 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
             connectionStatus: ServerConnectionStatus.unreachable,
             lastConnectionMessage: msg,
             lastConnectionSuccess: false,
+            serverName: null,
+            serverVersion: null,
           );
         }
         return ServerHealthResult(
@@ -373,6 +479,8 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
           connectionStatus: ServerConnectionStatus.unreachable,
           lastConnectionMessage: errorMsg,
           lastConnectionSuccess: false,
+          serverName: null,
+          serverVersion: null,
         );
       }
 
