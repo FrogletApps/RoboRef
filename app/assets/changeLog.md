@@ -10,6 +10,7 @@
 
 ## 2026.11.21+295
 
+- **Match Schedule Refresh**: Fix duplicate matches on refresh and keep changed matches with notes as `(Old schedule)`.
 - **Edit Notes**: Added the ability to edit saved incident notes and sync updates across connected devices.
 - **Web Path URLs**: Enabled clean path URLs (e.g. `/privacy`, `/changelog`, `/settings`, `/events`, `/share`, `/rules`, and `/event/<SKU>`) for direct web access and navigation.
 - **Fix duplicate matches**: Fix for duplicate matches appearing on an event after a refresh.

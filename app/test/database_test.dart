@@ -391,4 +391,210 @@ Q2,Field 1,09:10 AM,1002B,1004D
     expect(teams.isEmpty, true);
     expect(matches.isEmpty, true);
   });
+
+  test('upsertMatches does not duplicate matches when refreshed with identical data even if matchId changes', () async {
+    const sku = 'RE-V5RC-26-REFRESH-SAME';
+
+    final count1 = await db.upsertMatches([
+      const MatchesCompanion(
+        matchId: Value('101'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 1'),
+        field: Value('Field 1'),
+        scheduledTime: Value('09:00 AM'),
+        redTeamsJson: Value('["1111A","2222B"]'),
+        blueTeamsJson: Value('["3333C","4444D"]'),
+      ),
+      const MatchesCompanion(
+        matchId: Value('102'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 2'),
+        field: Value('Field 2'),
+        scheduledTime: Value('09:05 AM'),
+        redTeamsJson: Value('["5555E","6666F"]'),
+        blueTeamsJson: Value('["7777G","8888H"]'),
+      ),
+    ]);
+    expect(count1, 2);
+
+    // Refresh with identical match data (even with reordered teams within an alliance and new API matchIds)
+    final count2 = await db.upsertMatches([
+      const MatchesCompanion(
+        matchId: Value('201'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 1'),
+        field: Value('Field 1'),
+        scheduledTime: Value('09:00 AM'),
+        redTeamsJson: Value('["2222B","1111A"]'),
+        blueTeamsJson: Value('["3333C","4444D"]'),
+      ),
+      const MatchesCompanion(
+        matchId: Value('202'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 2'),
+        field: Value('Field 2'),
+        scheduledTime: Value('09:05 AM'),
+        redTeamsJson: Value('["5555E","6666F"]'),
+        blueTeamsJson: Value('["7777G","8888H"]'),
+      ),
+    ]);
+    expect(count2, 0);
+
+    final matches = await db.getMatchesForSku(sku);
+    expect(matches.length, 2);
+    expect(matches[0].name, 'Qualification 1');
+    expect(matches[1].name, 'Qualification 2');
+  });
+
+  test('upsertMatches replaces match with most recent version when teams change and no notes are attached', () async {
+    const sku = 'RE-V5RC-26-REFRESH-UPDATE';
+
+    await db.upsertMatches([
+      const MatchesCompanion(
+        matchId: Value('101'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 1'),
+        field: Value('Field 1'),
+        scheduledTime: Value('09:00 AM'),
+        redTeamsJson: Value('["1111A","2222B"]'),
+        blueTeamsJson: Value('["3333C","4444D"]'),
+      ),
+    ]);
+
+    // Refresh with updated teams and new API matchId
+    final updatedCount = await db.upsertMatches([
+      const MatchesCompanion(
+        matchId: Value('501'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 1'),
+        field: Value('Field 1'),
+        scheduledTime: Value('09:00 AM'),
+        redTeamsJson: Value('["1111A","9999Z"]'),
+        blueTeamsJson: Value('["3333C","4444D"]'),
+      ),
+    ]);
+
+    expect(updatedCount, 1);
+    final matches = await db.getMatchesForSku(sku);
+    expect(matches.length, 1);
+    expect(matches.single.matchId, '501');
+    expect(matches.single.name, 'Qualification 1');
+    expect(jsonDecode(matches.single.redTeamsJson), ['1111A', '9999Z']);
+  });
+
+  test('upsertMatches preserves old match as (Old schedule) when match has notes attached and teams change', () async {
+    const sku = 'RE-V5RC-26-REFRESH-NOTES';
+
+    await db.upsertMatches([
+      const MatchesCompanion(
+        matchId: Value('101'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 1'),
+        field: Value('Field 1'),
+        scheduledTime: Value('09:00 AM'),
+        redTeamsJson: Value('["1111A","2222B"]'),
+        blueTeamsJson: Value('["3333C","4444D"]'),
+      ),
+      const MatchesCompanion(
+        matchId: Value('102'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 2'),
+        field: Value('Field 2'),
+        scheduledTime: Value('09:05 AM'),
+        redTeamsJson: Value('["5555E","6666F"]'),
+        blueTeamsJson: Value('["7777G","8888H"]'),
+      ),
+    ]);
+
+    // Attach a note to Q1 (Qualification 1)
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db.into(db.incidentNotes).insert(
+      IncidentNotesCompanion(
+        id: const Value('note-q1'),
+        sku: const Value(sku),
+        teamNumber: const Value('1111A'),
+        matchId: const Value('Q 1'),
+        ruleCodesJson: const Value('["<SG1>"]'),
+        severity: const Value('minor'),
+        notes: const Value('Early expansion'),
+        refereeName: const Value('Ref Jane'),
+        deviceId: const Value('dev-1'),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    );
+
+    // Refresh schedule where both Q1 and Q2 teams changed
+    final changedCount = await db.upsertMatches([
+      const MatchesCompanion(
+        matchId: Value('201'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 1'),
+        field: Value('Field 1'),
+        scheduledTime: Value('09:00 AM'),
+        redTeamsJson: Value('["1111A","9999X"]'),
+        blueTeamsJson: Value('["3333C","4444D"]'),
+      ),
+      const MatchesCompanion(
+        matchId: Value('202'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 2'),
+        field: Value('Field 2'),
+        scheduledTime: Value('09:05 AM'),
+        redTeamsJson: Value('["5555E","0000Y"]'),
+        blueTeamsJson: Value('["7777G","8888H"]'),
+      ),
+    ]);
+
+    expect(changedCount, 2);
+
+    final matches = await db.getMatchesForSku(sku);
+    // Q1 (Old schedule), Q1 (new), and Q2 (updated in place) -> 3 total matches
+    expect(matches.length, 3);
+    expect(matches[0].name, 'Qualification 1 (Old schedule)');
+    expect(jsonDecode(matches[0].redTeamsJson), ['1111A', '2222B']);
+
+    expect(matches[1].name, 'Qualification 1');
+    expect(jsonDecode(matches[1].redTeamsJson), ['1111A', '9999X']);
+
+    expect(matches[2].name, 'Qualification 2');
+    expect(jsonDecode(matches[2].redTeamsJson), ['5555E', '0000Y']);
+
+    // Refresh again with the same new schedule -> no changes and no extra duplicates
+    final secondRefreshCount = await db.upsertMatches([
+      const MatchesCompanion(
+        matchId: Value('301'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 1'),
+        field: Value('Field 1'),
+        scheduledTime: Value('09:00 AM'),
+        redTeamsJson: Value('["1111A","9999X"]'),
+        blueTeamsJson: Value('["3333C","4444D"]'),
+      ),
+      const MatchesCompanion(
+        matchId: Value('302'),
+        sku: Value(sku),
+        divisionId: Value(1),
+        name: Value('Qualification 2'),
+        field: Value('Field 2'),
+        scheduledTime: Value('09:05 AM'),
+        redTeamsJson: Value('["5555E","0000Y"]'),
+        blueTeamsJson: Value('["7777G","8888H"]'),
+      ),
+    ]);
+    expect(secondRefreshCount, 0);
+    final matchesAfterSecondRefresh = await db.getMatchesForSku(sku);
+    expect(matchesAfterSecondRefresh.length, 3);
+  });
 }
