@@ -1066,20 +1066,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPrivacyPolicyItem => 'Privacy Policy';
 
   @override
-  String get settingsVersionCopied => 'Version copied to clipboard';
+  String get settingsCopyInfoButton => 'Copy Info';
 
   @override
-  String get settingsRoboRefVersionLabel => 'RoboRef Version:';
+  String get settingsDebugInfoCopied => 'Debug info copied to clipboard';
 
   @override
-  String get settingsServerVersionFallbackLabel => 'Server Version:';
+  String get settingsRoboRefVersionLabel => 'RoboRef';
+
+  @override
+  String get settingsServerVersionFallbackLabel => 'Server';
 
   @override
   String get settingsServerVersionUnavailable => 'Unavailable';
-
-  @override
-  String get settingsServerVersionCopied =>
-      'Server version copied to clipboard';
 
   @override
   String get settingsCurrentVersionTitle => 'Current Version';

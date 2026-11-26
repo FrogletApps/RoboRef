@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -998,9 +1000,10 @@ void main() {
       expect(find.text('About RoboRef'), findsOneWidget);
       expect(find.text('Current Version'), findsOneWidget);
       expect(find.text('RELEASE'), findsNothing);
-      expect(find.text('RoboRef Version:'), findsOneWidget);
+      expect(find.text('RoboRef'), findsOneWidget);
       expect(find.text('v2026.10.11+157'), findsOneWidget);
-      expect(find.text('Copy'), findsOneWidget);
+      expect(find.text('Copy Info'), findsOneWidget);
+      expect(find.widgetWithText(TextButton, 'Copy'), findsNothing);
       expect(find.widgetWithText(ListTile, 'Change Log'), findsOneWidget);
       expect(find.widgetWithText(ListTile, 'View Source'), findsOneWidget);
       expect(find.widgetWithText(ListTile, 'Privacy Policy'), findsOneWidget);
@@ -1022,7 +1025,7 @@ void main() {
       expect(find.descendant(of: viewSourceTile, matching: find.byIcon(Icons.code_rounded)), findsOneWidget);
     });
 
-    testWidgets('copies version to clipboard when copy button is tapped', (tester) async {
+    testWidgets('copies full version and debug info to clipboard when Copy Info button is tapped', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -1030,14 +1033,35 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
-      SharedPreferences.setMockInitialValues({});
+      String? copiedText;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'Clipboard.setData') {
+            copiedText = (methodCall.arguments as Map)['text'] as String?;
+          }
+          return null;
+        },
+      );
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        );
+      });
+
+      SharedPreferences.setMockInitialValues({
+        'server_url': 'https://roboref.app',
+      });
       final prefs = await SharedPreferences.getInstance();
 
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.production),
         ],
       );
+      addTearDown(container.dispose);
 
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -1053,21 +1077,46 @@ void main() {
 
       expect(find.text('v2026.10.11+999'), findsOneWidget);
 
-      final copyButton = find.widgetWithText(TextButton, 'Copy');
-      expect(copyButton, findsOneWidget);
+      final copyInfoButton = find.byKey(const ValueKey('copy_debug_info_button'));
+      expect(copyInfoButton, findsOneWidget);
+      expect(find.widgetWithText(TextButton, 'Copy Info'), findsOneWidget);
+      expect(find.widgetWithText(TextButton, 'Copy'), findsNothing);
 
-      await tester.tap(copyButton);
+      await tester.tap(copyInfoButton);
       await tester.pump();
 
-      expect(find.text('Version copied to clipboard'), findsOneWidget);
+      expect(find.text('Debug info copied to clipboard'), findsOneWidget);
+      expect(copiedText, isNotNull);
+      expect(copiedText, contains('RoboRef: v2026.10.11+999'));
+      expect(copiedText, contains('App Environment: Live'));
+      expect(copiedText, contains('Platform: '));
+      expect(copiedText, contains('Server URL: https://roboref.app'));
+      expect(copiedText, contains('Server Environment: Live'));
     });
 
-    testWidgets('displays sanitized server name and copyable server version below RoboRef Version', (tester) async {
+    testWidgets('displays sanitized server name and version below RoboRef with single top-right Copy Info button', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
+      });
+
+      String? copiedText;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'Clipboard.setData') {
+            copiedText = (methodCall.arguments as Map)['text'] as String?;
+          }
+          return null;
+        },
+      );
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        );
       });
 
       final mockClient = MockClient((request) async {
@@ -1089,6 +1138,7 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           syncSettingsHttpClientProvider.overrideWithValue(mockClient),
+          syncSettingsEnvironmentProvider.overrideWithValue(AppEnvironment.test),
         ],
       );
       addTearDown(container.dispose);
@@ -1103,20 +1153,36 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final appLabelFinder = find.text('RoboRef Version:');
+      final titleFinder = find.text('Current Version');
+      final copyInfoBtnFinder = find.byKey(const ValueKey('copy_debug_info_button'));
+      final appLabelFinder = find.text('RoboRef');
       final appVersionFinder = find.text('v2026.11.26+303');
       final serverNameFinder = find.text('RoboApps Server (Test)');
       final serverVersionFinder = find.text('v2026.11.26+1');
-      final serverCopyBtnFinder = find.byKey(const ValueKey('copy_server_version_button'));
 
       expect(find.text('RELEASE'), findsNothing);
+      expect(find.widgetWithText(TextButton, 'Copy'), findsNothing);
+      expect(copyInfoBtnFinder, findsOneWidget);
       expect(appLabelFinder, findsOneWidget);
       expect(appVersionFinder, findsOneWidget);
       expect(serverNameFinder, findsOneWidget);
       expect(serverVersionFinder, findsOneWidget);
-      expect(serverCopyBtnFinder, findsOneWidget);
 
-      // Server name & version appear below RoboRef Version
+      // Copy Info button is positioned at the top right alongside Current Version title
+      expect(
+        (tester.getTopLeft(titleFinder).dy - tester.getTopLeft(copyInfoBtnFinder).dy).abs(),
+        lessThan(15.0),
+      );
+      expect(
+        tester.getTopLeft(titleFinder).dx,
+        lessThan(tester.getTopLeft(copyInfoBtnFinder).dx),
+      );
+      expect(
+        tester.getTopLeft(copyInfoBtnFinder).dy,
+        lessThan(tester.getTopLeft(appLabelFinder).dy),
+      );
+
+      // Server name & version appear below RoboRef
       expect(
         tester.getTopLeft(appLabelFinder).dy,
         lessThan(tester.getTopLeft(serverNameFinder).dy),
@@ -1126,10 +1192,30 @@ void main() {
         lessThan(tester.getTopLeft(serverVersionFinder).dy),
       );
 
-      // Copy server version button works
-      await tester.tap(serverCopyBtnFinder);
+      // On wide screens, full server name appears to the left of server version without truncation
+      expect(
+        (tester.getTopLeft(serverNameFinder).dy - tester.getTopLeft(serverVersionFinder).dy).abs(),
+        lessThan(15.0),
+      );
+      expect(
+        tester.getTopLeft(serverNameFinder).dx,
+        lessThan(tester.getTopLeft(serverVersionFinder).dx),
+      );
+      final serverNameRender = tester.renderObject<RenderParagraph>(serverNameFinder);
+      expect(serverNameRender.didExceedMaxLines, isFalse);
+      final appLabelRender = tester.renderObject<RenderParagraph>(appLabelFinder);
+      expect(appLabelRender.didExceedMaxLines, isFalse);
+
+      // Tapping Copy Info copies all version & debug info
+      await tester.tap(copyInfoBtnFinder);
       await tester.pump();
-      expect(find.text('Server version copied to clipboard'), findsOneWidget);
+      expect(find.text('Debug info copied to clipboard'), findsOneWidget);
+      expect(copiedText, contains('RoboRef: v2026.11.26+303'));
+      expect(copiedText, contains('App Environment: Test'));
+      expect(copiedText, contains('Server: RoboApps Server (Test)'));
+      expect(copiedText, contains('Server Version: v2026.11.26+1'));
+      expect(copiedText, contains('Server URL: https://test.roboref.app'));
+      expect(copiedText, contains('Server Environment: Test'));
     });
 
     testWidgets('adapts version card layout responsively across wide, medium, and small screens (DPR 2.75, width < 330px)', (tester) async {
@@ -1148,7 +1234,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // 1. Wide screen (800px) - Single line layout: "RoboRef Version:" to the left of version + Copy button
+      // 1. Wide screen (800px) - Header with Copy Info on right, RoboRef to the left of version
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
 
@@ -1164,58 +1250,49 @@ void main() {
       expect(tester.takeException(), isNull);
 
       expect(find.text('RELEASE'), findsNothing);
-      final labelFinder = find.text('RoboRef Version:');
+      final titleFinder = find.text('Current Version');
+      final labelFinder = find.text('RoboRef');
       final versionFinder = find.text('v2026.10.16+167');
-      final copyBtnFinder = find.byKey(const ValueKey('copy_app_version_button'));
+      final copyBtnFinder = find.byKey(const ValueKey('copy_debug_info_button'));
 
+      expect(titleFinder, findsOneWidget);
       expect(labelFinder, findsOneWidget);
       expect(versionFinder, findsOneWidget);
       expect(copyBtnFinder, findsOneWidget);
 
+      final titlePosWide = tester.getTopLeft(titleFinder);
       final labelPosWide = tester.getTopLeft(labelFinder);
       final versionPosWide = tester.getTopLeft(versionFinder);
       final copyPosWide = tester.getTopLeft(copyBtnFinder);
 
-      // On wide screen, RoboRef Version: and version are horizontally arranged on the same row
+      // On wide screen, Current Version and Copy Info share the top row
+      expect((titlePosWide.dy - copyPosWide.dy).abs(), lessThan(15.0));
+      expect(titlePosWide.dx, lessThan(copyPosWide.dx));
+      // RoboRef and version are horizontally arranged on the same row below header
       expect((labelPosWide.dy - versionPosWide.dy).abs(), lessThan(15.0));
       expect(labelPosWide.dx, lessThan(versionPosWide.dx));
-      expect(versionPosWide.dx, lessThan(copyPosWide.dx));
 
-      // 2. Medium screen (500px in test environment with Ahem font) - Label goes above version / copy row
-      tester.view.physicalSize = const Size(500, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-
-      final labelPosMedium = tester.getTopLeft(labelFinder);
-      final versionPosMedium = tester.getTopLeft(versionFinder);
-      final copyPosMedium = tester.getTopLeft(copyBtnFinder);
-
-      // Label is above version and copy button
-      expect(labelPosMedium.dy, lessThan(versionPosMedium.dy));
-      // Version and copy button share the same row
-      expect((versionPosMedium.dy - copyPosMedium.dy).abs(), lessThan(15.0));
-      expect(versionPosMedium.dx, lessThan(copyPosMedium.dx));
-
-      // 3. Small screen with DPR 2.75 and horizontal resolution < 330px (e.g. 320px)
-      // Label above version, and copy button on another line below that
+      // 2. Small screen with DPR 2.75 and horizontal resolution < 330px (e.g. 320px)
+      // Header wraps cleanly and label stacks above version box without overflow
       tester.view.physicalSize = const Size(320 * 2.75, 1200 * 2.75);
       tester.view.devicePixelRatio = 2.75;
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
 
+      final titlePosSmall = tester.getTopLeft(titleFinder);
+      final copyPosSmall = tester.getTopLeft(copyBtnFinder);
       final labelPosSmall = tester.getTopLeft(labelFinder);
       final versionPosSmall = tester.getTopLeft(versionFinder);
-      final copyPosSmall = tester.getTopLeft(copyBtnFinder);
 
-      // Stage 3 vertical hierarchy: Label < version < Copy button
+      // Vertical hierarchy on narrow screen: Title < Copy Info < Label < Version
+      expect(titlePosSmall.dy, lessThan(copyPosSmall.dy));
+      expect(copyPosSmall.dy, lessThan(labelPosSmall.dy));
       expect(labelPosSmall.dy, lessThan(versionPosSmall.dy));
-      expect(versionPosSmall.dy, lessThan(copyPosSmall.dy));
 
-      // Tap Copy button in small screen layout and verify copying works
+      // Tap Copy Info button in small screen layout and verify copying works
       await tester.tap(copyBtnFinder);
       await tester.pump();
-      expect(find.text('Version copied to clipboard'), findsOneWidget);
+      expect(find.text('Debug info copied to clipboard'), findsOneWidget);
     });
 
     testWidgets('navigates to ChangeLogScreen when Change Log tile is tapped', (tester) async {

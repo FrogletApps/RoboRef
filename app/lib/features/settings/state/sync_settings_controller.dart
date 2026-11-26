@@ -23,6 +23,7 @@ class ServerHealthResult {
   final Duration? latency;
   final String? serverName;
   final String? serverVersion;
+  final String? serverEnvironment;
 
   const ServerHealthResult({
     required this.isSuccess,
@@ -32,6 +33,7 @@ class ServerHealthResult {
     this.latency,
     this.serverName,
     this.serverVersion,
+    this.serverEnvironment,
   });
 }
 
@@ -129,6 +131,7 @@ class SyncSettingsState {
   final bool experimentalFeaturesEnabled;
   final String? serverName;
   final String? serverVersion;
+  final String? serverEnvironment;
 
   SyncSettingsState({
     required this.currentSku,
@@ -144,6 +147,7 @@ class SyncSettingsState {
     this.experimentalFeaturesEnabled = false,
     this.serverName,
     this.serverVersion,
+    this.serverEnvironment,
   });
 
   SyncSettingsState copyWith({
@@ -160,6 +164,7 @@ class SyncSettingsState {
     bool? experimentalFeaturesEnabled,
     Object? serverName = _unset,
     Object? serverVersion = _unset,
+    Object? serverEnvironment = _unset,
   }) {
     return SyncSettingsState(
       currentSku: currentSku ?? this.currentSku,
@@ -180,6 +185,9 @@ class SyncSettingsState {
       serverVersion: identical(serverVersion, _unset)
           ? this.serverVersion
           : serverVersion as String?,
+      serverEnvironment: identical(serverEnvironment, _unset)
+          ? this.serverEnvironment
+          : serverEnvironment as String?,
     );
   }
 }
@@ -249,6 +257,7 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
       serverUrl: newServerUrl,
       serverName: serverChanged ? null : state.serverName,
       serverVersion: serverChanged ? null : state.serverVersion,
+      serverEnvironment: serverChanged ? null : state.serverEnvironment,
     );
     checkServerHealth();
   }
@@ -270,6 +279,7 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
         serverUrl: url,
         serverName: serverChanged ? null : state.serverName,
         serverVersion: serverChanged ? null : state.serverVersion,
+        serverEnvironment: serverChanged ? null : state.serverEnvironment,
       );
       checkServerHealth();
     }
@@ -312,6 +322,8 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
           state = state.copyWith(
             serverName: info.serverName ?? state.serverName,
             serverVersion: info.serverVersion ?? state.serverVersion,
+            serverEnvironment:
+                info.serverEnvironment ?? state.serverEnvironment,
           );
         }
         return info;
@@ -346,6 +358,7 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
           lastConnectionSuccess: false,
           serverName: null,
           serverVersion: null,
+          serverEnvironment: null,
         );
       }
       return result;
@@ -412,6 +425,8 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
                   serverName: serverInfo.serverName ?? versionInfo.serverName,
                   serverVersion:
                       serverInfo.serverVersion ?? versionInfo.serverVersion,
+                  serverEnvironment: serverInfo.serverEnvironment ??
+                      versionInfo.serverEnvironment,
                 );
               }
             } catch (_) {
@@ -427,6 +442,7 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
             lastConnectionSuccess: true,
             serverName: serverInfo.serverName,
             serverVersion: serverInfo.serverVersion,
+            serverEnvironment: serverInfo.serverEnvironment,
           );
         }
 
@@ -438,6 +454,7 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
           latency: stopwatch.elapsed,
           serverName: serverInfo.serverName,
           serverVersion: serverInfo.serverVersion,
+          serverEnvironment: serverInfo.serverEnvironment,
         );
       } else {
         final msg = l10n.errorServerReachableHttpStatus(res.statusCode);
@@ -448,6 +465,7 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
             lastConnectionSuccess: false,
             serverName: null,
             serverVersion: null,
+            serverEnvironment: null,
           );
         }
         return ServerHealthResult(
@@ -481,6 +499,7 @@ class SyncSettingsNotifier extends Notifier<SyncSettingsState> {
           lastConnectionSuccess: false,
           serverName: null,
           serverVersion: null,
+          serverEnvironment: null,
         );
       }
 

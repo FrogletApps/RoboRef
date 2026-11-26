@@ -1814,22 +1814,28 @@ abstract class AppLocalizations {
   /// **'Privacy Policy'**
   String get settingsPrivacyPolicyItem;
 
-  /// Snackbar message when the app version string is copied
+  /// Button label to copy version and debug information
   ///
   /// In en, this message translates to:
-  /// **'Version copied to clipboard'**
-  String get settingsVersionCopied;
+  /// **'Copy Info'**
+  String get settingsCopyInfoButton;
+
+  /// Snackbar message when version and debug information is copied
+  ///
+  /// In en, this message translates to:
+  /// **'Debug info copied to clipboard'**
+  String get settingsDebugInfoCopied;
 
   /// Label displayed to the left of the RoboRef application version
   ///
   /// In en, this message translates to:
-  /// **'RoboRef Version:'**
+  /// **'RoboRef'**
   String get settingsRoboRefVersionLabel;
 
   /// Fallback label when the server name has not been received
   ///
   /// In en, this message translates to:
-  /// **'Server Version:'**
+  /// **'Server'**
   String get settingsServerVersionFallbackLabel;
 
   /// Placeholder text shown when the server version cannot be retrieved
@@ -1837,12 +1843,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unavailable'**
   String get settingsServerVersionUnavailable;
-
-  /// Snackbar message when the server version string is copied
-  ///
-  /// In en, this message translates to:
-  /// **'Server version copied to clipboard'**
-  String get settingsServerVersionCopied;
 
   /// Title on the version card in Settings
   ///

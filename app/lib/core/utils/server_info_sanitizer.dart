@@ -72,23 +72,27 @@ String? sanitizeServerVersion(Object? raw) =>
 class ServerInfo {
   final String? serverName;
   final String? serverVersion;
+  final String? serverEnvironment;
 
   const ServerInfo({
     this.serverName,
     this.serverVersion,
+    this.serverEnvironment,
   });
 
-  bool get hasAny => serverName != null || serverVersion != null;
+  bool get hasAny =>
+      serverName != null || serverVersion != null || serverEnvironment != null;
 }
 
-/// Safely extracts and sanitizes `server` (`SERVER_NAME`) and `version` from an HTTP
-/// `/api/health` or `/api/version` response body and optional headers.
+/// Safely extracts and sanitizes `server` (`SERVER_NAME`), `version`, and optional
+/// `environment` from an HTTP `/api/health` or `/api/version` response body and headers.
 ServerInfo parseServerInfoFromResponse({
   required String body,
   Map<String, String>? headers,
 }) {
   String? serverName;
   String? serverVersion;
+  String? serverEnvironment;
 
   if (body.isNotEmpty && body.length <= maxServerInfoResponseLength) {
     try {
@@ -96,6 +100,10 @@ ServerInfo parseServerInfoFromResponse({
       if (decoded is Map) {
         serverName = sanitizeServerName(decoded['server']);
         serverVersion = sanitizeServerVersion(decoded['version']);
+        serverEnvironment = sanitizeServerText(
+          decoded['environment'],
+          maxLength: 24,
+        );
       }
     } catch (_) {
       // Ignore malformed JSON (e.g. HTML error pages or captive portals)
@@ -114,5 +122,6 @@ ServerInfo parseServerInfoFromResponse({
   return ServerInfo(
     serverName: serverName,
     serverVersion: serverVersion,
+    serverEnvironment: serverEnvironment,
   );
 }

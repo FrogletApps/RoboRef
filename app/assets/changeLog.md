@@ -2,7 +2,7 @@
 
 ## 2026.11.26+303
 
-- **Settings Version Display**: Replaced the `RELEASE` badge with `RoboRef Version:` and added the connected server's name and copyable version underneath.
+- **Settings Version & Debug Info**: Replaced the `RELEASE` badge with `RoboRef`, added the connected server's name and version underneath, and added a single `Copy Info` button that copies versions and diagnostic details.
 
 ## 2026.11.22+301
 

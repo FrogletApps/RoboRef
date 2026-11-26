@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../core/theme/theme_controller.dart';
+import '../../../core/utils/debug_info_formatter.dart';
 import '../../../core/utils/sku_utils.dart';
 import '../state/sync_settings_controller.dart';
 import '../../incidents/state/incident_controller.dart';
@@ -699,6 +700,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 context,
                 Theme.of(context).brightness == Brightness.dark,
                 settings,
+                env,
               ),
               const SizedBox(height: 10),
               Card(
@@ -1054,44 +1056,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildCopyButton(
+  Widget _buildCopyInfoButton(
     BuildContext context, {
-    Key? key,
-    required String textToCopy,
-    required String copiedMessage,
+    required SyncSettingsState settings,
+    required AppEnvironment appEnvironment,
   }) {
     return TextButton.icon(
-      key: key,
+      key: const ValueKey('copy_debug_info_button'),
       onPressed: () {
-        Clipboard.setData(ClipboardData(text: textToCopy));
+        final debugInfo = buildDebugInfoText(
+          appVersion: _version,
+          appEnvironment: appEnvironment,
+          serverUrl: settings.serverUrl,
+          connectionStatus: settings.connectionStatus,
+          serverName: settings.serverName,
+          serverVersion: settings.serverVersion,
+          serverEnvironment: settings.serverEnvironment,
+        );
+        Clipboard.setData(ClipboardData(text: debugInfo));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(copiedMessage),
-            duration: const Duration(seconds: 1),
+            content: Text(context.l10n.settingsDebugInfoCopied),
+            duration: const Duration(seconds: 2),
           ),
         );
       },
       icon: const Icon(Icons.copy, size: 16),
-      label: Text(context.l10n.commonCopy),
+      label: Text(context.l10n.settingsCopyInfoButton),
       style: TextButton.styleFrom(
         visualDensity: VisualDensity.compact,
       ),
     );
   }
 
-  Widget _buildCopyableFieldContainer(
+  Widget _buildVersionValueContainer(
     BuildContext context, {
     required bool isDark,
-    required bool hasCopyButton,
     required Widget child,
     double? width,
   }) {
     return Container(
       width: width,
-      padding: EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: hasCopyButton ? 8 : 12,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -1104,17 +1110,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   double _measureTextWidth(
+    BuildContext context,
     String text,
     TextStyle? style,
     TextScaler textScaler,
   ) {
+    final effectiveStyle = DefaultTextStyle.of(context).style.merge(style);
     final painter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: TextDirection.ltr,
+      text: TextSpan(text: text, style: effectiveStyle),
+      textDirection: Directionality.of(context),
       textScaler: textScaler,
       maxLines: 1,
     )..layout();
-    return painter.width;
+    return painter.width.ceilToDouble() + 4.0;
   }
 
   Widget _buildVersionEntry(
@@ -1128,97 +1136,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required TextStyle labelStyle,
     required String displayValue,
     required TextStyle valueStyle,
-    required String? copyValue,
-    required String copiedMessage,
-    required Key copyButtonKey,
   }) {
     const labelFieldGap = 12.0;
-    const minHorizontalGap = 8.0;
     final effectiveLabelWidth = alignedLabelWidth ?? labelWidth;
     final canPlaceSideBySide =
-        effectiveLabelWidth <= maxWidth * 0.45 &&
         effectiveLabelWidth + labelFieldGap + minBoxWidth <= maxWidth;
 
     if (canPlaceSideBySide) {
-      // Stage 1: Label to the left of the copyable version box on a single row
+      // Stage 1: Full label to the left of the version box on a single row
+      final labelWidget = Text(
+        label,
+        style: labelStyle,
+        maxLines: 1,
+        softWrap: false,
+      );
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            width: effectiveLabelWidth,
-            child: Text(
-              label,
-              style: labelStyle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
+          if (alignedLabelWidth != null)
+            ConstrainedBox(
+              constraints: BoxConstraints(minWidth: alignedLabelWidth),
+              child: labelWidget,
+            )
+          else
+            labelWidget,
           const SizedBox(width: labelFieldGap),
           Expanded(
-            child: _buildCopyableFieldContainer(
+            child: _buildVersionValueContainer(
               context,
               isDark: isDark,
-              hasCopyButton: copyValue != null,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(child: _buildVersionText(displayValue, valueStyle)),
-                  if (copyValue != null) ...[
-                    const SizedBox(width: minHorizontalGap),
-                    _buildCopyButton(
-                      context,
-                      key: copyButtonKey,
-                      textToCopy: copyValue,
-                      copiedMessage: copiedMessage,
-                    ),
-                  ],
-                ],
-              ),
+              child: _buildVersionText(displayValue, valueStyle),
             ),
           ),
         ],
       );
     }
 
-    if (maxWidth >= minBoxWidth) {
-      // Stage 2: Label above the copyable version box (version and copy button side-by-side)
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: labelStyle,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          _buildCopyableFieldContainer(
-            context,
-            isDark: isDark,
-            hasCopyButton: copyValue != null,
-            width: double.infinity,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(child: _buildVersionText(displayValue, valueStyle)),
-                if (copyValue != null) ...[
-                  const SizedBox(width: minHorizontalGap),
-                  _buildCopyButton(
-                    context,
-                    key: copyButtonKey,
-                    textToCopy: copyValue,
-                    copiedMessage: copiedMessage,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Stage 3: Label above the copyable box, with version above the copy button inside
+    // Stage 2: Label above the full-width version box
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -1230,37 +1184,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 6),
-        _buildCopyableFieldContainer(
+        _buildVersionValueContainer(
           context,
           isDark: isDark,
-          hasCopyButton: copyValue != null,
           width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildVersionText(displayValue, valueStyle),
-              if (copyValue != null) ...[
-                const SizedBox(height: 4),
-                _buildCopyButton(
-                  context,
-                  key: copyButtonKey,
-                  textToCopy: copyValue,
-                  copiedMessage: copiedMessage,
-                ),
-              ],
-            ],
-          ),
+          child: _buildVersionText(displayValue, valueStyle),
         ),
       ],
     );
   }
 
-  /// Version Card with RoboRef Version and Server Name / Version copyable fields
+  /// Version Card with a single top-right Copy Info button and RoboRef / Server version rows
   Widget _buildVersionCard(
     BuildContext context,
     bool isDark,
     SyncSettingsState settings,
+    AppEnvironment appEnvironment,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final labelStyle = TextStyle(
@@ -1302,123 +1241,164 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final textScaler = MediaQuery.textScalerOf(context);
+            final maxWidth = constraints.maxWidth;
+
+            const titleStyle = TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            );
+            final titleWidth = _measureTextWidth(
+              context,
+              context.l10n.settingsCurrentVersionTitle,
+              titleStyle,
+              textScaler,
+            );
+            final copyBtnWidth = (_measureTextWidth(
+                      context,
+                      context.l10n.settingsCopyInfoButton,
+                      Theme.of(context).textTheme.labelLarge,
+                      textScaler,
+                    ) +
+                    52.0)
+                .clamp(84.0, double.infinity);
+
+            final headerFitsSingleLine =
+                (18.0 + 8.0 + titleWidth + 8.0 + copyBtnWidth) <= maxWidth;
+
+            final copyInfoButton = _buildCopyInfoButton(
+              context,
+              settings: settings,
+              appEnvironment: appEnvironment,
+            );
+
+            const boxChromeWidth = 26.0;
+            const labelFieldGap = 12.0;
+
+            final appLabelWidth = _measureTextWidth(
+              context,
+              appLabel,
+              labelStyle,
+              textScaler,
+            );
+            final appValueWidth = _measureTextWidth(
+              context,
+              appDisplayValue,
+              activeVersionStyle,
+              textScaler,
+            );
+            final appMinBoxWidth = boxChromeWidth + appValueWidth;
+
+            final serverLabelWidth = _measureTextWidth(
+              context,
+              serverLabel,
+              labelStyle,
+              textScaler,
+            );
+            final serverValueWidth = _measureTextWidth(
+              context,
+              serverDisplayValue,
+              serverValueStyle,
+              textScaler,
+            );
+            final serverMinBoxWidth = boxChromeWidth + serverValueWidth;
+
+            final candidateAlignedLabelWidth =
+                math.max(appLabelWidth, serverLabelWidth);
+            final bothAlignSideBySide =
+                candidateAlignedLabelWidth + labelFieldGap + appMinBoxWidth <=
+                    maxWidth &&
+                candidateAlignedLabelWidth +
+                        labelFieldGap +
+                        serverMinBoxWidth <=
+                    maxWidth;
+
+            final alignedWidth =
+                bothAlignSideBySide ? candidateAlignedLabelWidth : null;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  size: 18,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.settingsCurrentVersionTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                if (headerFitsSingleLine)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        size: 18,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          context.l10n.settingsCurrentVersionTitle,
+                          style: titleStyle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      copyInfoButton,
+                    ],
+                  )
+                else ...[
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        size: 18,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          context.l10n.settingsCurrentVersionTitle,
+                          style: titleStyle,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  copyInfoButton,
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  context.l10n.settingsCurrentVersionDescription,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
+                const SizedBox(height: 12),
+                _buildVersionEntry(
+                  context,
+                  isDark: isDark,
+                  maxWidth: maxWidth,
+                  labelWidth: appLabelWidth,
+                  alignedLabelWidth: alignedWidth,
+                  minBoxWidth: appMinBoxWidth,
+                  label: appLabel,
+                  labelStyle: labelStyle,
+                  displayValue: appDisplayValue,
+                  valueStyle: activeVersionStyle,
+                ),
+                const SizedBox(height: 10),
+                _buildVersionEntry(
+                  context,
+                  isDark: isDark,
+                  maxWidth: maxWidth,
+                  labelWidth: serverLabelWidth,
+                  alignedLabelWidth: alignedWidth,
+                  minBoxWidth: serverMinBoxWidth,
+                  label: serverLabel,
+                  labelStyle: labelStyle,
+                  displayValue: serverDisplayValue,
+                  valueStyle: serverValueStyle,
+                ),
               ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              context.l10n.settingsCurrentVersionDescription,
-              style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 12),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final textScaler = MediaQuery.textScalerOf(context);
-                final maxWidth = constraints.maxWidth;
-
-                final copyBtnWidth = (_measureTextWidth(
-                          context.l10n.commonCopy,
-                          Theme.of(context).textTheme.labelLarge,
-                          textScaler,
-                        ) +
-                        52.0)
-                    .clamp(64.0, double.infinity);
-
-                const boxChromeWidth = 26.0;
-                const minHorizontalGap = 8.0;
-                const labelFieldGap = 12.0;
-
-                final appLabelWidth =
-                    _measureTextWidth(appLabel, labelStyle, textScaler);
-                final appValueWidth = _measureTextWidth(
-                  appDisplayValue,
-                  activeVersionStyle,
-                  textScaler,
-                );
-                final appMinBoxWidth =
-                    boxChromeWidth + appValueWidth + minHorizontalGap + copyBtnWidth;
-
-                final serverLabelWidth =
-                    _measureTextWidth(serverLabel, labelStyle, textScaler);
-                final serverValueWidth = _measureTextWidth(
-                  serverDisplayValue,
-                  serverValueStyle,
-                  textScaler,
-                );
-                final serverMinBoxWidth = boxChromeWidth +
-                    serverValueWidth +
-                    (serverVersion != null ? minHorizontalGap + copyBtnWidth : 0.0);
-
-                final candidateAlignedLabelWidth =
-                    math.max(appLabelWidth, serverLabelWidth);
-                final bothAlignSideBySide =
-                    candidateAlignedLabelWidth <= maxWidth * 0.45 &&
-                    candidateAlignedLabelWidth + labelFieldGap + appMinBoxWidth <=
-                        maxWidth &&
-                    candidateAlignedLabelWidth +
-                            labelFieldGap +
-                            serverMinBoxWidth <=
-                        maxWidth;
-
-                final alignedWidth =
-                    bothAlignSideBySide ? candidateAlignedLabelWidth : null;
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildVersionEntry(
-                      context,
-                      isDark: isDark,
-                      maxWidth: maxWidth,
-                      labelWidth: appLabelWidth,
-                      alignedLabelWidth: alignedWidth,
-                      minBoxWidth: appMinBoxWidth,
-                      label: appLabel,
-                      labelStyle: labelStyle,
-                      displayValue: appDisplayValue,
-                      valueStyle: activeVersionStyle,
-                      copyValue: _version,
-                      copiedMessage: context.l10n.settingsVersionCopied,
-                      copyButtonKey: const ValueKey('copy_app_version_button'),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildVersionEntry(
-                      context,
-                      isDark: isDark,
-                      maxWidth: maxWidth,
-                      labelWidth: serverLabelWidth,
-                      alignedLabelWidth: alignedWidth,
-                      minBoxWidth: serverMinBoxWidth,
-                      label: serverLabel,
-                      labelStyle: labelStyle,
-                      displayValue: serverDisplayValue,
-                      valueStyle: serverValueStyle,
-                      copyValue: serverVersion,
-                      copiedMessage: context.l10n.settingsServerVersionCopied,
-                      copyButtonKey: const ValueKey('copy_server_version_button'),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

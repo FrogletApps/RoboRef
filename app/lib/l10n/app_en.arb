@@ -1513,25 +1513,25 @@
   "@settingsPrivacyPolicyItem": {
     "description": "List tile title and screen title for the Privacy Policy"
   },
-  "settingsVersionCopied": "Version copied to clipboard",
-  "@settingsVersionCopied": {
-    "description": "Snackbar message when the app version string is copied"
+  "settingsCopyInfoButton": "Copy Info",
+  "@settingsCopyInfoButton": {
+    "description": "Button label to copy version and debug information"
   },
-  "settingsRoboRefVersionLabel": "RoboRef Version:",
+  "settingsDebugInfoCopied": "Debug info copied to clipboard",
+  "@settingsDebugInfoCopied": {
+    "description": "Snackbar message when version and debug information is copied"
+  },
+  "settingsRoboRefVersionLabel": "RoboRef",
   "@settingsRoboRefVersionLabel": {
     "description": "Label displayed to the left of the RoboRef application version"
   },
-  "settingsServerVersionFallbackLabel": "Server Version:",
+  "settingsServerVersionFallbackLabel": "Server",
   "@settingsServerVersionFallbackLabel": {
     "description": "Fallback label when the server name has not been received"
   },
   "settingsServerVersionUnavailable": "Unavailable",
   "@settingsServerVersionUnavailable": {
     "description": "Placeholder text shown when the server version cannot be retrieved"
-  },
-  "settingsServerVersionCopied": "Server version copied to clipboard",
-  "@settingsServerVersionCopied": {
-    "description": "Snackbar message when the server version string is copied"
   },
   "settingsCurrentVersionTitle": "Current Version",
   "@settingsCurrentVersionTitle": {
